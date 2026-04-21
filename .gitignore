@@ -1,0 +1,102 @@
+# ─────────────────────────────────────────────
+#  Kinetic App — .gitignore
+#  React Native + Expo + Node.js
+# ─────────────────────────────────────────────
+
+# ─── Dependências Node ───────────────────────
+node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+package-lock.json     # opcional: comente se quiser versionar
+# yarn.lock           # opcional: descomente se usar Yarn
+
+# ─── Expo ────────────────────────────────────
+.expo/
+.expo-shared/
+dist/
+web-build/
+expo-env.d.ts
+
+# ─── Build React Native ──────────────────────
+android/
+ios/
+*.apk
+*.aab
+*.ipa
+*.jks
+*.keystore
+*.p12
+*.mobileprovision
+
+# ─── Variáveis de Ambiente (NUNCA versionar) ─
+.env
+.env.local
+.env.development
+.env.staging
+.env.production
+.env.*
+!.env.example        # arquivo de exemplo pode ser versionado
+
+# ─── Dados Sensíveis / Chaves ────────────────
+*.pem
+*.key
+*.cert
+*.p8
+google-services.json
+GoogleService-Info.plist
+*secret*
+*credentials*
+
+# ─── Cache e Temporários ─────────────────────
+.cache/
+*.log
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# ─── Metro Bundler ───────────────────────────
+.metro-health-check-result
+
+# ─── Editores e IDEs ─────────────────────────
+.vscode/settings.json
+.vscode/launch.json
+.vscode/*.log
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.orig
+
+# ─── TypeScript ──────────────────────────────
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# ─── Testes ──────────────────────────────────
+coverage/
+.nyc_output/
+jest-results/
+
+# ─── Sistema Operacional ─────────────────────
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# ─── Pastas de contexto interno / AI ─────────
+.gemini/

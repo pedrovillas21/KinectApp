@@ -1,0 +1,143 @@
+import React, { useContext, useState } from 'react';
+import {
+  View, Text, StyleSheet, SafeAreaView, TouchableOpacity,
+  ScrollView, KeyboardAvoidingView, Platform, Alert
+} from 'react-native';
+import { ThemeContext } from '../../contexts/ThemeContext';
+import { AuthContext } from '../../contexts/AuthContext';
+import { COLORS } from '../../theme/colors';
+import HeaderLogo from '../../components/HeaderLogo';
+import CustomInput from '../../components/CustomInput';
+import PrimaryButton from '../../components/PrimaryButton';
+
+export default function ResetPasswordScreen({ navigation, route }) {
+  const { isDarkMode } = useContext(ThemeContext);
+  const { resetPassword } = useContext(AuthContext);
+  const isDark = isDarkMode;
+
+  // E-mail vem da tela anterior via params
+  const email = route?.params?.email ?? '';
+
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // Checagens reativas de requisitos
+  const hasMinLength  = newPassword.length >= 8;
+  const hasUppercase  = /[A-Z]/.test(newPassword);
+  const hasNumber     = /[0-9]/.test(newPassword);
+  const hasSymbol     = /[^A-Za-z0-9]/.test(newPassword);
+
+  const Req = ({ met, label }) => (
+    <Text style={styles.reqItem}>
+      <Text style={met ? styles.checkIcon : styles.uncheckIcon}>{met ? '✓' : '●'}</Text>
+      {' '}{label}
+    </Text>
+  );
+
+  const handleReset = () => {
+    if (!newPassword || !confirmPassword) {
+      Alert.alert('Campos obrigatórios', 'Preencha os dois campos de senha.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      Alert.alert('Senhas diferentes', 'A nova senha e a confirmação não coincidem.');
+      return;
+    }
+    if (newPassword.length < 6) {
+      Alert.alert('Senha fraca', 'Use ao menos 6 caracteres.');
+      return;
+    }
+
+    setLoading(true);
+    const result = resetPassword(email, newPassword);
+    setLoading(false);
+
+    if (!result.success) {
+      Alert.alert('Erro', result.error);
+      return;
+    }
+
+    Alert.alert(
+      'Senha atualizada! ✅',
+      'Sua senha foi redefinida com sucesso. Faça login com a nova senha.',
+      [{ text: 'Fazer Login', onPress: () => navigation.navigate('Login') }]
+    );
+  };
+
+  return (
+    <SafeAreaView style={[styles.container, { backgroundColor: isDark ? COLORS.darkBackground : COLORS.lightBackground }]}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <HeaderLogo showBack />
+
+          <Text style={[styles.title, { color: isDark ? COLORS.textPrimaryDark : COLORS.textPrimaryLight }]}>
+            Redefinir Senha
+          </Text>
+
+          <Text style={[styles.subtitle, { color: isDark ? COLORS.textSecondaryDark : COLORS.textSecondaryLight }]}>
+            {email ? `Redefinindo para: ${email}` : 'Insira sua nova senha.'}
+          </Text>
+
+          <View style={styles.formContainer}>
+            <CustomInput
+              label="NOVA SENHA"
+              placeholder="Mínimo 8 caracteres"
+              secureTextEntry
+              value={newPassword}
+              onChangeText={setNewPassword}
+              icon={<Text style={{ color: '#888' }}>🔒</Text>}
+            />
+            <CustomInput
+              label="CONFIRMAR NOVA SENHA"
+              placeholder="Repita a nova senha"
+              secureTextEntry
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              icon={<Text style={{ color: '#888' }}>🔒</Text>}
+            />
+
+            {/* Card de requisitos de segurança dinâmico */}
+            <View style={[styles.requirementsCard, { backgroundColor: isDark ? COLORS.darkCard : COLORS.lightCard }]}>
+              <Text style={styles.reqTitle}>REQUISITOS DE SEGURANÇA</Text>
+              <View style={styles.reqGrid}>
+                <Req met={hasMinLength} label="8+ caracteres" />
+                <Req met={hasUppercase} label="Letra maiúscula" />
+                <Req met={hasNumber}    label="Um número" />
+                <Req met={hasSymbol}    label="Símbolo especial" />
+              </View>
+            </View>
+
+            <PrimaryButton
+              title="ATUALIZAR SENHA ⚷"
+              onPress={handleReset}
+              isLoading={loading}
+            />
+          </View>
+
+          <TouchableOpacity style={styles.footerButton} onPress={() => navigation.navigate('Login')}>
+            <Text style={[styles.footerText, { color: isDark ? COLORS.textSecondaryDark : COLORS.textSecondaryLight }]}>
+              ◂ Voltar para o login
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  scrollContent: { paddingHorizontal: 24, paddingBottom: 40, flexGrow: 1 },
+  title: { fontSize: 28, fontWeight: 'bold', marginTop: 40, marginBottom: 8 },
+  subtitle: { fontSize: 14, marginBottom: 32, color: '#888' },
+  formContainer: { paddingVertical: 16 },
+  requirementsCard: { padding: 16, borderRadius: 8, marginBottom: 24 },
+  reqTitle: { fontSize: 12, fontWeight: 'bold', color: '#888', marginBottom: 12, letterSpacing: 1 },
+  reqGrid: { flexDirection: 'row', flexWrap: 'wrap' },
+  reqItem: { width: '50%', color: '#A0A0A0', fontSize: 13, marginBottom: 8 },
+  checkIcon: { color: COLORS.neonBlue, fontWeight: 'bold' },
+  uncheckIcon: { color: '#444' },
+  footerButton: { alignItems: 'center', marginTop: 'auto', paddingTop: 40 },
+  footerText: { fontSize: 14 },
+});
