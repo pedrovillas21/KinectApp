@@ -60,8 +60,8 @@ export const AuthProvider = ({ children }) => {
     setIsLoggedIn(false);
   };
 
-  const completeOnboarding = () => {
-    const updated = { ...currentUser, hasOnboarded: true };
+  const completeOnboarding = (data) => {
+    const updated = { ...currentUser, hasOnboarded: true, level: data?.level || 'INICIANTE' };
     setCurrentUser(updated);
     // Persiste no banco mock também
     setUsers((prev) =>
