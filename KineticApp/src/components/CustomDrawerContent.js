@@ -41,6 +41,15 @@ export default function CustomDrawerContent(props) {
     ? currentUser.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
     : '?';
 
+  // Descobre a tab ativa pela state do Navigator
+  let activeTabName = 'Home';
+  try {
+    const mainTabsRoute = props.state.routes.find(r => r.name === 'MainTabs');
+    if (mainTabsRoute && mainTabsRoute.state) {
+      activeTabName = mainTabsRoute.state.routes[mainTabsRoute.state.index].name;
+    }
+  } catch(e) {}
+
   return (
     <View style={{ flex: 1, backgroundColor: THEME.bg }}>
       <DrawerContentScrollView {...props} contentContainerStyle={{ paddingTop: 0 }}>
@@ -55,11 +64,11 @@ export default function CustomDrawerContent(props) {
 
         {/* Navigation Items */}
         <View style={styles.navSection}>
-          {navItem('TRAIN', '🏋️', 'Train', false)}
-          {navItem('HOME', '🏠', 'Home', true)}
-          {navItem('STATS', '📊', 'Stats', false)}
-          {navItem('SOCIAL', '👥', 'Social', false)}
-          {navItem('GEAR', '⚙️', 'Profile', false)}
+          {navItem('TRAIN', '🏋️', 'Train', activeTabName === 'Train')}
+          {navItem('HOME', '🏠', 'Home', activeTabName === 'Home')}
+          {navItem('STATS', '📊', 'Stats', activeTabName === 'Stats')}
+          {navItem('SOCIAL', '👥', 'Social', activeTabName === 'Social')}
+          {navItem('GEAR', '⚙️', 'Profile', activeTabName === 'Profile')}
         </View>
 
         {/* Account Section */}
@@ -98,7 +107,9 @@ export default function CustomDrawerContent(props) {
             <Text style={[styles.profileName, { color: THEME.text }]} numberOfLines={1}>
               {currentUser?.name || 'Usuário'}
             </Text>
-            <Text style={styles.profileTitle}>PRO ATHLETE</Text>
+            <Text style={styles.profileTitle}>
+              {currentUser?.level || 'INICIANTE'}
+            </Text>
           </View>
 
           {/* Botão de sair */}

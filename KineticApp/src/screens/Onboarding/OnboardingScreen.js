@@ -26,7 +26,7 @@ export default function OnboardingScreen() {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      completeOnboarding();
+      completeOnboarding({ level: selectedLevel.toUpperCase() });
     }, 2000);
   };
 
@@ -83,7 +83,7 @@ export default function OnboardingScreen() {
             onPress={handleGenerate} 
             isLoading={isLoading}
           />
-          <TouchableOpacity onPress={completeOnboarding} style={styles.skipBtn}>
+          <TouchableOpacity onPress={() => completeOnboarding({ level: selectedLevel.toUpperCase() })} style={styles.skipBtn}>
             <Text style={styles.skipText}>NÃO, JÁ POSSUO TREINO  ✕</Text>
           </TouchableOpacity>
           <Text style={styles.neuralText}>PROCESSAMENTO NEURAL EM TEMPO REAL</Text>

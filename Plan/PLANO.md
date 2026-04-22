@@ -1,28 +1,33 @@
-# 🤖 Execução: Fase 8 - Tela de Exercício Ativo (ActiveSessionScreen)
+# 🤖 Execução: Fase 9 - Aba Social e Feed Privado (SocialScreen)
 
 ## 📌 Objetivo da Fase
-Implementar a tela `ActiveSessionScreen` replicando estritamente o layout do mockup fornecido na imagem (`Exercicio_ativo.png`). Esta tela possui lógicas complexas de cronômetro global e paginação de exercícios baseada no array do treino do dia.
+Implementar a `SocialScreen` replicando estritamente o layout do mockup fornecido na imagem (`Social_desing.jpg`). Esta tela funciona como um feed restrito a amigos adicionados (Squad) e permite a postagem de novas fotos utilizando a câmera nativa do dispositivo.
 
-## 🛠️ Lógica de Negócio e Estados (Hooks)
+## 🛠️ Componentização e Estrutura de Dados
 
-### 1. Paginação de Exercícios (O Fluxo Principal)
-- **Estado Inicial:** A tela DEVE iniciar renderizando apenas o **primeiro exercício** do array do treino (ex: `currentIndex = 0`).
-- **Botão de Ação Primária (CTA Azul Neon):** - Se houver um próximo exercício no array: O botão deve exibir o texto "PRÓXIMO EXERCÍCIO ->". Ao clicar, o `currentIndex` avança (+1) e a tela atualiza para mostrar os dados do novo exercício.
-  - Se for o **último exercício** do array: O botão deve mudar de cor/texto para "FINALIZAR TREINO". Ao clicar, ele deve parar o cronômetro e navegar o usuário de volta para a Home ou Tela de Resumo.
-- **Botão Secundário:** O botão "Finalizar Treino" (com ícone de 'stop' abaixo do CTA) encerra o treino imediatamente, independentemente do exercício atual.
+### 1. Mock de Dados (src/utils/mockData.js)
+- Atualize o arquivo de mocks para incluir duas novas arrays:
+  - `mockSquad`: Array de amigos (id, nome, avatarUrl, hasNewUpdate).
+  - `mockFeed`: Array de postagens (id, author: {nome, avatarUrl}, timestamp, category, imageUrl, duration, calories, likesCount, commentsCount, caption, isLikedByMe). Garanta que os posts pertençam apenas aos usuários do `mockSquad`.
 
-### 2. Cronômetro Global (Elapsed Time)
-- **Auto-Start:** Utilize um `useEffect` para iniciar um contador (em segundos) automaticamente assim que a `ActiveSessionScreen` for montada.
-- **Formatador:** Crie uma função auxiliar para converter os segundos totais no formato `MM:SS` (ex: 00:42) que ficará em destaque no topo da tela com fonte grande e cor Azul Neon.
-- **Gerenciamento de Memória:** Utilize `useRef` para guardar a referência do `setInterval` e garanta a limpeza (`clearInterval`) quando o componente for desmontado para evitar memory leaks.
+### 2. Componente: Squad Bar (src/components/SquadBar.js)
+- **Layout:** Um bloco contendo um título "Squad" e um botão "Add +" no topo.
+- **Lista:** Uma `<FlatList>` horizontal exibindo os avatares dos amigos.
+- **Estilo do Avatar:** Baseado na imagem, os avatares devem ser circulares. Aplique uma borda Azul Neon (Cyan) para amigos com atualizações recentes, e uma borda cinza para os demais. O último item da lista deve ser um botão de busca (ícone de lupa).
 
-### 3. Componentização dos Cards de Série (SerieCard)
-- Extraia a renderização das séries para um componente `src/components/SerieCard.js`.
-- **Inputs:** Cada card de série DEVE ter dois `<TextInput>` (Peso Realizado e Reps Realizadas). 
-- **Estado Visual:** Baseado no mockup, a "Série 01" (ativa) tem um estilo destacado (borda lateral azul neon) e as outras ficam "esmaecidas" até chegar a vez delas. 
-- **Checkmark:** Implemente um botão circular de "Check" para o usuário confirmar que concluiu aquela série.
+### 3. Componente: Feed Post (src/components/FeedPost.js)
+- **Cabeçalho do Post:** Avatar do autor, Nome, Tempo da postagem e Categoria (ex: "2 HRS AGO • HIGH INTENSITY"), com um botão de 3 pontinhos à direita.
+- **Imagem e Overlay:** - A imagem principal da postagem deve ocupar a largura do card com cantos arredondados.
+  - **Crucial:** Implemente uma `View` com fundo semi-transparente (estilo "Glass" com blur, escurecido na base) sobrepondo a parte inferior da imagem. Esta view exibirá as métricas do treino (Ex: "DURATION 45 MIN" e "CALORIES 420 KCAL").
+  - Adicione suporte a badges (ex: "NEW PR") no canto superior direito da imagem.
+- **Ações e Legenda:** Ícone de coração (curtida), ícone de balão (comentário) e contadores. Abaixo, o nome do autor em negrito seguido do texto da legenda.
+- **Interatividade:** O clique no ícone de coração deve alternar o estado local do componente (preencher o coração e somar +1 no contador).
 
-## 🎨 UI e Estilização (Baseado na Imagem)
-- Extraia as cores, margens e tamanhos de fonte EXATAMENTE da imagem `Exercicio_ativo.png`.
-- O cabeçalho deve exibir "ELAPSED TIME", o cronômetro em azul neon gigante, e um badge indicando o progresso (ex: "1/5 Exercícios").
-- Certifique-se de que a tela utilize um `<ScrollView>` ou `<FlatList>` (se houver muitas séries) para que o botão de "Próximo Exercício" não empurre os cards para fora da área visível. Mantenha os botões fixos no rodapé se possível.
+### 4. Integração de Câmera e Tela Principal (SocialScreen)
+- **Layout Base:** A tela será composta pela `SquadBar` no topo e uma `<FlatList>` vertical renderizando os `FeedPost` logo abaixo.
+- **Floating Action Button (FAB):** Crie um botão flutuante circular (cor Azul Neon) com um ícone de "+" posicionado no canto inferior direito.
+- **Lógica da Câmera:** Utilize a biblioteca `expo-image-picker` nativa do Expo. Ao clicar no FAB, acione o método para abrir a câmera do dispositivo (`launchCameraAsync`). 
+
+## 🎨 UI e Estilização (Fonte da Verdade: Social_desing.jpg)
+- O design DEVE ser extraído inteiramente da imagem fornecida.
+- Preste atenção especial aos espaçamentos (padding interno dos posts) e ao contraste das fontes pequenas em cinza (texto secundário) contra o fundo `#131313`.
