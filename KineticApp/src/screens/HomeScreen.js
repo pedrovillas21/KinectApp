@@ -1,19 +1,74 @@
-import React, { useContext } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useContext, useState, useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemeContext } from '../contexts/ThemeContext';
 import { COLORS } from '../theme/colors';
 import AppHeader from '../components/AppHeader';
 
-// Mocks for training programs
-const ROUTINES = [
-  { id: '1', title: 'Push day', bodyParts: 'CHEST / SHOULDERS / TRICEPS', exercises: '12', tag: 'DIA A' },
-  { id: '2', title: 'Pull day', bodyParts: 'BACK / BICEPS / CORE', exercises: '10', tag: 'DIA B' },
-  { id: '3', title: 'Leg day', bodyParts: 'QUADS / GLUTES / CALVES', exercises: '8', tag: 'DIA C' }
+// Mock Ranking Data
+const LEADERS = [
+  { id: '1', name: 'Alex Sterling',  minutes: 340, rank: 1, medal: '#FFD700' }, // Gold
+  { id: '2', name: 'Marcus Chen',    minutes: 290, rank: 2, medal: '#C0C0C0' }, // Silver
+  { id: '3', name: 'Sarah Jenkins',  minutes: 215, rank: 3, medal: '#CD7F32' }, // Bronze
+  { id: '4', name: 'You',            minutes: 180, rank: 4, medal: 'transparent' }, 
 ];
 
 export default function HomeScreen({ navigation }) {
   const { isDarkMode } = useContext(ThemeContext);
   const isDark = isDarkMode;
+
+  // Timer State
+  const [isTracking, setIsTracking] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const intervalRef = useRef(null);
+
+  // Dynamic Weekly Activity Array (Domingo a Sábado, posições 0 a 6 do Javascript Array)
+  const [activityData, setActivityData] = useState([0, 0, 0, 0, 0, 0, 0]);
+
+  useEffect(() => {
+    return () => clearInterval(intervalRef.current);
+  }, []);
+
+  const handleToggleWorkout = () => {
+    if (isTracking) {
+      clearInterval(intervalRef.current);
+      setIsTracking(false);
+
+      // Captura o dia da semana atual pelo dispositivo (0 = Dom, 1 = Seg, ..., 6 = Sáb)
+      const currentDayIndex = new Date().getDay();
+      
+      // Simulação acelerada para testes (cada segundo vale 1 minuto para o gráfico ser dinâmico a olho nu)
+      // Numa versão final, seria: elapsedTime / 60
+      const minutesSpent = elapsedTime;
+      
+      setActivityData(prev => {
+        const newData = [...prev];
+        newData[currentDayIndex] += minutesSpent;
+        return newData;
+      });
+
+      // Optional: Reset timer after saving? No, leave it for the user to see, 
+      // or set it to 0 so next check-in is fresh. Let's set it to 0.
+      setElapsedTime(0);
+
+    } else {
+      setIsTracking(true);
+      intervalRef.current = setInterval(() => {
+        setElapsedTime(prev => prev + 1);
+      }, 1000);
+    }
+  };
+
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  };
+
+  // Weekly Stats Labels (fixo de Domingo a Sábado)
+  const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  const todayIndex = new Date().getDay();
+
 
   const THEME = {
     bg: isDark ? COLORS.darkBackground : COLORS.lightBackground,
@@ -24,11 +79,11 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: THEME.bg }]}>
-      {/* Header FIXO fora do scroll */}
       <AppHeader />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
+        {/* PROGRESS MOCK */}
         <View style={styles.progressSection}>
           <Text style={styles.sectionOverline}>MONTHLY PROGRESS</Text>
           <Text style={[styles.titleLine, { color: THEME.textPrimary }]}>
@@ -43,7 +98,6 @@ export default function HomeScreen({ navigation }) {
         </View>
 
         <View style={styles.efficiencyCircle}>
-          {/* Placeholder for the ring */}
           <View style={styles.ringOuter}>
             <View style={styles.ringInner}>
               <Text style={styles.effValue}>70<Text style={{ fontSize: 20 }}>%</Text></Text>
@@ -52,60 +106,69 @@ export default function HomeScreen({ navigation }) {
           </View>
         </View>
 
+        {/* CHECK-IN CARD */}
         <View style={styles.checkinCard}>
-          <Text style={styles.checkinIcon}>☑</Text>
-          <Text style={styles.checkinTitle}>Check-in Now</Text>
-          <Text style={styles.checkinDesc}>Log your current session at the Arena.</Text>
-          <TouchableOpacity style={styles.startWorkoutBtn} onPress={() => navigation.navigate('Train')}>
-            <Text style={styles.startWorkoutText}>START WORKOUT</Text>
+          <Text style={styles.checkinIcon}>{isTracking ? '⏱️' : '☑'}</Text>
+          <Text style={styles.checkinTitle}>{isTracking ? 'Workout in progress' : 'Check-in Now'}</Text>
+          <Text style={[styles.checkinDesc, isTracking && { fontSize: 32, fontWeight: 'bold', color: '#FFF' }]}>
+            {isTracking ? formatTime(elapsedTime) : 'Log sua sessão para o ranking.'}
+          </Text>
+          <TouchableOpacity 
+            style={[styles.startWorkoutBtn, isTracking && { backgroundColor: '#FF3B30' }]} 
+            onPress={handleToggleWorkout}
+          >
+            <Text style={[styles.startWorkoutText, isTracking && { color: '#FFF' }]}>
+              {isTracking ? 'STOP WORKOUT' : 'INICIAR TEMPO'}
+            </Text>
           </TouchableOpacity>
         </View>
 
+        {/* KINECT LIDERSHIP (LEADERBOARD) */}
         <View style={styles.routineHeader}>
           <View>
-            <Text style={styles.routineTitle}>TRAINING ROUTINE</Text>
-            <Text style={styles.routineSub}>Your personalized performance blocks.</Text>
+            <Text style={styles.routineTitle}>KINECT LIDERSHIP</Text>
+            <Text style={styles.routineSub}>Competição semanal de tempo na arena.</Text>
           </View>
-          <TouchableOpacity>
-            <Text style={styles.viewAll}>VIEW ALL</Text>
-          </TouchableOpacity>
         </View>
 
-        {ROUTINES.map((item) => (
-          <TouchableOpacity
-            key={item.id}
-            style={styles.programCard}
-            onPress={() => navigation.navigate('MainTabs', { screen: 'Train', params: { routineId: item.id } })}
-          >
-            <View style={[styles.programImageMock, { backgroundColor: THEME.card }]}>
-              <View style={styles.tagBadge}>
-                <Text style={styles.tagText}>{item.tag}</Text>
+        <View style={[styles.leaderboardCard, { backgroundColor: THEME.card }]}>
+          {LEADERS.map((ldr, index) => (
+            <View key={ldr.id} style={[styles.leaderRow, index !== LEADERS.length - 1 && styles.leaderBorder]}>
+              <View style={styles.leaderRankCol}>
+                <Text style={[styles.leaderRankTxt, ldr.rank <= 3 && { color: ldr.medal }]}>
+                  {ldr.rank}º
+                </Text>
               </View>
+              <View style={styles.leaderInfoCol}>
+                <Text style={styles.leaderName}>{ldr.name}</Text>
+                <Text style={styles.leaderMin}>{ldr.minutes} min</Text>
+              </View>
+              {ldr.rank <= 3 && (
+                <View style={[styles.medalDot, { backgroundColor: ldr.medal }]} />
+              )}
             </View>
-            <View style={styles.programInfo}>
-              <View>
-                <Text style={styles.progTitle}>{item.title}</Text>
-                <Text style={styles.progBodyProps}>{item.bodyParts}</Text>
-                <Text style={styles.progExCount}><Text style={{ color: COLORS.neonBlue }}>{item.exercises}</Text> Exercícios</Text>
-                <Text style={styles.progVol}>VOLUME</Text>
-              </View>
-              <View style={styles.playIconContainer}>
-                <Text style={styles.playIcon}>▶</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-        ))}
+          ))}
+        </View>
 
+        {/* WEEKLY ACTIVITY GRAPH */}
         <View style={[styles.statsCard, { backgroundColor: THEME.card }]}>
-          <Text style={styles.statsLabel}>LAST SESSION PERFORMANCE</Text>
-          <Text style={styles.statsBpm}>94 <Text style={styles.bpmItalic}>bpm</Text></Text>
-          <Text style={styles.statsDesc}>Resting Heart Rate Average</Text>
+          <Text style={styles.statsLabel}>WEEKLY ACTIVITY (MINUTES)</Text>
+          
+          <View style={styles.chartContainer}>
+            {activityData.map((val, idx) => {
+              const maxVal = Math.max(...activityData, 60); // min 60 para não quebrar a escala caso td seja 0
+              const height = (val / maxVal) * 80;
+              const isToday = idx === todayIndex;
 
-          <View style={styles.dotsRow}>
-            {/* Placeholders for graph circles */}
-            {[...Array(5)].map((_, i) => (
-              <View key={i} style={[styles.dot, i === 3 && styles.dotActive]} />
-            ))}
+              return (
+                <View key={idx} style={styles.barCol}>
+                  <View style={styles.barWrap}>
+                    <View style={[styles.barFill, { height, backgroundColor: isToday ? COLORS.neonBlue : '#333' }]} />
+                  </View>
+                  <Text style={[styles.barLabel, isToday && { color: COLORS.neonBlue }]}>{weekDays[idx]}</Text>
+                </View>
+              );
+            })}
           </View>
         </View>
 
@@ -117,18 +180,6 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { paddingHorizontal: 24, paddingBottom: 40 },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 16,
-  },
-  brand: {
-    fontSize: 22,
-    fontWeight: '900',
-    fontStyle: 'italic',
-    letterSpacing: 1,
-  },
   progressSection: { marginTop: 16, alignItems: 'center' },
   sectionOverline: {
     fontSize: 10,
@@ -191,7 +242,7 @@ const styles = StyleSheet.create({
   },
   checkinIcon: { color: COLORS.darkBackground, fontSize: 24, marginBottom: 8 },
   checkinTitle: { color: COLORS.darkBackground, fontSize: 18, fontWeight: 'bold', marginBottom: 6 },
-  checkinDesc: { color: COLORS.darkBackground, fontSize: 13, marginBottom: 16 },
+  checkinDesc: { color: COLORS.darkBackground, fontSize: 13, marginBottom: 16, textAlign: 'center' },
   startWorkoutBtn: {
     backgroundColor: '#FFF',
     paddingVertical: 10,
@@ -209,59 +260,84 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     marginBottom: 20,
   },
-  routineTitle: { color: '#FFF', fontSize: 16, fontStyle: 'italic', fontWeight: '900', letterSpacing: 1 },
+  routineTitle: { color: COLORS.neonBlue, fontSize: 18, fontStyle: 'italic', fontWeight: '900', letterSpacing: 1 },
   routineSub: { color: '#888', fontSize: 12, marginTop: 4 },
-  viewAll: { color: COLORS.neonBlue, fontSize: 12, fontWeight: 'bold' },
-  programCard: {
-    marginBottom: 20,
+  leaderboardCard: {
+    borderRadius: 16,
+    paddingVertical: 8,
+    marginBottom: 32,
   },
-  programImageMock: {
-    height: 100,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
+  leaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
   },
-  tagBadge: {
-    backgroundColor: COLORS.neonBlue,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderBottomRightRadius: 8,
-    borderTopLeftRadius: 12,
+  leaderBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#2A2A2A',
   },
-  tagText: { color: COLORS.darkBackground, fontSize: 10, fontWeight: 'bold' },
-  programInfo: {
-    backgroundColor: '#1C1C1C',
-    padding: 16,
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
+  leaderRankCol: {
+    width: 32,
+    alignItems: 'center',
+  },
+  leaderRankTxt: {
+    color: '#888',
+    fontSize: 16,
+    fontWeight: 'bold',
+    fontStyle: 'italic',
+  },
+  leaderInfoCol: {
+    flex: 1,
+    paddingLeft: 12,
+  },
+  leaderName: {
+    color: '#FFF',
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+  leaderMin: {
+    color: '#888',
+    fontSize: 12,
+    marginTop: 2,
+  },
+  medalDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  statsCard: {
+    borderRadius: 16,
+    padding: 24,
+  },
+  statsLabel: { color: '#666', fontSize: 10, letterSpacing: 1, fontWeight: 'bold', marginBottom: 24 },
+  chartContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    height: 100,
+    marginTop: 8,
+  },
+  barCol: {
     alignItems: 'center',
+    width: 40,
   },
-  progTitle: { color: '#FFF', fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
-  progBodyProps: { color: '#888', fontSize: 10, marginBottom: 12, letterSpacing: 1 },
-  progExCount: { color: '#FFF', fontSize: 12, fontWeight: 'bold' },
-  progVol: { color: '#666', fontSize: 10, letterSpacing: 1, marginTop: 2 },
-  playIconContainer: {
-    backgroundColor: '#333',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
+  barWrap: {
+    height: 80,
+    justifyContent: 'flex-end',
+    width: 14,
+    backgroundColor: '#1C1C1C',
+    borderRadius: 7,
+    overflow: 'hidden',
+    marginBottom: 8,
   },
-  playIcon: { color: COLORS.neonBlue, fontSize: 12 },
-  statsCard: {
-    borderRadius: 12,
-    padding: 24,
-    marginTop: 16,
+  barFill: {
+    width: '100%',
+    borderRadius: 7,
   },
-  statsLabel: { color: '#666', fontSize: 10, letterSpacing: 1, fontWeight: 'bold', marginBottom: 12 },
-  statsBpm: { color: '#FFF', fontSize: 40, fontWeight: '900' },
-  bpmItalic: { fontSize: 16, fontStyle: 'italic', color: COLORS.neonBlue },
-  statsDesc: { color: '#AAA', fontSize: 13, marginTop: 4, marginBottom: 20 },
-  dotsRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  dot: { width: 40, height: 24, borderRadius: 12, backgroundColor: '#333' },
-  dotActive: { backgroundColor: COLORS.neonBlue, width: 48 }
+  barLabel: {
+    color: '#888',
+    fontSize: 9,
+    fontWeight: 'bold',
+  }
 });

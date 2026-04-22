@@ -1,14 +1,16 @@
 import React, { useContext, useState } from 'react';
 import {
-  View, Text, StyleSheet, SafeAreaView, TouchableOpacity,
+  View, Text, StyleSheet, TouchableOpacity,
   KeyboardAvoidingView, Platform, Alert
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemeContext } from '../../contexts/ThemeContext';
 import { AuthContext } from '../../contexts/AuthContext';
 import { COLORS } from '../../theme/colors';
 import HeaderLogo from '../../components/HeaderLogo';
 import CustomInput from '../../components/CustomInput';
 import PrimaryButton from '../../components/PrimaryButton';
+import PasswordRequirements from '../../components/PasswordRequirements';
 
 export default function RegisterScreen({ navigation }) {
   const { isDarkMode } = useContext(ThemeContext);
@@ -19,6 +21,13 @@ export default function RegisterScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const hasMinLength  = password.length >= 8;
+  const hasUppercase  = /[A-Z]/.test(password);
+  const hasLowercase  = /[a-z]/.test(password);
+  const hasNumber     = /\d/.test(password);
+  const hasSymbol     = /[!@#$%^&*]/.test(password);
+  const isPasswordValid = hasMinLength && hasUppercase && hasLowercase && hasNumber && hasSymbol;
 
   const handleRegister = () => {
     const result = register({ name: name.trim(), email: email.trim(), password });
@@ -59,13 +68,15 @@ export default function RegisterScreen({ navigation }) {
           />
           <CustomInput
             label="SENHA"
-            placeholder="Mínimo 6 caracteres"
-            secureTextEntry
+            placeholder="Mínimo 8 caracteres"
+            isPassword
             value={password}
             onChangeText={setPassword}
           />
 
-          <PrimaryButton title="CADASTRAR E COMEÇAR" onPress={handleRegister} isLoading={loading} />
+          <PasswordRequirements passwordValue={password} />
+
+          <PrimaryButton title="CADASTRAR E COMEÇAR" onPress={handleRegister} isLoading={loading} disabled={!isPasswordValid || !name.trim() || !email.trim()} />
 
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.loginBtn}>
             <Text style={[styles.loginText, { color: isDark ? COLORS.textSecondaryDark : COLORS.textSecondaryLight }]}>

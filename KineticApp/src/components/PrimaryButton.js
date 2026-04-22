@@ -2,12 +2,12 @@ import React from 'react';
 import { TouchableOpacity, Text, ActivityIndicator, StyleSheet, View } from 'react-native';
 import { COLORS } from '../theme/colors';
 
-export default function PrimaryButton({ title, onPress, isLoading, icon }) {
+export default function PrimaryButton({ title, onPress, isLoading, icon, disabled }) {
   return (
     <TouchableOpacity 
-      style={styles.button}
+      style={[styles.button, disabled && styles.buttonDisabled]}
       onPress={onPress}
-      disabled={isLoading}
+      disabled={isLoading || disabled}
       activeOpacity={0.8}
     >
       {isLoading ? (
@@ -35,6 +35,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 6, // for android
+  },
+  buttonDisabled: {
+    backgroundColor: '#333333',
+    shadowOpacity: 0,
+    elevation: 0,
   },
   content: {
     flexDirection: 'row',

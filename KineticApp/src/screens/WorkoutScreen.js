@@ -1,23 +1,89 @@
-import React, { useContext } from 'react';
-import { View, FlatList, StyleSheet, SafeAreaView, Text, TouchableOpacity } from 'react-native';
+import React, { useContext, useState } from 'react';
+import { View, FlatList, StyleSheet, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemeContext } from '../contexts/ThemeContext';
 import { WORKOUT_MAP } from '../utils/mockData';
 import { COLORS } from '../theme/colors';
 import AppHeader from '../components/AppHeader';
 
+// Mock similar to what HomeScreen used
+const ROUTINES = [
+  { id: '1', title: 'Push day', bodyParts: 'CHEST / SHOULDERS / TRICEPS', exercises: '12', tag: 'DIA A' },
+  { id: '2', title: 'Pull day', bodyParts: 'BACK / BICEPS / CORE', exercises: '10', tag: 'DIA B' },
+  { id: '3', title: 'Leg day', bodyParts: 'QUADS / GLUTES / CALVES', exercises: '8', tag: 'DIA C' }
+];
+
 export default function WorkoutScreen({ navigation, route }) {
   const { isDarkMode } = useContext(ThemeContext);
   const isDark = isDarkMode;
 
-  // Pega o routineId passado pela navegação (padrão: DIA A se vier de outro lugar)
-  const routineId = route?.params?.routineId ?? '1';
-  const workout = WORKOUT_MAP[routineId] ?? WORKOUT_MAP['1'];
+  // Mode: 'LIST' or 'DETAIL'
+  const [viewMode, setViewMode] = useState('LIST');
+  const [selectedRoutineId, setSelectedRoutineId] = useState(null);
 
+  // If passed from navigation explicitly, we should handle it (though we assume tab direct tap)
+  // We'll manage it via state here for cleaner architecture.
+  
   const THEME = {
     bg: isDark ? COLORS.darkBackground : COLORS.lightBackground,
     text: isDark ? COLORS.textPrimaryDark : COLORS.textPrimaryLight,
     card: isDark ? COLORS.darkCard : COLORS.lightCard,
   };
+
+  const openRoutineDetail = (id) => {
+    setSelectedRoutineId(id);
+    setViewMode('DETAIL');
+  };
+
+  const goBackToList = () => {
+    setViewMode('LIST');
+    setSelectedRoutineId(null);
+  };
+
+  if (viewMode === 'LIST') {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: THEME.bg }]}>
+        <AppHeader />
+        <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+          
+          <View style={styles.routineHeader}>
+            <View>
+              <Text style={styles.routineTitle}>SUAS FICHAS PRESET</Text>
+              <Text style={styles.routineSub}>Escolha um grupo muscular da sua grade.</Text>
+            </View>
+          </View>
+
+          {ROUTINES.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={styles.programCard}
+              onPress={() => openRoutineDetail(item.id)}
+            >
+              <View style={[styles.programImageMock, { backgroundColor: THEME.card }]}>
+                <View style={styles.tagBadgeSmall}>
+                  <Text style={styles.tagTextSmall}>{item.tag}</Text>
+                </View>
+              </View>
+              <View style={styles.programInfo}>
+                <View>
+                  <Text style={styles.progTitle}>{item.title}</Text>
+                  <Text style={styles.progBodyProps}>{item.bodyParts}</Text>
+                  <Text style={styles.progExCount}><Text style={{ color: COLORS.neonBlue }}>{item.exercises}</Text> Exercícios</Text>
+                  <Text style={styles.progVol}>VOLUME</Text>
+                </View>
+                <View style={styles.playIconContainer}>
+                  <Text style={styles.playIcon}>▶</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
+  // --- DETAIL MODE ---
+  const workout = WORKOUT_MAP[selectedRoutineId] ?? WORKOUT_MAP['1'];
 
   const MUSCLE_COLORS = {
     'PEITO':       { bg: '#1a0a2e', text: '#A78BFA' },
@@ -37,7 +103,6 @@ export default function WorkoutScreen({ navigation, route }) {
 
     return (
       <View style={[styles.card, { backgroundColor: THEME.card }]}>
-        {/* Header do card */}
         <View style={styles.cardHeader}>
           <View style={{ flex: 1 }}>
             <Text style={[styles.exerciseName, { color: THEME.text }]}>{item.name}</Text>
@@ -55,7 +120,6 @@ export default function WorkoutScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
 
-        {/* Grid de dados */}
         <View style={styles.gridRow}>
           <View style={styles.gridCol}>
             <Text style={styles.gridLabel}>SÉRIES × REPS</Text>
@@ -80,8 +144,13 @@ export default function WorkoutScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: THEME.bg }]}>
-      {/* Header fixo */}
       <AppHeader />
+      
+      <View style={styles.backNav}>
+        <TouchableOpacity onPress={goBackToList}>
+          <Text style={styles.backActionText}>← Voltar para Fichas</Text>
+        </TouchableOpacity>
+      </View>
 
       <FlatList
         data={workout.data}
@@ -103,7 +172,7 @@ export default function WorkoutScreen({ navigation, route }) {
           <View style={styles.footerActions}>
             <TouchableOpacity
               style={styles.actionBtnPrimary}
-              onPress={() => navigation.navigate('ActiveSession', { routineId })}
+              onPress={() => navigation.navigate('ActiveSession', { routineId: selectedRoutineId })}
             >
               <Text style={styles.actionBtnText}>⚡ INICIAR TREINO</Text>
             </TouchableOpacity>
@@ -125,6 +194,64 @@ export default function WorkoutScreen({ navigation, route }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  // List Mode Specifics
+  routineHeader: {
+    marginBottom: 20,
+    marginTop: 12,
+  },
+  routineTitle: { color: COLORS.textPrimaryDark, fontSize: 22, fontStyle: 'italic', fontWeight: '900', letterSpacing: 1 },
+  routineSub: { color: '#888', fontSize: 13, marginTop: 4 },
+  programCard: {
+    marginBottom: 20,
+  },
+  programImageMock: {
+    height: 100,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+  },
+  tagBadgeSmall: {
+    backgroundColor: COLORS.neonBlue,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderBottomRightRadius: 8,
+    borderTopLeftRadius: 12,
+  },
+  tagTextSmall: { color: COLORS.darkBackground, fontSize: 10, fontWeight: 'bold' },
+  programInfo: {
+    backgroundColor: '#1C1C1C',
+    padding: 16,
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  progTitle: { color: '#FFF', fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
+  progBodyProps: { color: '#888', fontSize: 10, marginBottom: 12, letterSpacing: 1 },
+  progExCount: { color: '#FFF', fontSize: 12, fontWeight: 'bold' },
+  progVol: { color: '#666', fontSize: 10, letterSpacing: 1, marginTop: 2 },
+  playIconContainer: {
+    backgroundColor: '#333',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playIcon: { color: COLORS.neonBlue, fontSize: 12 },
+
+  // Detail Mode Specifics
+  backNav: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  backActionText: {
+    color: COLORS.neonBlue,
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
   listContent: {
     paddingHorizontal: 24,
     paddingBottom: 40,

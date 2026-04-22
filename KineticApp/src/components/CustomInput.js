@@ -1,10 +1,11 @@
-import React, { useContext } from 'react';
-import { TextInput, View, Text, StyleSheet } from 'react-native';
+import React, { useContext, useState } from 'react';
+import { TextInput, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ThemeContext } from '../contexts/ThemeContext';
 import { COLORS } from '../theme/colors';
 
-export default function CustomInput({ label, placeholder, value, onChangeText, secureTextEntry, icon }) {
+export default function CustomInput({ label, placeholder, value, onChangeText, secureTextEntry, isPassword, icon }) {
   const { isDarkMode } = useContext(ThemeContext);
+  const [isPasswordHidden, setIsPasswordHidden] = useState(true);
 
   const themeColors = {
     bg: isDarkMode ? COLORS.darkCard : COLORS.lightCard,
@@ -24,8 +25,13 @@ export default function CustomInput({ label, placeholder, value, onChangeText, s
           placeholderTextColor={themeColors.label}
           value={value}
           onChangeText={onChangeText}
-          secureTextEntry={secureTextEntry}
+          secureTextEntry={isPassword ? isPasswordHidden : secureTextEntry}
         />
+        {isPassword && (
+          <TouchableOpacity onPress={() => setIsPasswordHidden(!isPasswordHidden)} style={styles.eyeIconContainer}>
+            <Text style={styles.eyeIconText}>{isPasswordHidden ? '👁️' : '👁️‍🗨️'}</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -57,5 +63,14 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     height: '100%',
+  },
+  eyeIconContainer: {
+    paddingLeft: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  eyeIconText: {
+    fontSize: 18,
+    color: '#888',
   }
 });
