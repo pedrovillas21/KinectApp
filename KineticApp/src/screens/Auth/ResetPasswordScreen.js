@@ -24,11 +24,11 @@ export default function ResetPasswordScreen({ navigation, route }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const hasMinLength  = newPassword.length >= 8;
-  const hasUppercase  = /[A-Z]/.test(newPassword);
-  const hasLowercase  = /[a-z]/.test(newPassword);
-  const hasNumber     = /\d/.test(newPassword);
-  const hasSymbol     = /[!@#$%^&*]/.test(newPassword);
+  const hasMinLength = newPassword.length >= 8;
+  const hasUppercase = /[A-Z]/.test(newPassword);
+  const hasLowercase = /[a-z]/.test(newPassword);
+  const hasNumber = /\d/.test(newPassword);
+  const hasSymbol = /[!@#$%^&*]/.test(newPassword);
   const isPasswordValid = hasMinLength && hasUppercase && hasLowercase && hasNumber && hasSymbol;
   const doPasswordsMatch = newPassword && newPassword === confirmPassword;
 
@@ -41,8 +41,8 @@ export default function ResetPasswordScreen({ navigation, route }) {
       Alert.alert('Senhas diferentes', 'A nova senha e a confirmação não coincidem.');
       return;
     }
-    if (newPassword.length < 6) {
-      Alert.alert('Senha fraca', 'Use ao menos 6 caracteres.');
+    if (newPassword.length < 8) {
+      Alert.alert('Senha fraca', 'Use ao menos 8 caracteres.');
       return;
     }
 
