@@ -73,8 +73,8 @@ export const AuthProvider = ({ children }) => {
     if (!email || !newPassword) {
       return { success: false, error: 'Dados inválidos.' };
     }
-    if (newPassword.length < 6) {
-      return { success: false, error: 'A nova senha precisa ter ao menos 6 caracteres.' };
+    if (newPassword.length < 8) {
+      return { success: false, error: 'A nova senha precisa ter ao menos 8 caracteres.' };
     }
     const exists = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
     if (!exists) {
