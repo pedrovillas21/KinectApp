@@ -38,7 +38,6 @@ ios/
 .env.staging
 .env.production
 .env.*
-!.env.example        # arquivo de exemplo pode ser versionado
 
 # ─── Dados Sensíveis / Chaves ────────────────
 *.pem

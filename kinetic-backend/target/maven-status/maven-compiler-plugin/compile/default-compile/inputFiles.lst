@@ -1,0 +1,12 @@
+C:\Users\pedro.henrique\Documents\codigos\KinectApp\kinetic-backend\src\main\java\com\kinetic\config\SecurityConfig.java
+C:\Users\pedro.henrique\Documents\codigos\KinectApp\kinetic-backend\src\main\java\com\kinetic\security\JwtUtil.java
+C:\Users\pedro.henrique\Documents\codigos\KinectApp\kinetic-backend\src\main\java\com\kinetic\security\JwtAuthenticationFilter.java
+C:\Users\pedro.henrique\Documents\codigos\KinectApp\kinetic-backend\src\main\java\com\kinetic\services\AuthService.java
+C:\Users\pedro.henrique\Documents\codigos\KinectApp\kinetic-backend\src\main\java\com\kinetic\dtos\LoginDTO.java
+C:\Users\pedro.henrique\Documents\codigos\KinectApp\kinetic-backend\src\main\java\com\kinetic\repositories\UserRepository.java
+C:\Users\pedro.henrique\Documents\codigos\KinectApp\kinetic-backend\src\main\java\com\kinetic\security\CustomUserDetailsService.java
+C:\Users\pedro.henrique\Documents\codigos\KinectApp\kinetic-backend\src\main\java\com\kinetic\controllers\AuthController.java
+C:\Users\pedro.henrique\Documents\codigos\KinectApp\kinetic-backend\src\main\java\com\kinetic\KineticApplication.java
+C:\Users\pedro.henrique\Documents\codigos\KinectApp\kinetic-backend\src\main\java\com\kinetic\models\User.java
+C:\Users\pedro.henrique\Documents\codigos\KinectApp\kinetic-backend\src\main\java\com\kinetic\dtos\RegisterDTO.java
+C:\Users\pedro.henrique\Documents\codigos\KinectApp\kinetic-backend\src\main\java\com\kinetic\dtos\AuthResponseDTO.java
