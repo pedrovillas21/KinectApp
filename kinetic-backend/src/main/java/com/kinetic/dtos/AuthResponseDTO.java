@@ -1,12 +1,6 @@
 package com.kinetic.dtos;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.util.UUID;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class AuthResponseDTO {
-    private String token;
+public record AuthResponseDTO(String token, UUID id, String nome, String email) {
 }

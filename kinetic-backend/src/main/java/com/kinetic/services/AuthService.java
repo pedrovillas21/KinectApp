@@ -4,6 +4,7 @@ import com.kinetic.models.User;
 import com.kinetic.repositories.UserRepository;
 import com.kinetic.dtos.RegisterDTO;
 import com.kinetic.dtos.LoginDTO;
+import com.kinetic.dtos.AuthResponseDTO;
 import com.kinetic.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -33,7 +34,7 @@ public class AuthService {
         return userRepository.save(user);
     }
 
-    public String login(LoginDTO dto) {
+    public AuthResponseDTO login(LoginDTO dto) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getSenha())
         );
@@ -41,6 +42,7 @@ public class AuthService {
         User user = userRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
 
-        return jwtUtil.generateToken(user.getEmail());
+        String token = jwtUtil.generateToken(user.getEmail());
+        return new AuthResponseDTO(token, user.getId(), user.getNome(), user.getEmail());
     }
 }
