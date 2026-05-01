@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemeContext } from '../../contexts/ThemeContext';
 import { AuthContext } from '../../contexts/AuthContext';
@@ -7,6 +7,7 @@ import { COLORS } from '../../theme/colors';
 import HeaderLogo from '../../components/HeaderLogo';
 import CustomInput from '../../components/CustomInput';
 import PrimaryButton from '../../components/PrimaryButton';
+import api from '../../services/api';
 
 export default function OnboardingScreen() {
   const { isDarkMode } = useContext(ThemeContext);
@@ -14,6 +15,13 @@ export default function OnboardingScreen() {
   const isDark = isDarkMode;
 
   const [isLoading, setIsLoading] = useState(false);
+
+  // Campos de captura fisiológica
+  const [birthDate, setBirthDate] = useState('');
+  const [weight, setWeight] = useState('');
+  const [height, setHeight] = useState('');
+  const [selectedGoal, setSelectedGoal] = useState('Ganho de Massa');
+  const [selectedFrequency, setSelectedFrequency] = useState(4);
   const [selectedLevel, setSelectedLevel] = useState('Intermediário');
 
   const levels = [
@@ -22,12 +30,67 @@ export default function OnboardingScreen() {
     { id: 'Pro', desc: 'Anos de experiência e técnica refinada.', icon: '⚡' },
   ];
 
-  const handleGenerate = () => {
+  const goals = [
+    { id: 'Ganho de Massa', icon: '💪' },
+    { id: 'Perda de Gordura', icon: '🔥' },
+    { id: 'Performance', icon: '🏆' },
+  ];
+
+  const frequencies = [3, 4, 5, 6];
+
+  // Formata o input da data automaticamente (DD/MM/AAAA)
+  const handleBirthDateChange = (text) => {
+    const cleaned = text.replace(/\D/g, '');
+    let formatted = cleaned;
+    if (cleaned.length > 2) formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
+    if (cleaned.length > 4) formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2, 4) + '/' + cleaned.slice(4, 8);
+    setBirthDate(formatted);
+  };
+
+  // Converte DD/MM/AAAA para AAAA-MM-DD (ISO format para o backend)
+  const parseToISO = (dateStr) => {
+    const parts = dateStr.split('/');
+    if (parts.length !== 3) return null;
+    const [day, month, year] = parts;
+    if (day.length !== 2 || month.length !== 2 || year.length !== 4) return null;
+    return `${year}-${month}-${day}`;
+  };
+
+  const handleGenerate = async () => {
+    // Validações
+    const isoDate = parseToISO(birthDate);
+    if (!isoDate) {
+      Alert.alert('Dado inválido', 'Insira sua data de nascimento no formato DD/MM/AAAA.');
+      return;
+    }
+    if (!weight || isNaN(Number(weight)) || Number(weight) <= 0) {
+      Alert.alert('Dado inválido', 'Insira um peso válido em kg.');
+      return;
+    }
+    if (!height || isNaN(Number(height)) || Number(height) <= 0) {
+      Alert.alert('Dado inválido', 'Insira uma altura válida em cm.');
+      return;
+    }
+
     setIsLoading(true);
-    setTimeout(() => {
+
+    try {
+      await api.post('/workouts/generate', {
+        birthDate: isoDate,
+        weight: parseFloat(weight),
+        height: parseFloat(height),
+        goal: selectedGoal,
+        frequency: selectedFrequency,
+        level: selectedLevel.toUpperCase(),
+      });
+
+      await completeOnboarding({ level: selectedLevel.toUpperCase() });
+    } catch (e) {
+      const message = e.response?.data || 'Erro ao gerar treino. Tente novamente.';
+      Alert.alert('Erro', typeof message === 'string' ? message : 'Falha ao comunicar com o servidor.');
+    } finally {
       setIsLoading(false);
-      completeOnboarding({ level: selectedLevel.toUpperCase() });
-    }, 2000);
+    }
   };
 
   return (
@@ -51,10 +114,68 @@ export default function OnboardingScreen() {
         </Text>
 
         <View style={styles.formContainer}>
-          <CustomInput label="IDADE" placeholder="25                      anos" />
-          <CustomInput label="PESO" placeholder="78                          kg" />
-          <CustomInput label="ALTURA" placeholder="175                        cm" />
+          <CustomInput 
+            label="DATA DE NASCIMENTO" 
+            placeholder="DD/MM/AAAA" 
+            value={birthDate}
+            onChangeText={handleBirthDateChange}
+          />
+          <CustomInput 
+            label="PESO (KG)" 
+            placeholder="78" 
+            value={weight}
+            onChangeText={setWeight}
+          />
+          <CustomInput 
+            label="ALTURA (CM)" 
+            placeholder="175" 
+            value={height}
+            onChangeText={setHeight}
+          />
           
+          {/* OBJETIVO */}
+          <Text style={styles.sectionTitle}>OBJETIVO</Text>
+          <View style={styles.chipRow}>
+            {goals.map((g) => (
+              <TouchableOpacity
+                key={g.id}
+                style={[
+                  styles.chip,
+                  { backgroundColor: isDark ? COLORS.darkCard : COLORS.lightCard },
+                  selectedGoal === g.id && { borderColor: COLORS.neonBlue, borderWidth: 1.5 },
+                ]}
+                onPress={() => setSelectedGoal(g.id)}
+              >
+                <Text style={styles.chipIcon}>{g.icon}</Text>
+                <Text style={[styles.chipText, { color: isDark ? '#FFF' : '#000' }]}>{g.id}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* FREQUÊNCIA SEMANAL */}
+          <Text style={styles.sectionTitle}>FREQUÊNCIA SEMANAL</Text>
+          <View style={styles.frequencyRow}>
+            {frequencies.map((f) => (
+              <TouchableOpacity
+                key={f}
+                style={[
+                  styles.frequencyChip,
+                  { backgroundColor: isDark ? COLORS.darkCard : COLORS.lightCard },
+                  selectedFrequency === f && { backgroundColor: COLORS.neonBlue },
+                ]}
+                onPress={() => setSelectedFrequency(f)}
+              >
+                <Text style={[
+                  styles.frequencyText,
+                  selectedFrequency === f && { color: '#000', fontWeight: '900' },
+                ]}>
+                  {f}x
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* NÍVEL DE EXPERIÊNCIA */}
           <Text style={styles.sectionTitle}>NÍVEL DE EXPERIÊNCIA</Text>
           
           {levels.map((lvl) => (
@@ -133,6 +254,50 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     marginTop: 8,
   },
+  // Chips para Objetivo
+  chipRow: {
+    flexDirection: 'column',
+    gap: 10,
+    marginBottom: 16,
+  },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  chipIcon: {
+    fontSize: 18,
+    marginRight: 12,
+  },
+  chipText: {
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  // Chips para Frequência
+  frequencyRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
+  frequencyChip: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  frequencyText: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    color: '#888',
+  },
+  // Cards de Nível
   levelCard: {
     flexDirection: 'row',
     padding: 16,

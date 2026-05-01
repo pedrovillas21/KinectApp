@@ -1,33 +1,41 @@
-# 🤖 Execução: Fase 9 - Aba Social e Feed Privado (SocialScreen)
+# 🧠 Plano de Desenvolvimento: Kinetic App - Evolução Onboarding & IA
 
-## 📌 Objetivo da Fase
-Implementar a `SocialScreen` replicando estritamente o layout do mockup fornecido na imagem (`Social_desing.jpg`). Esta tela funciona como um feed restrito a amigos adicionados (Squad) e permite a postagem de novas fotos utilizando a câmera nativa do dispositivo.
+## 1. Contexto Geral
+- **Objetivo:** Aplicativo de diário de treinos com inteligência artificial generativa.
+- **Usuário Alvo:** Frequentadores de academia (Iniciante ao Pro).
+- **Stack:** React Native (Expo) | Java 17 (Spring Boot 3.2.x) | PostgreSQL (Supabase).
 
-## 🛠️ Componentização e Estrutura de Dados
+## 2. Nova Definição de Fluxo: Onboarding Dinâmico
+O app deixará de usar apenas o "nível" para considerar um perfil fisiológico completo antes de chamar a IA.
 
-### 1. Mock de Dados (src/utils/mockData.js)
-- Atualize o arquivo de mocks para incluir duas novas arrays:
-  - `mockSquad`: Array de amigos (id, nome, avatarUrl, hasNewUpdate).
-  - `mockFeed`: Array de postagens (id, author: {nome, avatarUrl}, timestamp, category, imageUrl, duration, calories, likesCount, commentsCount, caption, isLikedByMe). Garanta que os posts pertençam apenas aos usuários do `mockSquad`.
+### Campos de Captura (Front-end):
+1. **Data de Nascimento:** (`birthDate`) - Para cálculo de idade dinâmica e contexto metabólico/hormonal.
+2. **Peso Atual:** (`weight`) - Em kg.
+3. **Altura:** (`height`) - Em metros.
+4. **Objetivo:** (`goal`) - Dropdown: Ganho de Massa, Perda de Gordura, Performance.
+5. **Frequência Semanal:** (`frequency`) - Dropdown: 3, 4, 5 ou 6 dias.
+6. **Nível de Experiência:** (`level`) - Iniciante, Intermediário, Avançado.
 
-### 2. Componente: Squad Bar (src/components/SquadBar.js)
-- **Layout:** Um bloco contendo um título "Squad" e um botão "Add +" no topo.
-- **Lista:** Uma `<FlatList>` horizontal exibindo os avatares dos amigos.
-- **Estilo do Avatar:** Baseado na imagem, os avatares devem ser circulares. Aplique uma borda Azul Neon (Cyan) para amigos com atualizações recentes, e uma borda cinza para os demais. O último item da lista deve ser um botão de busca (ícone de lupa).
+## 3. Lógica do Back-end (Spring Boot)
+### Conversão de Idade:
+O `WorkoutService` deve converter a `birthDate` recebida no DTO em idade real usando:
+`Period.between(birthDate, LocalDate.now()).getYears();`
 
-### 3. Componente: Feed Post (src/components/FeedPost.js)
-- **Cabeçalho do Post:** Avatar do autor, Nome, Tempo da postagem e Categoria (ex: "2 HRS AGO • HIGH INTENSITY"), com um botão de 3 pontinhos à direita.
-- **Imagem e Overlay:** - A imagem principal da postagem deve ocupar a largura do card com cantos arredondados.
-  - **Crucial:** Implemente uma `View` com fundo semi-transparente (estilo "Glass" com blur, escurecido na base) sobrepondo a parte inferior da imagem. Esta view exibirá as métricas do treino (Ex: "DURATION 45 MIN" e "CALORIES 420 KCAL").
-  - Adicione suporte a badges (ex: "NEW PR") no canto superior direito da imagem.
-- **Ações e Legenda:** Ícone de coração (curtida), ícone de balão (comentário) e contadores. Abaixo, o nome do autor em negrito seguido do texto da legenda.
-- **Interatividade:** O clique no ícone de coração deve alternar o estado local do componente (preencher o coração e somar +1 no contador).
+### Integração com Gemini (Prompt Engineering):
+O prompt será injetado com as variáveis de perfil. A IA deve ajustar:
+- **Volume de Treino:** Frequência 3 (treinos densos) vs Frequência 6 (treinos distribuídos).
+- **Metabolismo:** Ajustar sugestões de cardio e intensidade baseada na idade (diferenciando o vigor de um jovem de 21 anos do perfil de um adulto de 27+).
+- **Cargas:** Sugestões iniciais baseadas no Peso e Nível informados.
 
-### 4. Integração de Câmera e Tela Principal (SocialScreen)
-- **Layout Base:** A tela será composta pela `SquadBar` no topo e uma `<FlatList>` vertical renderizando os `FeedPost` logo abaixo.
-- **Floating Action Button (FAB):** Crie um botão flutuante circular (cor Azul Neon) com um ícone de "+" posicionado no canto inferior direito.
-- **Lógica da Câmera:** Utilize a biblioteca `expo-image-picker` nativa do Expo. Ao clicar no FAB, acione o método para abrir a câmera do dispositivo (`launchCameraAsync`). 
+## 4. Arquitetura Técnica & Regras de Ouro
+- **Contrato JSON:** O retorno da IA deve ser sempre um **Array JSON** com o número de objetos igual à `frequency` escolhida.
+- **JPA:** Proibido o uso de `@Data` em classes `@Entity` (usar `@Getter`, `@Setter`, `@NoArgsConstructor`).
+- **Segurança:** Autenticação via JWT (7 dias de validade). Dados de perfil devem ser vinculados ao `userId` extraído do token.
+- **Comunicação:** `RestClient` síncrono para chamadas externas à API do Google AI.
 
-## 🎨 UI e Estilização (Fonte da Verdade: Social_desing.jpg)
-- O design DEVE ser extraído inteiramente da imagem fornecida.
-- Preste atenção especial aos espaçamentos (padding interno dos posts) e ao contraste das fontes pequenas em cinza (texto secundário) contra o fundo `#131313`.
+## 5. Próximas Tarefas Imediatas
+1. **Back-end:** Criar `WorkoutRequestDTO` e atualizar o `WorkoutController`.
+2. **Back-end:** Implementar lógica de cálculo de idade no `WorkoutService`.
+3. **Back-end:** Refinar o `GeminiService` para aceitar o novo prompt dinâmico e iterativo.
+4. **Front-end:** Alterar para adequar as novas requisções na tela de onboarding do front-end (mantenha o desing como está atualmente, apenas siga o mesmo template e adicione as novas abas informadas no documento.)
+5. **Integração:** Conectar o formulário de Onboarding ao endpoint de geração de treino via Axios.

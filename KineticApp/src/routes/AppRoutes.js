@@ -64,7 +64,11 @@ function DrawerNavigator() {
 }
 
 export default function AppRoutes() {
-  const { isLoggedIn, hasOnboarded } = useContext(AuthContext);
+  const { isLoggedIn, hasOnboarded, isLoadingAuth } = useContext(AuthContext);
+
+  if (isLoadingAuth) {
+    return null; // Evita flicker enquanto o AsyncStorage carrega a sessão
+  }
 
   if (!isLoggedIn) {
     return (

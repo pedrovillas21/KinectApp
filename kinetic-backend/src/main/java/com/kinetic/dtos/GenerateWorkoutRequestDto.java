@@ -1,8 +1,12 @@
 package com.kinetic.dtos;
 
-import jakarta.validation.constraints.NotBlank;
+import java.time.LocalDate;
 
 public record GenerateWorkoutRequestDto(
-        @NotBlank(message = "O nível não pode estar vazio")
+        LocalDate birthDate,
+        Double weight,
+        Double height,
+        String goal,
+        Integer frequency,
         String level
 ) {}
