@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.List;
 
 @RestController
@@ -34,14 +36,24 @@ public class WorkoutController {
 
     @PostMapping("/generate")
     public ResponseEntity<?> generateWorkout(@RequestBody GenerateWorkoutRequestDto request) {
-        // Obter usuário logado do SecurityContext (assumindo que o nome de usuário é o email ou UUID, precisamos adaptar dependendo do auth)
+        // Obter usuário logado do SecurityContext
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         try {
-            // Chama a IA para gerar as fichas (agora retorna uma lista)
-            List<GeneratedWorkoutPlanDto> generatedDtos = geminiService.generateWorkoutPlan(request.level());
+            // Calcula a idade real a partir da data de nascimento
+            int age = Period.between(request.birthDate(), LocalDate.now()).getYears();
+
+            // Chama a IA para gerar as fichas com o perfil fisiológico completo
+            List<GeneratedWorkoutPlanDto> generatedDtos = geminiService.generateWorkoutPlan(
+                    request.level(),
+                    age,
+                    request.weight(),
+                    request.height(),
+                    request.goal(),
+                    request.frequency()
+            );
 
             List<WorkoutPlan> workoutPlansToSave = new java.util.ArrayList<>();
 
@@ -96,3 +108,4 @@ public class WorkoutController {
         return ResponseEntity.ok(plans);
     }
 }
+

@@ -29,8 +29,8 @@ public class GeminiService {
         this.objectMapper = objectMapper;
     }
 
-    public List<GeneratedWorkoutPlanDto> generateWorkoutPlan(String level) {
-        String prompt = buildPrompt(level);
+    public List<GeneratedWorkoutPlanDto> generateWorkoutPlan(String level, int age, double weight, double height, String goal, int frequency) {
+        String prompt = buildPrompt(level, age, weight, height, goal, frequency);
 
         GeminiRequestDto requestDto = new GeminiRequestDto(
                 List.of(GeminiRequestDto.Content.of(prompt)),
@@ -57,7 +57,7 @@ public class GeminiService {
         }
     }
 
-    private String buildPrompt(String level) {
+    private String buildPrompt(String level, int age, double weight, double height, String goal, int frequency) {
         String focus = switch (level.toUpperCase()) {
             case "INICIANTE" -> "Foco em Resistência/Adaptação Muscular.";
             case "INTERMEDIARIO" -> "Foco em Hipertrofia.";
@@ -65,19 +65,56 @@ public class GeminiService {
             default -> "Foco em Condicionamento Geral.";
         };
 
+        String goalContext = switch (goal.toUpperCase()) {
+            case "GANHO DE MASSA" -> "O objetivo principal é HIPERTROFIA e ganho de massa muscular. Priorize exercícios compostos pesados e volume adequado.";
+            case "PERDA DE GORDURA" -> "O objetivo principal é PERDA DE GORDURA. Inclua circuitos metabólicos, supersets e sugira cardio HIIT pós-treino.";
+            case "PERFORMANCE" -> "O objetivo principal é PERFORMANCE ATLÉTICA. Foque em exercícios funcionais, explosivos e de potência.";
+            default -> "Objetivo geral de condicionamento físico.";
+        };
+
+        String metabolismContext;
+        if (age <= 22) {
+            metabolismContext = "Aluno jovem (%d anos) com metabolismo acelerado e alta capacidade de recuperação. Pode suportar maior volume e intensidade.".formatted(age);
+        } else if (age <= 30) {
+            metabolismContext = "Aluno adulto jovem (%d anos) com boa capacidade de recuperação. Volume moderado-alto é ideal.".formatted(age);
+        } else if (age <= 40) {
+            metabolismContext = "Aluno adulto (%d anos). Considerar tempo de recuperação entre sessões e priorizar aquecimento articular.".formatted(age);
+        } else {
+            metabolismContext = "Aluno maduro (%d anos). Reduzir impacto articular, priorizar mobilidade e aquecimento completo. Cargas progressivas e controladas.".formatted(age);
+        }
+
+        String volumeContext = switch (frequency) {
+            case 3 -> "Divisão de treino em 3 dias: treinos devem ser DENSOS e completos (Full Body ou Push/Pull/Legs condensado). Cada sessão deve cobrir mais grupos musculares.";
+            case 4 -> "Divisão de treino em 4 dias: Upper/Lower ou Push/Pull split. Distribuição equilibrada entre membros superiores e inferiores.";
+            case 5 -> "Divisão de treino em 5 dias: treinos bem distribuídos por grupo muscular. Um grupo principal por dia com auxiliares.";
+            case 6 -> "Divisão de treino em 6 dias: treinos distribuídos e focados. Um grupo muscular principal por sessão com volume controlado para permitir recuperação.";
+            default -> "Divisão de treino em %d dias: distribua adequadamente os grupos musculares.".formatted(frequency);
+        };
+
         return """
-                Você é um personal trainer especialista de elite. Gere uma rotina completa de treinos dividida em 3 dias (ABC - Push, Pull, Legs) para um aluno de nível %s que treina em uma academia focada em musculação.
-                A diretriz fisiológica principal para este nível é: %s
+                Você é um personal trainer especialista de elite. Gere uma rotina completa de treinos dividida em %d dias para um aluno com o seguinte perfil:
+                - Nível: %s
+                - Idade: %d anos
+                - Peso: %.1f kg
+                - Altura: %.0f cm
+                - Objetivo: %s
+                - Frequência semanal: %d dias
 
-                REGRA DE CARGA: O app é para academias. Você DEVE fornecer uma sugestão de carga inicial realista para cada exercício baseada no nível do aluno (ex: "Halteres de 12kg", "20kg de cada lado", "Polia 35kg", "Máquina 40kg"). Evite usar apenas "Corpo" a menos que seja estritamente necessário (ex: Barra Fixa).
+                DIRETRIZES FISIOLÓGICAS:
+                - Diretriz de nível: %s
+                - Contexto metabólico: %s
+                - Contexto de volume: %s
+                - Objetivo específico: %s
 
-                O resultado deve ser ESTRITAMENTE um ARRAY JSON contendo exatamente 3 objetos, sem nenhum texto adicional, sem saudações e sem blocos de código Markdown (como ```json ou ```).
+                REGRA DE CARGA: O app é para academias. Você DEVE fornecer uma sugestão de carga inicial realista para cada exercício baseada no nível e peso do aluno (ex: "Halteres de 12kg", "20kg de cada lado", "Polia 35kg", "Máquina 40kg"). Considere que o aluno pesa %.1f kg para calibrar as sugestões. Evite usar apenas "Corpo" a menos que seja estritamente necessário (ex: Barra Fixa).
+
+                O resultado deve ser ESTRITAMENTE um ARRAY JSON contendo exatamente %d objetos, sem nenhum texto adicional, sem saudações e sem blocos de código Markdown (como ```json ou ```).
 
                 O array deve obedecer exatamente à seguinte estrutura:
                 [
                   {
-                    "title": "PUSH DAY",
-                    "subtitle": "PEITO / OMBRO / TRÍCEPS",
+                    "title": "NOME DO TREINO (ex: PUSH DAY)",
+                    "subtitle": "MÚSCULOS TRABALHADOS (ex: PEITO / OMBRO / TRÍCEPS)",
                     "tag": "DIA A",
                     "data": [
                       {
@@ -90,27 +127,12 @@ public class GeminiService {
                         "restTime": "Tempo de descanso ex: 90s"
                       }
                     ]
-                  },
-                  {
-                    "title": "PULL DAY",
-                    "subtitle": "COSTAS / BÍCEPS",
-                    "tag": "DIA B",
-                    "data": [
-                       // Pelo menos 6 a 8 exercícios
-                    ]
-                  },
-                  {
-                    "title": "LEG DAY",
-                    "subtitle": "QUADRÍCEPS / POSTERIOR / PANTURRILHA",
-                    "tag": "DIA C",
-                    "data": [
-                       // Pelo menos 6 a 8 exercícios
-                    ]
                   }
                 ]
 
-                Gere rigorosamente de 6 a 8 exercícios na lista 'data' de CADA UM dos 3 treinos. Retorne APENAS o array JSON válido.
+                Gere rigorosamente de 6 a 8 exercícios na lista 'data' de CADA UM dos %d treinos. Adapte os nomes dos treinos (title), subtítulos e tags (DIA A, DIA B, etc.) conforme a divisão escolhida. Retorne APENAS o array JSON válido.
                 """
-                .formatted(level, focus);
+                .formatted(frequency, level, age, weight, height, goal, frequency, focus, metabolismContext, volumeContext, goalContext, weight, frequency, frequency);
     }
 }
+

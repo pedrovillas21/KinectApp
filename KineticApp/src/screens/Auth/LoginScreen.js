@@ -20,8 +20,10 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    const result = signIn({ email: email.trim(), password });
+  const handleLogin = async () => {
+    setLoading(true);
+    const result = await signIn({ email: email.trim(), password });
+    setLoading(false);
     if (!result.success) {
       Alert.alert('Erro ao entrar', result.error);
     }

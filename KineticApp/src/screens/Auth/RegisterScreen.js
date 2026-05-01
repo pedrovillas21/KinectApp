@@ -29,8 +29,10 @@ export default function RegisterScreen({ navigation }) {
   const hasSymbol     = /[!@#$%^&*]/.test(password);
   const isPasswordValid = hasMinLength && hasUppercase && hasLowercase && hasNumber && hasSymbol;
 
-  const handleRegister = () => {
-    const result = register({ name: name.trim(), email: email.trim(), password });
+  const handleRegister = async () => {
+    setLoading(true);
+    const result = await register({ name: name.trim(), email: email.trim(), password });
+    setLoading(false);
 
     if (!result.success) {
       Alert.alert('Erro no cadastro', result.error);
