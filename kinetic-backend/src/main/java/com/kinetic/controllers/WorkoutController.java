@@ -33,7 +33,7 @@ public class WorkoutController {
     }
 
     @PostMapping("/generate")
-    public ResponseEntity<?> generateWorkout(@RequestBody GenerateWorkoutRequestDto request) {
+    public ResponseEntity<?> generateWorkout(@jakarta.validation.Valid @RequestBody GenerateWorkoutRequestDto request) {
         // Obter usuário logado do SecurityContext (assumindo que o nome de usuário é o email ou UUID, precisamos adaptar dependendo do auth)
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(userEmail)
@@ -82,7 +82,7 @@ public class WorkoutController {
             return ResponseEntity.status(HttpStatus.CREATED).body(savedPlans);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Erro ao gerar treino: " + e.getMessage());
+                    .body("Ocorreu um erro interno ao gerar o treino. Tente novamente mais tarde.");
         }
     }
 
