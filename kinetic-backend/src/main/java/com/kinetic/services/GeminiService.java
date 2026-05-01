@@ -65,6 +65,7 @@ public class GeminiService {
     }
 
     private String buildPrompt(String level) {
+        if (level == null) level = "INICIANTE";
         String focus = switch (level.toUpperCase()) {
             case "INICIANTE" -> "Foco em Resistência/Adaptação Muscular.";
             case "INTERMEDIARIO" -> "Foco em Hipertrofia.";
