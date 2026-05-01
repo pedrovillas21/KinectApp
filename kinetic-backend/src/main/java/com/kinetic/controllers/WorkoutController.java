@@ -94,7 +94,7 @@ public class WorkoutController {
             return ResponseEntity.status(HttpStatus.CREATED).body(savedPlans);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Erro ao gerar treino: " + e.getMessage());
+                    .body("Ocorreu um erro interno ao gerar o treino. Tente novamente mais tarde.");
         }
     }
 
