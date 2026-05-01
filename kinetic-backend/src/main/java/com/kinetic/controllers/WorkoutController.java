@@ -36,21 +36,49 @@ public class WorkoutController {
 
     @PostMapping("/generate")
     public ResponseEntity<?> generateWorkout(@RequestBody GenerateWorkoutRequestDto request) {
+        // --- Validação do payload antes de qualquer processamento ---
+        if (request.birthDate() == null) {
+            return ResponseEntity.badRequest().body("Campo 'birthDate' é obrigatório.");
+        }
+        if (request.weight() == null || request.weight() <= 0) {
+            return ResponseEntity.badRequest().body("Campo 'weight' deve ser um valor positivo.");
+        }
+        if (request.height() == null || request.height() <= 0) {
+            return ResponseEntity.badRequest().body("Campo 'height' deve ser um valor positivo.");
+        }
+        if (request.goal() == null || request.goal().isBlank()) {
+            return ResponseEntity.badRequest().body("Campo 'goal' é obrigatório.");
+        }
+        if (request.frequency() == null || request.frequency() < 1 || request.frequency() > 7) {
+            return ResponseEntity.badRequest().body("Campo 'frequency' deve ser entre 1 e 7.");
+        }
+        if (request.level() == null || request.level().isBlank()) {
+            return ResponseEntity.badRequest().body("Campo 'level' é obrigatório.");
+        }
+
+        int age = Period.between(request.birthDate(), LocalDate.now()).getYears();
+        if (age < 0) {
+            return ResponseEntity.badRequest().body("Data de nascimento não pode ser no futuro.");
+        }
+        if (age < 10 || age > 120) {
+            return ResponseEntity.badRequest().body("Idade derivada (%d anos) está fora do intervalo permitido (10–120).".formatted(age));
+        }
+
+        // Normaliza altura: se vier em metros (ex: 1.75), converte para cm
+        double heightCm = request.height() < 3 ? request.height() * 100 : request.height();
+
         // Obter usuário logado do SecurityContext
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         try {
-            // Calcula a idade real a partir da data de nascimento
-            int age = Period.between(request.birthDate(), LocalDate.now()).getYears();
-
             // Chama a IA para gerar as fichas com o perfil fisiológico completo
             List<GeneratedWorkoutPlanDto> generatedDtos = geminiService.generateWorkoutPlan(
                     request.level(),
                     age,
                     request.weight(),
-                    request.height(),
+                    heightCm,
                     request.goal(),
                     request.frequency()
             );

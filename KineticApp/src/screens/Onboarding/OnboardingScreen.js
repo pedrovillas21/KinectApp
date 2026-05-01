@@ -88,6 +88,7 @@ export default function OnboardingScreen() {
     } catch (e) {
       const message = e.response?.data || 'Erro ao gerar treino. Tente novamente.';
       Alert.alert('Erro', typeof message === 'string' ? message : 'Falha ao comunicar com o servidor.');
+    } finally {
       setIsLoading(false);
     }
   };

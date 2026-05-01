@@ -1,6 +1,6 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from '../services/api';
+import api, { setSignOutHandler } from '../services/api';
 
 export const AuthContext = createContext({});
 
@@ -16,10 +16,11 @@ export const AuthProvider = ({ children }) => {
       try {
         const token = await AsyncStorage.getItem('@kinetic_token');
         const userJson = await AsyncStorage.getItem('@kinetic_user');
-        const onboarded = await AsyncStorage.getItem('@kinetic_onboarded');
 
         if (token && userJson) {
           const user = JSON.parse(userJson);
+          // Chave de onboarding por usuário (evita vazamento entre contas)
+          const onboarded = await AsyncStorage.getItem(`@kinetic_onboarded_${user.id}`);
           setCurrentUser(user);
           setIsLoggedIn(true);
           setHasOnboarded(onboarded === 'true');
@@ -69,7 +70,8 @@ export const AuthProvider = ({ children }) => {
       await AsyncStorage.setItem('@kinetic_token', token);
       await AsyncStorage.setItem('@kinetic_user', JSON.stringify({ id, nome, email: userEmail }));
 
-      const onboarded = await AsyncStorage.getItem('@kinetic_onboarded');
+      // Chave de onboarding por usuário
+      const onboarded = await AsyncStorage.getItem(`@kinetic_onboarded_${id}`);
 
       setCurrentUser({ id, nome, email: userEmail });
       setIsLoggedIn(true);
@@ -82,18 +84,34 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signOut = async () => {
-    await AsyncStorage.removeItem('@kinetic_token');
-    await AsyncStorage.removeItem('@kinetic_user');
-    // Não remove o @kinetic_onboarded para que no próximo login, o onboarding não reapareça
-    setCurrentUser(null);
-    setIsLoggedIn(false);
-    setHasOnboarded(false);
-  };
+  const signOut = useCallback(async () => {
+    try {
+      await AsyncStorage.removeItem('@kinetic_token');
+      await AsyncStorage.removeItem('@kinetic_user');
+      // Não remove a chave de onboarding per-user para que no próximo login não reapareça
+    } catch (e) {
+      console.error('Erro ao limpar sessão do storage:', e);
+    } finally {
+      // Sempre reseta o estado, mesmo se o storage falhar
+      setCurrentUser(null);
+      setIsLoggedIn(false);
+      setHasOnboarded(false);
+    }
+  }, []);
+
+  // Registra o signOut no interceptor do Axios para que 401s resetem o estado React
+  useEffect(() => {
+    setSignOutHandler(signOut);
+    return () => setSignOutHandler(null);
+  }, [signOut]);
 
   const completeOnboarding = async (data) => {
     setHasOnboarded(true);
-    await AsyncStorage.setItem('@kinetic_onboarded', 'true');
+    // Persiste per-user para evitar vazamento entre contas
+    const userId = currentUser?.id;
+    if (userId) {
+      await AsyncStorage.setItem(`@kinetic_onboarded_${userId}`, 'true');
+    }
     // Salva o nível como dado adicional do usuário, se informado
     if (data?.level) {
       const updatedUser = { ...currentUser, level: data.level };

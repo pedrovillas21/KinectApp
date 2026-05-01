@@ -30,6 +30,14 @@ public class GeminiService {
     }
 
     public List<GeneratedWorkoutPlanDto> generateWorkoutPlan(String level, int age, double weight, double height, String goal, int frequency) {
+        // Validação defensiva dos parâmetros
+        if (level == null || level.isBlank()) throw new IllegalArgumentException("Nível não pode ser vazio.");
+        if (goal == null || goal.isBlank()) throw new IllegalArgumentException("Objetivo não pode ser vazio.");
+        if (age < 10 || age > 120) throw new IllegalArgumentException("Idade fora do intervalo permitido (10–120): " + age);
+        if (weight <= 0 || weight > 500) throw new IllegalArgumentException("Peso inválido: " + weight);
+        if (height <= 0 || height > 300) throw new IllegalArgumentException("Altura inválida (cm): " + height);
+        if (frequency < 1 || frequency > 7) throw new IllegalArgumentException("Frequência deve ser entre 1 e 7: " + frequency);
+
         String prompt = buildPrompt(level, age, weight, height, goal, frequency);
 
         GeminiRequestDto requestDto = new GeminiRequestDto(
@@ -96,7 +104,7 @@ public class GeminiService {
                 - Nível: %s
                 - Idade: %d anos
                 - Peso: %.1f kg
-                - Altura: %.0f cm
+                - Altura: %.1f cm
                 - Objetivo: %s
                 - Frequência semanal: %d dias
 
