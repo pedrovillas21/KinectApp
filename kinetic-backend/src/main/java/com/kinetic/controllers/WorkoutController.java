@@ -72,6 +72,10 @@ public class WorkoutController {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        // Persiste o level do usuário no banco de dados
+        user.setLevel(request.level());
+        userRepository.save(user);
+
         try {
             // Chama a IA para gerar as fichas com o perfil fisiológico completo
             List<GeneratedWorkoutPlanDto> generatedDtos = geminiService.generateWorkoutPlan(

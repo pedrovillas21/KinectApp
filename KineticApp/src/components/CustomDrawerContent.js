@@ -37,8 +37,8 @@ export default function CustomDrawerContent(props) {
   };
 
   // Pega as iniciais do nome para o avatar
-  const initials = currentUser?.name
-    ? currentUser.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+  const initials = currentUser?.nome
+    ? currentUser.nome.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
     : '?';
 
   // Descobre a tab ativa pela state do Navigator
@@ -105,7 +105,7 @@ export default function CustomDrawerContent(props) {
           {/* Nome e cargo */}
           <View style={{ flex: 1 }}>
             <Text style={[styles.profileName, { color: THEME.text }]} numberOfLines={1}>
-              {currentUser?.name || 'Usuário'}
+              {currentUser?.nome || 'Usuário'}
             </Text>
             <Text style={styles.profileTitle}>
               {currentUser?.level || 'INICIANTE'}

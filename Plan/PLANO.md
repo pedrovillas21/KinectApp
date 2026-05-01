@@ -1,41 +1,51 @@
-# 🧠 Plano de Desenvolvimento: Kinetic App - Evolução Onboarding & IA
+# Plano de Integração: Onboarding -> IA Backend -> WorkoutScreen
 
-## 1. Contexto Geral
-- **Objetivo:** Aplicativo de diário de treinos com inteligência artificial generativa.
-- **Usuário Alvo:** Frequentadores de academia (Iniciante ao Pro).
-- **Stack:** React Native (Expo) | Java 17 (Spring Boot 3.2.x) | PostgreSQL (Supabase).
+Este documento descreve o roteiro técnico para substituir os dados mockados na `WorkoutScreen` por treinos reais gerados via IA, baseados nas informações coletadas durante o `OnboardingScreen`.
 
-## 2. Nova Definição de Fluxo: Onboarding Dinâmico
-O app deixará de usar apenas o "nível" para considerar um perfil fisiológico completo antes de chamar a IA.
+## 1. Objetivo
+Integrar o fluxo de dados do usuário (idade, peso, altura, objetivo e frequência) com o serviço de geração de treinos no Back-end (Spring Boot + Gemini) e refletir o resultado em tempo real na interface mobile (React Native/Expo).
 
-### Campos de Captura (Front-end):
-1. **Data de Nascimento:** (`birthDate`) - Para cálculo de idade dinâmica e contexto metabólico/hormonal.
-2. **Peso Atual:** (`weight`) - Em kg.
-3. **Altura:** (`height`) - Em metros.
-4. **Objetivo:** (`goal`) - Dropdown: Ganho de Massa, Perda de Gordura, Performance.
-5. **Frequência Semanal:** (`frequency`) - Dropdown: 3, 4, 5 ou 6 dias.
-6. **Nível de Experiência:** (`level`) - Iniciante, Intermediário, Avançado.
+## 2. Contexto Técnico
+- **Frontend:** React Native (Expo) + Axios + AsyncStorage.
+- **Backend:** Java Spring Boot + Spring Security (JWT) + Gemini AI.
+- **Endpoint de Geração:** `POST /api/workouts/generate` (exemplo).
+- **Endpoint de Busca:** `GET /api/workouts/current`.
 
-## 3. Lógica do Back-end (Spring Boot)
-### Conversão de Idade:
-O `WorkoutService` deve converter a `birthDate` recebida no DTO em idade real usando:
-`Period.between(birthDate, LocalDate.now()).getYears();`
+---
 
-### Integração com Gemini (Prompt Engineering):
-O prompt será injetado com as variáveis de perfil. A IA deve ajustar:
-- **Volume de Treino:** Frequência 3 (treinos densos) vs Frequência 6 (treinos distribuídos).
-- **Metabolismo:** Ajustar sugestões de cardio e intensidade baseada na idade (diferenciando o vigor de um jovem de 21 anos do perfil de um adulto de 27+).
-- **Cargas:** Sugestões iniciais baseadas no Peso e Nível informados.
+## 3. Etapas de Implementação
 
-## 4. Arquitetura Técnica & Regras de Ouro
-- **Contrato JSON:** O retorno da IA deve ser sempre um **Array JSON** com o número de objetos igual à `frequency` escolhida.
-- **JPA:** Proibido o uso de `@Data` em classes `@Entity` (usar `@Getter`, `@Setter`, `@NoArgsConstructor`).
-- **Segurança:** Autenticação via JWT (7 dias de validade). Dados de perfil devem ser vinculados ao `userId` extraído do token.
-- **Comunicação:** `RestClient` síncrono para chamadas externas à API do Google AI.
+### Passo 1: Captura e Envio no Onboarding (Frontend)
+No final do fluxo de Onboarding, o aplicativo deve consolidar o objeto de perfil e disparar a geração.
+1. **Consolidação:** Reunir `age`, `weight`, `height`, `goal`, `level` e `frequency`.
+2. **Requisição:** Enviar um `POST` para o back-end com esse corpo JSON.
+3. **Persistência:** Garantir que o Token JWT está sendo enviado no header (via interceptor do `api.js`).
+4. **Navegação:** Exibir um componente de `Loading` (ou animação de "Gerando seu treino...") enquanto a IA processa a requisição.
 
-## 5. Próximas Tarefas Imediatas
-1. **Back-end:** Criar `WorkoutRequestDTO` e atualizar o `WorkoutController`.
-2. **Back-end:** Implementar lógica de cálculo de idade no `WorkoutService`.
-3. **Back-end:** Refinar o `GeminiService` para aceitar o novo prompt dinâmico e iterativo.
-4. **Front-end:** Alterar para adequar as novas requisções na tela de onboarding do front-end (mantenha o desing como está atualmente, apenas siga o mesmo template e adicione as novas abas informadas no documento.)
-5. **Integração:** Conectar o formulário de Onboarding ao endpoint de geração de treino via Axios.
+### Passo 2: Processamento e Persistência (Backend)
+O Spring Boot deve receber os dados e vincular o treino ao usuário autenticado.
+1. **Controller:** O `WorkoutController` recebe o `UserStatsDTO`.
+2. **GeminiService:** O prompt deve usar os dados reais enviados pelo front para gerar o JSON do treino.
+3. **Database:** Salvar o `WorkoutPlan` no banco de dados atrelado ao `userId` do token.
+4. **Resposta:** Retornar o plano gerado com sucesso.
+
+### Passo 3: Consumo em Tempo Real na WorkoutScreen (Frontend)
+A tela de treinos deve deixar de ler o arquivo `mock.json` e buscar da API.
+1. **useEffect:** Ao carregar a `WorkoutScreen`, disparar uma chamada `api.get('/workouts/current')`.
+2. **State Management:** Armazenar o retorno no estado `const [workout, setWorkout] = useState(null)`.
+3. **Mapeamento:** Adaptar o design para iterar sobre o array de exercícios vindo do banco de dados.
+4. **Tratamento de Vazio:** Se não houver treino no banco, redirecionar para o Onboarding ou mostrar botão de "Gerar Treino".
+
+---
+
+## 4. Checklist de Verificação
+- [ ] O `api.js` está usando o IP correto da rede (não localhost).
+- [ ] O `AsyncStorage` está recuperando o token corretamente antes da chamada.
+- [ ] O Back-end está recebendo o peso/altura em tipos numéricos corretos (Double/Integer).
+- [ ] O prompt da IA no Back-end está devidamente parametrizado com as variáveis do Onboarding.
+- [ ] A `WorkoutScreen` exibe um Spinner de carregamento enquanto a API não responde.
+
+---
+
+## 5. Próximos Passos (Feature Web)
+- Garantir que as estatísticas de carga salvas na `WorkoutScreen` sejam enviadas via `PATCH` ou `POST` para o endpoint de métricas, permitindo que o Dashboard Web do professor consuma esses dados posteriormente.

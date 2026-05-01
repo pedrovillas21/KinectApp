@@ -29,4 +29,7 @@ public class User {
     @com.fasterxml.jackson.annotation.JsonIgnore
     @Column(nullable = false)
     private String senha;
+
+    @Column(nullable = true)
+    private String level;
 }
