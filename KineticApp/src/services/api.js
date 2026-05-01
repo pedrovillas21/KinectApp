@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // A baseURL agora é o endereço do seu servidor Java (Spring Boot)
 // DICA: Se estiver testando no celular físico com Expo, troque "localhost" pelo IP do seu Wi-Fi (ex: 192.168.1.15)
-const API_URL = 'http://localhost:8080/api';
+const API_URL = `${process.env.EXPO_PUBLIC_API_URL}/api`;
 
 const api = axios.create({
   baseURL: API_URL,
