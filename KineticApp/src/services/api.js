@@ -1,16 +1,17 @@
 import axios from 'axios';
-import { SUPABASE_URL, SUPABASE_KEY, GEMINI_API_KEY } from '@env';
 
-// Mock behavior initially to ensure no broken imports before .env is set properly
-// This acts as a placeholder structure for future implementations
+// A baseURL agora é o endereço do seu servidor Java (Spring Boot)
+// DICA: Se estiver testando no celular físico com Expo, troque "localhost" pelo IP do seu Wi-Fi (ex: 192.168.1.15)
+const API_URL = 'http://localhost:8080/api';
+
 const api = axios.create({
-  baseURL: SUPABASE_URL || 'https://api.mocked-kinect.com',
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
-    ...(SUPABASE_KEY ? { 'Authorization': `Bearer ${SUPABASE_KEY}` } : {})
   }
 });
 
-export const getGeminiKey = () => GEMINI_API_KEY || '';
+// Mais para frente, vamos colocar um "Interceptor" aqui para adicionar 
+// o JWT Token que o Java gerou automaticamente em todas as requisições!
 
 export default api;
