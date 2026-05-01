@@ -9,8 +9,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 
+import java.time.Duration;
 import java.util.List;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 @Service
 public class GeminiService {
@@ -25,7 +28,12 @@ public class GeminiService {
     private String apiUrl;
 
     public GeminiService(ObjectMapper objectMapper) {
-        this.restClient = RestClient.builder().build();
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory();
+        requestFactory.setReadTimeout(Duration.ofSeconds(30));
+        
+        this.restClient = RestClient.builder()
+                .requestFactory(requestFactory)
+                .build();
         this.objectMapper = objectMapper;
     }
 
@@ -58,10 +66,9 @@ public class GeminiService {
         String jsonText = response.getText();
 
         try {
-            return objectMapper.readValue(jsonText, new com.fasterxml.jackson.core.type.TypeReference<List<GeneratedWorkoutPlanDto>>() {});
+            return objectMapper.readValue(jsonText, new TypeReference<List<GeneratedWorkoutPlanDto>>() {});
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to parse Gemini API response into List<GeneratedWorkoutPlanDto>: " + jsonText,
-                    e);
+            throw new RuntimeException("Failed to parse Gemini API response into List<GeneratedWorkoutPlanDto>. Check server logs for details.", e);
         }
     }
 
