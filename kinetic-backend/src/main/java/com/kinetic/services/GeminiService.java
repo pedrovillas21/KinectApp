@@ -29,13 +29,12 @@ public class GeminiService {
         this.objectMapper = objectMapper;
     }
 
-    public GeneratedWorkoutPlanDto generateWorkoutPlan(String level) {
+    public List<GeneratedWorkoutPlanDto> generateWorkoutPlan(String level) {
         String prompt = buildPrompt(level);
 
         GeminiRequestDto requestDto = new GeminiRequestDto(
                 List.of(GeminiRequestDto.Content.of(prompt)),
-                GeminiRequestDto.GenerationConfig.json()
-        );
+                GeminiRequestDto.GenerationConfig.json());
 
         GeminiResponseDto response = restClient.post()
                 .uri(apiUrl + "?key=" + apiKey)
@@ -49,11 +48,12 @@ public class GeminiService {
         }
 
         String jsonText = response.getText();
-        
+
         try {
-            return objectMapper.readValue(jsonText, GeneratedWorkoutPlanDto.class);
+            return objectMapper.readValue(jsonText, new com.fasterxml.jackson.core.type.TypeReference<List<GeneratedWorkoutPlanDto>>() {});
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to parse Gemini API response into GeneratedWorkoutPlanDto: " + jsonText, e);
+            throw new RuntimeException("Failed to parse Gemini API response into List<GeneratedWorkoutPlanDto>: " + jsonText,
+                    e);
         }
     }
 
@@ -66,28 +66,51 @@ public class GeminiService {
         };
 
         return """
-            Você é um personal trainer especialista de elite. Gere uma ficha de treino para um aluno de nível %s.
-            A diretriz principal para este nível é: %s
-            
-            O resultado deve ser ESTRITAMENTE um objeto JSON que obedeça exatamente à seguinte estrutura, sem nenhum texto adicional ou blocos de código Markdown (como ```json):
-            {
-              "title": "Nome curto do treino, ex: PUSH DAY, PULL DAY, LEG DAY, FULL BODY",
-              "subtitle": "Grupos musculares principais, ex: PEITO / OMBRO / TRÍCEPS",
-              "tag": "Tag visual curta, ex: DIA A, DIA B",
-              "data": [
-                {
-                  "name": "Nome do Exercício, ex: Supino Reto com Barra",
-                  "muscles": "Músculo principal, ex: PEITO, COSTAS, OMBRO, QUADRÍCEPS",
-                  "type": "COMPOSTO ou ISOLADO",
-                  "sets": 4,
-                  "reps": "8-10 ou 10 cada",
-                  "weight": "Sugestão de peso ex: 80kg ou Corpo",
-                  "restTime": "Tempo de descanso ex: 90s"
-                }
-              ]
-            }
-            
-            Gere pelo menos 6 a 8 exercícios na lista 'data'.
-            """.formatted(level, focus);
+                Você é um personal trainer especialista de elite. Gere uma rotina completa de treinos dividida em 3 dias (ABC - Push, Pull, Legs) para um aluno de nível %s que treina em uma academia focada em musculação.
+                A diretriz fisiológica principal para este nível é: %s
+
+                REGRA DE CARGA: O app é para academias. Você DEVE fornecer uma sugestão de carga inicial realista para cada exercício baseada no nível do aluno (ex: "Halteres de 12kg", "20kg de cada lado", "Polia 35kg", "Máquina 40kg"). Evite usar apenas "Corpo" a menos que seja estritamente necessário (ex: Barra Fixa).
+
+                O resultado deve ser ESTRITAMENTE um ARRAY JSON contendo exatamente 3 objetos, sem nenhum texto adicional, sem saudações e sem blocos de código Markdown (como ```json ou ```).
+
+                O array deve obedecer exatamente à seguinte estrutura:
+                [
+                  {
+                    "title": "PUSH DAY",
+                    "subtitle": "PEITO / OMBRO / TRÍCEPS",
+                    "tag": "DIA A",
+                    "data": [
+                      {
+                        "name": "Nome do Exercício, ex: Supino Reto com Barra",
+                        "muscles": "PEITO",
+                        "type": "COMPOSTO ou ISOLADO",
+                        "sets": 4,
+                        "reps": "8-12 ou 10 cada",
+                        "weight": "Sugestão exata, ex: 20kg de cada lado",
+                        "restTime": "Tempo de descanso ex: 90s"
+                      }
+                    ]
+                  },
+                  {
+                    "title": "PULL DAY",
+                    "subtitle": "COSTAS / BÍCEPS",
+                    "tag": "DIA B",
+                    "data": [
+                       // Pelo menos 6 a 8 exercícios
+                    ]
+                  },
+                  {
+                    "title": "LEG DAY",
+                    "subtitle": "QUADRÍCEPS / POSTERIOR / PANTURRILHA",
+                    "tag": "DIA C",
+                    "data": [
+                       // Pelo menos 6 a 8 exercícios
+                    ]
+                  }
+                ]
+
+                Gere rigorosamente de 6 a 8 exercícios na lista 'data' de CADA UM dos 3 treinos. Retorne APENAS o array JSON válido.
+                """
+                .formatted(level, focus);
     }
 }

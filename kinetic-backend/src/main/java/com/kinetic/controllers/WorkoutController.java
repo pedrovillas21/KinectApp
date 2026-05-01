@@ -40,41 +40,46 @@ public class WorkoutController {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         try {
-            // Chama a IA para gerar a ficha
-            GeneratedWorkoutPlanDto generatedDto = geminiService.generateWorkoutPlan(request.level());
+            // Chama a IA para gerar as fichas (agora retorna uma lista)
+            List<GeneratedWorkoutPlanDto> generatedDtos = geminiService.generateWorkoutPlan(request.level());
 
-            // Cria e preenche a entidade WorkoutPlan
-            WorkoutPlan workoutPlan = new WorkoutPlan();
-            workoutPlan.setTitle(generatedDto.title());
-            workoutPlan.setSubtitle(generatedDto.subtitle());
-            workoutPlan.setTag(generatedDto.tag());
-            workoutPlan.setLevel(request.level());
-            workoutPlan.setUser(user);
+            List<WorkoutPlan> workoutPlansToSave = new java.util.ArrayList<>();
 
-            // Cria e preenche as entidades Exercise
-            if (generatedDto.data() != null) {
-                for (GeneratedExerciseDto exDto : generatedDto.data()) {
-                    Exercise exercise = new Exercise();
-                    exercise.setName(exDto.name());
-                    exercise.setMuscles(exDto.muscles());
-                    exercise.setType(exDto.type());
-                    exercise.setSets(exDto.sets());
-                    exercise.setReps(exDto.reps());
-                    exercise.setWeight(exDto.weight());
-                    exercise.setRestTime(exDto.restTime());
-                    
-                    // Associa a ficha ao exercício
-                    exercise.setWorkoutPlan(workoutPlan);
-                    
-                    // Adiciona na lista da ficha
-                    workoutPlan.getExercises().add(exercise);
+            for (GeneratedWorkoutPlanDto generatedDto : generatedDtos) {
+                // Cria e preenche a entidade WorkoutPlan
+                WorkoutPlan workoutPlan = new WorkoutPlan();
+                workoutPlan.setTitle(generatedDto.title());
+                workoutPlan.setSubtitle(generatedDto.subtitle());
+                workoutPlan.setTag(generatedDto.tag());
+                workoutPlan.setLevel(request.level());
+                workoutPlan.setUser(user);
+
+                // Cria e preenche as entidades Exercise
+                if (generatedDto.data() != null) {
+                    for (GeneratedExerciseDto exDto : generatedDto.data()) {
+                        Exercise exercise = new Exercise();
+                        exercise.setName(exDto.name());
+                        exercise.setMuscles(exDto.muscles());
+                        exercise.setType(exDto.type());
+                        exercise.setSets(exDto.sets());
+                        exercise.setReps(exDto.reps());
+                        exercise.setWeight(exDto.weight());
+                        exercise.setRestTime(exDto.restTime());
+                        
+                        // Associa a ficha ao exercício
+                        exercise.setWorkoutPlan(workoutPlan);
+                        
+                        // Adiciona na lista da ficha
+                        workoutPlan.getExercises().add(exercise);
+                    }
                 }
+                workoutPlansToSave.add(workoutPlan);
             }
 
-            // Salva a ficha em cascata (salvará os exercícios também)
-            WorkoutPlan savedPlan = workoutPlanRepository.save(workoutPlan);
+            // Salva todas as fichas no banco
+            List<WorkoutPlan> savedPlans = workoutPlanRepository.saveAll(workoutPlansToSave);
 
-            return ResponseEntity.status(HttpStatus.CREATED).body(savedPlan);
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedPlans);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Erro ao gerar treino: " + e.getMessage());
