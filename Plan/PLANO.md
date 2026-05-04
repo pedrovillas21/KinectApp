@@ -31,7 +31,7 @@ O Spring Boot deve receber os dados e vincular o treino ao usuário autenticado.
 
 ### Passo 3: Consumo em Tempo Real na WorkoutScreen (Frontend)
 A tela de treinos deve deixar de ler o arquivo `mock.json` e buscar da API.
-1. **useEffect:** Ao carregar a `WorkoutScreen`, disparar uma chamada `api.get('/workouts/current')`.
+1. **useEffect:** Ao carregar a `WorkoutScreen`, disparar uma chamada `api.get('/workouts/my-plans')`.
 2. **State Management:** Armazenar o retorno no estado `const [workout, setWorkout] = useState(null)`.
 3. **Mapeamento:** Adaptar o design para iterar sobre o array de exercícios vindo do banco de dados.
 4. **Tratamento de Vazio:** Se não houver treino no banco, redirecionar para o Onboarding ou mostrar botão de "Gerar Treino".

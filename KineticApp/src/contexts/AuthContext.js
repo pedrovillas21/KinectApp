@@ -117,10 +117,9 @@ export const AuthProvider = ({ children }) => {
     const userId = currentUser?.id;
     if (userId) {
       await AsyncStorage.setItem(`@kinetic_onboarded_${userId}`, 'true');
+      // 3. Libera a navegação
+      setHasOnboarded(true);
     }
-
-    // 3. Libera a navegação
-    setHasOnboarded(true);
   };
 
   const verifyEmail = async (email) => {
