@@ -13,19 +13,28 @@ import PrimaryButton from '../../components/PrimaryButton';
 
 export default function ForgotPasswordScreen({ navigation }) {
   const { isDarkMode } = useContext(ThemeContext);
-  const { resetPassword } = useContext(AuthContext);
+  const { verifyEmail } = useContext(AuthContext);
   const isDark = isDarkMode;
 
   const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const trimmed = email.trim();
     if (!trimmed) {
       Alert.alert('Campo obrigatório', 'Insira o e-mail cadastrado.');
       return;
     }
-    // Passa o e-mail para a tela de redefinição via params
-    navigation.navigate('ResetPassword', { email: trimmed });
+
+    setLoading(true);
+    const result = await verifyEmail(trimmed);
+    setLoading(false);
+
+    if (result.success) {
+      navigation.navigate('ResetPassword', { email: trimmed });
+    } else {
+      Alert.alert('Erro', result.error);
+    }
   };
 
   return (
@@ -56,7 +65,7 @@ export default function ForgotPasswordScreen({ navigation }) {
               icon={<Text style={{ color: '#888' }}>✉</Text>}
             />
 
-            <PrimaryButton title="CONTINUAR ⚡" onPress={handleSend} />
+            <PrimaryButton title="CONTINUAR ⚡" onPress={handleSend} isLoading={loading} />
           </View>
 
           <TouchableOpacity style={styles.footerButton} onPress={() => navigation.navigate('Login')}>

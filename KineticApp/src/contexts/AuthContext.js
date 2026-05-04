@@ -123,9 +123,36 @@ export const AuthProvider = ({ children }) => {
     setHasOnboarded(true);
   };
 
+  const verifyEmail = async (email) => {
+    try {
+      await api.post('/auth/verify-email', { email: email.trim() });
+      return { success: true };
+    } catch (e) {
+      const message = e.response?.data || 'E-mail não encontrado.';
+      return { success: false, error: typeof message === 'string' ? message : JSON.stringify(message) };
+    }
+  };
+
+  const resetPassword = async (email, newPassword) => {
+    try {
+      await api.post('/auth/reset-password', {
+        email: email.trim(),
+        newPassword: newPassword,
+      });
+      return { success: true };
+    } catch (e) {
+      const message = e.response?.data || 'Erro ao redefinir a senha.';
+      return { success: false, error: typeof message === 'string' ? message : JSON.stringify(message) };
+    }
+  };
+
   return (
     <AuthContext.Provider
-      value={{ isLoggedIn, hasOnboarded, currentUser, isLoadingAuth, signIn, signOut, register, completeOnboarding }}
+      value={{
+        isLoggedIn, hasOnboarded, currentUser, isLoadingAuth,
+        signIn, signOut, register, completeOnboarding,
+        verifyEmail, resetPassword
+      }}
     >
       {children}
     </AuthContext.Provider>
