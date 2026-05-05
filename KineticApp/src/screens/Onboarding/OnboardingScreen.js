@@ -75,7 +75,7 @@ export default function OnboardingScreen() {
     setIsLoading(true);
 
     try {
-      await api.post('/workouts/generate', {
+      const response = await api.post('/workouts/generate', {
         birthDate: isoDate,
         weight: parseFloat(weight),
         height: parseFloat(height),
@@ -84,7 +84,10 @@ export default function OnboardingScreen() {
         level: selectedLevel.toUpperCase(),
       });
 
-      await completeOnboarding({ level: selectedLevel.toUpperCase() });
+      await completeOnboarding({
+        level: selectedLevel.toUpperCase(),
+        workoutPlans: response.data,
+      });
     } catch (e) {
       const message = e.response?.data || 'Erro ao gerar treino. Tente novamente.';
       Alert.alert('Erro', typeof message === 'string' ? message : 'Falha ao comunicar com o servidor.');

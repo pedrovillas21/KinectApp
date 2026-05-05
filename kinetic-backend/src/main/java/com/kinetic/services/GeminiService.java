@@ -68,7 +68,13 @@ public class GeminiService {
         try {
             return objectMapper.readValue(jsonText, new TypeReference<List<GeneratedWorkoutPlanDto>>() {});
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to parse Gemini API response into List<GeneratedWorkoutPlanDto>. Check server logs for details.", e);
+            throw new InvalidGeminiResponseException("A IA retornou um treino em formato invalido. Tente gerar novamente.", e);
+        }
+    }
+
+    public static class InvalidGeminiResponseException extends RuntimeException {
+        public InvalidGeminiResponseException(String message, Throwable cause) {
+            super(message, cause);
         }
     }
 

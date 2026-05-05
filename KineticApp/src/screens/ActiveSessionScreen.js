@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemeContext } from '../contexts/ThemeContext';
 import { COLORS } from '../theme/colors';
-import { WORKOUT_MAP } from '../utils/mockData';
 import SerieCard from '../components/SerieCard';
 import AppHeader from '../components/AppHeader';
 
@@ -14,20 +13,20 @@ export default function ActiveSessionScreen({ navigation, route }) {
   const bgColor = '#121212'; 
 
   // Recupera lista de exercícios
-  const routineId = route?.params?.routineId ?? '1';
-  const workoutData = WORKOUT_MAP[routineId] ?? WORKOUT_MAP['1'];
-  const exercises = workoutData.data;
+  const workoutData = route?.params?.workoutData;
+  const exercises = workoutData?.data ?? [];
 
   // Estado do Cronômetro
   const [elapsedTime, setElapsedTime] = useState(0);
   const timerRef = useRef(null);
 
   useEffect(() => {
+    if (exercises.length === 0) return;
     timerRef.current = setInterval(() => {
       setElapsedTime(prev => prev + 1);
     }, 1000);
     return () => clearInterval(timerRef.current);
-  }, []);
+  }, [exercises.length]);
 
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -38,7 +37,7 @@ export default function ActiveSessionScreen({ navigation, route }) {
   // Paginação
   const [currentIndex, setCurrentIndex] = useState(0);
   const currentExercise = exercises[currentIndex];
-  const numSets = parseInt(currentExercise.sets, 10) || 3;
+  const numSets = parseInt(currentExercise?.sets, 10) || 3;
 
   // Estado das Séries do Exercício Atual
   const [setsData, setSetsData] = useState([]);
@@ -93,6 +92,20 @@ export default function ActiveSessionScreen({ navigation, route }) {
   };
 
   const isLastExercise = currentIndex === exercises.length - 1;
+
+  if (!currentExercise) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]}>
+        <AppHeader />
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyTitle}>Nenhum exercicio encontrado</Text>
+          <TouchableOpacity style={styles.emptyButton} onPress={() => navigation.goBack()}>
+            <Text style={styles.emptyButtonText}>VOLTAR</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]}>
@@ -233,5 +246,29 @@ const styles = StyleSheet.create({
   secondaryCtaText: {
     color: '#CCC',
     fontSize: 14,
+  },
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  emptyTitle: {
+    color: '#FFF',
+    fontSize: 20,
+    fontWeight: '900',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  emptyButton: {
+    backgroundColor: COLORS.neonBlue,
+    borderRadius: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  emptyButtonText: {
+    color: '#000',
+    fontSize: 12,
+    fontWeight: '900',
   }
 });

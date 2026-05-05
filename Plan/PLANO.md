@@ -1,51 +1,47 @@
-# Plano de Integração: Onboarding -> IA Backend -> WorkoutScreen
+# ⏱️ Plano de Implementação: Check-in Dinâmico e Tracking Mensal
 
-Este documento descreve o roteiro técnico para substituir os dados mockados na `WorkoutScreen` por treinos reais gerados via IA, baseados nas informações coletadas durante o `OnboardingScreen`.
+## 1. Visão Geral
+Transformar a tela de Check-in/Tracking (atualmente estática) em uma interface interativa com cronômetro em tempo real e barra de progresso circular dinâmica. A meta mensal do usuário deve ser calculada baseada na `frequency` (dias por semana) informada no Onboarding.
 
-## 1. Objetivo
-Integrar o fluxo de dados do usuário (idade, peso, altura, objetivo e frequência) com o serviço de geração de treinos no Back-end (Spring Boot + Gemini) e refletir o resultado em tempo real na interface mobile (React Native/Expo).
+## 2. Regras de Negócio e Lógica Matemática
+- **Meta Mensal (Target):** Frequência semanal selecionada no Onboarding multiplicada por 4 semanas (ex: Frequência 5x/semana = Meta de 20 treinos no mês).
+- **Eficiência (%):** `(Treinos Concluídos no Mês / Meta Mensal) * 100`. O limite visual do círculo é 100%, mas o usuário pode ultrapassar a meta (ex: 110%).
+- **Cronômetro:** Inicia do zero (00:00:00 - HH:mm:ss). Ao finalizar, o tempo total em segundos deve ser enviado ao Back-end junto com a data atual.
 
-## 2. Contexto Técnico
-- **Frontend:** React Native (Expo) + Axios + AsyncStorage.
-- **Backend:** Java Spring Boot + Spring Security (JWT) + Gemini AI.
-- **Endpoint de Geração:** `POST /api/workouts/generate` (exemplo).
-- **Endpoint de Busca:** `GET /api/workouts/current`.
+## 3. Back-end (Spring Boot 3.2.x - Java 17)
 
----
+### A. Nova Entidade e Tabela (`WorkoutSession`)
+- Criar entidade `WorkoutSession` com os campos: `id`, `user` (ManyToOne), `durationInSeconds` (Integer), `sessionDate` (LocalDate).
+- **Proibido** o uso de `@Data`. Usar `@Getter`, `@Setter` e construtores apropriados.
 
-## 3. Etapas de Implementação
+### B. Novo Endpoint de Registro
+- `POST /api/sessions/log`
+- **Payload:** `{ "durationInSeconds": 3600, "date": "2026-05-05" }`
+- **Ação:** Identificar o usuário pelo JWT (SecurityContext), instanciar um `WorkoutSession` e salvar no Supabase via JPA.
 
-### Passo 1: Captura e Envio no Onboarding (Frontend)
-No final do fluxo de Onboarding, o aplicativo deve consolidar o objeto de perfil e disparar a geração.
-1. **Consolidação:** Reunir `age`, `weight`, `height`, `goal`, `level` e `frequency`.
-2. **Requisição:** Enviar um `POST` para o back-end com esse corpo JSON.
-3. **Persistência:** Garantir que o Token JWT está sendo enviado no header (via interceptor do `api.js`).
-4. **Navegação:** Exibir um componente de `Loading` (ou animação de "Gerando seu treino...") enquanto a IA processa a requisição.
+### C. Novo Endpoint de Estatísticas
+- `GET /api/sessions/monthly-stats`
+- **Ação:** 1. Buscar a `frequency` salva no perfil do usuário logado.
+  2. Calcular a `targetSessions` (frequency * 4).
+  3. Contar quantas `WorkoutSession` existem para este usuário no mês/ano atual (`completedSessions`).
+  4. Retornar DTO: `{ "completedSessions": 14, "targetSessions": 20, "efficiency": 70 }`.
 
-### Passo 2: Processamento e Persistência (Backend)
-O Spring Boot deve receber os dados e vincular o treino ao usuário autenticado.
-1. **Controller:** O `WorkoutController` recebe o `UserStatsDTO`.
-2. **GeminiService:** O prompt deve usar os dados reais enviados pelo front para gerar o JSON do treino.
-3. **Database:** Salvar o `WorkoutPlan` no banco de dados atrelado ao `userId` do token.
-4. **Resposta:** Retornar o plano gerado com sucesso.
+## 4. Front-end (React Native)
 
-### Passo 3: Consumo em Tempo Real na WorkoutScreen (Frontend)
-A tela de treinos deve deixar de ler o arquivo `mock.json` e buscar da API.
-1. **useEffect:** Ao carregar a `WorkoutScreen`, disparar uma chamada `api.get('/workouts/my-plans')`.
-2. **State Management:** Armazenar o retorno no estado `const [workout, setWorkout] = useState(null)`.
-3. **Mapeamento:** Adaptar o design para iterar sobre o array de exercícios vindo do banco de dados.
-4. **Tratamento de Vazio:** Se não houver treino no banco, redirecionar para o Onboarding ou mostrar botão de "Gerar Treino".
+### A. Gerenciamento de Estado (useState)
+- `isActive` (boolean): Controla se o cronômetro está rodando.
+- `seconds` (number): Armazena o tempo decorrido.
+- `stats` (object): Armazena os dados vindos do `GET /monthly-stats`.
 
----
+### B. Hook do Cronômetro (useEffect)
+- Implementar um `setInterval` que incrementa o estado `seconds` a cada 1000ms apenas quando `isActive` for `true`.
+- Criar uma função auxiliar para formatar os segundos no padrão `HH:mm:ss` para exibição na tela.
 
-## 4. Checklist de Verificação
-- [ ] O `api.js` está usando o IP correto da rede (não localhost).
-- [ ] O `AsyncStorage` está recuperando o token corretamente antes da chamada.
-- [ ] O Back-end está recebendo o peso/altura em tipos numéricos corretos (Double/Integer).
-- [ ] O prompt da IA no Back-end está devidamente parametrizado com as variáveis do Onboarding.
-- [ ] A `WorkoutScreen` exibe um Spinner de carregamento enquanto a API não responde.
+### C. Atualização da UI (Design Existente)
+- **Botão:** O botão "INICIAR TEMPO" deve mudar o texto para "FINALIZAR TREINO" (e talvez mudar para uma cor de alerta, como vermelho ou laranja) quando `isActive` for true.
+- **Gráfico Circular:** Substituir o valor estático de "70%" pela variável `stats.efficiency`. (Garantir que a biblioteca de SVG/Gráfico aceite a variável dinamicamente).
+- **Legenda:** Substituir "14 out of 20 sessions..." por uma interpolação: `${stats.completedSessions} out of ${stats.targetSessions} sessions completed this month`.
 
----
-
-## 5. Próximos Passos (Feature Web)
-- Garantir que as estatísticas de carga salvas na `WorkoutScreen` sejam enviadas via `PATCH` ou `POST` para o endpoint de métricas, permitindo que o Dashboard Web do professor consuma esses dados posteriormente.
+### D. Integração (Axios)
+1. Ao montar a tela (`useEffect` vazio), chamar `GET /api/sessions/monthly-stats` para popular o gráfico.
+2. Ao clicar em "FINALIZAR TREINO", dar um `clearInterval`, disparar o `POST /api/sessions/log` com o tempo total, resetar o cronômetro e refazer o `GET` para atualizar o gráfico circular imediatamente.
