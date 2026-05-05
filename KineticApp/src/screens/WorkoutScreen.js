@@ -26,12 +26,10 @@ export default function WorkoutScreen({ navigation }) {
   };
 
   const fetchWorkoutPlans = useCallback(async () => {
-    if (Array.isArray(workoutPlans) && workoutPlans.length > 0) {
-      setIsLoading(false);
-      return;
+    // Apenas ativa o indicador de carregamento de tela cheia se não houver planos
+    if (!Array.isArray(workoutPlans) || workoutPlans.length === 0) {
+      setIsLoading(true);
     }
-
-    setIsLoading(true);
     setErrorMessage('');
 
     try {
@@ -79,12 +77,13 @@ export default function WorkoutScreen({ navigation }) {
     PANTURRILHA: { bg: '#0a0a2e', text: '#818CF8' },
   };
 
-  const normalizeMuscle = (muscle) => (
-    muscle
-      ?.normalize('NFD')
+  const normalizeMuscle = (muscle) => {
+    if (!muscle) return '';
+    return muscle
+      .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
-      .toUpperCase()
-  );
+      .toUpperCase();
+  };
 
   const renderEmptyState = () => (
     <View style={styles.centerState}>

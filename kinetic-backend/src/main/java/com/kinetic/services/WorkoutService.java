@@ -33,7 +33,6 @@ public class WorkoutService {
         this.userRepository = userRepository;
     }
 
-    @Transactional
     public List<WorkoutPlanResponseDTO> generateWorkoutForUser(String userEmail, GenerateWorkoutRequestDto request) {
         validateRequest(request);
 
@@ -57,8 +56,19 @@ public class WorkoutService {
                 request.frequency()
         );
 
+        if (generatedDtos == null || generatedDtos.isEmpty()) {
+            throw new IllegalStateException("Falha na geração: a lista de planos está nula ou vazia.");
+        }
+
         List<WorkoutPlan> workoutPlansToSave = new ArrayList<>();
         for (GeneratedWorkoutPlanDto generatedDto : generatedDtos) {
+            if (generatedDto.title() == null || generatedDto.title().isBlank()) {
+                throw new IllegalStateException("Falha na geração: plano de treino com título inválido.");
+            }
+            if (generatedDto.data() == null || generatedDto.data().isEmpty()) {
+                throw new IllegalStateException("Falha na geração: plano de treino sem exercícios.");
+            }
+
             WorkoutPlan workoutPlan = new WorkoutPlan();
             workoutPlan.setTitle(generatedDto.title());
             workoutPlan.setSubtitle(generatedDto.subtitle());
@@ -66,19 +76,20 @@ public class WorkoutService {
             workoutPlan.setLevel(request.level());
             workoutPlan.setUser(user);
 
-            if (generatedDto.data() != null) {
-                for (GeneratedExerciseDto exDto : generatedDto.data()) {
-                    Exercise exercise = new Exercise();
-                    exercise.setName(exDto.name());
-                    exercise.setMuscles(exDto.muscles());
-                    exercise.setType(exDto.type());
-                    exercise.setSets(exDto.sets());
-                    exercise.setReps(exDto.reps());
-                    exercise.setWeight(exDto.weight());
-                    exercise.setRestTime(exDto.restTime());
-                    exercise.setWorkoutPlan(workoutPlan);
-                    workoutPlan.getExercises().add(exercise);
+            for (GeneratedExerciseDto exDto : generatedDto.data()) {
+                if (exDto.name() == null || exDto.name().isBlank() || exDto.sets() == null || exDto.reps() == null) {
+                    throw new IllegalStateException("Falha na geração: exercício com campos obrigatórios ausentes.");
                 }
+                Exercise exercise = new Exercise();
+                exercise.setName(exDto.name());
+                exercise.setMuscles(exDto.muscles());
+                exercise.setType(exDto.type());
+                exercise.setSets(exDto.sets());
+                exercise.setReps(exDto.reps());
+                exercise.setWeight(exDto.weight());
+                exercise.setRestTime(exDto.restTime());
+                exercise.setWorkoutPlan(workoutPlan);
+                workoutPlan.getExercises().add(exercise);
             }
 
             workoutPlansToSave.add(workoutPlan);

@@ -21,11 +21,12 @@ export default function ActiveSessionScreen({ navigation, route }) {
   const timerRef = useRef(null);
 
   useEffect(() => {
+    if (exercises.length === 0) return;
     timerRef.current = setInterval(() => {
       setElapsedTime(prev => prev + 1);
     }, 1000);
     return () => clearInterval(timerRef.current);
-  }, []);
+  }, [exercises.length]);
 
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60).toString().padStart(2, '0');
