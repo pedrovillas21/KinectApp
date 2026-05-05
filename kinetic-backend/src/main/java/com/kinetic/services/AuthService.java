@@ -44,7 +44,18 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
 
         String token = jwtUtil.generateToken(user.getEmail());
-        return new AuthResponseDTO(token, user.getId(), user.getNome(), user.getEmail(), user.getLevel());
+        return new AuthResponseDTO(
+                token,
+                user.getId(),
+                user.getNome(),
+                user.getEmail(),
+                user.getLevel(),
+                user.getBirthDate(),
+                user.getWeight(),
+                user.getHeight(),
+                user.getGoal(),
+                user.getFrequency()
+        );
     }
 
     public boolean checkEmailExists(String email) {

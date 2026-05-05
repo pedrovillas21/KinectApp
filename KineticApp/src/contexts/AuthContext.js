@@ -65,16 +65,28 @@ export const AuthProvider = ({ children }) => {
         senha: password,
       });
 
-      const { token, id, nome, email: userEmail, level } = response.data;
+      const {
+        token,
+        id,
+        nome,
+        email: userEmail,
+        level,
+        birthDate,
+        weight,
+        height,
+        goal,
+        frequency,
+      } = response.data;
+      const userPayload = { id, nome, email: userEmail, level, birthDate, weight, height, goal, frequency };
 
       // Persiste token e dados do usuário
       await AsyncStorage.setItem('@kinetic_token', token);
-      await AsyncStorage.setItem('@kinetic_user', JSON.stringify({ id, nome, email: userEmail, level }));
+      await AsyncStorage.setItem('@kinetic_user', JSON.stringify(userPayload));
 
       // Chave de onboarding por usuário
       const onboarded = await AsyncStorage.getItem(`@kinetic_onboarded_${id}`);
 
-      setCurrentUser({ id, nome, email: userEmail, level });
+      setCurrentUser(userPayload);
       setIsLoggedIn(true);
       setHasOnboarded(onboarded === 'true');
 
@@ -113,8 +125,15 @@ export const AuthProvider = ({ children }) => {
     }
 
     // 1. Salva o nível como dado adicional do usuário, se informado
-    if (data?.level) {
-      const updatedUser = { ...currentUser, level: data.level };
+    const profileFields = ['level', 'birthDate', 'weight', 'height', 'goal', 'frequency'];
+    const hasProfileUpdates = profileFields.some((field) => data?.[field] !== undefined);
+    if (hasProfileUpdates) {
+      const updatedUser = { ...currentUser };
+      profileFields.forEach((field) => {
+        if (data?.[field] !== undefined) {
+          updatedUser[field] = data[field];
+        }
+      });
       setCurrentUser(updatedUser);
       await AsyncStorage.setItem('@kinetic_user', JSON.stringify(updatedUser));
     }

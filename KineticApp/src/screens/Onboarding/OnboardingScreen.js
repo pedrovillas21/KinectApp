@@ -86,6 +86,11 @@ export default function OnboardingScreen() {
 
       await completeOnboarding({
         level: selectedLevel.toUpperCase(),
+        birthDate: isoDate,
+        weight: parseFloat(weight),
+        height: parseFloat(height),
+        goal: selectedGoal,
+        frequency: selectedFrequency,
         workoutPlans: response.data,
       });
     } catch (e) {

@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -32,4 +33,15 @@ public class User {
 
     @Column(nullable = true)
     private String level;
+
+    @Column(name = "birth_date")
+    private LocalDate birthDate;
+
+    private Double weight;
+
+    private Double height;
+
+    private String goal;
+
+    private Integer frequency;
 }

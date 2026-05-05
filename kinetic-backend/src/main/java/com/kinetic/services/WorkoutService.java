@@ -33,6 +33,7 @@ public class WorkoutService {
         this.userRepository = userRepository;
     }
 
+    @Transactional
     public List<WorkoutPlanResponseDTO> generateWorkoutForUser(String userEmail, GenerateWorkoutRequestDto request) {
         validateRequest(request);
 
@@ -95,10 +96,15 @@ public class WorkoutService {
             workoutPlansToSave.add(workoutPlan);
         }
 
-        List<WorkoutPlan> savedPlans = workoutPlanRepository.saveAll(workoutPlansToSave);
-
+        user.setBirthDate(request.birthDate());
+        user.setWeight(request.weight());
+        user.setHeight(heightCm);
+        user.setGoal(request.goal());
+        user.setFrequency(request.frequency());
         user.setLevel(request.level());
         userRepository.save(user);
+
+        List<WorkoutPlan> savedPlans = workoutPlanRepository.saveAll(workoutPlansToSave);
 
         return savedPlans.stream()
                 .map(WorkoutPlanResponseDTO::fromEntity)

@@ -1,55 +1,83 @@
 import React, { useContext, useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemeContext } from '../contexts/ThemeContext';
 import { COLORS } from '../theme/colors';
 import AppHeader from '../components/AppHeader';
+import api from '../services/api';
 
 // Mock Ranking Data
 const LEADERS = [
-  { id: '1', name: 'Alex Sterling',  minutes: 340, rank: 1, medal: '#FFD700' }, // Gold
-  { id: '2', name: 'Marcus Chen',    minutes: 290, rank: 2, medal: '#C0C0C0' }, // Silver
-  { id: '3', name: 'Sarah Jenkins',  minutes: 215, rank: 3, medal: '#CD7F32' }, // Bronze
-  { id: '4', name: 'You',            minutes: 180, rank: 4, medal: 'transparent' }, 
+  { id: '1', name: 'Alex Sterling',  minutes: 340, rank: 1, medal: '#FFD700' },
+  { id: '2', name: 'Marcus Chen',    minutes: 290, rank: 2, medal: '#C0C0C0' },
+  { id: '3', name: 'Sarah Jenkins',  minutes: 215, rank: 3, medal: '#CD7F32' },
+  { id: '4', name: 'You',            minutes: 180, rank: 4, medal: 'transparent' },
 ];
 
 export default function HomeScreen({ navigation }) {
   const { isDarkMode } = useContext(ThemeContext);
   const isDark = isDarkMode;
 
-  // Timer State
   const [isTracking, setIsTracking] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const intervalRef = useRef(null);
+  const [stats, setStats] = useState({
+    completedSessions: 0,
+    targetSessions: 0,
+    efficiency: 0,
+  });
 
-  // Dynamic Weekly Activity Array (Domingo a Sábado, posições 0 a 6 do Javascript Array)
   const [activityData, setActivityData] = useState([0, 0, 0, 0, 0, 0, 0]);
 
+  const fetchMonthlyStats = async () => {
+    try {
+      const response = await api.get('/sessions/monthly-stats');
+      setStats(response.data);
+    } catch (e) {
+      console.error('Erro ao carregar estatisticas mensais:', e);
+    }
+  };
+
   useEffect(() => {
+    fetchMonthlyStats();
     return () => clearInterval(intervalRef.current);
   }, []);
 
-  const handleToggleWorkout = () => {
+  const getTodayISODate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const handleToggleWorkout = async () => {
     if (isTracking) {
       clearInterval(intervalRef.current);
       setIsTracking(false);
 
-      // Captura o dia da semana atual pelo dispositivo (0 = Dom, 1 = Seg, ..., 6 = Sáb)
-      const currentDayIndex = new Date().getDay();
-      
-      // Simulação acelerada para testes (cada segundo vale 1 minuto para o gráfico ser dinâmico a olho nu)
-      // Numa versão final, seria: elapsedTime / 60
-      const minutesSpent = elapsedTime;
-      
-      setActivityData(prev => {
-        const newData = [...prev];
-        newData[currentDayIndex] += minutesSpent;
-        return newData;
-      });
+      try {
+        if (elapsedTime > 0) {
+          await api.post('/sessions/log', {
+            durationInSeconds: elapsedTime,
+            date: getTodayISODate(),
+          });
 
-      // Optional: Reset timer after saving? No, leave it for the user to see, 
-      // or set it to 0 so next check-in is fresh. Let's set it to 0.
-      setElapsedTime(0);
+          const currentDayIndex = new Date().getDay();
+          const minutesSpent = Math.max(1, Math.round(elapsedTime / 60));
+
+          setActivityData(prev => {
+            const newData = [...prev];
+            newData[currentDayIndex] += minutesSpent;
+            return newData;
+          });
+
+          await fetchMonthlyStats();
+        }
+        setElapsedTime(0);
+      } catch (e) {
+        Alert.alert('Erro', 'Nao foi possivel registrar o treino. Tente novamente.');
+      }
 
     } else {
       setIsTracking(true);
@@ -60,15 +88,24 @@ export default function HomeScreen({ navigation }) {
   };
 
   const formatTime = (seconds) => {
-    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+    const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
     const s = (seconds % 60).toString().padStart(2, '0');
-    return `${m}:${s}`;
+    return `${h}:${m}:${s}`;
   };
 
-  // Weekly Stats Labels (fixo de Domingo a Sábado)
-  const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
   const todayIndex = new Date().getDay();
-
+  const visualEfficiency = Math.min(Math.max(stats.efficiency || 0, 0), 100);
+  const progressText = stats.targetSessions === 0
+    ? 'Gere seu primeiro treino para definir sua meta!'
+    : `${stats.completedSessions} out of ${stats.targetSessions} sessions completed this month. Keep the momentum high.`;
+  const progressRingStyle = {
+    borderTopColor: visualEfficiency > 0 ? COLORS.neonBlue : '#333',
+    borderRightColor: visualEfficiency >= 25 ? COLORS.neonBlue : '#333',
+    borderBottomColor: visualEfficiency >= 50 ? COLORS.neonBlue : '#333',
+    borderLeftColor: visualEfficiency >= 75 ? COLORS.neonBlue : '#333',
+  };
 
   const THEME = {
     bg: isDark ? COLORS.darkBackground : COLORS.lightBackground,
@@ -83,7 +120,6 @@ export default function HomeScreen({ navigation }) {
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-        {/* PROGRESS MOCK */}
         <View style={styles.progressSection}>
           <Text style={styles.sectionOverline}>MONTHLY PROGRESS</Text>
           <Text style={[styles.titleLine, { color: THEME.textPrimary }]}>
@@ -93,41 +129,39 @@ export default function HomeScreen({ navigation }) {
             the <Text style={{ color: COLORS.neonBlue, fontStyle: 'italic' }}>Kinetic</Text> pace.
           </Text>
           <Text style={styles.progressDesc}>
-            14 out of 20 sessions completed this month. Keep the momentum high.
+            {progressText}
           </Text>
         </View>
 
         <View style={styles.efficiencyCircle}>
-          <View style={styles.ringOuter}>
+          <View style={[styles.ringOuter, progressRingStyle]}>
             <View style={styles.ringInner}>
-              <Text style={styles.effValue}>70<Text style={{ fontSize: 20 }}>%</Text></Text>
+              <Text style={styles.effValue}>{stats.efficiency}<Text style={{ fontSize: 20 }}>%</Text></Text>
               <Text style={styles.effLabel}>EFFICIENCY</Text>
             </View>
           </View>
         </View>
 
-        {/* CHECK-IN CARD */}
         <View style={styles.checkinCard}>
-          <Text style={styles.checkinIcon}>{isTracking ? '⏱️' : '☑'}</Text>
+          <Text style={styles.checkinIcon}>{isTracking ? 'timer' : 'check'}</Text>
           <Text style={styles.checkinTitle}>{isTracking ? 'Workout in progress' : 'Check-in Now'}</Text>
           <Text style={[styles.checkinDesc, isTracking && { fontSize: 32, fontWeight: 'bold', color: '#FFF' }]}>
-            {isTracking ? formatTime(elapsedTime) : 'Log sua sessão para o ranking.'}
+            {isTracking ? formatTime(elapsedTime) : 'Log sua sessao para o ranking.'}
           </Text>
-          <TouchableOpacity 
-            style={[styles.startWorkoutBtn, isTracking && { backgroundColor: '#FF3B30' }]} 
+          <TouchableOpacity
+            style={[styles.startWorkoutBtn, isTracking && { backgroundColor: '#FF3B30' }]}
             onPress={handleToggleWorkout}
           >
             <Text style={[styles.startWorkoutText, isTracking && { color: '#FFF' }]}>
-              {isTracking ? 'STOP WORKOUT' : 'INICIAR TEMPO'}
+              {isTracking ? 'FINALIZAR TREINO' : 'INICIAR TEMPO'}
             </Text>
           </TouchableOpacity>
         </View>
 
-        {/* KINECT LIDERSHIP (LEADERBOARD) */}
         <View style={styles.routineHeader}>
           <View>
             <Text style={styles.routineTitle}>KINECT LIDERSHIP</Text>
-            <Text style={styles.routineSub}>Competição semanal de tempo na arena.</Text>
+            <Text style={styles.routineSub}>Competicao semanal de tempo na arena.</Text>
           </View>
         </View>
 
@@ -136,7 +170,7 @@ export default function HomeScreen({ navigation }) {
             <View key={ldr.id} style={[styles.leaderRow, index !== LEADERS.length - 1 && styles.leaderBorder]}>
               <View style={styles.leaderRankCol}>
                 <Text style={[styles.leaderRankTxt, ldr.rank <= 3 && { color: ldr.medal }]}>
-                  {ldr.rank}º
+                  {ldr.rank}o
                 </Text>
               </View>
               <View style={styles.leaderInfoCol}>
@@ -150,13 +184,12 @@ export default function HomeScreen({ navigation }) {
           ))}
         </View>
 
-        {/* WEEKLY ACTIVITY GRAPH */}
         <View style={[styles.statsCard, { backgroundColor: THEME.card }]}>
           <Text style={styles.statsLabel}>WEEKLY ACTIVITY (MINUTES)</Text>
-          
+
           <View style={styles.chartContainer}>
             {activityData.map((val, idx) => {
-              const maxVal = Math.max(...activityData, 60); // min 60 para não quebrar a escala caso td seja 0
+              const maxVal = Math.max(...activityData, 60);
               const height = (val / maxVal) * 80;
               const isToday = idx === todayIndex;
 
