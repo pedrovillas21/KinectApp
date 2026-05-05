@@ -9,6 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hasOnboarded, setHasOnboarded] = useState(false);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+  const [workoutPlans, setWorkoutPlans] = useState([]);
 
   // Ao iniciar o app, verifica se há sessão salva no AsyncStorage
   useEffect(() => {
@@ -96,6 +97,7 @@ export const AuthProvider = ({ children }) => {
       setCurrentUser(null);
       setIsLoggedIn(false);
       setHasOnboarded(false);
+      setWorkoutPlans([]);
     }
   }, []);
 
@@ -106,6 +108,10 @@ export const AuthProvider = ({ children }) => {
   }, [signOut]);
 
   const completeOnboarding = async (data) => {
+    if (Array.isArray(data?.workoutPlans)) {
+      setWorkoutPlans(data.workoutPlans);
+    }
+
     // 1. Salva o nível como dado adicional do usuário, se informado
     if (data?.level) {
       const updatedUser = { ...currentUser, level: data.level };
@@ -149,6 +155,7 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         isLoggedIn, hasOnboarded, currentUser, isLoadingAuth,
+        workoutPlans, setWorkoutPlans,
         signIn, signOut, register, completeOnboarding,
         verifyEmail, resetPassword
       }}
