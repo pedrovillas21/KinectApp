@@ -1,34 +1,60 @@
-import React, { useContext, useState } from 'react';
-import { View, FlatList, StyleSheet, Text, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useCallback, useContext, useMemo, useState } from 'react';
+import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { ThemeContext } from '../contexts/ThemeContext';
-import { WORKOUT_MAP } from '../utils/mockData';
+import { AuthContext } from '../contexts/AuthContext';
 import { COLORS } from '../theme/colors';
 import AppHeader from '../components/AppHeader';
+import api from '../services/api';
 
-// Mock similar to what HomeScreen used
-const ROUTINES = [
-  { id: '1', title: 'Push day', bodyParts: 'CHEST / SHOULDERS / TRICEPS', exercises: '12', tag: 'DIA A' },
-  { id: '2', title: 'Pull day', bodyParts: 'BACK / BICEPS / CORE', exercises: '10', tag: 'DIA B' },
-  { id: '3', title: 'Leg day', bodyParts: 'QUADS / GLUTES / CALVES', exercises: '8', tag: 'DIA C' }
-];
-
-export default function WorkoutScreen({ navigation, route }) {
+export default function WorkoutScreen({ navigation }) {
   const { isDarkMode } = useContext(ThemeContext);
+  const { workoutPlans, setWorkoutPlans } = useContext(AuthContext);
   const isDark = isDarkMode;
 
-  // Mode: 'LIST' or 'DETAIL'
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
   const [viewMode, setViewMode] = useState('LIST');
   const [selectedRoutineId, setSelectedRoutineId] = useState(null);
 
-  // If passed from navigation explicitly, we should handle it (though we assume tab direct tap)
-  // We'll manage it via state here for cleaner architecture.
-  
   const THEME = {
     bg: isDark ? COLORS.darkBackground : COLORS.lightBackground,
     text: isDark ? COLORS.textPrimaryDark : COLORS.textPrimaryLight,
+    muted: isDark ? COLORS.textSecondaryDark : COLORS.textSecondaryLight,
     card: isDark ? COLORS.darkCard : COLORS.lightCard,
   };
+
+  const fetchWorkoutPlans = useCallback(async () => {
+    if (Array.isArray(workoutPlans) && workoutPlans.length > 0) {
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage('');
+
+    try {
+      const response = await api.get('/workouts/my-plans');
+      setWorkoutPlans(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      const message = error.response?.data || 'Nao foi possivel carregar seus treinos.';
+      setErrorMessage(typeof message === 'string' ? message : 'Nao foi possivel carregar seus treinos.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [setWorkoutPlans, workoutPlans.length]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchWorkoutPlans();
+    }, [fetchWorkoutPlans])
+  );
+
+  const selectedWorkout = useMemo(
+    () => workoutPlans.find((plan) => plan.id === selectedRoutineId),
+    [selectedRoutineId, workoutPlans]
+  );
 
   const openRoutineDetail = (id) => {
     setSelectedRoutineId(id);
@@ -40,66 +66,70 @@ export default function WorkoutScreen({ navigation, route }) {
     setSelectedRoutineId(null);
   };
 
-  if (viewMode === 'LIST') {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: THEME.bg }]}>
-        <AppHeader />
-        <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
-          
-          <View style={styles.routineHeader}>
-            <View>
-              <Text style={styles.routineTitle}>SUAS FICHAS PRESET</Text>
-              <Text style={styles.routineSub}>Escolha um grupo muscular da sua grade.</Text>
-            </View>
-          </View>
-
-          {ROUTINES.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              style={styles.programCard}
-              onPress={() => openRoutineDetail(item.id)}
-            >
-              <View style={[styles.programImageMock, { backgroundColor: THEME.card }]}>
-                <View style={styles.tagBadgeSmall}>
-                  <Text style={styles.tagTextSmall}>{item.tag}</Text>
-                </View>
-              </View>
-              <View style={styles.programInfo}>
-                <View>
-                  <Text style={styles.progTitle}>{item.title}</Text>
-                  <Text style={styles.progBodyProps}>{item.bodyParts}</Text>
-                  <Text style={styles.progExCount}><Text style={{ color: COLORS.neonBlue }}>{item.exercises}</Text> Exercícios</Text>
-                  <Text style={styles.progVol}>VOLUME</Text>
-                </View>
-                <View style={styles.playIconContainer}>
-                  <Text style={styles.playIcon}>▶</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </SafeAreaView>
-    );
-  }
-
-  // --- DETAIL MODE ---
-  const workout = WORKOUT_MAP[selectedRoutineId] ?? WORKOUT_MAP['1'];
-
   const MUSCLE_COLORS = {
-    'PEITO':       { bg: '#1a0a2e', text: '#A78BFA' },
-    'OMBRO':       { bg: '#0a1a2e', text: '#60A5FA' },
-    'TRÍCEPS':     { bg: '#0a2e1a', text: '#34D399' },
-    'BÍCEPS':      { bg: '#2e1a0a', text: '#FBBF24' },
-    'COSTAS':      { bg: '#2e0a0a', text: '#F87171' },
-    'ANTEBRAÇO':   { bg: '#1a2e0a', text: '#A3E635' },
-    'QUADRÍCEPS':  { bg: '#0a2e2e', text: COLORS.neonBlue },
-    'POSTERIOR':   { bg: '#2e2e0a', text: '#FCD34D' },
-    'GLÚTEOS':     { bg: '#2e0a2e', text: '#F472B6' },
-    'PANTURRILHA': { bg: '#0a0a2e', text: '#818CF8' },
+    PEITO: { bg: '#1a0a2e', text: '#A78BFA' },
+    OMBRO: { bg: '#0a1a2e', text: '#60A5FA' },
+    TRICEPS: { bg: '#0a2e1a', text: '#34D399' },
+    BICEPS: { bg: '#2e1a0a', text: '#FBBF24' },
+    COSTAS: { bg: '#2e0a0a', text: '#F87171' },
+    ANTEBRACO: { bg: '#1a2e0a', text: '#A3E635' },
+    QUADRICEPS: { bg: '#0a2e2e', text: COLORS.neonBlue },
+    POSTERIOR: { bg: '#2e2e0a', text: '#FCD34D' },
+    GLUTEOS: { bg: '#2e0a2e', text: '#F472B6' },
+    PANTURRILHA: { bg: '#0a0a2e', text: '#818CF8' },
   };
 
-  const renderCard = ({ item }) => {
-    const muscleColor = MUSCLE_COLORS[item.muscles] ?? { bg: '#1a1a1a', text: COLORS.neonBlue };
+  const normalizeMuscle = (muscle) => (
+    muscle
+      ?.normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase()
+  );
+
+  const renderEmptyState = () => (
+    <View style={styles.centerState}>
+      <Text style={[styles.emptyTitle, { color: THEME.text }]}>Nenhum treino encontrado</Text>
+      <Text style={[styles.emptyText, { color: THEME.muted }]}>
+        Gere uma ficha no onboarding ou tente atualizar a lista.
+      </Text>
+      <TouchableOpacity style={styles.retryButton} onPress={fetchWorkoutPlans}>
+        <Text style={styles.retryButtonText}>TENTAR NOVAMENTE</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderWorkoutCard = ({ item }) => {
+    const exercises = item.data ?? [];
+
+    return (
+      <TouchableOpacity
+        style={styles.programCard}
+        onPress={() => openRoutineDetail(item.id)}
+      >
+        <View style={[styles.programImageMock, { backgroundColor: THEME.card }]}>
+          <View style={styles.tagBadgeSmall}>
+            <Text style={styles.tagTextSmall}>{item.tag}</Text>
+          </View>
+        </View>
+        <View style={[styles.programInfo, { backgroundColor: THEME.card }]}>
+          <View style={styles.programCopy}>
+            <Text style={[styles.progTitle, { color: THEME.text }]}>{item.title}</Text>
+            <Text style={styles.progBodyProps}>{item.subtitle}</Text>
+            <Text style={[styles.progExCount, { color: THEME.text }]}>
+              <Text style={{ color: COLORS.neonBlue }}>{exercises.length}</Text> Exercicios
+            </Text>
+            <Text style={styles.progVol}>VOLUME</Text>
+          </View>
+          <View style={styles.playIconContainer}>
+            <Text style={styles.playIcon}>{'>'}</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderExerciseCard = ({ item }) => {
+    const muscleColor = MUSCLE_COLORS[normalizeMuscle(item.muscles)] ?? { bg: '#1a1a1a', text: COLORS.neonBlue };
 
     return (
       <View style={[styles.card, { backgroundColor: THEME.card }]}>
@@ -116,14 +146,14 @@ export default function WorkoutScreen({ navigation, route }) {
             </View>
           </View>
           <TouchableOpacity>
-            <Text style={styles.dotsIcon}>⋮</Text>
+            <Text style={styles.dotsIcon}>...</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.gridRow}>
           <View style={styles.gridCol}>
-            <Text style={styles.gridLabel}>SÉRIES × REPS</Text>
-            <Text style={[styles.gridValue, { color: THEME.text }]}>{item.sets} × {item.reps}</Text>
+            <Text style={styles.gridLabel}>SERIES x REPS</Text>
+            <Text style={[styles.gridValue, { color: THEME.text }]}>{item.sets} x {item.reps}</Text>
           </View>
           <View style={styles.gridCol}>
             <Text style={styles.gridLabel}>PESO SUGERIDO</Text>
@@ -136,50 +166,89 @@ export default function WorkoutScreen({ navigation, route }) {
         </View>
 
         <TouchableOpacity style={styles.executionBtn}>
-          <Text style={styles.executionText}>VER EXECUÇÃO  ▶</Text>
+          <Text style={styles.executionText}>VER EXECUCAO</Text>
         </TouchableOpacity>
       </View>
     );
   };
 
+  if (isLoading) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: THEME.bg }]}>
+        <AppHeader />
+        <View style={styles.centerState}>
+          <ActivityIndicator color={COLORS.neonBlue} size="large" />
+          <Text style={[styles.loadingText, { color: THEME.muted }]}>Carregando seus treinos...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (viewMode === 'LIST') {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: THEME.bg }]}>
+        <AppHeader />
+        <FlatList
+          data={workoutPlans}
+          keyExtractor={(item) => item.id}
+          renderItem={renderWorkoutCard}
+          ListEmptyComponent={renderEmptyState}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
+          ListHeaderComponent={() => (
+            <View style={styles.routineHeader}>
+              <Text style={[styles.routineTitle, { color: THEME.text }]}>SUAS FICHAS</Text>
+              <Text style={styles.routineSub}>
+                {errorMessage || 'Escolha um treino da sua grade personalizada.'}
+              </Text>
+            </View>
+          )}
+        />
+      </SafeAreaView>
+    );
+  }
+
+  const workout = selectedWorkout ?? workoutPlans[0];
+  const exercises = workout?.data ?? [];
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: THEME.bg }]}>
       <AppHeader />
-      
+
       <View style={styles.backNav}>
         <TouchableOpacity onPress={goBackToList}>
-          <Text style={styles.backActionText}>← Voltar para Fichas</Text>
+          <Text style={styles.backActionText}>{'<'} Voltar para Fichas</Text>
         </TouchableOpacity>
       </View>
 
       <FlatList
-        data={workout.data}
-        keyExtractor={(item) => item.id}
+        data={exercises}
+        keyExtractor={(item, index) => item.id ?? `${item.name}-${index}`}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={() => (
           <View style={styles.pageHeader}>
             <View style={styles.tagBadge}>
-              <Text style={styles.tagBadgeText}>{workout.tag}</Text>
+              <Text style={styles.tagBadgeText}>{workout?.tag}</Text>
             </View>
-            <Text style={[styles.pageTitle, { color: THEME.text }]}>{workout.title}</Text>
-            <Text style={styles.pageSubtitle}>{workout.subtitle}</Text>
-            <Text style={styles.exerciseCount}>{workout.data.length} exercícios  ·  Volume total calculado</Text>
+            <Text style={[styles.pageTitle, { color: THEME.text }]}>{workout?.title}</Text>
+            <Text style={styles.pageSubtitle}>{workout?.subtitle}</Text>
+            <Text style={styles.exerciseCount}>{exercises.length} exercicios - Volume total calculado</Text>
           </View>
         )}
-        renderItem={renderCard}
+        renderItem={renderExerciseCard}
         ListFooterComponent={() => (
           <View style={styles.footerActions}>
             <TouchableOpacity
               style={styles.actionBtnPrimary}
-              onPress={() => navigation.navigate('ActiveSession', { routineId: selectedRoutineId })}
+              onPress={() => navigation.navigate('ActiveSession', { workoutData: workout })}
             >
-              <Text style={styles.actionBtnText}>⚡ INICIAR TREINO</Text>
+              <Text style={styles.actionBtnText}>INICIAR TREINO</Text>
             </TouchableOpacity>
 
             <View style={styles.secondaryActions}>
               <TouchableOpacity style={styles.editBtn}>
-                <Text style={styles.editText}>✎ EDITAR LISTA</Text>
+                <Text style={styles.editText}>EDITAR LISTA</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.addBtn}>
                 <Text style={styles.addIcon}>+</Text>
@@ -194,12 +263,49 @@ export default function WorkoutScreen({ navigation, route }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  // List Mode Specifics
+  listContent: {
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+  },
+  centerState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '900',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptyText: {
+    fontSize: 13,
+    lineHeight: 20,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: COLORS.neonBlue,
+    borderRadius: 10,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+  },
+  retryButtonText: {
+    color: COLORS.darkBackground,
+    fontSize: 12,
+    fontWeight: '900',
+  },
   routineHeader: {
     marginBottom: 20,
     marginTop: 12,
   },
-  routineTitle: { color: COLORS.textPrimaryDark, fontSize: 22, fontStyle: 'italic', fontWeight: '900', letterSpacing: 1 },
+  routineTitle: { fontSize: 22, fontStyle: 'italic', fontWeight: '900', letterSpacing: 1 },
   routineSub: { color: '#888', fontSize: 13, marginTop: 4 },
   programCard: {
     marginBottom: 20,
@@ -220,7 +326,6 @@ const styles = StyleSheet.create({
   },
   tagTextSmall: { color: COLORS.darkBackground, fontSize: 10, fontWeight: 'bold' },
   programInfo: {
-    backgroundColor: '#1C1C1C',
     padding: 16,
     borderBottomLeftRadius: 12,
     borderBottomRightRadius: 12,
@@ -228,9 +333,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  progTitle: { color: '#FFF', fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
+  programCopy: { flex: 1, paddingRight: 16 },
+  progTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
   progBodyProps: { color: '#888', fontSize: 10, marginBottom: 12, letterSpacing: 1 },
-  progExCount: { color: '#FFF', fontSize: 12, fontWeight: 'bold' },
+  progExCount: { fontSize: 12, fontWeight: 'bold' },
   progVol: { color: '#666', fontSize: 10, letterSpacing: 1, marginTop: 2 },
   playIconContainer: {
     backgroundColor: '#333',
@@ -240,9 +346,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  playIcon: { color: COLORS.neonBlue, fontSize: 12 },
-
-  // Detail Mode Specifics
+  playIcon: { color: COLORS.neonBlue, fontSize: 16, fontWeight: '900' },
   backNav: {
     paddingHorizontal: 24,
     paddingVertical: 12,
@@ -251,10 +355,6 @@ const styles = StyleSheet.create({
     color: COLORS.neonBlue,
     fontSize: 14,
     fontWeight: 'bold',
-  },
-  listContent: {
-    paddingHorizontal: 24,
-    paddingBottom: 40,
   },
   pageHeader: { marginBottom: 28, marginTop: 8 },
   tagBadge: {
@@ -271,7 +371,6 @@ const styles = StyleSheet.create({
   pageTitle: { fontSize: 40, fontStyle: 'italic', fontWeight: '900', lineHeight: 44, marginBottom: 4 },
   pageSubtitle: { color: '#888', fontSize: 13, fontWeight: 'bold', letterSpacing: 1, marginBottom: 8 },
   exerciseCount: { color: '#555', fontSize: 12 },
-
   card: {
     marginBottom: 14,
     borderRadius: 12,
@@ -295,14 +394,13 @@ const styles = StyleSheet.create({
   badgeText: { fontSize: 10, fontWeight: 'bold' },
   badgeGhost: { backgroundColor: '#2A2A2A' },
   badgeTextGhost: { color: '#888', fontSize: 10, fontWeight: 'bold' },
-  dotsIcon: { color: COLORS.neonBlue, fontSize: 24, fontWeight: 'bold' },
+  dotsIcon: { color: COLORS.neonBlue, fontSize: 18, fontWeight: 'bold' },
   gridRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
   gridCol: { alignItems: 'flex-start', flex: 1 },
   gridLabel: { color: '#555', fontSize: 9, fontWeight: 'bold', marginBottom: 6, letterSpacing: 0.5 },
   gridValue: { fontSize: 15, fontWeight: 'bold' },
   executionBtn: { alignSelf: 'flex-end' },
   executionText: { color: COLORS.neonBlue, fontSize: 11, fontWeight: 'bold', letterSpacing: 1 },
-
   footerActions: { marginTop: 24 },
   actionBtnPrimary: {
     backgroundColor: COLORS.neonBlue,
@@ -311,11 +409,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
-    shadowColor: COLORS.neonBlue,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 6,
   },
   actionBtnText: { color: COLORS.darkBackground, fontWeight: '900', fontSize: 16, letterSpacing: 1 },
   secondaryActions: { flexDirection: 'row', justifyContent: 'space-between' },
