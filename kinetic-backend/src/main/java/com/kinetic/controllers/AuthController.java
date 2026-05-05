@@ -3,6 +3,8 @@ package com.kinetic.controllers;
 import com.kinetic.dtos.AuthResponseDTO;
 import com.kinetic.dtos.LoginDTO;
 import com.kinetic.dtos.RegisterDTO;
+import com.kinetic.dtos.ResetPasswordDTO;
+import com.kinetic.dtos.VerifyEmailDTO;
 import com.kinetic.services.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,5 +33,25 @@ public class AuthController {
     public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginDTO dto) {
         AuthResponseDTO response = authService.login(dto);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/verify-email")
+    public ResponseEntity<?> verifyEmail(@Valid @RequestBody VerifyEmailDTO dto) {
+        boolean exists = authService.checkEmailExists(dto.getEmail());
+        if (exists) {
+            return ResponseEntity.ok("E-mail encontrado.");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("E-mail não encontrado.");
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordDTO dto) {
+        try {
+            authService.resetPassword(dto);
+            return ResponseEntity.ok("Senha redefinida com sucesso.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 }

@@ -64,16 +64,16 @@ export const AuthProvider = ({ children }) => {
         senha: password,
       });
 
-      const { token, id, nome, email: userEmail } = response.data;
+      const { token, id, nome, email: userEmail, level } = response.data;
 
       // Persiste token e dados do usuário
       await AsyncStorage.setItem('@kinetic_token', token);
-      await AsyncStorage.setItem('@kinetic_user', JSON.stringify({ id, nome, email: userEmail }));
+      await AsyncStorage.setItem('@kinetic_user', JSON.stringify({ id, nome, email: userEmail, level }));
 
       // Chave de onboarding por usuário
       const onboarded = await AsyncStorage.getItem(`@kinetic_onboarded_${id}`);
 
-      setCurrentUser({ id, nome, email: userEmail });
+      setCurrentUser({ id, nome, email: userEmail, level });
       setIsLoggedIn(true);
       setHasOnboarded(onboarded === 'true');
 
@@ -106,23 +106,52 @@ export const AuthProvider = ({ children }) => {
   }, [signOut]);
 
   const completeOnboarding = async (data) => {
-    setHasOnboarded(true);
-    // Persiste per-user para evitar vazamento entre contas
-    const userId = currentUser?.id;
-    if (userId) {
-      await AsyncStorage.setItem(`@kinetic_onboarded_${userId}`, 'true');
-    }
-    // Salva o nível como dado adicional do usuário, se informado
+    // 1. Salva o nível como dado adicional do usuário, se informado
     if (data?.level) {
       const updatedUser = { ...currentUser, level: data.level };
       setCurrentUser(updatedUser);
       await AsyncStorage.setItem('@kinetic_user', JSON.stringify(updatedUser));
     }
+
+    // 2. Persiste per-user para evitar vazamento entre contas
+    const userId = currentUser?.id;
+    if (userId) {
+      await AsyncStorage.setItem(`@kinetic_onboarded_${userId}`, 'true');
+      // 3. Libera a navegação
+      setHasOnboarded(true);
+    }
+  };
+
+  const verifyEmail = async (email) => {
+    try {
+      await api.post('/auth/verify-email', { email: email.trim() });
+      return { success: true };
+    } catch (e) {
+      const message = e.response?.data || 'E-mail não encontrado.';
+      return { success: false, error: typeof message === 'string' ? message : JSON.stringify(message) };
+    }
+  };
+
+  const resetPassword = async (email, newPassword) => {
+    try {
+      await api.post('/auth/reset-password', {
+        email: email.trim(),
+        newPassword: newPassword,
+      });
+      return { success: true };
+    } catch (e) {
+      const message = e.response?.data || 'Erro ao redefinir a senha.';
+      return { success: false, error: typeof message === 'string' ? message : JSON.stringify(message) };
+    }
   };
 
   return (
     <AuthContext.Provider
-      value={{ isLoggedIn, hasOnboarded, currentUser, isLoadingAuth, signIn, signOut, register, completeOnboarding }}
+      value={{
+        isLoggedIn, hasOnboarded, currentUser, isLoadingAuth,
+        signIn, signOut, register, completeOnboarding,
+        verifyEmail, resetPassword
+      }}
     >
       {children}
     </AuthContext.Provider>

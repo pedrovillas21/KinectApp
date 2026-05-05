@@ -32,7 +32,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
   const isPasswordValid = hasMinLength && hasUppercase && hasLowercase && hasNumber && hasSymbol;
   const doPasswordsMatch = newPassword && newPassword === confirmPassword;
 
-  const handleReset = () => {
+  const handleReset = async () => {
     if (!newPassword || !confirmPassword) {
       Alert.alert('Campos obrigatórios', 'Preencha os dois campos de senha.');
       return;
@@ -47,7 +47,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
     }
 
     setLoading(true);
-    const result = resetPassword(email, newPassword);
+    const result = await resetPassword(email, newPassword);
     setLoading(false);
 
     if (!result.success) {
