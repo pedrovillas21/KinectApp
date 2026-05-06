@@ -12,12 +12,14 @@ import com.kinetic.repositories.WorkoutPlanRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 public class WorkoutService {
 
@@ -35,6 +37,7 @@ public class WorkoutService {
 
     @Transactional
     public List<WorkoutPlanResponseDTO> generateWorkoutForUser(String userEmail, GenerateWorkoutRequestDto request) {
+        log.info("Iniciando requisição de geração para o usuário: {}", userEmail);
         validateRequest(request);
 
         int age = Period.between(request.birthDate(), LocalDate.now()).getYears();
@@ -46,8 +49,11 @@ public class WorkoutService {
         }
 
         User user = findUserByEmail(userEmail);
+        log.info("Usuário encontrado. Atualizando perfil... (Idade calculada com data {}: {} anos)", request.birthDate(), age);
+        
         double heightCm = request.height() < 3 ? request.height() * 100 : request.height();
 
+        log.info("Perfil verificado. Prompto sendo montado e chamando API do Gemini...");
         List<GeneratedWorkoutPlanDto> generatedDtos = geminiService.generateWorkoutPlan(
                 request.level(),
                 age,
@@ -57,6 +63,7 @@ public class WorkoutService {
                 request.frequency()
         );
 
+        log.info("Resposta do Gemini recebida com sucesso. Salvando entidades...");
         if (generatedDtos == null || generatedDtos.isEmpty()) {
             throw new IllegalStateException("Falha na geração: a lista de planos está nula ou vazia.");
         }

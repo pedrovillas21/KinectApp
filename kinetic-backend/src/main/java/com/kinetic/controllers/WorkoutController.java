@@ -39,9 +39,10 @@ public class WorkoutController {
             return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(e.getMessage());
         } catch (EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Ocorreu um erro interno ao gerar o treino. Tente novamente mais tarde.");
+        } catch (Exception e) {
+            System.err.println("❌ ERRO FATAL NA GERAÇÃO: " + e.getClass().getName() + " - " + e.getMessage());
+            e.printStackTrace();
+            throw e;
         }
     }
 
