@@ -29,7 +29,7 @@ public class GeminiService {
 
     public GeminiService(ObjectMapper objectMapper) {
         JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory();
-        requestFactory.setReadTimeout(Duration.ofSeconds(30));
+        requestFactory.setReadTimeout(Duration.ofSeconds(120));
         
         this.restClient = RestClient.builder()
                 .requestFactory(requestFactory)
