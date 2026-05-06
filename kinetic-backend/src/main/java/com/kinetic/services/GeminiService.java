@@ -80,16 +80,16 @@ public class GeminiService {
 
     private String buildPrompt(String level, int age, double weight, double height, String goal, int frequency) {
         String focus = switch (level.toUpperCase()) {
-            case "INICIANTE" -> "Foco em Resistência/Adaptação Muscular.";
-            case "INTERMEDIARIO" -> "Foco em Hipertrofia.";
-            case "PRO" -> "Foco em Alto Rendimento/Força.";
+            case "INICIANTE" -> "Iniciante na musculação com pouca ou nenhuma experiência. Foco em construção muscular e resistência.";
+            case "INTERMEDIARIO" -> "Pessoa já mais adptado a rotina buscando melhora física, já possui mais experiência nas execuções. Foco em hipertrofia e força.";
+            case "PRO" -> "Veterano de academia, tem pleno domínio das técnicas e estratégias de treinamento. Foco em performance, definição e otimização de resultados.";
             default -> "Foco em Condicionamento Geral.";
         };
 
         String goalContext = switch (goal.toUpperCase()) {
-            case "GANHO DE MASSA" -> "O objetivo principal é HIPERTROFIA e ganho de massa muscular. Priorize exercícios compostos pesados e volume adequado.";
-            case "PERDA DE GORDURA" -> "O objetivo principal é PERDA DE GORDURA. Inclua circuitos metabólicos, supersets e sugira cardio HIIT pós-treino.";
-            case "PERFORMANCE" -> "O objetivo principal é PERFORMANCE ATLÉTICA. Foque em exercícios funcionais, explosivos e de potência.";
+            case "GANHO DE MASSA" -> "O objetivo principal é HIPERTROFIA e ganho de massa muscular. Priorize exercícios compostos pesados e volume adequado. Cardio moderado de zona 2-3 para controle de gordura, evitando excessos que possam comprometer a recuperação muscular.";
+            case "PERDA DE GORDURA" -> "O objetivo principal é PERDA DE GORDURA. Inclua circuitos metabólicos, supersets e sugira cardio HIIT pós-treino. Adeque o hiit de acordo com o peso: %.1f kg e idade: %d anos informados, evitando exercícios de alto impacto para alunos mais pesados ou mais velhos.";
+            case "PERFORMANCE" -> "O objetivo principal é PERFORMANCE ATLÉTICA. Foque em exercícios funcionais, explosivos e de potência. Lembre-se de sugerir um cardio de zona 2-3 para recuperação ativa e também alguns cardios de longa duração em corrida, divida bem entre os dias de treino para permitir recuperação adequada.";
             default -> "Objetivo geral de condicionamento físico.";
         };
 
@@ -113,45 +113,55 @@ public class GeminiService {
         };
 
         return """
-                Você é um personal trainer especialista de elite. Gere uma rotina completa de treinos dividida em %d dias para um aluno com o seguinte perfil:
-                - Nível: %s
-                - Idade: %d anos
-                - Peso: %.1f kg
-                - Altura: %.1f cm
-                - Objetivo: %s
-                - Frequência semanal: %d dias
+            Você é um personal trainer especialista de elite. Gere uma rotina completa de treinos dividida em %d dias para um aluno com o seguinte perfil:
+            - Nível: %s
+            - Idade: %d anos
+            - Peso: %.1f kg
+            - Altura: %.1f cm
+            - Objetivo: %s
+            - Frequência semanal: %d dias
 
-                DIRETRIZES FISIOLÓGICAS:
-                - Diretriz de nível: %s
-                - Contexto metabólico: %s
-                - Contexto de volume: %s
-                - Objetivo específico: %s
+            DIRETRIZES FISIOLÓGICAS:
+            - Diretriz de nível: %s
+            - Contexto metabólico: %s
+            - Contexto de volume: %s
+            - Objetivo específico: %s
 
-                REGRA DE CARGA: O app é para academias. Você DEVE fornecer uma sugestão de carga inicial realista para cada exercício baseada no nível e peso do aluno (ex: "Halteres de 12kg", "20kg de cada lado", "Polia 35kg", "Máquina 40kg"). Considere que o aluno pesa %.1f kg para calibrar as sugestões. Evite usar apenas "Corpo" a menos que seja estritamente necessário (ex: Barra Fixa).
+            REGRA DE CARGA E INTENSIDADE: O app é para academias. Forneça uma sugestão de carga inicial realista baseada no nível e peso do aluno (%.1f kg), mas COMBINE isso com uma métrica de percepção de esforço (RPE ou RIR) para garantir segurança. Exemplo: "Halteres de 12kg (RPE 8)", "20kg de cada lado (Deixando 2 reps na reserva)", "Polia 35kg (Fadiga próxima à falha)". Evite usar apenas "Corpo" a menos que seja estritamente necessário (ex: Barra Fixa).
 
-                O resultado deve ser ESTRITAMENTE um ARRAY JSON contendo exatamente %d objetos, sem nenhum texto adicional, sem saudações e sem blocos de código Markdown (como ```json ou ```).
+            REGRA DE MÚCULOS TRABALHADOS: Ao gerar o músculo correspondente ao exercício proposto, siga apenas com estes grupos definidos -> PEITO,OMBRO,TRICEPS,BICEPS,COSTAS,ANTEBRACO,QUADRICEPS,POSTERIOR,GLUTEOS,PANTURRILHA. Evite termos genéricos como "perna" ou "braço".
 
-                O array deve obedecer exatamente à seguinte estrutura:
-                [
-                  {
-                    "title": "NOME DO TREINO (ex: PUSH DAY)",
-                    "subtitle": "MÚSCULOS TRABALHADOS (ex: PEITO / OMBRO / TRÍCEPS)",
-                    "tag": "DIA A",
-                    "data": [
-                      {
-                        "name": "Nome do Exercício, ex: Supino Reto com Barra",
-                        "muscles": "PEITO",
-                        "type": "COMPOSTO ou ISOLADO",
-                        "sets": 4,
-                        "reps": "8-12 ou 10 cada",
-                        "weight": "Sugestão exata, ex: 20kg de cada lado",
-                        "restTime": "Tempo de descanso ex: 90s"
-                      }
-                    ]
-                  }
+            REGRA DE NOME DE TREINO: O nome do treino (title) deve corresponder aos exercícios sugeridos. Ex: peito/triceps/ombro = "PUSH DAY". Costas/biceps = "PULL DAY". Quadriceps/posterior/glúteos = "LEG DAY". Treino completo = "FULL BODY". Adapte conforme a divisão escolhida.
+
+            REGRA DE VOLUME DE EXERCÍCIOS:
+            - Volume Total: Gere rigorosamente de 6 a 8 exercícios por sessão para manter o treino eficiente e com duração adequada.
+            - Distribuição: Grupos musculares maiores (PEITO, COSTAS, QUADRICEPS, POSTERIOR) podem receber de 2 a 4 exercícios. Grupos menores (BICEPS, TRICEPS, PANTURRILHA, ANTEBRACO) devem receber no máximo 1 a 2 exercícios, considerando o estímulo indireto já recebido nos exercícios compostos.
+
+            REGRA DE DESCANSO: Para hipertrofia, sugira descanso entre 90-180s. Para perda de gordura, sugira descanso entre 60-90s. Para performance/força, sugira descanso entre 2-5 minutos. Adapte de acordo com o objetivo principal.
+
+            O resultado deve ser ESTRITAMENTE um ARRAY JSON contendo exatamente %d objetos, sem nenhum texto adicional, sem saudações e sem blocos de código Markdown (como ```json ou ```).
+
+            O array deve obedecer exatamente à seguinte estrutura:
+            [
+            {
+                "title": "NOME DO TREINO (ex: PUSH DAY)",
+                "subtitle": "MÚSCULOS TRABALHADOS (ex: PEITO / OMBRO / TRÍCEPS)",
+                "tag": "DIA A",
+                "data": [
+                {
+                    "name": "Nome do Exercício, ex: Supino Reto com Barra",
+                    "muscles": "PEITO",
+                    "type": "COMPOSTO ou ISOLADO",
+                    "sets": 4,
+                    "reps": "8-12 ou 10 cada",
+                    "weight": "Sugestão com RPE, ex: 20kg de cada lado (RPE 8)",
+                    "restTime": "Tempo de descanso ex: 90s"
+                }
                 ]
+            }
+            ]
 
-                Gere rigorosamente de 6 a 8 exercícios na lista 'data' de CADA UM dos %d treinos. Adapte os nomes dos treinos (title), subtítulos e tags (DIA A, DIA B, etc.) conforme a divisão escolhida. Retorne APENAS o array JSON válido.
+            Gere a lista 'data' com 6 a 8 exercícios em CADA UM dos %d treinos. Retorne APENAS o array JSON válido, pronto para ser parseado.
                 """
                 .formatted(frequency, level, age, weight, height, goal, frequency, focus, metabolismContext, volumeContext, goalContext, weight, frequency, frequency);
     }
