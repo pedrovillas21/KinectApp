@@ -45,5 +45,18 @@ public class UserService {
             newHistory.setLoggedAt(today);
             weightHistoryRepository.save(newHistory);
         }
+
+    }
+
+    public boolean needsWeightUpdate(String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        return weightHistoryRepository.findFirstByUserOrderByLoggedAtDesc(user)
+                .map(lastHistory -> {
+                    long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(lastHistory.getLoggedAt(), LocalDate.now());
+                    return daysBetween >= 30;
+                })
+                .orElse(false);
     }
 }

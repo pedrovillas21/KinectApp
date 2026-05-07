@@ -1,59 +1,54 @@
-# 🚀 Plano Final: Tracking de Performance, Evolução Mensal e Dashboard de Estatísticas
+# 🚀 Plano de Implementação: Blindagem de Dados, UX e Dashboard de Performance
 
 ## 1. Visão Geral
-Este plano integra a coleta de dados (séries, reps, carga), o check-in fisiológico mensal (peso) e a transformação desses dados brutos em gráficos visuais na `StatsScreen`. A inteligência de tempo para o check-in será gerenciada pelo Back-end.
+Este plano estabelece a "fiação" completa entre o Front-end (React Native em TypeScript) e o Back-end (Spring Boot), focando na validação rigorosa de dados de treino, gestão de sessões parciais e visualização de progresso.
 
-## 2. Refatoração do ActiveSessionScreen (Captura de Dados)
+## 2. Refatoração Back-end: Blindagem de Dados (Java)
+**Objetivo:** Garantir que a API nunca aceite dados "sujos", mesmo que o Front-end seja burlado.
 
-### A. Consolidação dos Logs
-- Mapear os inputs de cada série para um estado de array de objetos.
-- **Payload de Finalização (`POST /api/sessions/log`):**
-    ```javascript
-    {
-      durationInSeconds: number,
-      date: "YYYY-MM-DD",
-      exercisesLog: [
-        { exerciseId: "uuid", setNumber: 1, repsPerformed: 12, weightUsed: 25.5 },
-        ...
-      ]
-    }
-    ```
+### A. Atualização do `SetLogDto.java`
+- **Repetições:** Adicionar `@Min(value = 1, message = "A série deve ter pelo menos 1 repetição")`.
+- **Peso:** Adicionar `@PositiveOrZero(message = "O peso não pode ser negativo")` (para permitir 0kg em exercícios de peso corporal).
+- **Série:** Adicionar `@Min(1)`.
+- **Validação:** Garantir que o `WorkoutSessionController` utiliza a anotação `@Valid` no corpo da requisição.
 
-## 3. Inteligência de Check-in e Re-geração (Evolução Mensal)
+## 3. Refatoração Front-end: ActiveSessionScreen.tsx (UX e Validações)
+**Objetivo:** Implementar a estratégia "Fail Fast" (falhar rápido) para educar o utilizador e evitar erros de rede.
 
-### A. Fluxo de Gatilho (Backend-Driven)
-- O app consulta o back-end (via `GET /api/users/profile` ou endpoint de stats) para verificar o booleano `needsWeightUpdate`.
-- Se `true`, exibe o **EvolutionModal**:
-    1. **Coleta:** Input do novo peso (com instrução sobre pesagem em jejum).
-    2. **Persistência:** `POST /api/users/weight`.
-    3. **Ação Proativa:** Pergunta se o usuário deseja gerar uma nova ficha de treino com o peso atualizado e opção de trocar o objetivo.
+### A. Validação Individual de Série (Botão Check)
+- **Ação:** Intercetar a função `onPress` do ícone de confirmação da série.
+- **Lógica:**
+    1. Validar `numericReps`: Se for `< 1` ou `NaN`, disparar `Alert.alert("Série Incompleta", "Insira pelo menos 1 repetição.")`.
+    2. Validar `numericWeight`: Se for `< 0`, disparar `Alert.alert("Peso Inválido", "O peso não pode ser negativo. Use 0 para peso do corpo.")`.
+    3. Bloquear a marcação visual (ícone azul) enquanto os dados não forem válidos.
 
-## 4. Implementação da StatsScreen (Visualização de Dados)
+### B. Novo Botão: "Sair da Sessão" (Texto Cinzento)
+- **Função:** Permitir a interrupção do treino a qualquer momento.
+- **UX:** Ao clicar, disparar um Pop-up (Alert):
+    - **Título:** "Tem a certeza que deseja sair?"
+    - **Mensagem:** "O seu treino será encerrado. Apenas as séries marcadas como concluídas serão guardadas no seu histórico."
+- **Lógica de Gravação Parcial:**
+    - Se `completedSets.length > 0`: Faz o `api.post` com os dados parciais e navega para a Home.
+    - Se `completedSets.length === 0`: Apenas navega para a Home (descarta a sessão vazia para evitar "lixo" no banco de dados).
 
-Para que a tela deixe de ser "crua", ela será dividida em três seções principais:
+### C. Botão Principal: "FINALIZAR TREINO" (Ciano)
+- **Lógica:** Filtrar apenas séries com `isCompleted === true`.
+- **Trava:** Se não houver séries marcadas, impedir o envio e avisar o utilizador.
 
-### A. Gráfico de Evolução de Peso (Linear)
-- **Fonte:** `GET /api/users/weight-history`.
-- **Visualização:** Gráfico de linha mostrando a variação do peso nos últimos meses.
-- **Biblioteca Sugerida:** `react-native-chart-kit` ou `react-native-gifted-charts`.
+## 4. StatsScreen e Evolução Mensal (TypeScript & Gifted Charts)
+**Objetivo:** Transformar dados em motivação visual.
 
-### B. Gráfico de Volume de Carga (Progressive Overload)
-- **Lógica:** O back-end soma `reps * weight` de cada sessão.
-- **Visualização:** Gráfico de barras comparando o volume total levantado por semana ou por grupo muscular. Isso prova visualmente que o usuário está ficando mais forte.
+### A. Dashboards Visuais (StatsScreen.tsx)
+- **Gráfico de Eficiência:** Progress Circle (Donut) comparando treinos realizados vs. meta mensal.
+- **Gráfico de Peso:** Gráfico de Linha (`LineChart`) consumindo o `WeightHistory`.
+- **Gráfico de Volume:** Gráfico de Barras agrupado por **Grupo Muscular na Semana**.
 
-### C. Círculo de Eficiência Mensal (Consistency)
-- **Lógica:** Comparação entre `treinos realizados` vs. `meta de frequência` (ex: 12/16 treinos no mês).
-- **Visualização:** Gráfico de progresso circular (Progress Circle) com a porcentagem de eficiência.
+### B. EvolutionModal.tsx (Gatilho de 30 dias)
+- **Lógica:** O Back-end envia `needsWeightUpdate: true` se o último registo de peso tiver mais de 30 dias.
+- **Fluxo:** Peso Atualizado -> Pergunta sobre Re-geração de Treino -> Chamada à API do Gemini para nova ficha com dados novos.
 
-## 5. Regras para o Agente da IDE (Full-Stack)
-
-1. **Back-end (Novos Endpoints de Stats):**
-   - Criar `GET /api/stats/summary`: Deve retornar a eficiência do mês, o volume total e os dados para o gráfico de peso em um único objeto.
-   - Garantir que o cálculo de eficiência use o `frequency` salvo no `User`.
-
-2. **Front-end (Componentização):**
-   - Criar componentes de gráfico reutilizáveis para a `StatsScreen`.
-   - Implementar um "Estado Zero": Se não houver dados, exibir uma mensagem motivadora: "Seu primeiro gráfico aparecerá após o primeiro treino finalizado!".
-
-3. **Tratamento de Dados:**
-   - No React Native, garantir a conversão de vírgula para ponto e o tratamento de `Float` para evitar erros de tipo no Java.
+## 5. Diretrizes Técnicas para o Agente (IDE)
+- **Typescript:** Todas as interfaces devem estar em `src/types/index.ts`. Refatorar ficheiros `.js` para `.tsx`.
+- **Parsing:** Utilizar `.replace(',', '.')` em todos os campos de peso antes de converter para `float`.
+- **Segurança:** A identidade do utilizador deve ser extraída estritamente do JWT no Back-end; nunca enviar `userId` no corpo do JSON.
+- **UI:** Utilizar a biblioteca `react-native-gifted-charts` para os gráficos.

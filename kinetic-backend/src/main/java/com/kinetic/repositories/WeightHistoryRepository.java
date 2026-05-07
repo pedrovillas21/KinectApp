@@ -11,4 +11,6 @@ import java.util.Optional;
 @Repository
 public interface WeightHistoryRepository extends JpaRepository<WeightHistory, Long> {
     Optional<WeightHistory> findByUserAndLoggedAt(User user, LocalDate loggedAt);
+    Optional<WeightHistory> findFirstByUserOrderByLoggedAtDesc(User user);
+    java.util.List<WeightHistory> findAllByUserOrderByLoggedAtAsc(User user);
 }

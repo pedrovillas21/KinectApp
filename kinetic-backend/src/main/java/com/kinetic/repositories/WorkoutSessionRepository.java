@@ -14,4 +14,10 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
             LocalDate startDate,
             LocalDate endDate
     );
+
+    java.util.List<WorkoutSession> findByUserIdAndSessionDateBetween(
+            UUID userId,
+            LocalDate startDate,
+            LocalDate endDate
+    );
 }
