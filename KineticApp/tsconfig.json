@@ -1,0 +1,8 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        "allowJs": true,
+        "jsx": "react-native"
+    },
+    "extends": "expo/tsconfig.base"
+}
