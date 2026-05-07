@@ -1,7 +1,7 @@
 package com.kinetic.controllers;
 
+import com.kinetic.dtos.LogSessionRequestDTO;
 import com.kinetic.dtos.MonthlyStatsResponseDTO;
-import com.kinetic.dtos.WorkoutSessionLogRequestDTO;
 import com.kinetic.services.WorkoutSessionService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
@@ -25,7 +25,7 @@ public class WorkoutSessionController {
     }
 
     @PostMapping("/log")
-    public ResponseEntity<?> logSession(@Valid @RequestBody WorkoutSessionLogRequestDTO request) {
+    public ResponseEntity<?> logSession(@Valid @RequestBody LogSessionRequestDTO request) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
 
         try {

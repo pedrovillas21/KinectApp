@@ -38,4 +38,9 @@ public class ExerciseSetLog {
     @JoinColumn(name = "exercise_id", nullable = false)
     @JsonIgnore
     private Exercise exercise;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "session_id", nullable = false)
+    @JsonIgnore
+    private WorkoutSession workoutSession;
 }

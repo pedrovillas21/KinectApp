@@ -1,71 +1,59 @@
-🚀 Plano de Implementação: Tracking de Sobrecarga e Histórico de Peso
-1. Visão Geral
-Expandir o domínio de registros do sistema para suportar estatísticas avançadas (Progressive Overload e Histórico Fisiológico). O sistema deve passar a registrar cada série/repetição/carga por exercício durante uma sessão de treino, além de manter um histórico de pesagens do usuário.
+# 🚀 Plano Final: Tracking de Performance, Evolução Mensal e Dashboard de Estatísticas
 
-2. Refatoração do Banco de Dados (Entidades)
-A. Atualizar ExerciseSetLog (Já existente)
-Ação: Manter os campos atuais (id UUID, setNumber, repsPerformed, weightUsed, loggedAt, e a relação @ManyToOne com Exercise).
+## 1. Visão Geral
+Este plano integra a coleta de dados (séries, reps, carga), o check-in fisiológico mensal (peso) e a transformação desses dados brutos em gráficos visuais na `StatsScreen`. A inteligência de tempo para o check-in será gerenciada pelo Back-end.
 
-Adição: Criar a relação @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "session_id", nullable = false) @JsonIgnore private WorkoutSession workoutSession;
+## 2. Refatoração do ActiveSessionScreen (Captura de Dados)
 
-Regra: Manter o uso de @Getter, @Setter, @NoArgsConstructor, @AllArgsConstructor. Proibido usar @Data.
+### A. Consolidação dos Logs
+- Mapear os inputs de cada série para um estado de array de objetos.
+- **Payload de Finalização (`POST /api/sessions/log`):**
+    ```javascript
+    {
+      durationInSeconds: number,
+      date: "YYYY-MM-DD",
+      exercisesLog: [
+        { exerciseId: "uuid", setNumber: 1, repsPerformed: 12, weightUsed: 25.5 },
+        ...
+      ]
+    }
+    ```
 
-B. Atualizar/Criar WorkoutSession
-Ação: Deve conter id, user (@ManyToOne), durationInSeconds (Integer), sessionDate (LocalDate).
+## 3. Inteligência de Check-in e Re-geração (Evolução Mensal)
 
-Adição: Criar a relação bidirecional: @OneToMany(mappedBy = "workoutSession", cascade = CascadeType.ALL, orphanRemoval = true) private List<ExerciseSetLog> setLogs = new ArrayList<>();
+### A. Fluxo de Gatilho (Backend-Driven)
+- O app consulta o back-end (via `GET /api/users/profile` ou endpoint de stats) para verificar o booleano `needsWeightUpdate`.
+- Se `true`, exibe o **EvolutionModal**:
+    1. **Coleta:** Input do novo peso (com instrução sobre pesagem em jejum).
+    2. **Persistência:** `POST /api/users/weight`.
+    3. **Ação Proativa:** Pergunta se o usuário deseja gerar uma nova ficha de treino com o peso atualizado e opção de trocar o objetivo.
 
-Comportamento: O CascadeType.ALL é crucial para que, ao salvar a Sessão, o Hibernate salve os Logs automaticamente.
+## 4. Implementação da StatsScreen (Visualização de Dados)
 
-C. Nova Entidade WeightHistory
-Ação: Criar entidade para o gráfico mensal de peso.
+Para que a tela deixe de ser "crua", ela será dividida em três seções principais:
 
-Campos: id (Long/Identity), user (@ManyToOne), weight (Double), loggedAt (LocalDate - default LocalDate.now()).
+### A. Gráfico de Evolução de Peso (Linear)
+- **Fonte:** `GET /api/users/weight-history`.
+- **Visualização:** Gráfico de linha mostrando a variação do peso nos últimos meses.
+- **Biblioteca Sugerida:** `react-native-chart-kit` ou `react-native-gifted-charts`.
 
-3. Contratos da API (DTOs - Usar record)
-A. LogSessionRequestDTO
-SetLogDto: public record SetLogDto(@NotNull UUID exerciseId, @NotNull Integer setNumber, @NotNull Integer repsPerformed, @NotNull Double weightUsed) {}
+### B. Gráfico de Volume de Carga (Progressive Overload)
+- **Lógica:** O back-end soma `reps * weight` de cada sessão.
+- **Visualização:** Gráfico de barras comparando o volume total levantado por semana ou por grupo muscular. Isso prova visualmente que o usuário está ficando mais forte.
 
-Payload Principal: public record LogSessionRequestDTO(@NotNull @Positive Integer durationInSeconds, @NotNull LocalDate date, @NotEmpty List<SetLogDto> exercisesLog) {}
+### C. Círculo de Eficiência Mensal (Consistency)
+- **Lógica:** Comparação entre `treinos realizados` vs. `meta de frequência` (ex: 12/16 treinos no mês).
+- **Visualização:** Gráfico de progresso circular (Progress Circle) com a porcentagem de eficiência.
 
-B. UpdateWeightRequestDTO
-Payload: public record UpdateWeightRequestDTO(@NotNull @Positive Double newWeight) {}
+## 5. Regras para o Agente da IDE (Full-Stack)
 
-4. Camada de Serviço (SessionService e UserService)
-A. Lógica de logSession (@Transactional)
-Extrair o e-mail do usuário via SecurityContextHolder e buscar o User no banco.
+1. **Back-end (Novos Endpoints de Stats):**
+   - Criar `GET /api/stats/summary`: Deve retornar a eficiência do mês, o volume total e os dados para o gráfico de peso em um único objeto.
+   - Garantir que o cálculo de eficiência use o `frequency` salvo no `User`.
 
-Instanciar um novo WorkoutSession (setando usuário, duração e data).
+2. **Front-end (Componentização):**
+   - Criar componentes de gráfico reutilizáveis para a `StatsScreen`.
+   - Implementar um "Estado Zero": Se não houver dados, exibir uma mensagem motivadora: "Seu primeiro gráfico aparecerá após o primeiro treino finalizado!".
 
-Iterar sobre a lista exercisesLog do DTO:
-
-Para cada item, buscar o Exercise no repositório usando o exerciseId (lançar ResourceNotFoundException se não achar).
-
-Instanciar um ExerciseSetLog.
-
-Ligar o ExerciseSetLog ao Exercise e à WorkoutSession atual.
-
-Adicionar o ExerciseSetLog na lista setLogs da WorkoutSession.
-
-Salvar o WorkoutSession via repositório. O JPA fará os inserts de tudo via cascade.
-
-B. Lógica de updateUserWeight (@Transactional)
-Extrair usuário via SecurityContextHolder.
-
-Atualizar o campo estático do usuário (user.setWeight(dto.newWeight())) e salvar o usuário.
-
-Instanciar um WeightHistory (com o peso novo, usuário e data atual) e salvar no WeightHistoryRepository.
-
-5. Controladores (Endpoints)
-POST /api/sessions/log: Recebe LogSessionRequestDTO, chama o serviço e retorna 201 Created.
-
-POST /api/users/weight: Recebe UpdateWeightRequestDTO, chama o serviço e retorna 200 OK.
-
-6. 🚨 Regras Restritas de Arquitetura para a IA
-Segurança: Nunca trafegar ou receber userId nos corpos das requisições POST. A identidade deve ser extraída exclusivamente do JWT (SecurityContext).
-
-Design: Não utilizar anotação @Data do Lombok em Entidades JPA para evitar problemas cíclicos no toString(). Use getters e setters explícitos.
-
-Resiliência: Valide os inputs do DTO com jakarta.validation.constraints.
-
-Performance: Use FetchType.LAZY em todas as relações @ManyToOne.
+3. **Tratamento de Dados:**
+   - No React Native, garantir a conversão de vírgula para ponto e o tratamento de `Float` para evitar erros de tipo no Java.
