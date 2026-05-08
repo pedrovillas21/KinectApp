@@ -24,8 +24,16 @@ export interface WeightPointDTO {
 export interface StatsSummaryResponseDTO {
   needsWeightUpdate: boolean;
   efficiencyPercentage: number;
+  completedSessions: number;
+  targetSessions: number;
   volumeByMuscleGroup: VolumeByMuscleGroupDTO[];
   weightHistory: WeightPointDTO[];
+}
+
+export interface HomeDashboardResponseDTO {
+  completedSessions: number;
+  targetSessions: number;
+  efficiencyPercentage: number;
 }
 
 export interface UpdateWeightRequestDTO {
