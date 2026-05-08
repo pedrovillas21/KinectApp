@@ -1,10 +1,13 @@
 package com.kinetic.dtos;
 
-import java.util.List;
-
 public record StatsSummaryResponseDTO(
-    Boolean needsWeightUpdate,
-    Integer efficiencyPercentage,
-    List<VolumeByMuscleGroupDTO> volumeByMuscleGroup,
-    List<WeightPointDTO> weightHistory
+        Boolean needsWeightUpdate,
+        String period,
+        Integer efficiencyPercentage,
+        Integer completedSessions,
+        Integer targetSessions,
+        WeightSummaryDTO weight,
+        VolumeSummaryDTO volume,
+        CommunityComparisonDTO community,
+        StatsInsightDTO insight
 ) {}

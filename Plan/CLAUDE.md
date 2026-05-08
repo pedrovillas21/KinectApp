@@ -1,45 +1,92 @@
-# 🚀 Plano de Refatoração: Home Screen UI Premium, Sincronização e Migração TypeScript
+# Plano de Implementação Back-end: API de Estatísticas (`GET /stats/summary`)
 
-## 1. Visão Geral
-O objetivo é triplo: 
-1. Redesenhar a seção superior da Home Screen para replicar fielmente o protótipo de alta fidelidade (Dark UI e card de Check-in polido).
-2. Unificar a regra de negócio do cálculo de Eficiência Mensal entre a Home e a StatsScreen.
-3. **Migrar a Home Screen completamente para TypeScript**, com tipagem rigorosa e proibição absoluta do uso de `any`.
+**Contexto:**
+Atuo como Full-Stack e acabei de finalizar a refatoração da tela de Estatísticas ("Sua Evolução") no front-end (React Native/TypeScript). O front-end agora espera um contrato estrito via API em um formato de dados pré-processado (BFF - Backend for Frontend) para focar apenas na renderização. 
 
-## 2. Back-end: Regra de Negócio Unificada (Java Spring Boot)
-Ambas as telas (Home e Stats) devem consumir os mesmos dados calculados pelo servidor.
+**O Contrato JSON Esperado:**
+O endpoint `GET /stats/summary?period={week|month|q|year}` deve retornar exatamente a seguinte estrutura:
 
-**Ação no `StatsService` (ou serviço responsável pelo dashboard):**
-1. **Buscar a Meta:** Recuperar a `frequency` (frequência semanal) que o usuário definiu no Onboarding.
-2. **Calcular a Meta Mensal (`targetSessions`):** `frequency * 4` (aproximadamente 4 semanas no mês).
-3. **Buscar Realizado (`completedSessions`):** Fazer um `count` no `WorkoutSessionRepository` das sessões finalizadas por este usuário dentro do mês atual.
-4. **Calcular Eficiência (`efficiencyPercentage`):** `(completedSessions / targetSessions) * 100` (limitado a 100%).
-5. **Atualizar o DTO:** Garantir que o endpoint retorne as variáveis `completedSessions`, `targetSessions` e `efficiencyPercentage`.
+```json
+{
+  "needsWeightUpdate": boolean,
+  "period": "string",
+  "efficiencyPercentage": number,
+  "completedSessions": number,
+  "targetSessions": number,
+  "weight": { 
+    "history": [{"date": "YYYY-MM-DD", "value": number}], 
+    "current": number, 
+    "delta": number, 
+    "unit": "kg" 
+  },
+  "volume": { 
+    "byMuscleGroup": [
+      {
+        "muscleGroup": "string", 
+        "volume": number, 
+        "deltaPercentage": number, 
+        "isRest": boolean
+      }
+    ], 
+    "total": number, 
+    "deltaPercentage": number 
+  },
+  "community": { 
+    "averagePercentage": number, 
+    "isAbove": boolean 
+  },
+  "insight": { 
+    "tag": "string", 
+    "body": "string" 
+  }
+}
+Sua Missão como Engenheiro Java/Spring Boot Sênior:
 
-## 3. 🚨 Diretriz Estrita Front-end: TypeScript e Tipagem
-A tela da Home (e seus componentes) deve ser refatorada de `.js` ou `.jsx` para `.tsx`.
-- **NÃO UTILIZAR `any` SOB NENHUMA HIPÓTESE.**
-- **Criar Interfaces/Types:** Definir as interfaces para o payload da API (ex: `HomeDashboardResponseDTO`), para as Props dos componentes visuais e para os estados locais (useState). Guardar as interfaces globais no arquivo `src/types/index.ts`.
+ETAPA 1: Análise de Diagnóstico (Gap Analysis)
 
-## 4. Front-end: Refatoração da Home Screen UI (.tsx)
-Substituir o código atual da seção de progresso pelo visual do protótipo.
+Avalie a minha arquitetura atual de Banco de Dados, Entidades (JPA/Hibernate) e Repositórios.
 
-### A. Tipografia e Cabeçalho (Header)
-- **Subtítulo Topo:** "MONTHLY PROGRESS" (Fonte pequena, uppercase, cor cinza claro `#A0A0A0`, `letterSpacing: 1.5`).
-- **Título Principal:** "You're crushing the Kinetic pace." 
-  - Usar aninhamento de `<Text>` para deixar "Kinetic" na cor Ciano (`#00FFFF`) e em Itálico, enquanto o resto fica em Branco (`#FFFFFF`) e negrito.
-- **Texto Dinâmico:** Consumir os dados tipados da API: `"${completedSessions} out of ${targetSessions} sessions completed this month. Keep the momentum high."` (Cor cinza claro).
+Identifique se já existem métodos ou queries que calculem:
 
-### B. Gráfico Donut (react-native-gifted-charts)
-- O gráfico deve consumir a variável `efficiencyPercentage`.
-- **Cores:** Cor principal em Ciano (`#00FFFF`) e o fundo do rastro em um cinza bem escuro (`#2A2A2A`).
-- **Centro do Gráfico (`centerLabelComponent`):** Número grande e em negrito (ex: **70%**) na cor branca, e a palavra "EFFICIENCY" bem pequena embaixo, em cinza claro.
+Volume de treino (Séries * Repetições * Carga) por usuário e por período.
 
-### C. Card de Check-in (Start Workout)
-- **Fundo do Card:** Usar um Ciano sofisticado (gradiente de `#00C6FF` para `#0072FF` ou Ciano vibrante com `shadow`). Borda bem arredondada (`borderRadius: 16`).
-- **Ícone:** Círculo com leve transparência branca e um "check" no meio.
-- **Textos:** "Check-in Now" (Branco, negrito, centralizado) e o subtítulo "Log your current session at the Arena" (Branco com leve transparência).
-- **Botão (Call to Action):** Fundo Branco (`#FFFFFF`), formato pílula (`borderRadius: 30`), texto "START WORKOUT" em Ciano escuro ou Preto, pequeno e em negrito.
+Histórico de pesagem e variação de peso.
 
-## 5. Integração StatsScreen
-Garantir que a `StatsScreen.tsx` consuma as exatas mesmas variáveis tipadas (`completedSessions`, `targetSessions`, `efficiencyPercentage`) que a Home Screen utiliza, atualizando o texto de apoio para refletir a mesma fração de forma dinâmica.
+Contagem de treinos concluídos vs. meta do usuário.
+
+Não recrie o que já existe. Se houver código reaproveitável, me avise e utilize-o.
+
+ETAPA 2: Criação/Atualização da Camada de DTOs
+
+Crie os Records ou classes DTO em Java que espelhem perfeitamente o contrato JSON exigido pelo front-end.
+
+Garanta que a serialização do Jackson converta os nomes corretamente.
+
+ETAPA 3: Queries e Repositórios (Otimização)
+
+Crie as queries (JPQL ou Native SQL) faltantes para agregar os dados diretamente no banco de dados.
+
+Crucial: O cálculo de volume (tonelagem) e agrupamento por músculo deve ser feito preferencialmente no banco para evitar carregar milhares de linhas para a memória da JVM.
+
+ETAPA 4: Lógica de Negócio (Services)
+Implemente o StatsService com as seguintes responsabilidades que faltam:
+
+Filtro de Período: Lidar com o parâmetro ?period= e calcular as datas de início e fim (7, 30, 90 ou 365 dias) e seus respectivos períodos anteriores (para o cálculo de deltaPercentage).
+
+Motor de Regras do Insight: Uma estrutura condicional limpa (ex: Design Pattern Strategy ou blocos if/else bem definidos) para popular insight.tag e insight.body (ex: Se aderência > 80% e peso caiu = Elogio ao déficit calórico).
+
+Comparação de Comunidade: Uma lógica para recuperar a média global (averagePercentage). Nota: Planeje como isso pode ser cacheado ou gerado via CRON job (@Scheduled) para não penalizar a performance da chamada.
+
+ETAPA 5: Controller
+
+Crie ou atualize o StatsController para expor o endpoint REST, recebendo o parâmetro e retornando o DTO montado.
+
+Regras de Saída:
+
+Forneça o código das novas classes, interfaces e métodos detalhadamente.
+
+Mantenha os padrões SOLID e Clean Code.
+
+Utilize as melhores práticas do ecossistema Spring Boot atual.
+
+Indique claramente onde eu devo colar cada trecho de código nos meus pacotes (controller, service, repository, dto).

@@ -4,9 +4,7 @@ import com.kinetic.dtos.StatsSummaryResponseDTO;
 import com.kinetic.services.StatsService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/stats")
@@ -18,9 +16,15 @@ public class StatsController {
         this.statsService = statsService;
     }
 
+    /**
+     * GET /api/stats/summary?period={week|month|q|year}
+     * Retorna o dashboard completo de estatísticas para o período informado.
+     * O parâmetro é opcional — padrão: "month".
+     */
     @GetMapping("/summary")
-    public ResponseEntity<StatsSummaryResponseDTO> getSummary() {
+    public ResponseEntity<StatsSummaryResponseDTO> getSummary(
+            @RequestParam(name = "period", defaultValue = "month") String period) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        return ResponseEntity.ok(statsService.getSummary(userEmail));
+        return ResponseEntity.ok(statsService.getSummary(userEmail, period));
     }
 }
