@@ -4,6 +4,8 @@ import com.kinetic.repositories.UserRepository;
 import com.kinetic.repositories.WorkoutSessionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +43,16 @@ public class CommunityStatsService {
     }
 
     /**
+     * Aquece o cache logo após a aplicação ficar pronta, evitando devolver 0
+     * para a baseline da comunidade entre o startup e o primeiro tick às 03:00.
+     */
+    @EventListener(ApplicationReadyEvent.class)
+    public void warmCacheOnStartup() {
+        log.info("CommunityStatsService: aquecendo cache na inicialização...");
+        refreshCache();
+    }
+
+    /**
      * Executa todo dia às 03:00 (horário do servidor).
      * Usa enableAsync = false para garantir execução sequencial.
      */
@@ -51,6 +63,7 @@ public class CommunityStatsService {
 
         LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
         LocalDate startOfNextMonth = startOfMonth.plusMonths(1);
+        int daysInMonth = startOfMonth.lengthOfMonth();
 
         // Todos os usuários com frequência configurada
         List<Object[]> userFrequencies = userRepository.findAllUserIdAndFrequency();
@@ -83,7 +96,10 @@ public class CommunityStatsService {
             int frequency = entry.getValue();
             if (frequency <= 0) continue;
 
-            int target = frequency * 4;
+            // Deriva o target do número real de dias do mês (28–31), evitando
+            // que meses longos passem de 100% e meses curtos exijam over-performance.
+            double target = frequency * (daysInMonth / 7.0);
+            if (target <= 0) continue;
             long completed = sessionMap.getOrDefault(userId, 0L);
             double efficiency = Math.min(100, (completed * 100.0) / target);
 

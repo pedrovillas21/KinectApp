@@ -161,7 +161,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
           {LEADERS.map((ldr, index) => (
             <View
               key={ldr.id}
-              style={[styles.leaderRow, index !== LEADERS.length - 1 && styles.leaderBorder]}
+              style={[styles.leaderRow, index % 2 === 1 && styles.leaderRowAlt]}
             >
               <View style={styles.leaderRankCol}>
                 <Text style={[styles.leaderRankTxt, ldr.rank <= 3 && { color: ldr.medal }]}>
@@ -347,9 +347,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
   },
-  leaderBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#2A2A2A',
+  leaderRowAlt: {
+    backgroundColor: 'rgba(255,255,255,0.025)',
   },
   leaderRankCol: { width: 32, alignItems: 'center' },
   leaderRankTxt: {

@@ -1,4 +1,4 @@
-# 🚀 Plano de Implementação: Blindagem de Dados, UX e Dashboard de Performance
+# 🚀 Plano de Implementação: Blindagem de Dados, UX e Dashboard de Desempenho
 
 ## 1. Visão Geral
 Este plano estabelece a "fiação" completa entre o Front-end (React Native em TypeScript) e o Back-end (Spring Boot), focando na validação rigorosa de dados de treino, gestão de sessões parciais e visualização de progresso.

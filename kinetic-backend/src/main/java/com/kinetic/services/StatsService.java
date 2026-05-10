@@ -131,9 +131,12 @@ public class StatsService {
         int totalDeltaPct    = deltaPct(totalCurrent, totalPrevious);
 
         // Garante que grupos planejados mas não treinados apareçam como isRest
+        // e que grupos treinados apenas no período anterior continuem visíveis
+        // para preservar regressões (-100%) ao invés de sumirem silenciosamente.
         Set<String> allMuscles = new LinkedHashSet<>(
                 exerciseRepository.findDistinctMusclesByUserId(user.getId()));
         allMuscles.addAll(currentVolume.keySet());
+        allMuscles.addAll(previousVolume.keySet());
 
         List<VolumeByMuscleGroupDTO> byGroup = allMuscles.stream()
                 .map(muscle -> {
@@ -152,7 +155,7 @@ public class StatsService {
         Map<String, Double> map = new LinkedHashMap<>();
         for (Object[] row : rows) {
             String muscle = (row[0] != null) ? (String) row[0] : "Outros";
-            double vol    = ((Number) row[1]).doubleValue();
+            double vol    = (row[1] instanceof Number n) ? n.doubleValue() : 0.0;
             map.put(muscle, vol);
         }
         return map;

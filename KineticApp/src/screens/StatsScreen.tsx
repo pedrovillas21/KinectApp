@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
@@ -815,6 +815,11 @@ export default function StatsScreen() {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [stats, setStats] = useState<StatsSummaryResponseDTO | null>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  // O modal de atualização de peso só pode aparecer uma vez por sessão.
+  // Sem isso, qualquer refetch (troca de período / pull-to-refresh) reabriria
+  // o modal enquanto o backend continuar retornando needsWeightUpdate: true.
+  const weightModalDismissedRef = useRef<boolean>(false);
 
   const fetchStats = useCallback(
     async (selected: StatsPeriodId): Promise<void> => {
@@ -824,11 +829,13 @@ export default function StatsScreen() {
         });
         const data = response.data;
         setStats(data);
-        if (data.needsWeightUpdate) {
+        setFetchError(null);
+        if (data.needsWeightUpdate && !weightModalDismissedRef.current) {
           setModalVisible(true);
         }
       } catch (error) {
         console.error('Error fetching stats', error);
+        setFetchError('Não foi possível atualizar suas estatísticas. Verifique sua conexão e tente novamente.');
       } finally {
         setLoading(false);
         setRefreshing(false);
@@ -836,6 +843,17 @@ export default function StatsScreen() {
     },
     []
   );
+
+  const closeWeightModal = useCallback(() => {
+    weightModalDismissedRef.current = true;
+    setModalVisible(false);
+  }, []);
+
+  const onWeightModalSuccess = useCallback(() => {
+    weightModalDismissedRef.current = true;
+    setModalVisible(false);
+    fetchStats(period);
+  }, [fetchStats, period]);
 
   useEffect(() => {
     setLoading(true);
@@ -906,8 +924,8 @@ export default function StatsScreen() {
         </ScrollView>
         <EvolutionModal
           visible={modalVisible}
-          onClose={() => setModalVisible(false)}
-          onSuccess={() => fetchStats(period)}
+          onClose={closeWeightModal}
+          onSuccess={onWeightModalSuccess}
         />
       </SafeAreaView>
     );
@@ -936,8 +954,8 @@ export default function StatsScreen() {
         </ScrollView>
         <EvolutionModal
           visible={modalVisible}
-          onClose={() => setModalVisible(false)}
-          onSuccess={() => fetchStats(period)}
+          onClose={closeWeightModal}
+          onSuccess={onWeightModalSuccess}
         />
       </SafeAreaView>
     );
@@ -964,6 +982,11 @@ export default function StatsScreen() {
         }
       >
         <View style={{ gap: 14 }}>
+          {fetchError ? (
+            <View style={styles.errorBanner}>
+              <Text style={styles.errorBannerText}>{fetchError}</Text>
+            </View>
+          ) : null}
           <KpiStrip kpis={kpis} />
           <InsightBlock insight={stats.insight} />
           <ConsistencyCard
@@ -1079,5 +1102,19 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textAlign: 'center',
     lineHeight: 22,
+  },
+  errorBanner: {
+    backgroundColor: T.warnDim,
+    borderWidth: 1,
+    borderColor: 'rgba(245,185,69,0.45)',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  errorBannerText: {
+    color: T.warn,
+    fontSize: 12,
+    fontWeight: '600',
+    lineHeight: 17,
   },
 });

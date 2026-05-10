@@ -14,7 +14,7 @@ O endpoint `GET /stats/summary?period={week|month|q|year}` deve retornar exatame
   "completedSessions": number,
   "targetSessions": number,
   "weight": { 
-    "history": [{"date": "YYYY-MM-DD", "value": number}], 
+    "history": [{"date": "YYYY-MM-DD", "weight": number}], 
     "current": number, 
     "delta": number, 
     "unit": "kg" 
