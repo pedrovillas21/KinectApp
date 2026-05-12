@@ -100,3 +100,24 @@ $RECYCLE.BIN/
 # ─── Pastas de contexto interno / AI ─────────
 .gemini/
 **/target/
+.vscode/
+.github/
+.agents/
+.HTML/
+
+# ==========================================
+# Graphify (Mapeamento do Projeto)
+# ==========================================
+
+# Ignorar arquivos estritamente locais do Graphify
+graphify-out/manifest.json
+graphify-out/cost.json
+
+# (Opcional) Ignorar o cache para manter o repositório menor
+graphify-out/cache/
+
+# Ignorar o cofre do Obsidian/Wiki gerado para leitura local
+graphify-out/obsidian/ 
+
+# Ignorar todos os arquivos de estado intermediário (arquivos ocultos .json)
+graphify-out/.*.json
