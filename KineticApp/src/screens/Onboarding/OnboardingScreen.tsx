@@ -35,7 +35,7 @@ export interface OnboardingForm {
   height: number;
   level: LevelType;
   days: number[];
-  anamnesis: string;
+  medicalConditions: string;
 }
 
 interface GoalDef {
@@ -347,37 +347,114 @@ function StepFreq({ days, onChange, isDark }: StepFreqProps) {
 }
 
 // ─── StepAnamnesis ────────────────────────────────────────────────────────────
+const MEDICAL_CHIPS = ['Ombro', 'Joelho', 'Lombar', 'Quadril'];
+const NONE_CHIP = 'Nenhuma';
+
+function buildMedicalValue(chips: string[], text: string): string {
+  if (chips.includes(NONE_CHIP)) return NONE_CHIP;
+  const parts = [...chips, text.trim()].filter(Boolean);
+  return parts.join(', ');
+}
+
 function StepAnamnesis({ value, onChange, isDark }: StepAnamnesisProps) {
   const textPrimary   = isDark ? COLORS.textPrimaryDark   : COLORS.textPrimaryLight;
   const textSecondary = isDark ? COLORS.textSecondaryDark : COLORS.textSecondaryLight;
   const cardBg        = isDark ? COLORS.darkCard          : COLORS.lightCard;
 
+  const [selectedChips, setSelectedChips] = useState<string[]>(() =>
+    value === NONE_CHIP ? [NONE_CHIP] : []
+  );
+  const [freeText, setFreeText] = useState<string>(
+    value === NONE_CHIP || value === '' ? '' : value
+  );
   const [focused, setFocused] = useState(false);
+
+  const isNoneSelected = selectedChips.includes(NONE_CHIP);
+
+  const toggleChip = (chip: string) => {
+    let next: string[];
+    if (chip === NONE_CHIP) {
+      next = isNoneSelected ? [] : [NONE_CHIP];
+      setSelectedChips(next);
+      setFreeText('');
+      onChange(next.includes(NONE_CHIP) ? NONE_CHIP : '');
+    } else {
+      const withoutNone = selectedChips.filter(c => c !== NONE_CHIP);
+      next = withoutNone.includes(chip)
+        ? withoutNone.filter(c => c !== chip)
+        : [...withoutNone, chip];
+      setSelectedChips(next);
+      onChange(buildMedicalValue(next, freeText));
+    }
+  };
+
+  const handleFreeTextChange = (text: string) => {
+    setFreeText(text);
+    onChange(buildMedicalValue(selectedChips, text));
+  };
 
   return (
     <>
       <Text style={styles.stepTag}>Etapa 5 de 5</Text>
-      <Text style={[styles.stepTitle, { color: textPrimary }]}>Anamnese</Text>
+      <Text style={[styles.stepTitle, { color: textPrimary }]}>Segurança em primeiro lugar.</Text>
       <Text style={[styles.stepSub, { color: textSecondary }]}>
-        Relate lesões, limitações físicas ou equipamentos disponíveis.
+        Você possui alguma lesão, dor articular ou restrição médica que devemos saber para adaptar o seu treino?
       </Text>
-      <TextInput
-        multiline
-        numberOfLines={7}
-        value={value}
-        onChangeText={onChange}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        placeholder="Ex: tenho dor no joelho direito, treino em casa com halteres e elásticos..."
-        placeholderTextColor={COLORS.textSecondaryDark}
-        textAlignVertical="top"
-        style={[
-          styles.anamnesisInput,
-          { backgroundColor: cardBg, color: textPrimary },
-          focused && styles.anamnesisInputFocused,
-        ]}
-      />
-      <Text style={styles.anamnesisHint}>Campo opcional. Pode deixar em branco.</Text>
+
+      <View style={styles.chipsRow}>
+        {MEDICAL_CHIPS.map(chip => {
+          const active = selectedChips.includes(chip);
+          return (
+            <TouchableOpacity
+              key={chip}
+              onPress={() => toggleChip(chip)}
+              activeOpacity={0.75}
+              style={[
+                styles.chip,
+                { backgroundColor: active ? COLORS.neonBlue : cardBg },
+              ]}
+            >
+              <Text style={[styles.chipText, { color: active ? COLORS.darkBackground : textSecondary }]}>
+                {chip}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+        <TouchableOpacity
+          onPress={() => toggleChip(NONE_CHIP)}
+          activeOpacity={0.75}
+          style={[
+            styles.chip,
+            { backgroundColor: isNoneSelected ? COLORS.neonBlue : cardBg },
+          ]}
+        >
+          <Text style={[styles.chipText, { color: isNoneSelected ? COLORS.darkBackground : textSecondary }]}>
+            {NONE_CHIP}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {!isNoneSelected && (
+        <>
+          <TextInput
+            multiline
+            numberOfLines={5}
+            value={freeText}
+            onChangeText={handleFreeTextChange}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            placeholder="Ex: hérnia de disco L4-L5, dor no ombro direito, asma..."
+            placeholderTextColor={COLORS.textSecondaryDark}
+            textAlignVertical="top"
+            style={[
+              styles.anamnesisInput,
+              { backgroundColor: cardBg, color: textPrimary },
+              focused && styles.anamnesisInputFocused,
+            ]}
+          />
+          <Text style={styles.anamnesisHint}>Campo opcional. Pode deixar em branco se não houver restrições.</Text>
+        </>
+      )}
     </>
   );
 }
@@ -440,13 +517,13 @@ export default function OnboardingScreen() {
 
   const [step, setStep] = useState<number>(0);
   const [form, setForm] = useState<OnboardingForm>({
-    goal:      '',
-    birthDate: '',
-    weight:    0,
-    height:    0,
-    level:     '',
-    days:      [],
-    anamnesis: '',
+    goal:              '',
+    birthDate:         '',
+    weight:            0,
+    height:            0,
+    level:             '',
+    days:              [],
+    medicalConditions: '',
   });
 
   // Ref para capturar form no momento exato do avanço para geração
@@ -473,13 +550,13 @@ export default function OnboardingScreen() {
 
     try {
       const response = await api.post('/workouts/generate', {
-        birthDate: snapshot.birthDate,
-        weight:    snapshot.weight,
-        height:    snapshot.height,
-        goal:      goalApi,
-        frequency: snapshot.days.length,
-        level:     levelApi,
-        anamnesis: snapshot.anamnesis,
+        birthDate:         snapshot.birthDate,
+        weight:            snapshot.weight,
+        height:            snapshot.height,
+        goal:              goalApi,
+        frequency:         snapshot.days.length,
+        level:             levelApi,
+        medicalConditions: snapshot.medicalConditions?.trim() || 'Nenhuma',
       });
 
       await completeOnboarding({
@@ -555,7 +632,7 @@ export default function OnboardingScreen() {
           <StepFreq days={form.days} onChange={v => setForm({ ...form, days: v })} isDark={isDark} />
         )}
         {step === 4 && (
-          <StepAnamnesis value={form.anamnesis} onChange={v => setForm({ ...form, anamnesis: v })} isDark={isDark} />
+          <StepAnamnesis value={form.medicalConditions} onChange={v => setForm({ ...form, medicalConditions: v })} isDark={isDark} />
         )}
         {step === 5 && (
           <StepGenerating goalLabel={goalLabel} daysCount={form.days.length} />
@@ -748,6 +825,21 @@ const styles = StyleSheet.create({
   },
 
   // StepAnamnesis
+  chipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+  },
+  chip: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  chipText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
   anamnesisInput: {
     borderRadius: 12,
     padding: 16,

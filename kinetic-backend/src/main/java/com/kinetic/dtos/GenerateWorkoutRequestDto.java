@@ -10,5 +10,6 @@ public record GenerateWorkoutRequestDto(
         Double height,
         String goal,
         Integer frequency,
-        String level
+        String level,
+        String medicalConditions
 ) {}

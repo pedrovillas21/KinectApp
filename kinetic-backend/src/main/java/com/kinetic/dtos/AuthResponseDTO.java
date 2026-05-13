@@ -13,6 +13,7 @@ public record AuthResponseDTO(
         Double weight,
         Double height,
         String goal,
-        Integer frequency
+        Integer frequency,
+        String medicalConditions
 ) {
 }

@@ -38,7 +38,7 @@ public class GeminiService {
         this.objectMapper = objectMapper;
     }
 
-    public List<GeneratedWorkoutPlanDto> generateWorkoutPlan(String level, int age, double weight, double height, String goal, int frequency) {
+    public List<GeneratedWorkoutPlanDto> generateWorkoutPlan(String level, int age, double weight, double height, String goal, int frequency, String medicalConditions) {
         // Validação defensiva dos parâmetros
         if (level == null || level.isBlank()) throw new IllegalArgumentException("Nível não pode ser vazio.");
         if (goal == null || goal.isBlank()) throw new IllegalArgumentException("Objetivo não pode ser vazio.");
@@ -47,7 +47,7 @@ public class GeminiService {
         if (height <= 0 || height > 300) throw new IllegalArgumentException("Altura inválida (cm): " + height);
         if (frequency < 1 || frequency > 7) throw new IllegalArgumentException("Frequência deve ser entre 1 e 7: " + frequency);
 
-        String prompt = buildPrompt(level, age, weight, height, goal, frequency);
+        String prompt = buildPrompt(level, age, weight, height, goal, frequency, medicalConditions);
 
         GeminiRequestDto requestDto = new GeminiRequestDto(
                 List.of(GeminiRequestDto.Content.of(prompt)),
@@ -79,7 +79,7 @@ public class GeminiService {
         }
     }
 
-    private String buildPrompt(String level, int age, double weight, double height, String goal, int frequency) {
+    private String buildPrompt(String level, int age, double weight, double height, String goal, int frequency, String medicalConditions) {
         String focus = switch (level.toUpperCase()) {
             case "INICIANTE" -> "Iniciante na musculação com pouca ou nenhuma experiência. Foco em construção muscular e resistência.";
             case "INTERMEDIARIO" -> "Pessoa já mais adptado a rotina buscando melhora física, já possui mais experiência nas execuções. Foco em hipertrofia e força.";
@@ -113,6 +113,26 @@ public class GeminiService {
             default -> "Divisão de treino em %d dias: distribua adequadamente os grupos musculares.".formatted(frequency);
         };
 
+        // Regra 1: injeção de condição médica com lógica condicional
+        String normalizedMedical = (medicalConditions == null) ? "" : medicalConditions.trim();
+        boolean noRestrictions = normalizedMedical.isEmpty()
+                || normalizedMedical.equalsIgnoreCase("nenhuma")
+                || normalizedMedical.equalsIgnoreCase("nada")
+                || normalizedMedical.equalsIgnoreCase("nenhuma restricao")
+                || normalizedMedical.equalsIgnoreCase("nenhuma restrição")
+                || normalizedMedical.equalsIgnoreCase("nenhuma restrição relatada");
+
+        String medicalContext = noRestrictions
+                ? "Condições Médicas: Nenhuma restrição relatada. O usuário é saudável. Pode seguir o protocolo padrão sem restrições articulares."
+                : "ATENÇÃO A CONDIÇÕES MÉDICAS/LESÕES: %s. Adapte o treino rigorosamente para não agravar este quadro. Evite ou substitua exercícios que sobrecarreguem as regiões afetadas.".formatted(normalizedMedical);
+
+        // Regra 3: segurança de impacto por IMC
+        double heightM = height / 100.0;
+        double bmi = weight / (heightM * heightM);
+        String bmiSafetyRule = (goal.equalsIgnoreCase("PERDA DE GORDURA") && bmi > 30)
+                ? "REGRA DE SEGURANÇA DE IMPACTO: O IMC calculado (%.1f) é superior a 30 e o objetivo é Perda de Gordura. Substitua OBRIGATORIAMENTE exercícios de alto impacto (saltos, pliometria, corrida intensa, burpees) por opções de baixo impacto (caminhada inclinada, bicicleta, elíptico, agachamento com peso moderado) para preservar as articulações.".formatted(bmi)
+                : "";
+
         return """
             Você é um personal trainer especialista de elite. Gere uma rotina completa de treinos dividida em %d dias para um aluno com o seguinte perfil:
             - Nível: %s
@@ -121,14 +141,18 @@ public class GeminiService {
             - Altura: %.1f cm
             - Objetivo: %s
             - Frequência semanal: %d dias
+            - %s
 
             DIRETRIZES FISIOLÓGICAS:
             - Diretriz de nível: %s
             - Contexto metabólico: %s
             - Contexto de volume: %s
             - Objetivo específico: %s
+            %s
 
-            REGRA DE CARGA E INTENSIDADE: O app é para academias. Forneça uma sugestão de carga inicial realista baseada no nível e peso do aluno (%.1f kg), mas COMBINE isso com uma métrica de percepção de esforço (RPE ou RIR) para garantir segurança. Exemplo: "Halteres de 12kg (RPE 8)", "20kg de cada lado (Deixando 2 reps na reserva)", "Polia 35kg (Fadiga próxima à falha)". Evite usar apenas "Corpo" a menos que seja estritamente necessário (ex: Barra Fixa).
+            REGRA DE ESTRUTURA OBRIGATÓRIA: O PRIMEIRO exercício da lista 'data' de CADA treino deve ser obrigatoriamente um exercício de MOBILIDADE ou AQUECIMENTO DINÂMICO focado na articulação principal do grupo muscular do dia (Ex: Rotação de manguito rotador para treino de Peito/Ombro; Mobilização de quadril para LEG DAY; Dislocação de ombro com bastão para PULL DAY). NUNCA inicie um treino diretamente com carga pesada. Este exercício de mobilidade conta como um dos 6-8 obrigatórios.
+
+            REGRA DE CARGA E INTENSIDADE: Ao sugerir peso no campo 'weight', priorize a indicação através de RPE (Percepção de Esforço, ex: RPE 7-8) ou RIR (Repetições na Reserva, ex: 2 RIR). Se sugerir um peso absoluto (kg), deixe claro que é apenas um 'Exemplo Ilustrativo', pois a força absoluta varia. Ex: "Halteres de 12kg (Exemplo — RPE 8)", "20kg de cada lado (2 RIR)". Evite usar apenas "Corpo" a menos que estritamente necessário (ex: Barra Fixa).
 
             REGRA DE MÚCULOS TRABALHADOS: Ao gerar o músculo correspondente ao exercício proposto, siga apenas com estes grupos definidos -> PEITO,OMBRO,TRICEPS,BICEPS,COSTAS,ANTEBRACO,QUADRICEPS,POSTERIOR,GLUTEOS,PANTURRILHA. Evite termos genéricos como "perna" ou "braço".
 
@@ -140,23 +164,25 @@ public class GeminiService {
 
             REGRA DE DESCANSO: Para hipertrofia, sugira descanso entre 90-180s. Para perda de gordura, sugira descanso entre 60-90s. Para performance/força, sugira descanso entre 2-5 minutos. Adapte de acordo com o objetivo principal.
 
+            NOTA ÉTICA OBRIGATÓRIA: No campo 'subtitle' de CADA treino, adicione ao final dos músculos trabalhados o aviso: ' · Sugestão IA — consulte um profissional.' Exemplo: 'PEITO / OMBRO / TRÍCEPS · Sugestão IA — consulte um profissional.'
+
             O resultado deve ser ESTRITAMENTE um ARRAY JSON contendo exatamente %d objetos, sem nenhum texto adicional, sem saudações e sem blocos de código Markdown (como ```json ou ```).
 
             O array deve obedecer exatamente à seguinte estrutura:
             [
             {
                 "title": "NOME DO TREINO (ex: PUSH DAY)",
-                "subtitle": "MÚSCULOS TRABALHADOS (ex: PEITO / OMBRO / TRÍCEPS)",
+                "subtitle": "MÚSCULOS TRABALHADOS · Sugestão IA — consulte um profissional.",
                 "tag": "DIA A",
                 "data": [
                 {
-                    "name": "Nome do Exercício, ex: Supino Reto com Barra",
-                    "muscles": "PEITO",
-                    "type": "COMPOSTO ou ISOLADO",
-                    "sets": 4,
-                    "reps": "8-12 ou 10 cada",
-                    "weight": "Sugestão com RPE, ex: 20kg de cada lado (RPE 8)",
-                    "restTime": "Tempo de descanso ex: 90s"
+                    "name": "Nome do Exercício, ex: Rotação de Manguito Rotador (Aquecimento)",
+                    "muscles": "OMBRO",
+                    "type": "MOBILIDADE",
+                    "sets": 2,
+                    "reps": "10 cada lado",
+                    "weight": "Sem carga (RPE 3)",
+                    "restTime": "30s"
                 }
                 ]
             }
@@ -164,7 +190,11 @@ public class GeminiService {
 
             Gere a lista 'data' com 6 a 8 exercícios em CADA UM dos %d treinos. Retorne APENAS o array JSON válido, pronto para ser parseado.
                 """
-                .formatted(frequency, level, age, weight, height, goal, frequency, focus, metabolismContext, volumeContext, goalContext, weight, frequency, frequency);
+                .formatted(
+                    frequency, level, age, weight, height, goal, frequency, medicalContext,
+                    focus, metabolismContext, volumeContext, goalContext, bmiSafetyRule,
+                    frequency, frequency
+                );
     }
 }
 
