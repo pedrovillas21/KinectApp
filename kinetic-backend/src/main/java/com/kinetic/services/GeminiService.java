@@ -13,6 +13,7 @@ import org.springframework.http.client.JdkClientHttpRequestFactory;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 @Service
@@ -29,7 +30,7 @@ public class GeminiService {
 
     public GeminiService(ObjectMapper objectMapper) {
         JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory();
-        requestFactory.setReadTimeout(Duration.ofSeconds(120));
+        requestFactory.setReadTimeout(Objects.requireNonNull(Duration.ofSeconds(120)));
         
         this.restClient = RestClient.builder()
                 .requestFactory(requestFactory)
@@ -54,7 +55,7 @@ public class GeminiService {
 
         GeminiResponseDto response = restClient.post()
                 .uri(apiUrl + "?key=" + apiKey)
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(Objects.requireNonNull(MediaType.APPLICATION_JSON))
                 .body(requestDto)
                 .retrieve()
                 .body(GeminiResponseDto.class);

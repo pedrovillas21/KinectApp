@@ -1,7 +1,6 @@
 package com.kinetic.services;
 
 import com.kinetic.dtos.MonthlyStatsResponseDTO;
-import com.kinetic.dtos.WorkoutSessionLogRequestDTO;
 import com.kinetic.models.User;
 import com.kinetic.models.WorkoutSession;
 import com.kinetic.dtos.LogSessionRequestDTO;
@@ -16,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Service
 public class WorkoutSessionService {
@@ -42,7 +42,7 @@ public class WorkoutSessionService {
         session.setSessionDate(request.date());
 
         for (SetLogDto setDto : request.exercisesLog()) {
-            Exercise exercise = exerciseRepository.findById(setDto.exerciseId())
+            Exercise exercise = exerciseRepository.findById(Objects.requireNonNull(setDto.exerciseId()))
                     .orElseThrow(() -> new EntityNotFoundException("Exercise not found with id: " + setDto.exerciseId()));
 
             ExerciseSetLog setLog = new ExerciseSetLog();
