@@ -72,7 +72,8 @@ function ProgressDots({ current, total }) {
   );
 }
 
-function TopBar({ step, total, onBack, onSkip }) {
+function TopBar({ step, total, onBack, onSkip, canSkip }) {
+  const skipHidden = step === total - 1;
   return (
     <div style={{
       padding: '54px 20px 16px',
@@ -91,11 +92,12 @@ function TopBar({ step, total, onBack, onSkip }) {
 
       <ProgressDots current={step} total={total}/>
 
-      <button onClick={onSkip} style={{
-        all: 'unset', cursor: 'pointer',
+      <button onClick={onSkip} disabled={!canSkip} style={{
+        all: 'unset', cursor: canSkip ? 'pointer' : 'default',
         fontFamily: K.font, fontSize: 12, fontWeight: 600,
         color: K.text2, padding: '8px 4px',
-        visibility: step === total - 1 ? 'hidden' : 'visible',
+        visibility: skipHidden ? 'hidden' : 'visible',
+        opacity: canSkip ? 1 : 0.3,
       }}>Pular</button>
     </div>
   );
@@ -165,6 +167,8 @@ function WheelPicker({ values, value, onChange, unit, height = 132 }) {
   const pad = Math.floor(visible / 2) * itemH;
 
   // Sync external value -> scroll position (instant, no animation)
+  // values is intentionally excluded: array identity changes on every parent render
+  // and would yank the wheel back while the user is still dragging.
   React.useEffect(() => {
     const i = values.indexOf(value);
     if (i < 0 || !ref.current) return;
@@ -172,11 +176,10 @@ function WheelPicker({ values, value, onChange, unit, height = 132 }) {
     if (Math.abs(ref.current.scrollTop - target) > 2) {
       adjustingRef.current = true;
       ref.current.scrollTop = target;
-      // release flag on next frame, after the scroll event from this assignment fires
       clearTimeout(adjustTimer.current);
       adjustTimer.current = setTimeout(() => { adjustingRef.current = false; }, 80);
     }
-  }, [value, values]);
+  }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onScroll = () => {
     if (adjustingRef.current) return; // ignore programmatic scrolls
@@ -393,10 +396,11 @@ function StepGoal({ value, onChange }) {
   );
 }
 
+const AGES    = Array.from({ length: 73  }, (_, i) => i + 14);  // 14–86
+const WEIGHTS = Array.from({ length: 161 }, (_, i) => i + 40);  // 40–200
+const HEIGHTS = Array.from({ length: 91  }, (_, i) => i + 140); // 140–230
+
 function StepMetrics({ data, onChange }) {
-  const ages = Array.from({ length: 73 }, (_, i) => i + 14);   // 14–86
-  const weights = Array.from({ length: 161 }, (_, i) => i + 40); // 40–200
-  const heights = Array.from({ length: 91 }, (_, i) => i + 140); // 140–230
   return (
     <>
       <StepHeader
@@ -405,11 +409,11 @@ function StepMetrics({ data, onChange }) {
         sub="Usamos esses dados para calibrar cargas iniciais e estimar gasto calórico."
       />
       <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <PickerRow label="Idade" unit="anos" values={ages}
+        <PickerRow label="Idade" unit="anos" values={AGES}
           value={data.age} onChange={v => onChange({ ...data, age: v })}/>
-        <PickerRow label="Peso" unit="kg" values={weights}
+        <PickerRow label="Peso" unit="kg" values={WEIGHTS}
           value={data.weight} onChange={v => onChange({ ...data, weight: v })}/>
-        <PickerRow label="Altura" unit="cm" values={heights}
+        <PickerRow label="Altura" unit="cm" values={HEIGHTS}
           value={data.height} onChange={v => onChange({ ...data, height: v })}/>
       </div>
     </>
@@ -670,20 +674,25 @@ function StepDone({ form, onRestart }) {
 // ───────────────────────────────────────────────────────────────
 // Root flow
 // ───────────────────────────────────────────────────────────────
+const DEFAULT_FORM = { goal: 'mass', age: 25, weight: 78, height: 175, level: 'int', days: [0, 2, 4, 5] };
+
 function OnboardingFlow() {
   const [step, setStep] = React.useState(() => {
     const s = localStorage.getItem('kinetic_step');
-    return s ? parseInt(s, 10) : 0;
+    const n = parseInt(s, 10);
+    return Number.isFinite(n) ? n : 0;
   });
   const [form, setForm] = React.useState(() => {
-    const f = localStorage.getItem('kinetic_form');
-    return f ? JSON.parse(f) : {
-      goal: 'mass', age: 25, weight: 78, height: 175, level: 'int', days: [0, 2, 4, 5],
-    };
+    try {
+      const f = localStorage.getItem('kinetic_form');
+      return f ? JSON.parse(f) : DEFAULT_FORM;
+    } catch {
+      return DEFAULT_FORM;
+    }
   });
   const [showDone, setShowDone] = React.useState(false);
 
-  React.useEffect(() => { localStorage.setItem('kinetic_step', step); }, [step]);
+  React.useEffect(() => { localStorage.setItem('kinetic_step', String(step)); }, [step]);
   React.useEffect(() => { localStorage.setItem('kinetic_form', JSON.stringify(form)); }, [form]);
 
   const total = 5;
@@ -704,7 +713,7 @@ function OnboardingFlow() {
       position: 'relative',
     }}>
       {!showDone && step < 4 && (
-        <TopBar step={step} total={total}
+        <TopBar step={step} total={total} canSkip={canAdvance}
           onBack={() => setStep(Math.max(0, step - 1))}
           onSkip={() => setStep(Math.min(4, step + 1))}/>
       )}

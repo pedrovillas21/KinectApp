@@ -110,7 +110,9 @@ public class WorkoutService {
         user.setGoal(request.goal());
         user.setFrequency(request.frequency());
         user.setLevel(request.level());
-        user.setMedicalConditions(request.medicalConditions());
+        if (request.medicalConditions() != null) {
+            user.setMedicalConditions(request.medicalConditions());
+        }
         userRepository.save(user);
 
         List<WorkoutPlan> savedPlans = workoutPlanRepository.saveAll(workoutPlansToSave);

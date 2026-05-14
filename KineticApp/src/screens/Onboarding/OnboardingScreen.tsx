@@ -193,6 +193,7 @@ function StepMetrics({ data, onChange, isDark }: StepMetricsProps) {
       ? `${data.birthDate.slice(8, 10)}/${data.birthDate.slice(5, 7)}/${data.birthDate.slice(0, 4)}`
       : ''
   );
+  const [birthError, setBirthError] = useState<string>('');
 
   const handleBirthChange = (text: string) => {
     const cleaned = text.replace(/\D/g, '');
@@ -205,8 +206,33 @@ function StepMetrics({ data, onChange, isDark }: StepMetricsProps) {
       const d = cleaned.slice(0, 2);
       const m = cleaned.slice(2, 4);
       const y = cleaned.slice(4, 8);
-      onChange({ ...data, birthDate: `${y}-${m}-${d}` });
+      const iso = `${y}-${m}-${d}`;
+      const date = new Date(iso);
+      const now = new Date();
+
+      // Rejeita datas que o JS silenciosamente ajusta (ex: 31/02 → 02/03)
+      const rollover =
+        date.getFullYear() !== parseInt(y, 10) ||
+        date.getMonth() + 1 !== parseInt(m, 10) ||
+        date.getDate() !== parseInt(d, 10);
+
+      if (isNaN(date.getTime()) || rollover || date >= now) {
+        setBirthError('Data inválida ou no futuro.');
+        onChange({ ...data, birthDate: '' });
+        return;
+      }
+
+      const ageYears = (now.getTime() - date.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+      if (ageYears < 13 || ageYears > 120) {
+        setBirthError('Idade deve estar entre 13 e 120 anos.');
+        onChange({ ...data, birthDate: '' });
+        return;
+      }
+
+      setBirthError('');
+      onChange({ ...data, birthDate: iso });
     } else {
+      setBirthError('');
       onChange({ ...data, birthDate: '' });
     }
   };
@@ -227,6 +253,9 @@ function StepMetrics({ data, onChange, isDark }: StepMetricsProps) {
         isPassword={false}
         icon={null}
       />
+      {!!birthError && (
+        <Text style={styles.fieldError}>{birthError}</Text>
+      )}
       <CustomInput
         label="PESO (KG)"
         placeholder="78"
@@ -607,12 +636,13 @@ export default function OnboardingScreen() {
 
           <ProgressDots current={step} total={TOTAL_STEPS} />
 
-          <TouchableOpacity
-            onPress={() => setStep(s => Math.min(5, s + 1))}
-            style={styles.skipBtn}
-          >
-            <Text style={styles.skipBtnText}>Pular</Text>
-          </TouchableOpacity>
+          {step === 4 ? (
+            <TouchableOpacity onPress={handleAdvance} style={styles.skipBtn}>
+              <Text style={styles.skipBtnText}>Pular</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.skipBtn} />
+          )}
         </View>
       )}
 
@@ -856,6 +886,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.textSecondaryDark,
     marginTop: 8,
+  },
+  fieldError: {
+    fontSize: 12,
+    color: '#FF5252',
+    marginTop: 4,
+    marginBottom: 4,
   },
 
   // StepGenerating
