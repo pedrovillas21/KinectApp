@@ -4,12 +4,507 @@
   "graph": {},
   "nodes": [
     {
+      "label": "onboarding.jsx",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L1",
+      "id": "html_onboardingscreen_onboarding_jsx",
+      "community": 5,
+      "norm_label": "onboarding.jsx"
+    },
+    {
+      "label": "K",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L14",
+      "id": "onboardingscreen_onboarding_k",
+      "community": 5,
+      "norm_label": "k"
+    },
+    {
+      "label": "GOALS",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L34",
+      "id": "onboardingscreen_onboarding_goals",
+      "community": 5,
+      "norm_label": "goals"
+    },
+    {
+      "label": "LEVELS",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L43",
+      "id": "onboardingscreen_onboarding_levels",
+      "community": 5,
+      "norm_label": "levels"
+    },
+    {
+      "label": "DAYS",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L49",
+      "id": "onboardingscreen_onboarding_days",
+      "community": 5,
+      "norm_label": "days"
+    },
+    {
+      "label": "STEPS",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L51",
+      "id": "onboardingscreen_onboarding_steps",
+      "community": 5,
+      "norm_label": "steps"
+    },
+    {
+      "label": "ProgressDots()",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L56",
+      "id": "onboardingscreen_onboarding_progressdots",
+      "community": 5,
+      "norm_label": "progressdots()"
+    },
+    {
+      "label": "TopBar()",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L75",
+      "id": "onboardingscreen_onboarding_topbar",
+      "community": 5,
+      "norm_label": "topbar()"
+    },
+    {
+      "label": "PrimaryCTA()",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L106",
+      "id": "onboardingscreen_onboarding_primarycta",
+      "community": 5,
+      "norm_label": "primarycta()"
+    },
+    {
+      "label": "StickyFooter()",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L123",
+      "id": "onboardingscreen_onboarding_stickyfooter",
+      "community": 5,
+      "norm_label": "stickyfooter()"
+    },
+    {
+      "label": "StepHeader()",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L133",
+      "id": "onboardingscreen_onboarding_stepheader",
+      "community": 5,
+      "norm_label": "stepheader()"
+    },
+    {
+      "label": "WheelPicker()",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L161",
+      "id": "onboardingscreen_onboarding_wheelpicker",
+      "community": 5,
+      "norm_label": "wheelpicker()"
+    },
+    {
+      "label": "PickerRow()",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L255",
+      "id": "onboardingscreen_onboarding_pickerrow",
+      "community": 5,
+      "norm_label": "pickerrow()"
+    },
+    {
+      "label": "GoalCard()",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L276",
+      "id": "onboardingscreen_onboarding_goalcard",
+      "community": 5,
+      "norm_label": "goalcard()"
+    },
+    {
+      "label": "LevelDots()",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L316",
+      "id": "onboardingscreen_onboarding_leveldots",
+      "community": 5,
+      "norm_label": "leveldots()"
+    },
+    {
+      "label": "LevelCard()",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L329",
+      "id": "onboardingscreen_onboarding_levelcard",
+      "community": 5,
+      "norm_label": "levelcard()"
+    },
+    {
+      "label": "DayChip()",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L363",
+      "id": "onboardingscreen_onboarding_daychip",
+      "community": 5,
+      "norm_label": "daychip()"
+    },
+    {
+      "label": "StepGoal()",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L382",
+      "id": "onboardingscreen_onboarding_stepgoal",
+      "community": 5,
+      "norm_label": "stepgoal()"
+    },
+    {
+      "label": "AGES",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L399",
+      "id": "onboardingscreen_onboarding_ages",
+      "community": 5,
+      "norm_label": "ages"
+    },
+    {
+      "label": "WEIGHTS",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L400",
+      "id": "onboardingscreen_onboarding_weights",
+      "community": 5,
+      "norm_label": "weights"
+    },
+    {
+      "label": "HEIGHTS",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L401",
+      "id": "onboardingscreen_onboarding_heights",
+      "community": 5,
+      "norm_label": "heights"
+    },
+    {
+      "label": "StepMetrics()",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L403",
+      "id": "onboardingscreen_onboarding_stepmetrics",
+      "community": 5,
+      "norm_label": "stepmetrics()"
+    },
+    {
+      "label": "StepLevel()",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L423",
+      "id": "onboardingscreen_onboarding_steplevel",
+      "community": 5,
+      "norm_label": "steplevel()"
+    },
+    {
+      "label": "StepFreq()",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L440",
+      "id": "onboardingscreen_onboarding_stepfreq",
+      "community": 5,
+      "norm_label": "stepfreq()"
+    },
+    {
+      "label": "STEPS_GEN",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L512",
+      "id": "onboardingscreen_onboarding_steps_gen",
+      "community": 5,
+      "norm_label": "steps_gen"
+    },
+    {
+      "label": "StepGenerating()",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L521",
+      "id": "onboardingscreen_onboarding_stepgenerating",
+      "community": 5,
+      "norm_label": "stepgenerating()"
+    },
+    {
+      "label": "StepDone()",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L623",
+      "id": "onboardingscreen_onboarding_stepdone",
+      "community": 5,
+      "norm_label": "stepdone()"
+    },
+    {
+      "label": "DEFAULT_FORM",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L677",
+      "id": "onboardingscreen_onboarding_default_form",
+      "community": 5,
+      "norm_label": "default_form"
+    },
+    {
+      "label": "OnboardingFlow()",
+      "file_type": "code",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L679",
+      "id": "onboardingscreen_onboarding_onboardingflow",
+      "community": 5,
+      "norm_label": "onboardingflow()"
+    },
+    {
+      "label": "ios-frame.jsx",
+      "file_type": "code",
+      "source_file": "html/StatsScreen/ios-frame.jsx",
+      "source_location": "L1",
+      "id": "html_statsscreen_ios_frame_jsx",
+      "community": 16,
+      "norm_label": "ios-frame.jsx"
+    },
+    {
+      "label": "IOSStatusBar()",
+      "file_type": "code",
+      "source_file": "html/StatsScreen/ios-frame.jsx",
+      "source_location": "L9",
+      "id": "statsscreen_ios_frame_iosstatusbar",
+      "community": 16,
+      "norm_label": "iosstatusbar()"
+    },
+    {
+      "label": "IOSGlassPill()",
+      "file_type": "code",
+      "source_file": "html/StatsScreen/ios-frame.jsx",
+      "source_location": "L48",
+      "id": "statsscreen_ios_frame_iosglasspill",
+      "community": 16,
+      "norm_label": "iosglasspill()"
+    },
+    {
+      "label": "IOSNavBar()",
+      "file_type": "code",
+      "source_file": "html/StatsScreen/ios-frame.jsx",
+      "source_location": "L84",
+      "id": "statsscreen_ios_frame_iosnavbar",
+      "community": 16,
+      "norm_label": "iosnavbar()"
+    },
+    {
+      "label": "IOSListRow()",
+      "file_type": "code",
+      "source_file": "html/StatsScreen/ios-frame.jsx",
+      "source_location": "L132",
+      "id": "statsscreen_ios_frame_ioslistrow",
+      "community": 16,
+      "norm_label": "ioslistrow()"
+    },
+    {
+      "label": "IOSList()",
+      "file_type": "code",
+      "source_file": "html/StatsScreen/ios-frame.jsx",
+      "source_location": "L167",
+      "id": "statsscreen_ios_frame_ioslist",
+      "community": 16,
+      "norm_label": "ioslist()"
+    },
+    {
+      "label": "IOSDevice()",
+      "file_type": "code",
+      "source_file": "html/StatsScreen/ios-frame.jsx",
+      "source_location": "L190",
+      "id": "statsscreen_ios_frame_iosdevice",
+      "community": 16,
+      "norm_label": "iosdevice()"
+    },
+    {
+      "label": "IOSKeyboard()",
+      "file_type": "code",
+      "source_file": "html/StatsScreen/ios-frame.jsx",
+      "source_location": "L235",
+      "id": "statsscreen_ios_frame_ioskeyboard",
+      "community": 16,
+      "norm_label": "ioskeyboard()"
+    },
+    {
+      "label": "stats.jsx",
+      "file_type": "code",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L1",
+      "id": "html_statsscreen_stats_jsx",
+      "community": 3,
+      "norm_label": "stats.jsx"
+    },
+    {
+      "label": "T",
+      "file_type": "code",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L7",
+      "id": "statsscreen_stats_t",
+      "community": 3,
+      "norm_label": "t"
+    },
+    {
+      "label": "PERIODS",
+      "file_type": "code",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L30",
+      "id": "statsscreen_stats_periods",
+      "community": 3,
+      "norm_label": "periods"
+    },
+    {
+      "label": "DATA",
+      "file_type": "code",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L37",
+      "id": "statsscreen_stats_data",
+      "community": 3,
+      "norm_label": "data"
+    },
+    {
+      "label": "Card()",
+      "file_type": "code",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L115",
+      "id": "statsscreen_stats_card",
+      "community": 3,
+      "norm_label": "card()"
+    },
+    {
+      "label": "CardHeader()",
+      "file_type": "code",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L126",
+      "id": "statsscreen_stats_cardheader",
+      "community": 3,
+      "norm_label": "cardheader()"
+    },
+    {
+      "label": "DeltaChip()",
+      "file_type": "code",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L138",
+      "id": "statsscreen_stats_deltachip",
+      "community": 3,
+      "norm_label": "deltachip()"
+    },
+    {
+      "label": "IconBtn()",
+      "file_type": "code",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L158",
+      "id": "statsscreen_stats_iconbtn",
+      "community": 3,
+      "norm_label": "iconbtn()"
+    },
+    {
+      "label": "Icons",
+      "file_type": "code",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L176",
+      "id": "statsscreen_stats_icons",
+      "community": 3,
+      "norm_label": "icons"
+    },
+    {
+      "label": "PeriodSelector()",
+      "file_type": "code",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L187",
+      "id": "statsscreen_stats_periodselector",
+      "community": 3,
+      "norm_label": "periodselector()"
+    },
+    {
+      "label": "KpiStrip()",
+      "file_type": "code",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L215",
+      "id": "statsscreen_stats_kpistrip",
+      "community": 3,
+      "norm_label": "kpistrip()"
+    },
+    {
+      "label": "ConsistencyCard()",
+      "file_type": "code",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L244",
+      "id": "statsscreen_stats_consistencycard",
+      "community": 3,
+      "norm_label": "consistencycard()"
+    },
+    {
+      "label": "WeightCard()",
+      "file_type": "code",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L300",
+      "id": "statsscreen_stats_weightcard",
+      "community": 3,
+      "norm_label": "weightcard()"
+    },
+    {
+      "label": "VolumeCard()",
+      "file_type": "code",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L420",
+      "id": "statsscreen_stats_volumecard",
+      "community": 3,
+      "norm_label": "volumecard()"
+    },
+    {
+      "label": "INSIGHTS",
+      "file_type": "code",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L576",
+      "id": "statsscreen_stats_insights",
+      "community": 3,
+      "norm_label": "insights"
+    },
+    {
+      "label": "InsightBlock()",
+      "file_type": "code",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L583",
+      "id": "statsscreen_stats_insightblock",
+      "community": 3,
+      "norm_label": "insightblock()"
+    },
+    {
+      "label": "TabBar()",
+      "file_type": "code",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L608",
+      "id": "statsscreen_stats_tabbar",
+      "community": 3,
+      "norm_label": "tabbar()"
+    },
+    {
+      "label": "StatsScreen()",
+      "file_type": "code",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L651",
+      "id": "statsscreen_stats_statsscreen",
+      "community": 3,
+      "norm_label": "statsscreen()"
+    },
+    {
       "label": "KineticApplication.java",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/KineticApplication.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_kineticapplication_java",
-      "community": 16,
+      "community": 23,
       "norm_label": "kineticapplication.java"
     },
     {
@@ -18,7 +513,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/KineticApplication.java",
       "source_location": "L7",
       "id": "kinetic_kineticapplication_kineticapplication",
-      "community": 16,
+      "community": 23,
       "norm_label": "kineticapplication"
     },
     {
@@ -27,7 +522,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/KineticApplication.java",
       "source_location": "L11",
       "id": "kinetic_kineticapplication_kineticapplication_main",
-      "community": 16,
+      "community": 23,
       "norm_label": ".main()"
     },
     {
@@ -36,7 +531,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/config/SecurityConfig.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_config_securityconfig_java",
-      "community": 13,
+      "community": 18,
       "norm_label": "securityconfig.java"
     },
     {
@@ -45,7 +540,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/config/SecurityConfig.java",
       "source_location": "L28",
       "id": "config_securityconfig_securityconfig",
-      "community": 13,
+      "community": 18,
       "norm_label": "securityconfig"
     },
     {
@@ -54,7 +549,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/config/SecurityConfig.java",
       "source_location": "L39",
       "id": "config_securityconfig_securityconfig_securityfilterchain",
-      "community": 13,
+      "community": 18,
       "norm_label": ".securityfilterchain()"
     },
     {
@@ -63,7 +558,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/config/SecurityConfig.java",
       "source_location": "L57",
       "id": "config_securityconfig_securityconfig_corsconfigurationsource",
-      "community": 13,
+      "community": 18,
       "norm_label": ".corsconfigurationsource()"
     },
     {
@@ -72,7 +567,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/config/SecurityConfig.java",
       "source_location": "L72",
       "id": "config_securityconfig_securityconfig_authenticationprovider",
-      "community": 13,
+      "community": 18,
       "norm_label": ".authenticationprovider()"
     },
     {
@@ -81,7 +576,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/config/SecurityConfig.java",
       "source_location": "L80",
       "id": "config_securityconfig_securityconfig_authenticationmanager",
-      "community": 13,
+      "community": 18,
       "norm_label": ".authenticationmanager()"
     },
     {
@@ -90,7 +585,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/config/SecurityConfig.java",
       "source_location": "L85",
       "id": "config_securityconfig_securityconfig_passwordencoder",
-      "community": 13,
+      "community": 18,
       "norm_label": ".passwordencoder()"
     },
     {
@@ -99,7 +594,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/AuthController.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_controllers_authcontroller_java",
-      "community": 3,
+      "community": 2,
       "norm_label": "authcontroller.java"
     },
     {
@@ -108,7 +603,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/AuthController.java",
       "source_location": "L15",
       "id": "controllers_authcontroller_authcontroller",
-      "community": 3,
+      "community": 2,
       "norm_label": "authcontroller"
     },
     {
@@ -117,7 +612,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/AuthController.java",
       "source_location": "L22",
       "id": "controllers_authcontroller_authcontroller_register",
-      "community": 3,
+      "community": 2,
       "norm_label": ".register()"
     },
     {
@@ -126,7 +621,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/AuthController.java",
       "source_location": "L32",
       "id": "controllers_authcontroller_authcontroller_login",
-      "community": 3,
+      "community": 2,
       "norm_label": ".login()"
     },
     {
@@ -135,7 +630,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/AuthController.java",
       "source_location": "L38",
       "id": "controllers_authcontroller_authcontroller_verifyemail",
-      "community": 3,
+      "community": 2,
       "norm_label": ".verifyemail()"
     },
     {
@@ -144,7 +639,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/AuthController.java",
       "source_location": "L48",
       "id": "controllers_authcontroller_authcontroller_resetpassword",
-      "community": 3,
+      "community": 2,
       "norm_label": ".resetpassword()"
     },
     {
@@ -153,7 +648,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/StatsController.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_controllers_statscontroller_java",
-      "community": 15,
+      "community": 22,
       "norm_label": "statscontroller.java"
     },
     {
@@ -162,7 +657,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/StatsController.java",
       "source_location": "L9",
       "id": "controllers_statscontroller_statscontroller",
-      "community": 15,
+      "community": 22,
       "norm_label": "statscontroller"
     },
     {
@@ -171,7 +666,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/StatsController.java",
       "source_location": "L15",
       "id": "controllers_statscontroller_statscontroller_statscontroller",
-      "community": 15,
+      "community": 22,
       "norm_label": ".statscontroller()"
     },
     {
@@ -180,7 +675,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/StatsController.java",
       "source_location": "L24",
       "id": "controllers_statscontroller_statscontroller_getsummary",
-      "community": 15,
+      "community": 22,
       "norm_label": ".getsummary()"
     },
     {
@@ -225,7 +720,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/WorkoutController.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_controllers_workoutcontroller_java",
-      "community": 4,
+      "community": 3,
       "norm_label": "workoutcontroller.java"
     },
     {
@@ -234,7 +729,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/WorkoutController.java",
       "source_location": "L19",
       "id": "controllers_workoutcontroller_workoutcontroller",
-      "community": 4,
+      "community": 3,
       "norm_label": "workoutcontroller"
     },
     {
@@ -243,7 +738,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/WorkoutController.java",
       "source_location": "L25",
       "id": "controllers_workoutcontroller_workoutcontroller_workoutcontroller",
-      "community": 4,
+      "community": 3,
       "norm_label": ".workoutcontroller()"
     },
     {
@@ -252,7 +747,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/WorkoutController.java",
       "source_location": "L29",
       "id": "controllers_workoutcontroller_workoutcontroller_generateworkout",
-      "community": 4,
+      "community": 3,
       "norm_label": ".generateworkout()"
     },
     {
@@ -261,7 +756,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/WorkoutController.java",
       "source_location": "L49",
       "id": "controllers_workoutcontroller_workoutcontroller_getmyplans",
-      "community": 4,
+      "community": 3,
       "norm_label": ".getmyplans()"
     },
     {
@@ -270,7 +765,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/WorkoutSessionController.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_controllers_workoutsessioncontroller_java",
-      "community": 14,
+      "community": 21,
       "norm_label": "workoutsessioncontroller.java"
     },
     {
@@ -279,7 +774,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/WorkoutSessionController.java",
       "source_location": "L17",
       "id": "controllers_workoutsessioncontroller_workoutsessioncontroller",
-      "community": 14,
+      "community": 21,
       "norm_label": "workoutsessioncontroller"
     },
     {
@@ -288,7 +783,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/WorkoutSessionController.java",
       "source_location": "L23",
       "id": "controllers_workoutsessioncontroller_workoutsessioncontroller_workoutsessioncontroller",
-      "community": 14,
+      "community": 21,
       "norm_label": ".workoutsessioncontroller()"
     },
     {
@@ -297,7 +792,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/WorkoutSessionController.java",
       "source_location": "L27",
       "id": "controllers_workoutsessioncontroller_workoutsessioncontroller_logsession",
-      "community": 14,
+      "community": 21,
       "norm_label": ".logsession()"
     },
     {
@@ -306,7 +801,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/WorkoutSessionController.java",
       "source_location": "L39",
       "id": "controllers_workoutsessioncontroller_workoutsessioncontroller_getmonthlystats",
-      "community": 14,
+      "community": 21,
       "norm_label": ".getmonthlystats()"
     },
     {
@@ -315,7 +810,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/AuthResponseDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_authresponsedto_java",
-      "community": 34,
+      "community": 41,
       "norm_label": "authresponsedto.java"
     },
     {
@@ -324,7 +819,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/CommunityComparisonDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_communitycomparisondto_java",
-      "community": 35,
+      "community": 42,
       "norm_label": "communitycomparisondto.java"
     },
     {
@@ -333,7 +828,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/ExerciseResponseDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_exerciseresponsedto_java",
-      "community": 19,
+      "community": 28,
       "norm_label": "exerciseresponsedto.java"
     },
     {
@@ -342,7 +837,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/ExerciseResponseDTO.java",
       "source_location": "L17",
       "id": "dtos_exerciseresponsedto_fromentity",
-      "community": 19,
+      "community": 28,
       "norm_label": "fromentity()"
     },
     {
@@ -351,7 +846,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/GeminiRequestDto.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_geminirequestdto_java",
-      "community": 4,
+      "community": 11,
       "norm_label": "geminirequestdto.java"
     },
     {
@@ -360,7 +855,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/GeminiRequestDto.java",
       "source_location": "L8",
       "id": "dtos_geminirequestdto_of",
-      "community": 4,
+      "community": 11,
       "norm_label": "of()"
     },
     {
@@ -369,7 +864,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/GeminiRequestDto.java",
       "source_location": "L16",
       "id": "dtos_geminirequestdto_json",
-      "community": 4,
+      "community": 11,
       "norm_label": "json()"
     },
     {
@@ -378,7 +873,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/GeminiResponseDto.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_geminiresponsedto_java",
-      "community": 4,
+      "community": 11,
       "norm_label": "geminiresponsedto.java"
     },
     {
@@ -387,7 +882,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/GeminiResponseDto.java",
       "source_location": "L10",
       "id": "dtos_geminiresponsedto_gettext",
-      "community": 4,
+      "community": 11,
       "norm_label": "gettext()"
     },
     {
@@ -396,7 +891,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/GeneratedExerciseDto.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_generatedexercisedto_java",
-      "community": 36,
+      "community": 43,
       "norm_label": "generatedexercisedto.java"
     },
     {
@@ -405,7 +900,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/GeneratedWorkoutPlanDto.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_generatedworkoutplandto_java",
-      "community": 37,
+      "community": 44,
       "norm_label": "generatedworkoutplandto.java"
     },
     {
@@ -414,7 +909,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/GenerateWorkoutRequestDto.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_generateworkoutrequestdto_java",
-      "community": 38,
+      "community": 45,
       "norm_label": "generateworkoutrequestdto.java"
     },
     {
@@ -423,7 +918,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/LoginDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_logindto_java",
-      "community": 20,
+      "community": 29,
       "norm_label": "logindto.java"
     },
     {
@@ -432,7 +927,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/LoginDTO.java",
       "source_location": "L7",
       "id": "dtos_logindto_logindto",
-      "community": 20,
+      "community": 29,
       "norm_label": "logindto"
     },
     {
@@ -441,7 +936,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/LogSessionRequestDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_logsessionrequestdto_java",
-      "community": 39,
+      "community": 46,
       "norm_label": "logsessionrequestdto.java"
     },
     {
@@ -450,7 +945,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/MonthlyStatsResponseDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_monthlystatsresponsedto_java",
-      "community": 40,
+      "community": 47,
       "norm_label": "monthlystatsresponsedto.java"
     },
     {
@@ -459,7 +954,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/RegisterDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_registerdto_java",
-      "community": 21,
+      "community": 30,
       "norm_label": "registerdto.java"
     },
     {
@@ -468,7 +963,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/RegisterDTO.java",
       "source_location": "L8",
       "id": "dtos_registerdto_registerdto",
-      "community": 21,
+      "community": 30,
       "norm_label": "registerdto"
     },
     {
@@ -477,7 +972,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/ResetPasswordDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_resetpassworddto_java",
-      "community": 22,
+      "community": 31,
       "norm_label": "resetpassworddto.java"
     },
     {
@@ -486,7 +981,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/ResetPasswordDTO.java",
       "source_location": "L8",
       "id": "dtos_resetpassworddto_resetpassworddto",
-      "community": 22,
+      "community": 31,
       "norm_label": "resetpassworddto"
     },
     {
@@ -495,7 +990,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/SetLogDto.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_setlogdto_java",
-      "community": 41,
+      "community": 48,
       "norm_label": "setlogdto.java"
     },
     {
@@ -504,7 +999,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/StatsInsightDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_statsinsightdto_java",
-      "community": 42,
+      "community": 49,
       "norm_label": "statsinsightdto.java"
     },
     {
@@ -513,7 +1008,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/StatsSummaryResponseDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_statssummaryresponsedto_java",
-      "community": 43,
+      "community": 50,
       "norm_label": "statssummaryresponsedto.java"
     },
     {
@@ -522,7 +1017,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/UpdateWeightRequestDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_updateweightrequestdto_java",
-      "community": 44,
+      "community": 51,
       "norm_label": "updateweightrequestdto.java"
     },
     {
@@ -531,7 +1026,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/VerifyEmailDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_verifyemaildto_java",
-      "community": 23,
+      "community": 32,
       "norm_label": "verifyemaildto.java"
     },
     {
@@ -540,7 +1035,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/VerifyEmailDTO.java",
       "source_location": "L7",
       "id": "dtos_verifyemaildto_verifyemaildto",
-      "community": 23,
+      "community": 32,
       "norm_label": "verifyemaildto"
     },
     {
@@ -549,7 +1044,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/VolumeByMuscleGroupDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_volumebymusclegroupdto_java",
-      "community": 45,
+      "community": 52,
       "norm_label": "volumebymusclegroupdto.java"
     },
     {
@@ -558,7 +1053,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/VolumeSummaryDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_volumesummarydto_java",
-      "community": 46,
+      "community": 53,
       "norm_label": "volumesummarydto.java"
     },
     {
@@ -567,7 +1062,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/WeightPointDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_weightpointdto_java",
-      "community": 47,
+      "community": 54,
       "norm_label": "weightpointdto.java"
     },
     {
@@ -576,7 +1071,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/WeightSummaryDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_weightsummarydto_java",
-      "community": 48,
+      "community": 55,
       "norm_label": "weightsummarydto.java"
     },
     {
@@ -585,7 +1080,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/WorkoutPlanResponseDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_workoutplanresponsedto_java",
-      "community": 24,
+      "community": 33,
       "norm_label": "workoutplanresponsedto.java"
     },
     {
@@ -594,7 +1089,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/WorkoutPlanResponseDTO.java",
       "source_location": "L18",
       "id": "dtos_workoutplanresponsedto_fromentity",
-      "community": 24,
+      "community": 33,
       "norm_label": "fromentity()"
     },
     {
@@ -603,7 +1098,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/WorkoutSessionLogRequestDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_workoutsessionlogrequestdto_java",
-      "community": 49,
+      "community": 56,
       "norm_label": "workoutsessionlogrequestdto.java"
     },
     {
@@ -612,7 +1107,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/enums/StatsPeriodParam.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_enums_statsperiodparam_java",
-      "community": 2,
+      "community": 6,
       "norm_label": "statsperiodparam.java"
     },
     {
@@ -621,7 +1116,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/enums/StatsPeriodParam.java",
       "source_location": "L10",
       "id": "enums_statsperiodparam_startdate",
-      "community": 2,
+      "community": 6,
       "norm_label": "startdate()"
     },
     {
@@ -630,7 +1125,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/enums/StatsPeriodParam.java",
       "source_location": "L11",
       "id": "enums_statsperiodparam_targetweeks",
-      "community": 2,
+      "community": 6,
       "norm_label": "targetweeks()"
     },
     {
@@ -639,7 +1134,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/enums/StatsPeriodParam.java",
       "source_location": "L12",
       "id": "enums_statsperiodparam_insighttag",
-      "community": 2,
+      "community": 6,
       "norm_label": "insighttag()"
     },
     {
@@ -648,7 +1143,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/enums/StatsPeriodParam.java",
       "source_location": "L13",
       "id": "enums_statsperiodparam_id",
-      "community": 2,
+      "community": 6,
       "norm_label": "id()"
     },
     {
@@ -657,7 +1152,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/enums/StatsPeriodParam.java",
       "source_location": "L39",
       "id": "enums_statsperiodparam_enddate",
-      "community": 2,
+      "community": 6,
       "norm_label": "enddate()"
     },
     {
@@ -666,7 +1161,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/enums/StatsPeriodParam.java",
       "source_location": "L44",
       "id": "enums_statsperiodparam_previousstartdate",
-      "community": 2,
+      "community": 6,
       "norm_label": "previousstartdate()"
     },
     {
@@ -675,7 +1170,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/enums/StatsPeriodParam.java",
       "source_location": "L51",
       "id": "enums_statsperiodparam_previousenddate",
-      "community": 2,
+      "community": 6,
       "norm_label": "previousenddate()"
     },
     {
@@ -684,7 +1179,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/enums/StatsPeriodParam.java",
       "source_location": "L56",
       "id": "enums_statsperiodparam_targetsessions",
-      "community": 2,
+      "community": 6,
       "norm_label": "targetsessions()"
     },
     {
@@ -693,7 +1188,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/enums/StatsPeriodParam.java",
       "source_location": "L60",
       "id": "enums_statsperiodparam_fromstring",
-      "community": 2,
+      "community": 6,
       "norm_label": "fromstring()"
     },
     {
@@ -702,7 +1197,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/Exercise.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_models_exercise_java",
-      "community": 25,
+      "community": 34,
       "norm_label": "exercise.java"
     },
     {
@@ -711,7 +1206,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/Exercise.java",
       "source_location": "L14",
       "id": "models_exercise_exercise",
-      "community": 25,
+      "community": 34,
       "norm_label": "exercise"
     },
     {
@@ -720,7 +1215,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/ExerciseSetLog.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_models_exercisesetlog_java",
-      "community": 26,
+      "community": 35,
       "norm_label": "exercisesetlog.java"
     },
     {
@@ -729,7 +1224,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/ExerciseSetLog.java",
       "source_location": "L13",
       "id": "models_exercisesetlog_exercisesetlog",
-      "community": 26,
+      "community": 35,
       "norm_label": "exercisesetlog"
     },
     {
@@ -738,7 +1233,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/User.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_models_user_java",
-      "community": 27,
+      "community": 36,
       "norm_label": "user.java"
     },
     {
@@ -747,7 +1242,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/User.java",
       "source_location": "L12",
       "id": "models_user_user",
-      "community": 27,
+      "community": 36,
       "norm_label": "user"
     },
     {
@@ -756,7 +1251,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/WeightHistory.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_models_weighthistory_java",
-      "community": 28,
+      "community": 37,
       "norm_label": "weighthistory.java"
     },
     {
@@ -765,7 +1260,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/WeightHistory.java",
       "source_location": "L20",
       "id": "models_weighthistory_weighthistory",
-      "community": 28,
+      "community": 37,
       "norm_label": "weighthistory"
     },
     {
@@ -774,7 +1269,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/WorkoutPlan.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_models_workoutplan_java",
-      "community": 29,
+      "community": 38,
       "norm_label": "workoutplan.java"
     },
     {
@@ -783,7 +1278,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/WorkoutPlan.java",
       "source_location": "L14",
       "id": "models_workoutplan_workoutplan",
-      "community": 29,
+      "community": 38,
       "norm_label": "workoutplan"
     },
     {
@@ -792,7 +1287,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/WorkoutSession.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_models_workoutsession_java",
-      "community": 30,
+      "community": 39,
       "norm_label": "workoutsession.java"
     },
     {
@@ -801,7 +1296,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/WorkoutSession.java",
       "source_location": "L25",
       "id": "models_workoutsession_workoutsession",
-      "community": 30,
+      "community": 39,
       "norm_label": "workoutsession"
     },
     {
@@ -810,7 +1305,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/ExerciseRepository.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_repositories_exerciserepository_java",
-      "community": 2,
+      "community": 6,
       "norm_label": "exerciserepository.java"
     },
     {
@@ -819,7 +1314,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/ExerciseRepository.java",
       "source_location": "L12",
       "id": "repositories_exerciserepository_exerciserepository",
-      "community": 2,
+      "community": 6,
       "norm_label": "exerciserepository"
     },
     {
@@ -828,7 +1323,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/ExerciseRepository.java",
       "source_location": "L19",
       "id": "repositories_exerciserepository_exerciserepository_finddistinctmusclesbyuserid",
-      "community": 2,
+      "community": 6,
       "norm_label": ".finddistinctmusclesbyuserid()"
     },
     {
@@ -837,7 +1332,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/ExerciseSetLogRepository.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_repositories_exercisesetlogrepository_java",
-      "community": 2,
+      "community": 6,
       "norm_label": "exercisesetlogrepository.java"
     },
     {
@@ -846,7 +1341,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/ExerciseSetLogRepository.java",
       "source_location": "L13",
       "id": "repositories_exercisesetlogrepository_exercisesetlogrepository",
-      "community": 2,
+      "community": 6,
       "norm_label": "exercisesetlogrepository"
     },
     {
@@ -855,7 +1350,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/ExerciseSetLogRepository.java",
       "source_location": "L21",
       "id": "repositories_exercisesetlogrepository_exercisesetlogrepository_findvolumebymusclegroupbetween",
-      "community": 2,
+      "community": 6,
       "norm_label": ".findvolumebymusclegroupbetween()"
     },
     {
@@ -864,7 +1359,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/UserRepository.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_repositories_userrepository_java",
-      "community": 3,
+      "community": 2,
       "norm_label": "userrepository.java"
     },
     {
@@ -873,7 +1368,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/UserRepository.java",
       "source_location": "L12",
       "id": "repositories_userrepository_userrepository",
-      "community": 3,
+      "community": 2,
       "norm_label": "userrepository"
     },
     {
@@ -882,7 +1377,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/UserRepository.java",
       "source_location": "L15",
       "id": "repositories_userrepository_userrepository_findbyemail",
-      "community": 3,
+      "community": 2,
       "norm_label": ".findbyemail()"
     },
     {
@@ -891,7 +1386,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/UserRepository.java",
       "source_location": "L17",
       "id": "repositories_userrepository_userrepository_existsbyemail",
-      "community": 3,
+      "community": 2,
       "norm_label": ".existsbyemail()"
     },
     {
@@ -900,7 +1395,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/UserRepository.java",
       "source_location": "L20",
       "id": "repositories_userrepository_userrepository_findalluseridandfrequency",
-      "community": 3,
+      "community": 2,
       "norm_label": ".findalluseridandfrequency()"
     },
     {
@@ -954,7 +1449,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WeightHistoryRepository.java",
       "source_location": "L22",
       "id": "repositories_weighthistoryrepository_weighthistoryrepository_findbyuserandloggedatbetweenorderbyloggedatasc",
-      "community": 2,
+      "community": 6,
       "norm_label": ".findbyuserandloggedatbetweenorderbyloggedatasc()"
     },
     {
@@ -963,7 +1458,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutPlanRepository.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_repositories_workoutplanrepository_java",
-      "community": 4,
+      "community": 3,
       "norm_label": "workoutplanrepository.java"
     },
     {
@@ -972,7 +1467,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutPlanRepository.java",
       "source_location": "L11",
       "id": "repositories_workoutplanrepository_workoutplanrepository",
-      "community": 4,
+      "community": 3,
       "norm_label": "workoutplanrepository"
     },
     {
@@ -981,7 +1476,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutPlanRepository.java",
       "source_location": "L13",
       "id": "repositories_workoutplanrepository_workoutplanrepository_findbyuserid",
-      "community": 4,
+      "community": 3,
       "norm_label": ".findbyuserid()"
     },
     {
@@ -990,7 +1485,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutSessionRepository.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_repositories_workoutsessionrepository_java",
-      "community": 3,
+      "community": 9,
       "norm_label": "workoutsessionrepository.java"
     },
     {
@@ -999,7 +1494,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutSessionRepository.java",
       "source_location": "L13",
       "id": "repositories_workoutsessionrepository_workoutsessionrepository",
-      "community": 3,
+      "community": 9,
       "norm_label": "workoutsessionrepository"
     },
     {
@@ -1008,7 +1503,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutSessionRepository.java",
       "source_location": "L16",
       "id": "repositories_workoutsessionrepository_workoutsessionrepository_countbyuseridandsessiondategreaterthanequalandsessiondatelessthan",
-      "community": 3,
+      "community": 9,
       "norm_label": ".countbyuseridandsessiondategreaterthanequalandsessiondatelessthan()"
     },
     {
@@ -1017,7 +1512,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutSessionRepository.java",
       "source_location": "L22",
       "id": "repositories_workoutsessionrepository_workoutsessionrepository_findbyuseridandsessiondatebetween",
-      "community": 3,
+      "community": 9,
       "norm_label": ".findbyuseridandsessiondatebetween()"
     },
     {
@@ -1026,7 +1521,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutSessionRepository.java",
       "source_location": "L29",
       "id": "repositories_workoutsessionrepository_workoutsessionrepository_countsessionsperuserbetween",
-      "community": 3,
+      "community": 9,
       "norm_label": ".countsessionsperuserbetween()"
     },
     {
@@ -1035,7 +1530,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/security/CustomUserDetailsService.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_security_customuserdetailsservice_java",
-      "community": 3,
+      "community": 2,
       "norm_label": "customuserdetailsservice.java"
     },
     {
@@ -1044,7 +1539,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/security/CustomUserDetailsService.java",
       "source_location": "L13",
       "id": "security_customuserdetailsservice_customuserdetailsservice",
-      "community": 3,
+      "community": 2,
       "norm_label": "customuserdetailsservice"
     },
     {
@@ -1053,7 +1548,7 @@
       "source_file": "",
       "source_location": "",
       "id": "userdetailsservice",
-      "community": 3,
+      "community": 2,
       "norm_label": "userdetailsservice"
     },
     {
@@ -1062,7 +1557,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/security/CustomUserDetailsService.java",
       "source_location": "L19",
       "id": "security_customuserdetailsservice_customuserdetailsservice_loaduserbyusername",
-      "community": 3,
+      "community": 2,
       "norm_label": ".loaduserbyusername()"
     },
     {
@@ -1071,7 +1566,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/security/JwtAuthenticationFilter.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_security_jwtauthenticationfilter_java",
-      "community": 8,
+      "community": 10,
       "norm_label": "jwtauthenticationfilter.java"
     },
     {
@@ -1080,7 +1575,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/security/JwtAuthenticationFilter.java",
       "source_location": "L18",
       "id": "security_jwtauthenticationfilter_jwtauthenticationfilter",
-      "community": 8,
+      "community": 10,
       "norm_label": "jwtauthenticationfilter"
     },
     {
@@ -1089,7 +1584,7 @@
       "source_file": "",
       "source_location": "",
       "id": "onceperrequestfilter",
-      "community": 8,
+      "community": 10,
       "norm_label": "onceperrequestfilter"
     },
     {
@@ -1098,7 +1593,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/security/JwtAuthenticationFilter.java",
       "source_location": "L25",
       "id": "security_jwtauthenticationfilter_jwtauthenticationfilter_dofilterinternal",
-      "community": 8,
+      "community": 10,
       "norm_label": ".dofilterinternal()"
     },
     {
@@ -1107,7 +1602,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/security/JwtUtil.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_security_jwtutil_java",
-      "community": 8,
+      "community": 10,
       "norm_label": "jwtutil.java"
     },
     {
@@ -1116,7 +1611,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/security/JwtUtil.java",
       "source_location": "L16",
       "id": "security_jwtutil_jwtutil",
-      "community": 8,
+      "community": 10,
       "norm_label": "jwtutil"
     },
     {
@@ -1125,7 +1620,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/security/JwtUtil.java",
       "source_location": "L25",
       "id": "security_jwtutil_jwtutil_extractusername",
-      "community": 8,
+      "community": 10,
       "norm_label": ".extractusername()"
     },
     {
@@ -1134,7 +1629,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/security/JwtUtil.java",
       "source_location": "L29",
       "id": "security_jwtutil_jwtutil_extractexpiration",
-      "community": 8,
+      "community": 10,
       "norm_label": ".extractexpiration()"
     },
     {
@@ -1143,7 +1638,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/security/JwtUtil.java",
       "source_location": "L33",
       "id": "security_jwtutil_jwtutil_extractclaim",
-      "community": 8,
+      "community": 10,
       "norm_label": ".extractclaim()"
     },
     {
@@ -1152,7 +1647,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/security/JwtUtil.java",
       "source_location": "L38",
       "id": "security_jwtutil_jwtutil_extractallclaims",
-      "community": 8,
+      "community": 10,
       "norm_label": ".extractallclaims()"
     },
     {
@@ -1161,7 +1656,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/security/JwtUtil.java",
       "source_location": "L46",
       "id": "security_jwtutil_jwtutil_istokenexpired",
-      "community": 8,
+      "community": 10,
       "norm_label": ".istokenexpired()"
     },
     {
@@ -1170,7 +1665,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/security/JwtUtil.java",
       "source_location": "L50",
       "id": "security_jwtutil_jwtutil_generatetoken",
-      "community": 8,
+      "community": 10,
       "norm_label": ".generatetoken()"
     },
     {
@@ -1179,7 +1674,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/security/JwtUtil.java",
       "source_location": "L55",
       "id": "security_jwtutil_jwtutil_createtoken",
-      "community": 8,
+      "community": 10,
       "norm_label": ".createtoken()"
     },
     {
@@ -1188,7 +1683,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/security/JwtUtil.java",
       "source_location": "L65",
       "id": "security_jwtutil_jwtutil_validatetoken",
-      "community": 8,
+      "community": 10,
       "norm_label": ".validatetoken()"
     },
     {
@@ -1197,7 +1692,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/security/JwtUtil.java",
       "source_location": "L70",
       "id": "security_jwtutil_jwtutil_getsigningkey",
-      "community": 8,
+      "community": 10,
       "norm_label": ".getsigningkey()"
     },
     {
@@ -1206,7 +1701,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/AuthService.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_services_authservice_java",
-      "community": 3,
+      "community": 2,
       "norm_label": "authservice.java"
     },
     {
@@ -1215,7 +1710,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/AuthService.java",
       "source_location": "L16",
       "id": "services_authservice_authservice",
-      "community": 3,
+      "community": 2,
       "norm_label": "authservice"
     },
     {
@@ -1224,7 +1719,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/AuthService.java",
       "source_location": "L25",
       "id": "services_authservice_authservice_register",
-      "community": 3,
+      "community": 2,
       "norm_label": ".register()"
     },
     {
@@ -1233,25 +1728,25 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/AuthService.java",
       "source_location": "L38",
       "id": "services_authservice_authservice_login",
-      "community": 3,
+      "community": 2,
       "norm_label": ".login()"
     },
     {
       "label": ".checkEmailExists()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/AuthService.java",
-      "source_location": "L61",
+      "source_location": "L62",
       "id": "services_authservice_authservice_checkemailexists",
-      "community": 3,
+      "community": 2,
       "norm_label": ".checkemailexists()"
     },
     {
       "label": ".resetPassword()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/AuthService.java",
-      "source_location": "L65",
+      "source_location": "L66",
       "id": "services_authservice_authservice_resetpassword",
-      "community": 3,
+      "community": 2,
       "norm_label": ".resetpassword()"
     },
     {
@@ -1260,7 +1755,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/CommunityStatsService.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_services_communitystatsservice_java",
-      "community": 3,
+      "community": 9,
       "norm_label": "communitystatsservice.java"
     },
     {
@@ -1269,7 +1764,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/CommunityStatsService.java",
       "source_location": "L24",
       "id": "services_communitystatsservice_communitystatsservice",
-      "community": 3,
+      "community": 9,
       "norm_label": "communitystatsservice"
     },
     {
@@ -1278,7 +1773,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/CommunityStatsService.java",
       "source_location": "L35",
       "id": "services_communitystatsservice_communitystatsservice_communitystatsservice",
-      "community": 3,
+      "community": 9,
       "norm_label": ".communitystatsservice()"
     },
     {
@@ -1287,7 +1782,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/CommunityStatsService.java",
       "source_location": "L41",
       "id": "services_communitystatsservice_communitystatsservice_getaverageefficiency",
-      "community": 3,
+      "community": 9,
       "norm_label": ".getaverageefficiency()"
     },
     {
@@ -1296,7 +1791,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/CommunityStatsService.java",
       "source_location": "L49",
       "id": "services_communitystatsservice_communitystatsservice_warmcacheonstartup",
-      "community": 3,
+      "community": 9,
       "norm_label": ".warmcacheonstartup()"
     },
     {
@@ -1305,7 +1800,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/CommunityStatsService.java",
       "source_location": "L59",
       "id": "services_communitystatsservice_communitystatsservice_refreshcache",
-      "community": 3,
+      "community": 9,
       "norm_label": ".refreshcache()"
     },
     {
@@ -1314,43 +1809,43 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/GeminiService.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_services_geminiservice_java",
-      "community": 4,
+      "community": 11,
       "norm_label": "geminiservice.java"
     },
     {
       "label": "GeminiService",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/GeminiService.java",
-      "source_location": "L18",
+      "source_location": "L19",
       "id": "services_geminiservice_geminiservice",
-      "community": 4,
+      "community": 11,
       "norm_label": "geminiservice"
     },
     {
       "label": ".GeminiService()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/GeminiService.java",
-      "source_location": "L30",
+      "source_location": "L31",
       "id": "services_geminiservice_geminiservice_geminiservice",
-      "community": 4,
+      "community": 11,
       "norm_label": ".geminiservice()"
     },
     {
       "label": ".generateWorkoutPlan()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/GeminiService.java",
-      "source_location": "L40",
+      "source_location": "L41",
       "id": "services_geminiservice_geminiservice_generateworkoutplan",
-      "community": 4,
+      "community": 11,
       "norm_label": ".generateworkoutplan()"
     },
     {
       "label": "InvalidGeminiResponseException",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/GeminiService.java",
-      "source_location": "L75",
+      "source_location": "L76",
       "id": "services_geminiservice_invalidgeminiresponseexception",
-      "community": 4,
+      "community": 11,
       "norm_label": "invalidgeminiresponseexception"
     },
     {
@@ -1359,25 +1854,25 @@
       "source_file": "",
       "source_location": "",
       "id": "runtimeexception",
-      "community": 4,
+      "community": 11,
       "norm_label": "runtimeexception"
     },
     {
       "label": ".InvalidGeminiResponseException()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/GeminiService.java",
-      "source_location": "L76",
+      "source_location": "L77",
       "id": "services_geminiservice_invalidgeminiresponseexception_invalidgeminiresponseexception",
-      "community": 4,
+      "community": 11,
       "norm_label": ".invalidgeminiresponseexception()"
     },
     {
       "label": ".buildPrompt()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/GeminiService.java",
-      "source_location": "L81",
+      "source_location": "L82",
       "id": "services_geminiservice_geminiservice_buildprompt",
-      "community": 4,
+      "community": 11,
       "norm_label": ".buildprompt()"
     },
     {
@@ -1386,7 +1881,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/StatsService.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_services_statsservice_java",
-      "community": 2,
+      "community": 6,
       "norm_label": "statsservice.java"
     },
     {
@@ -1395,7 +1890,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/StatsService.java",
       "source_location": "L16",
       "id": "services_statsservice_statsservice",
-      "community": 2,
+      "community": 6,
       "norm_label": "statsservice"
     },
     {
@@ -1404,7 +1899,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/StatsService.java",
       "source_location": "L27",
       "id": "services_statsservice_statsservice_statsservice",
-      "community": 2,
+      "community": 6,
       "norm_label": ".statsservice()"
     },
     {
@@ -1413,7 +1908,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/StatsService.java",
       "source_location": "L43",
       "id": "services_statsservice_statsservice_getsummary",
-      "community": 2,
+      "community": 6,
       "norm_label": ".getsummary()"
     },
     {
@@ -1422,7 +1917,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/StatsService.java",
       "source_location": "L99",
       "id": "services_statsservice_statsservice_buildweightsummary",
-      "community": 2,
+      "community": 6,
       "norm_label": ".buildweightsummary()"
     },
     {
@@ -1431,7 +1926,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/StatsService.java",
       "source_location": "L123",
       "id": "services_statsservice_statsservice_buildvolumesummary",
-      "community": 2,
+      "community": 6,
       "norm_label": ".buildvolumesummary()"
     },
     {
@@ -1440,7 +1935,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/StatsService.java",
       "source_location": "L153",
       "id": "services_statsservice_statsservice_volumemapfromdb",
-      "community": 2,
+      "community": 6,
       "norm_label": ".volumemapfromdb()"
     },
     {
@@ -1449,7 +1944,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/StatsService.java",
       "source_location": "L164",
       "id": "services_statsservice_statsservice_deltapct",
-      "community": 2,
+      "community": 6,
       "norm_label": ".deltapct()"
     },
     {
@@ -1458,7 +1953,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/StatsService.java",
       "source_location": "L171",
       "id": "services_statsservice_statsservice_buildinsight",
-      "community": 2,
+      "community": 6,
       "norm_label": ".buildinsight()"
     },
     {
@@ -1512,7 +2007,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutService.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_services_workoutservice_java",
-      "community": 4,
+      "community": 3,
       "norm_label": "workoutservice.java"
     },
     {
@@ -1521,7 +2016,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutService.java",
       "source_location": "L22",
       "id": "services_workoutservice_workoutservice",
-      "community": 4,
+      "community": 3,
       "norm_label": "workoutservice"
     },
     {
@@ -1530,7 +2025,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutService.java",
       "source_location": "L30",
       "id": "services_workoutservice_workoutservice_workoutservice",
-      "community": 4,
+      "community": 3,
       "norm_label": ".workoutservice()"
     },
     {
@@ -1539,34 +2034,34 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutService.java",
       "source_location": "L38",
       "id": "services_workoutservice_workoutservice_generateworkoutforuser",
-      "community": 4,
+      "community": 3,
       "norm_label": ".generateworkoutforuser()"
     },
     {
       "label": ".getMyPlans()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutService.java",
-      "source_location": "L121",
+      "source_location": "L125",
       "id": "services_workoutservice_workoutservice_getmyplans",
-      "community": 4,
+      "community": 3,
       "norm_label": ".getmyplans()"
     },
     {
       "label": ".findUserByEmail()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutService.java",
-      "source_location": "L130",
+      "source_location": "L134",
       "id": "services_workoutservice_workoutservice_finduserbyemail",
-      "community": 4,
+      "community": 3,
       "norm_label": ".finduserbyemail()"
     },
     {
       "label": ".validateRequest()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutService.java",
-      "source_location": "L135",
+      "source_location": "L139",
       "id": "services_workoutservice_workoutservice_validaterequest",
-      "community": 4,
+      "community": 3,
       "norm_label": ".validaterequest()"
     },
     {
@@ -1575,7 +2070,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutSessionService.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_services_workoutsessionservice_java",
-      "community": 3,
+      "community": 9,
       "norm_label": "workoutsessionservice.java"
     },
     {
@@ -1584,7 +2079,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutSessionService.java",
       "source_location": "L20",
       "id": "services_workoutsessionservice_workoutsessionservice",
-      "community": 3,
+      "community": 9,
       "norm_label": "workoutsessionservice"
     },
     {
@@ -1593,7 +2088,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutSessionService.java",
       "source_location": "L27",
       "id": "services_workoutsessionservice_workoutsessionservice_workoutsessionservice",
-      "community": 3,
+      "community": 9,
       "norm_label": ".workoutsessionservice()"
     },
     {
@@ -1602,7 +2097,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutSessionService.java",
       "source_location": "L35",
       "id": "services_workoutsessionservice_workoutsessionservice_logsession",
-      "community": 3,
+      "community": 9,
       "norm_label": ".logsession()"
     },
     {
@@ -1611,7 +2106,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutSessionService.java",
       "source_location": "L61",
       "id": "services_workoutsessionservice_workoutsessionservice_getmonthlystats",
-      "community": 3,
+      "community": 9,
       "norm_label": ".getmonthlystats()"
     },
     {
@@ -1620,7 +2115,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutSessionService.java",
       "source_location": "L84",
       "id": "services_workoutsessionservice_workoutsessionservice_finduserbyemail",
-      "community": 3,
+      "community": 9,
       "norm_label": ".finduserbyemail()"
     },
     {
@@ -1683,7 +2178,7 @@
       "source_file": "KineticApp/src/components/CustomButton.js",
       "source_location": "L1",
       "id": "kineticapp_src_components_custombutton_js",
-      "community": 17,
+      "community": 24,
       "norm_label": "custombutton.js"
     },
     {
@@ -1692,7 +2187,7 @@
       "source_file": "KineticApp/src/components/CustomButton.js",
       "source_location": "L4",
       "id": "components_custombutton_custombutton",
-      "community": 17,
+      "community": 24,
       "norm_label": "custombutton()"
     },
     {
@@ -1701,7 +2196,7 @@
       "source_file": "KineticApp/src/components/CustomButton.js",
       "source_location": "L28",
       "id": "components_custombutton_styles",
-      "community": 17,
+      "community": 24,
       "norm_label": "styles"
     },
     {
@@ -1764,7 +2259,7 @@
       "source_file": "KineticApp/src/components/EvolutionModal.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_evolutionmodal_tsx",
-      "community": 5,
+      "community": 7,
       "norm_label": "evolutionmodal.tsx"
     },
     {
@@ -1773,7 +2268,7 @@
       "source_file": "KineticApp/src/components/EvolutionModal.tsx",
       "source_location": "L6",
       "id": "components_evolutionmodal_evolutionmodalprops",
-      "community": 5,
+      "community": 7,
       "norm_label": "evolutionmodalprops"
     },
     {
@@ -1782,7 +2277,7 @@
       "source_file": "KineticApp/src/components/EvolutionModal.tsx",
       "source_location": "L12",
       "id": "components_evolutionmodal_evolutionmodal",
-      "community": 5,
+      "community": 7,
       "norm_label": "evolutionmodal()"
     },
     {
@@ -1791,7 +2286,7 @@
       "source_file": "KineticApp/src/components/EvolutionModal.tsx",
       "source_location": "L88",
       "id": "components_evolutionmodal_styles",
-      "community": 5,
+      "community": 7,
       "norm_label": "styles"
     },
     {
@@ -1800,7 +2295,7 @@
       "source_file": "KineticApp/src/components/ExerciseCard.js",
       "source_location": "L1",
       "id": "kineticapp_src_components_exercisecard_js",
-      "community": 18,
+      "community": 25,
       "norm_label": "exercisecard.js"
     },
     {
@@ -1809,7 +2304,7 @@
       "source_file": "KineticApp/src/components/ExerciseCard.js",
       "source_location": "L4",
       "id": "components_exercisecard_exercisecard",
-      "community": 18,
+      "community": 25,
       "norm_label": "exercisecard()"
     },
     {
@@ -1818,7 +2313,7 @@
       "source_file": "KineticApp/src/components/ExerciseCard.js",
       "source_location": "L36",
       "id": "components_exercisecard_styles",
-      "community": 18,
+      "community": 25,
       "norm_label": "styles"
     },
     {
@@ -1827,7 +2322,7 @@
       "source_file": "KineticApp/src/components/FeedPost.js",
       "source_location": "L1",
       "id": "kineticapp_src_components_feedpost_js",
-      "community": 7,
+      "community": 0,
       "norm_label": "feedpost.js"
     },
     {
@@ -1836,7 +2331,7 @@
       "source_file": "KineticApp/src/components/FeedPost.js",
       "source_location": "L6",
       "id": "components_feedpost_feedpost",
-      "community": 7,
+      "community": 0,
       "norm_label": "feedpost()"
     },
     {
@@ -1845,7 +2340,7 @@
       "source_file": "KineticApp/src/components/FeedPost.js",
       "source_location": "L99",
       "id": "components_feedpost_styles",
-      "community": 7,
+      "community": 0,
       "norm_label": "styles"
     },
     {
@@ -1935,7 +2430,7 @@
       "source_file": "KineticApp/src/components/SerieCard.js",
       "source_location": "L1",
       "id": "kineticapp_src_components_seriecard_js",
-      "community": 5,
+      "community": 7,
       "norm_label": "seriecard.js"
     },
     {
@@ -1944,7 +2439,7 @@
       "source_file": "KineticApp/src/components/SerieCard.js",
       "source_location": "L5",
       "id": "components_seriecard_seriecard",
-      "community": 5,
+      "community": 7,
       "norm_label": "seriecard()"
     },
     {
@@ -1953,7 +2448,7 @@
       "source_file": "KineticApp/src/components/SerieCard.js",
       "source_location": "L101",
       "id": "components_seriecard_styles",
-      "community": 5,
+      "community": 7,
       "norm_label": "styles"
     },
     {
@@ -1962,7 +2457,7 @@
       "source_file": "KineticApp/src/components/SquadBar.js",
       "source_location": "L1",
       "id": "kineticapp_src_components_squadbar_js",
-      "community": 7,
+      "community": 0,
       "norm_label": "squadbar.js"
     },
     {
@@ -1971,7 +2466,7 @@
       "source_file": "KineticApp/src/components/SquadBar.js",
       "source_location": "L5",
       "id": "components_squadbar_squadbar",
-      "community": 7,
+      "community": 0,
       "norm_label": "squadbar()"
     },
     {
@@ -1980,7 +2475,7 @@
       "source_file": "KineticApp/src/components/SquadBar.js",
       "source_location": "L51",
       "id": "components_squadbar_styles",
-      "community": 7,
+      "community": 0,
       "norm_label": "styles"
     },
     {
@@ -2133,7 +2628,7 @@
       "source_file": "KineticApp/src/screens/ActiveSessionScreen.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_screens_activesessionscreen_tsx",
-      "community": 5,
+      "community": 7,
       "norm_label": "activesessionscreen.tsx"
     },
     {
@@ -2142,7 +2637,7 @@
       "source_file": "KineticApp/src/screens/ActiveSessionScreen.tsx",
       "source_location": "L11",
       "id": "screens_activesessionscreen_setdata",
-      "community": 5,
+      "community": 7,
       "norm_label": "setdata"
     },
     {
@@ -2151,7 +2646,7 @@
       "source_file": "KineticApp/src/screens/ActiveSessionScreen.tsx",
       "source_location": "L17",
       "id": "screens_activesessionscreen_activesessionscreen",
-      "community": 5,
+      "community": 7,
       "norm_label": "activesessionscreen()"
     },
     {
@@ -2160,7 +2655,7 @@
       "source_file": "KineticApp/src/screens/ActiveSessionScreen.tsx",
       "source_location": "L307",
       "id": "screens_activesessionscreen_styles",
-      "community": 5,
+      "community": 7,
       "norm_label": "styles"
     },
     {
@@ -2196,7 +2691,7 @@
       "source_file": "KineticApp/src/screens/HomeScreen.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_screens_homescreen_tsx",
-      "community": 5,
+      "community": 7,
       "norm_label": "homescreen.tsx"
     },
     {
@@ -2205,7 +2700,7 @@
       "source_file": "KineticApp/src/screens/HomeScreen.tsx",
       "source_location": "L20",
       "id": "screens_homescreen_leaderboardentry",
-      "community": 5,
+      "community": 7,
       "norm_label": "leaderboardentry"
     },
     {
@@ -2214,7 +2709,7 @@
       "source_file": "KineticApp/src/screens/HomeScreen.tsx",
       "source_location": "L30",
       "id": "screens_homescreen_leaders",
-      "community": 5,
+      "community": 7,
       "norm_label": "leaders"
     },
     {
@@ -2223,7 +2718,7 @@
       "source_file": "KineticApp/src/screens/HomeScreen.tsx",
       "source_location": "L37",
       "id": "screens_homescreen_week_days",
-      "community": 5,
+      "community": 7,
       "norm_label": "week_days"
     },
     {
@@ -2232,7 +2727,7 @@
       "source_file": "KineticApp/src/screens/HomeScreen.tsx",
       "source_location": "L39",
       "id": "screens_homescreen_empty_dashboard",
-      "community": 5,
+      "community": 7,
       "norm_label": "empty_dashboard"
     },
     {
@@ -2241,7 +2736,7 @@
       "source_file": "KineticApp/src/screens/HomeScreen.tsx",
       "source_location": "L47",
       "id": "screens_homescreen_homescreenprops",
-      "community": 5,
+      "community": 7,
       "norm_label": "homescreenprops"
     },
     {
@@ -2250,7 +2745,7 @@
       "source_file": "KineticApp/src/screens/HomeScreen.tsx",
       "source_location": "L51",
       "id": "screens_homescreen_homescreen",
-      "community": 5,
+      "community": 7,
       "norm_label": "homescreen()"
     },
     {
@@ -2259,7 +2754,7 @@
       "source_file": "KineticApp/src/screens/HomeScreen.tsx",
       "source_location": "L218",
       "id": "screens_homescreen_styles",
-      "community": 5,
+      "community": 7,
       "norm_label": "styles"
     },
     {
@@ -2268,7 +2763,7 @@
       "source_file": "KineticApp/src/screens/SocialScreen.js",
       "source_location": "L1",
       "id": "kineticapp_src_screens_socialscreen_js",
-      "community": 7,
+      "community": 0,
       "norm_label": "socialscreen.js"
     },
     {
@@ -2277,7 +2772,7 @@
       "source_file": "KineticApp/src/screens/SocialScreen.js",
       "source_location": "L12",
       "id": "screens_socialscreen_socialscreen",
-      "community": 7,
+      "community": 0,
       "norm_label": "socialscreen()"
     },
     {
@@ -2286,7 +2781,7 @@
       "source_file": "KineticApp/src/screens/SocialScreen.js",
       "source_location": "L77",
       "id": "screens_socialscreen_styles",
-      "community": 7,
+      "community": 0,
       "norm_label": "styles"
     },
     {
@@ -2715,20 +3210,281 @@
     {
       "label": "OnboardingScreen()",
       "file_type": "code",
-      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.js",
-      "source_location": "L12",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L542",
       "id": "onboarding_onboardingscreen_onboardingscreen",
-      "community": 0,
+      "community": 4,
       "norm_label": "onboardingscreen()"
     },
     {
       "label": "styles",
       "file_type": "code",
-      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.js",
-      "source_location": "L226",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L691",
       "id": "onboarding_onboardingscreen_styles",
-      "community": 0,
+      "community": 4,
       "norm_label": "styles"
+    },
+    {
+      "label": "OnboardingScreen.tsx",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L1",
+      "id": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "community": 4,
+      "norm_label": "onboardingscreen.tsx"
+    },
+    {
+      "label": "AuthContextValue",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L24",
+      "id": "onboarding_onboardingscreen_authcontextvalue",
+      "community": 4,
+      "norm_label": "authcontextvalue"
+    },
+    {
+      "label": "GoalType",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L28",
+      "id": "onboarding_onboardingscreen_goaltype",
+      "community": 4,
+      "norm_label": "goaltype"
+    },
+    {
+      "label": "LevelType",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L29",
+      "id": "onboarding_onboardingscreen_leveltype",
+      "community": 4,
+      "norm_label": "leveltype"
+    },
+    {
+      "label": "OnboardingForm",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L31",
+      "id": "onboarding_onboardingscreen_onboardingform",
+      "community": 4,
+      "norm_label": "onboardingform"
+    },
+    {
+      "label": "GoalDef",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L41",
+      "id": "onboarding_onboardingscreen_goaldef",
+      "community": 4,
+      "norm_label": "goaldef"
+    },
+    {
+      "label": "LevelDef",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L47",
+      "id": "onboarding_onboardingscreen_leveldef",
+      "community": 4,
+      "norm_label": "leveldef"
+    },
+    {
+      "label": "ProgressDotsProps",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L53",
+      "id": "onboarding_onboardingscreen_progressdotsprops",
+      "community": 4,
+      "norm_label": "progressdotsprops"
+    },
+    {
+      "label": "StepGoalProps",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L58",
+      "id": "onboarding_onboardingscreen_stepgoalprops",
+      "community": 4,
+      "norm_label": "stepgoalprops"
+    },
+    {
+      "label": "StepMetricsProps",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L64",
+      "id": "onboarding_onboardingscreen_stepmetricsprops",
+      "community": 4,
+      "norm_label": "stepmetricsprops"
+    },
+    {
+      "label": "StepLevelProps",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L70",
+      "id": "onboarding_onboardingscreen_steplevelprops",
+      "community": 4,
+      "norm_label": "steplevelprops"
+    },
+    {
+      "label": "StepFreqProps",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L76",
+      "id": "onboarding_onboardingscreen_stepfreqprops",
+      "community": 4,
+      "norm_label": "stepfreqprops"
+    },
+    {
+      "label": "StepAnamnesisProps",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L82",
+      "id": "onboarding_onboardingscreen_stepanamnesisprops",
+      "community": 4,
+      "norm_label": "stepanamnesisprops"
+    },
+    {
+      "label": "StepGeneratingProps",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L88",
+      "id": "onboarding_onboardingscreen_stepgeneratingprops",
+      "community": 4,
+      "norm_label": "stepgeneratingprops"
+    },
+    {
+      "label": "GOALS",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L94",
+      "id": "onboarding_onboardingscreen_goals",
+      "community": 4,
+      "norm_label": "goals"
+    },
+    {
+      "label": "LEVELS",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L100",
+      "id": "onboarding_onboardingscreen_levels",
+      "community": 4,
+      "norm_label": "levels"
+    },
+    {
+      "label": "DAYS_LABELS",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L106",
+      "id": "onboarding_onboardingscreen_days_labels",
+      "community": 4,
+      "norm_label": "days_labels"
+    },
+    {
+      "label": "GEN_STEPS",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L108",
+      "id": "onboarding_onboardingscreen_gen_steps",
+      "community": 4,
+      "norm_label": "gen_steps"
+    },
+    {
+      "label": "GOAL_API_MAP",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L118",
+      "id": "onboarding_onboardingscreen_goal_api_map",
+      "community": 4,
+      "norm_label": "goal_api_map"
+    },
+    {
+      "label": "LEVEL_API_MAP",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L124",
+      "id": "onboarding_onboardingscreen_level_api_map",
+      "community": 4,
+      "norm_label": "level_api_map"
+    },
+    {
+      "label": "ProgressDots()",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L131",
+      "id": "onboarding_onboardingscreen_progressdots",
+      "community": 4,
+      "norm_label": "progressdots()"
+    },
+    {
+      "label": "StepGoal()",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L153",
+      "id": "onboarding_onboardingscreen_stepgoal",
+      "community": 4,
+      "norm_label": "stepgoal()"
+    },
+    {
+      "label": "StepMetrics()",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L186",
+      "id": "onboarding_onboardingscreen_stepmetrics",
+      "community": 4,
+      "norm_label": "stepmetrics()"
+    },
+    {
+      "label": "StepLevel()",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L282",
+      "id": "onboarding_onboardingscreen_steplevel",
+      "community": 4,
+      "norm_label": "steplevel()"
+    },
+    {
+      "label": "StepFreq()",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L315",
+      "id": "onboarding_onboardingscreen_stepfreq",
+      "community": 4,
+      "norm_label": "stepfreq()"
+    },
+    {
+      "label": "MEDICAL_CHIPS",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L379",
+      "id": "onboarding_onboardingscreen_medical_chips",
+      "community": 4,
+      "norm_label": "medical_chips"
+    },
+    {
+      "label": "buildMedicalValue()",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L382",
+      "id": "onboarding_onboardingscreen_buildmedicalvalue",
+      "community": 4,
+      "norm_label": "buildmedicalvalue()"
+    },
+    {
+      "label": "StepAnamnesis()",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L388",
+      "id": "onboarding_onboardingscreen_stepanamnesis",
+      "community": 4,
+      "norm_label": "stepanamnesis()"
+    },
+    {
+      "label": "StepGenerating()",
+      "file_type": "code",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L492",
+      "id": "onboarding_onboardingscreen_stepgenerating",
+      "community": 4,
+      "norm_label": "stepgenerating()"
     },
     {
       "label": "api.js",
@@ -2736,7 +3492,7 @@
       "source_file": "KineticApp/src/services/api.js",
       "source_location": "L1",
       "id": "kineticapp_src_services_api_js",
-      "community": 5,
+      "community": 7,
       "norm_label": "api.js"
     },
     {
@@ -2745,7 +3501,7 @@
       "source_file": "KineticApp/src/services/api.js",
       "source_location": "L8",
       "id": "services_api_api",
-      "community": 5,
+      "community": 7,
       "norm_label": "api"
     },
     {
@@ -2754,7 +3510,7 @@
       "source_file": "KineticApp/src/services/api.js",
       "source_location": "L19",
       "id": "services_api_setsignouthandler",
-      "community": 5,
+      "community": 7,
       "norm_label": "setsignouthandler()"
     },
     {
@@ -2790,7 +3546,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L1",
       "id": "types_index_setlogdto",
-      "community": 5,
+      "community": 7,
       "norm_label": "setlogdto"
     },
     {
@@ -2799,7 +3555,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L8",
       "id": "types_index_logsessionrequestdto",
-      "community": 5,
+      "community": 7,
       "norm_label": "logsessionrequestdto"
     },
     {
@@ -2889,7 +3645,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L80",
       "id": "types_index_homedashboardresponsedto",
-      "community": 5,
+      "community": 7,
       "norm_label": "homedashboardresponsedto"
     },
     {
@@ -2907,7 +3663,7 @@
       "source_file": "KineticApp/src/utils/mockData.js",
       "source_location": "L1",
       "id": "kineticapp_src_utils_mockdata_js",
-      "community": 7,
+      "community": 19,
       "norm_label": "mockdata.js"
     },
     {
@@ -2916,7 +3672,7 @@
       "source_file": "KineticApp/src/utils/mockData.js",
       "source_location": "L7",
       "id": "utils_mockdata_day_a",
-      "community": 7,
+      "community": 19,
       "norm_label": "day_a"
     },
     {
@@ -2925,7 +3681,7 @@
       "source_file": "KineticApp/src/utils/mockData.js",
       "source_location": "L19",
       "id": "utils_mockdata_day_b",
-      "community": 7,
+      "community": 19,
       "norm_label": "day_b"
     },
     {
@@ -2934,7 +3690,7 @@
       "source_file": "KineticApp/src/utils/mockData.js",
       "source_location": "L31",
       "id": "utils_mockdata_day_c",
-      "community": 7,
+      "community": 19,
       "norm_label": "day_c"
     },
     {
@@ -2943,7 +3699,7 @@
       "source_file": "KineticApp/src/utils/mockData.js",
       "source_location": "L43",
       "id": "utils_mockdata_workout_map",
-      "community": 7,
+      "community": 19,
       "norm_label": "workout_map"
     },
     {
@@ -2952,7 +3708,7 @@
       "source_file": "KineticApp/src/utils/mockData.js",
       "source_location": "L54",
       "id": "utils_mockdata_mocksquad",
-      "community": 7,
+      "community": 19,
       "norm_label": "mocksquad"
     },
     {
@@ -2961,7 +3717,7 @@
       "source_file": "KineticApp/src/utils/mockData.js",
       "source_location": "L61",
       "id": "utils_mockdata_mockfeed",
-      "community": 7,
+      "community": 19,
       "norm_label": "mockfeed"
     },
     {
@@ -3051,7 +3807,7 @@
       "source_file": "CLAUDE.md",
       "source_location": "L1",
       "id": "claude_md",
-      "community": 31,
+      "community": 26,
       "norm_label": "claude.md"
     },
     {
@@ -3059,8 +3815,8 @@
       "file_type": "document",
       "source_file": "CLAUDE.md",
       "source_location": "L1",
-      "id": "kinect_claude_graphify",
-      "community": 31,
+      "id": "kinectapp_claude_graphify",
+      "community": 26,
       "norm_label": "graphify"
     },
     {
@@ -3069,7 +3825,7 @@
       "source_file": "GEMINI.md",
       "source_location": "L1",
       "id": "gemini_md",
-      "community": 32,
+      "community": 27,
       "norm_label": "gemini.md"
     },
     {
@@ -3077,8 +3833,8 @@
       "file_type": "document",
       "source_file": "GEMINI.md",
       "source_location": "L1",
-      "id": "kinect_gemini_graphify",
-      "community": 32,
+      "id": "kinectapp_gemini_graphify",
+      "community": 27,
       "norm_label": "graphify"
     },
     {
@@ -3087,7 +3843,7 @@
       "source_file": "kinetic-backend/todo.md",
       "source_location": "L1",
       "id": "kinetic_backend_todo_md",
-      "community": 50,
+      "community": 57,
       "norm_label": "todo.md"
     },
     {
@@ -3096,7 +3852,7 @@
       "source_file": "Plan/BackendPlan.md",
       "source_location": "L1",
       "id": "plan_backendplan_md",
-      "community": 11,
+      "community": 15,
       "norm_label": "backendplan.md"
     },
     {
@@ -3105,7 +3861,7 @@
       "source_file": "Plan/BackendPlan.md",
       "source_location": "L1",
       "id": "plan_backendplan_instru_es_de_sistema_arquiteto_back_end_java_kinetic_app",
-      "community": 11,
+      "community": 15,
       "norm_label": "\ud83e\udd16 instrucoes de sistema - arquiteto back-end java (kinetic app)"
     },
     {
@@ -3114,7 +3870,7 @@
       "source_file": "Plan/BackendPlan.md",
       "source_location": "L3",
       "id": "plan_backendplan_contexto_e_arquitetura",
-      "community": 11,
+      "community": 15,
       "norm_label": "\ud83d\udccc contexto e arquitetura"
     },
     {
@@ -3123,7 +3879,7 @@
       "source_file": "Plan/BackendPlan.md",
       "source_location": "L8",
       "id": "plan_backendplan_stack_tecnol_gico_obrigat_rio",
-      "community": 11,
+      "community": 15,
       "norm_label": "\ud83d\udee0\ufe0f stack tecnologico obrigatorio"
     },
     {
@@ -3132,7 +3888,7 @@
       "source_file": "Plan/BackendPlan.md",
       "source_location": "L15",
       "id": "plan_backendplan_padr_es_de_c_digo_e_clean_architecture",
-      "community": 11,
+      "community": 15,
       "norm_label": "\ud83d\udcd0 padroes de codigo e clean architecture"
     },
     {
@@ -3141,7 +3897,7 @@
       "source_file": "Plan/BackendPlan.md",
       "source_location": "L23",
       "id": "plan_backendplan_roadmap_de_execu_o_modo_ag_ntico",
-      "community": 11,
+      "community": 15,
       "norm_label": "\ud83d\uddfa\ufe0f roadmap de execucao (modo agentico)"
     },
     {
@@ -3150,7 +3906,7 @@
       "source_file": "Plan/BackendPlan.md",
       "source_location": "L27",
       "id": "plan_backendplan_fase_1_funda_o_e_conex_o_com_supabase",
-      "community": 11,
+      "community": 15,
       "norm_label": "fase 1: fundacao e conexao com supabase"
     },
     {
@@ -3159,7 +3915,7 @@
       "source_file": "Plan/BackendPlan.md",
       "source_location": "L32",
       "id": "plan_backendplan_fase_2_entidade_de_autentica_o_traditional_login",
-      "community": 11,
+      "community": 15,
       "norm_label": "fase 2: entidade de autenticacao (traditional login)"
     },
     {
@@ -3168,7 +3924,7 @@
       "source_file": "Plan/BackendPlan.md",
       "source_location": "L37",
       "id": "plan_backendplan_fase_3_controllers_de_entrada",
-      "community": 11,
+      "community": 15,
       "norm_label": "fase 3: controllers de entrada"
     },
     {
@@ -3177,7 +3933,7 @@
       "source_file": "Plan/CLAUDE.md",
       "source_location": "L1",
       "id": "plan_claude_md",
-      "community": 33,
+      "community": 40,
       "norm_label": "claude.md"
     },
     {
@@ -3186,7 +3942,7 @@
       "source_file": "Plan/CLAUDE.md",
       "source_location": "L1",
       "id": "plan_claude_plano_de_implementa_o_back_end_api_de_estat_sticas_get_stats_summary",
-      "community": 33,
+      "community": 40,
       "norm_label": "plano de implementacao back-end: api de estatisticas (`get /stats/summary`)"
     },
     {
@@ -3195,7 +3951,7 @@
       "source_file": "Plan/design.md",
       "source_location": "L1",
       "id": "plan_design_md",
-      "community": 51,
+      "community": 58,
       "norm_label": "design.md"
     },
     {
@@ -3204,7 +3960,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L1",
       "id": "plan_design1_md",
-      "community": 6,
+      "community": 8,
       "norm_label": "design1.md"
     },
     {
@@ -3213,7 +3969,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L1",
       "id": "plan_design1_design_system_specification_high_performance_athleticism",
-      "community": 6,
+      "community": 8,
       "norm_label": "design system specification: high-performance athleticism"
     },
     {
@@ -3222,7 +3978,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L3",
       "id": "plan_design1_1_overview_creative_north_star_the_digital_kineticist",
-      "community": 6,
+      "community": 8,
       "norm_label": "1. overview & creative north star: \"the digital kineticist\""
     },
     {
@@ -3231,7 +3987,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L10",
       "id": "plan_design1_2_colors_tonal_depth_the_neon_pulse",
-      "community": 6,
+      "community": 8,
       "norm_label": "2. colors: tonal depth & the neon pulse"
     },
     {
@@ -3240,7 +3996,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L13",
       "id": "plan_design1_palette_highlights",
-      "community": 6,
+      "community": 8,
       "norm_label": "palette highlights"
     },
     {
@@ -3249,7 +4005,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L19",
       "id": "plan_design1_the_no_line_rule",
-      "community": 6,
+      "community": 8,
       "norm_label": "the \"no-line\" rule"
     },
     {
@@ -3258,7 +4014,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L22",
       "id": "plan_design1_surface_hierarchy_nesting",
-      "community": 6,
+      "community": 8,
       "norm_label": "surface hierarchy & nesting"
     },
     {
@@ -3267,7 +4023,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L29",
       "id": "plan_design1_the_glass_gradient_rule",
-      "community": 6,
+      "community": 8,
       "norm_label": "the \"glass & gradient\" rule"
     },
     {
@@ -3276,7 +4032,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L34",
       "id": "plan_design1_3_typography_editorial_authority",
-      "community": 6,
+      "community": 8,
       "norm_label": "3. typography: editorial authority"
     },
     {
@@ -3285,7 +4041,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L47",
       "id": "plan_design1_4_elevation_depth_tonal_layering",
-      "community": 6,
+      "community": 8,
       "norm_label": "4. elevation & depth: tonal layering"
     },
     {
@@ -3294,7 +4050,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L56",
       "id": "plan_design1_5_components_the_athletic_kit",
-      "community": 6,
+      "community": 8,
       "norm_label": "5. components: the athletic kit"
     },
     {
@@ -3303,7 +4059,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L58",
       "id": "plan_design1_buttons_the_kinetic_drivers",
-      "community": 6,
+      "community": 8,
       "norm_label": "buttons (the kinetic drivers)"
     },
     {
@@ -3312,7 +4068,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L63",
       "id": "plan_design1_cards_lists_the_performance_modules",
-      "community": 6,
+      "community": 8,
       "norm_label": "cards & lists (the performance modules)"
     },
     {
@@ -3321,7 +4077,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L67",
       "id": "plan_design1_input_fields",
-      "community": 6,
+      "community": 8,
       "norm_label": "input fields"
     },
     {
@@ -3330,7 +4086,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L71",
       "id": "plan_design1_specialized_fitness_components",
-      "community": 6,
+      "community": 8,
       "norm_label": "specialized fitness components"
     },
     {
@@ -3339,7 +4095,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L77",
       "id": "plan_design1_6_do_s_and_don_ts",
-      "community": 6,
+      "community": 8,
       "norm_label": "6. do\u2019s and don\u2019ts"
     },
     {
@@ -3348,7 +4104,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L79",
       "id": "plan_design1_do",
-      "community": 6,
+      "community": 8,
       "norm_label": "do"
     },
     {
@@ -3357,7 +4113,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L85",
       "id": "plan_design1_don_t",
-      "community": 6,
+      "community": 8,
       "norm_label": "don't"
     },
     {
@@ -3366,7 +4122,7 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L1",
       "id": "plan_plan_md",
-      "community": 9,
+      "community": 12,
       "norm_label": "plan.md"
     },
     {
@@ -3375,7 +4131,7 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L1",
       "id": "plan_plan_plano_de_implementa_o_blindagem_de_dados_ux_e_dashboard_de_desempenho",
-      "community": 9,
+      "community": 12,
       "norm_label": "\ud83d\ude80 plano de implementacao: blindagem de dados, ux e dashboard de desempenho"
     },
     {
@@ -3384,7 +4140,7 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L3",
       "id": "plan_plan_1_vis_o_geral",
-      "community": 9,
+      "community": 12,
       "norm_label": "1. visao geral"
     },
     {
@@ -3393,7 +4149,7 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L6",
       "id": "plan_plan_2_refatora_o_back_end_blindagem_de_dados_java",
-      "community": 9,
+      "community": 12,
       "norm_label": "2. refatoracao back-end: blindagem de dados (java)"
     },
     {
@@ -3402,7 +4158,7 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L9",
       "id": "plan_plan_a_atualiza_o_do_setlogdto_java",
-      "community": 9,
+      "community": 12,
       "norm_label": "a. atualizacao do `setlogdto.java`"
     },
     {
@@ -3411,7 +4167,7 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L15",
       "id": "plan_plan_3_refatora_o_front_end_activesessionscreen_tsx_ux_e_valida_es",
-      "community": 9,
+      "community": 12,
       "norm_label": "3. refatoracao front-end: activesessionscreen.tsx (ux e validacoes)"
     },
     {
@@ -3420,7 +4176,7 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L18",
       "id": "plan_plan_a_valida_o_individual_de_s_rie_bot_o_check",
-      "community": 9,
+      "community": 12,
       "norm_label": "a. validacao individual de serie (botao check)"
     },
     {
@@ -3429,7 +4185,7 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L25",
       "id": "plan_plan_b_novo_bot_o_sair_da_sess_o_texto_cinzento",
-      "community": 9,
+      "community": 12,
       "norm_label": "b. novo botao: \"sair da sessao\" (texto cinzento)"
     },
     {
@@ -3438,7 +4194,7 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L34",
       "id": "plan_plan_c_bot_o_principal_finalizar_treino_ciano",
-      "community": 9,
+      "community": 12,
       "norm_label": "c. botao principal: \"finalizar treino\" (ciano)"
     },
     {
@@ -3447,7 +4203,7 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L38",
       "id": "plan_plan_4_statsscreen_e_evolu_o_mensal_typescript_gifted_charts",
-      "community": 9,
+      "community": 12,
       "norm_label": "4. statsscreen e evolucao mensal (typescript & gifted charts)"
     },
     {
@@ -3456,7 +4212,7 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L41",
       "id": "plan_plan_a_dashboards_visuais_statsscreen_tsx",
-      "community": 9,
+      "community": 12,
       "norm_label": "a. dashboards visuais (statsscreen.tsx)"
     },
     {
@@ -3465,7 +4221,7 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L46",
       "id": "plan_plan_b_evolutionmodal_tsx_gatilho_de_30_dias",
-      "community": 9,
+      "community": 12,
       "norm_label": "b. evolutionmodal.tsx (gatilho de 30 dias)"
     },
     {
@@ -3474,7 +4230,7 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L50",
       "id": "plan_plan_5_diretrizes_t_cnicas_para_o_agente_ide",
-      "community": 9,
+      "community": 12,
       "norm_label": "5. diretrizes tecnicas para o agente (ide)"
     },
     {
@@ -3483,7 +4239,7 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L1",
       "id": "plan_plano_md",
-      "community": 10,
+      "community": 13,
       "norm_label": "plano.md"
     },
     {
@@ -3492,7 +4248,7 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L1",
       "id": "plan_plano_plano_de_implementa_o_check_in_din_mico_e_tracking_mensal",
-      "community": 10,
+      "community": 13,
       "norm_label": "\u23f1\ufe0f plano de implementacao: check-in dinamico e tracking mensal"
     },
     {
@@ -3501,7 +4257,7 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L3",
       "id": "plan_plano_1_vis_o_geral",
-      "community": 10,
+      "community": 13,
       "norm_label": "1. visao geral"
     },
     {
@@ -3510,7 +4266,7 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L6",
       "id": "plan_plano_2_regras_de_neg_cio_e_l_gica_matem_tica",
-      "community": 10,
+      "community": 13,
       "norm_label": "2. regras de negocio e logica matematica"
     },
     {
@@ -3519,7 +4275,7 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L11",
       "id": "plan_plano_3_back_end_spring_boot_3_2_x_java_17",
-      "community": 10,
+      "community": 13,
       "norm_label": "3. back-end (spring boot 3.2.x - java 17)"
     },
     {
@@ -3528,7 +4284,7 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L13",
       "id": "plan_plano_a_nova_entidade_e_tabela_workoutsession",
-      "community": 10,
+      "community": 13,
       "norm_label": "a. nova entidade e tabela (`workoutsession`)"
     },
     {
@@ -3537,7 +4293,7 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L17",
       "id": "plan_plano_b_novo_endpoint_de_registro",
-      "community": 10,
+      "community": 13,
       "norm_label": "b. novo endpoint de registro"
     },
     {
@@ -3546,7 +4302,7 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L22",
       "id": "plan_plano_c_novo_endpoint_de_estat_sticas",
-      "community": 10,
+      "community": 13,
       "norm_label": "c. novo endpoint de estatisticas"
     },
     {
@@ -3555,7 +4311,7 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L29",
       "id": "plan_plano_4_front_end_react_native",
-      "community": 10,
+      "community": 13,
       "norm_label": "4. front-end (react native)"
     },
     {
@@ -3564,7 +4320,7 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L31",
       "id": "plan_plano_a_gerenciamento_de_estado_usestate",
-      "community": 10,
+      "community": 13,
       "norm_label": "a. gerenciamento de estado (usestate)"
     },
     {
@@ -3573,7 +4329,7 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L36",
       "id": "plan_plano_b_hook_do_cron_metro_useeffect",
-      "community": 10,
+      "community": 13,
       "norm_label": "b. hook do cronometro (useeffect)"
     },
     {
@@ -3582,7 +4338,7 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L40",
       "id": "plan_plano_c_atualiza_o_da_ui_design_existente",
-      "community": 10,
+      "community": 13,
       "norm_label": "c. atualizacao da ui (design existente)"
     },
     {
@@ -3591,8 +4347,170 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L45",
       "id": "plan_plano_d_integra_o_axios",
-      "community": 10,
+      "community": 13,
       "norm_label": "d. integracao (axios)"
+    },
+    {
+      "label": "PLANONBOARDING.md",
+      "file_type": "document",
+      "source_file": "Plan/PLANONBOARDING.md",
+      "source_location": "L1",
+      "id": "plan_planonboarding_md",
+      "community": 14,
+      "norm_label": "planonboarding.md"
+    },
+    {
+      "label": "\ud83d\udee1\ufe0f Plano de Refatora\u00e7\u00e3o: Onboarding Cl\u00ednico e Blindagem do Prompt (IA)",
+      "file_type": "document",
+      "source_file": "Plan/PLANONBOARDING.md",
+      "source_location": "L1",
+      "id": "plan_planonboarding_plano_de_refatora_o_onboarding_cl_nico_e_blindagem_do_prompt_ia",
+      "community": 14,
+      "norm_label": "\ud83d\udee1\ufe0f plano de refatoracao: onboarding clinico e blindagem do prompt (ia)"
+    },
+    {
+      "label": "1. Vis\u00e3o Geral",
+      "file_type": "document",
+      "source_file": "Plan/PLANONBOARDING.md",
+      "source_location": "L3",
+      "id": "plan_planonboarding_1_vis_o_geral",
+      "community": 14,
+      "norm_label": "1. visao geral"
+    },
+    {
+      "label": "2. Refatora\u00e7\u00e3o Back-end (Java Spring Boot)",
+      "file_type": "document",
+      "source_file": "Plan/PLANONBOARDING.md",
+      "source_location": "L6",
+      "id": "plan_planonboarding_2_refatora_o_back_end_java_spring_boot",
+      "community": 14,
+      "norm_label": "2. refatoracao back-end (java spring boot)"
+    },
+    {
+      "label": "A. Atualiza\u00e7\u00e3o de Entidades e DTOs",
+      "file_type": "document",
+      "source_file": "Plan/PLANONBOARDING.md",
+      "source_location": "L8",
+      "id": "plan_planonboarding_a_atualiza_o_de_entidades_e_dtos",
+      "community": 14,
+      "norm_label": "a. atualizacao de entidades e dtos"
+    },
+    {
+      "label": "B. Refatora\u00e7\u00e3o do `buildPrompt` (Servi\u00e7o de IA)",
+      "file_type": "document",
+      "source_file": "Plan/PLANONBOARDING.md",
+      "source_location": "L13",
+      "id": "plan_planonboarding_b_refatora_o_do_buildprompt_servi_o_de_ia",
+      "community": 14,
+      "norm_label": "b. refatoracao do `buildprompt` (servico de ia)"
+    },
+    {
+      "label": "3. Refatora\u00e7\u00e3o Front-end (React Native / TypeScript)",
+      "file_type": "document",
+      "source_file": "Plan/PLANONBOARDING.md",
+      "source_location": "L27",
+      "id": "plan_planonboarding_3_refatora_o_front_end_react_native_typescript",
+      "community": 14,
+      "norm_label": "3. refatoracao front-end (react native / typescript)"
+    },
+    {
+      "label": "A. Nova Tela/Etapa no Onboarding (`MedicalHistoryScreen.tsx` ou Step equivalente)",
+      "file_type": "document",
+      "source_file": "Plan/PLANONBOARDING.md",
+      "source_location": "L29",
+      "id": "plan_planonboarding_a_nova_tela_etapa_no_onboarding_medicalhistoryscreen_tsx_ou_step_equivalente",
+      "community": 14,
+      "norm_label": "a. nova tela/etapa no onboarding (`medicalhistoryscreen.tsx` ou step equivalente)"
+    },
+    {
+      "label": "4. Diretrizes",
+      "file_type": "document",
+      "source_file": "Plan/PLANONBOARDING.md",
+      "source_location": "L38",
+      "id": "plan_planonboarding_4_diretrizes",
+      "community": 14,
+      "norm_label": "4. diretrizes"
+    },
+    {
+      "label": "\ud83d\udee0\ufe0f Adendo ao Plano: Persist\u00eancia e Tratamento de Exce\u00e7\u00e3o da IA",
+      "file_type": "document",
+      "source_file": "Plan/PLANONBOARDING.md",
+      "source_location": "L42",
+      "id": "plan_planonboarding_adendo_ao_plano_persist_ncia_e_tratamento_de_exce_o_da_ia",
+      "community": 14,
+      "norm_label": "\ud83d\udee0\ufe0f adendo ao plano: persistencia e tratamento de excecao da ia"
+    },
+    {
+      "label": "1. Back-end: Ajuste na Entidade `User` (JPA/Hibernate)",
+      "file_type": "document",
+      "source_file": "Plan/PLANONBOARDING.md",
+      "source_location": "L46",
+      "id": "plan_planonboarding_1_back_end_ajuste_na_entidade_user_jpa_hibernate",
+      "community": 14,
+      "norm_label": "1. back-end: ajuste na entidade `user` (jpa/hibernate)"
+    },
+    {
+      "label": "PLANOREFATORA\u00c7\u00c3O.md",
+      "file_type": "document",
+      "source_file": "Plan/PLANOREFATORA\u00c7\u00c3O.md",
+      "source_location": "L1",
+      "id": "plan_planorefatora_o_md",
+      "community": 20,
+      "norm_label": "planorefatoracao.md"
+    },
+    {
+      "label": "Plano de Refatora\u00e7\u00e3o: Onboarding Flow (React -> TSX Estrito)",
+      "file_type": "document",
+      "source_file": "Plan/PLANOREFATORA\u00c7\u00c3O.md",
+      "source_location": "L1",
+      "id": "plan_planorefatora_o_plano_de_refatora_o_onboarding_flow_react_tsx_estrito",
+      "community": 20,
+      "norm_label": "plano de refatoracao: onboarding flow (react -> tsx estrito)"
+    },
+    {
+      "label": "Objetivo",
+      "file_type": "document",
+      "source_file": "Plan/PLANOREFATORA\u00c7\u00c3O.md",
+      "source_location": "L3",
+      "id": "plan_planorefatora_o_objetivo",
+      "community": 20,
+      "norm_label": "objetivo"
+    },
+    {
+      "label": "Diretrizes de Tipagem (Strict TypeScript)",
+      "file_type": "document",
+      "source_file": "Plan/PLANOREFATORA\u00c7\u00c3O.md",
+      "source_location": "L6",
+      "id": "plan_planorefatora_o_diretrizes_de_tipagem_strict_typescript",
+      "community": 20,
+      "norm_label": "diretrizes de tipagem (strict typescript)"
+    },
+    {
+      "label": "Tarefa 1: Substitui\u00e7\u00e3o de \"Idade\" por \"Data de Nascimento\"",
+      "file_type": "document",
+      "source_file": "Plan/PLANOREFATORA\u00c7\u00c3O.md",
+      "source_location": "L26",
+      "id": "plan_planorefatora_o_tarefa_1_substitui_o_de_idade_por_data_de_nascimento",
+      "community": 20,
+      "norm_label": "tarefa 1: substituicao de \"idade\" por \"data de nascimento\""
+    },
+    {
+      "label": "Tarefa 2: Cria\u00e7\u00e3o da Etapa de Anamnese",
+      "file_type": "document",
+      "source_file": "Plan/PLANOREFATORA\u00c7\u00c3O.md",
+      "source_location": "L32",
+      "id": "plan_planorefatora_o_tarefa_2_cria_o_da_etapa_de_anamnese",
+      "community": 20,
+      "norm_label": "tarefa 2: criacao da etapa de anamnese"
+    },
+    {
+      "label": "Tarefa 3: Atualiza\u00e7\u00e3o do Controlador Principal (`OnboardingFlow`)",
+      "file_type": "document",
+      "source_file": "Plan/PLANOREFATORA\u00c7\u00c3O.md",
+      "source_location": "L38",
+      "id": "plan_planorefatora_o_tarefa_3_atualiza_o_do_controlador_principal_onboardingflow",
+      "community": 20,
+      "norm_label": "tarefa 3: atualizacao do controlador principal (`onboardingflow`)"
     },
     {
       "label": "SOLUCAO.md",
@@ -3600,7 +4518,7 @@
       "source_file": "Plan/SOLUCAO.md",
       "source_location": "L1",
       "id": "plan_solucao_md",
-      "community": 12,
+      "community": 17,
       "norm_label": "solucao.md"
     },
     {
@@ -3609,7 +4527,7 @@
       "source_file": "Plan/SOLUCAO.md",
       "source_location": "L1",
       "id": "plan_solucao_plano_de_debug_resolu_o_da_quebra_silenciosa_na_gera_o_de_treino",
-      "community": 12,
+      "community": 17,
       "norm_label": "\ud83d\udc1b plano de debug: resolucao da quebra silenciosa na geracao de treino"
     },
     {
@@ -3618,7 +4536,7 @@
       "source_file": "Plan/SOLUCAO.md",
       "source_location": "L3",
       "id": "plan_solucao_1_contexto_do_problema",
-      "community": 12,
+      "community": 17,
       "norm_label": "1. contexto do problema"
     },
     {
@@ -3627,7 +4545,7 @@
       "source_file": "Plan/SOLUCAO.md",
       "source_location": "L7",
       "id": "plan_solucao_2_suspeitos_principais",
-      "community": 12,
+      "community": 17,
       "norm_label": "2. suspeitos principais"
     },
     {
@@ -3636,7 +4554,7 @@
       "source_file": "Plan/SOLUCAO.md",
       "source_location": "L12",
       "id": "plan_solucao_3_a_es_exigidas_para_a_ia_passo_a_passo_do_debug",
-      "community": 12,
+      "community": 17,
       "norm_label": "3. acoes exigidas para a ia (passo a passo do debug)"
     },
     {
@@ -3645,7 +4563,7 @@
       "source_file": "Plan/SOLUCAO.md",
       "source_location": "L14",
       "id": "plan_solucao_a_adicionar_logs_de_rastreamento_tracing",
-      "community": 12,
+      "community": 17,
       "norm_label": "a. adicionar logs de rastreamento (tracing)"
     },
     {
@@ -3654,7 +4572,7 @@
       "source_file": "Plan/SOLUCAO.md",
       "source_location": "L22",
       "id": "plan_solucao_b_blindar_o_recebimento_da_data",
-      "community": 12,
+      "community": 17,
       "norm_label": "b. blindar o recebimento da data"
     },
     {
@@ -3663,11 +4581,560 @@
       "source_file": "Plan/SOLUCAO.md",
       "source_location": "L26",
       "id": "plan_solucao_c_expor_a_exce_o_raiz",
-      "community": 12,
+      "community": 17,
       "norm_label": "c. expor a excecao raiz"
+    },
+    {
+      "label": "graphify",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L1",
+      "community": 26,
+      "norm_label": "graphify",
+      "id": "kinect_claude_graphify"
+    },
+    {
+      "label": "graphify",
+      "file_type": "document",
+      "source_file": "GEMINI.md",
+      "source_location": "L1",
+      "community": 27,
+      "norm_label": "graphify",
+      "id": "kinect_gemini_graphify"
     }
   ],
   "links": [
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_k",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L34",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_goals",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L43",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_levels",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L49",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_days",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L51",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_steps",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L56",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_progressdots",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L75",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_topbar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L106",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_primarycta",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L123",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_stickyfooter",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L133",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_stepheader",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L161",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_wheelpicker",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L255",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_pickerrow",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L276",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_goalcard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L316",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_leveldots",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L329",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_levelcard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L363",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_daychip",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L382",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_stepgoal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L399",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_ages",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L400",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_weights",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L401",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_heights",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L403",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_stepmetrics",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L423",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_steplevel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L440",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_stepfreq",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L512",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_steps_gen",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L521",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_stepgenerating",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L623",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_stepdone",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L677",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_default_form",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/onboardingScreen/onboarding.jsx",
+      "source_location": "L679",
+      "weight": 1.0,
+      "source": "html_onboardingscreen_onboarding_jsx",
+      "target": "onboardingscreen_onboarding_onboardingflow",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/StatsScreen/ios-frame.jsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "html_statsscreen_ios_frame_jsx",
+      "target": "statsscreen_ios_frame_iosstatusbar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/StatsScreen/ios-frame.jsx",
+      "source_location": "L48",
+      "weight": 1.0,
+      "source": "html_statsscreen_ios_frame_jsx",
+      "target": "statsscreen_ios_frame_iosglasspill",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/StatsScreen/ios-frame.jsx",
+      "source_location": "L84",
+      "weight": 1.0,
+      "source": "html_statsscreen_ios_frame_jsx",
+      "target": "statsscreen_ios_frame_iosnavbar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/StatsScreen/ios-frame.jsx",
+      "source_location": "L132",
+      "weight": 1.0,
+      "source": "html_statsscreen_ios_frame_jsx",
+      "target": "statsscreen_ios_frame_ioslistrow",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/StatsScreen/ios-frame.jsx",
+      "source_location": "L167",
+      "weight": 1.0,
+      "source": "html_statsscreen_ios_frame_jsx",
+      "target": "statsscreen_ios_frame_ioslist",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/StatsScreen/ios-frame.jsx",
+      "source_location": "L190",
+      "weight": 1.0,
+      "source": "html_statsscreen_ios_frame_jsx",
+      "target": "statsscreen_ios_frame_iosdevice",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/StatsScreen/ios-frame.jsx",
+      "source_location": "L235",
+      "weight": 1.0,
+      "source": "html_statsscreen_ios_frame_jsx",
+      "target": "statsscreen_ios_frame_ioskeyboard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "html_statsscreen_stats_jsx",
+      "target": "statsscreen_stats_t",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "html_statsscreen_stats_jsx",
+      "target": "statsscreen_stats_periods",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L37",
+      "weight": 1.0,
+      "source": "html_statsscreen_stats_jsx",
+      "target": "statsscreen_stats_data",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L115",
+      "weight": 1.0,
+      "source": "html_statsscreen_stats_jsx",
+      "target": "statsscreen_stats_card",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L126",
+      "weight": 1.0,
+      "source": "html_statsscreen_stats_jsx",
+      "target": "statsscreen_stats_cardheader",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L138",
+      "weight": 1.0,
+      "source": "html_statsscreen_stats_jsx",
+      "target": "statsscreen_stats_deltachip",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L158",
+      "weight": 1.0,
+      "source": "html_statsscreen_stats_jsx",
+      "target": "statsscreen_stats_iconbtn",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L176",
+      "weight": 1.0,
+      "source": "html_statsscreen_stats_jsx",
+      "target": "statsscreen_stats_icons",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L187",
+      "weight": 1.0,
+      "source": "html_statsscreen_stats_jsx",
+      "target": "statsscreen_stats_periodselector",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L215",
+      "weight": 1.0,
+      "source": "html_statsscreen_stats_jsx",
+      "target": "statsscreen_stats_kpistrip",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L244",
+      "weight": 1.0,
+      "source": "html_statsscreen_stats_jsx",
+      "target": "statsscreen_stats_consistencycard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L300",
+      "weight": 1.0,
+      "source": "html_statsscreen_stats_jsx",
+      "target": "statsscreen_stats_weightcard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L420",
+      "weight": 1.0,
+      "source": "html_statsscreen_stats_jsx",
+      "target": "statsscreen_stats_volumecard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L576",
+      "weight": 1.0,
+      "source": "html_statsscreen_stats_jsx",
+      "target": "statsscreen_stats_insights",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L583",
+      "weight": 1.0,
+      "source": "html_statsscreen_stats_jsx",
+      "target": "statsscreen_stats_insightblock",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L608",
+      "weight": 1.0,
+      "source": "html_statsscreen_stats_jsx",
+      "target": "statsscreen_stats_tabbar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "html/StatsScreen/stats.jsx",
+      "source_location": "L651",
+      "weight": 1.0,
+      "source": "html_statsscreen_stats_jsx",
+      "target": "statsscreen_stats_statsscreen",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutService.java",
+      "source_location": "L77",
+      "weight": 1.0,
+      "source": "services_workoutservice_workoutservice_generateworkoutforuser",
+      "target": "statsscreen_stats_data"
+    },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
@@ -6174,6 +7641,17 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "kineticapp_src_components_custominput_js",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "KineticApp/src/components/EvolutionModal.tsx",
       "source_location": "L3",
       "weight": 1.0,
@@ -6462,6 +7940,17 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "kineticapp_src_components_headerlogo_js",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "KineticApp/src/components/PasswordRequirements.js",
       "source_location": "L3",
       "weight": 1.0,
@@ -6651,6 +8140,17 @@
       "confidence_score": 1.0,
       "source": "kineticapp_src_screens_onboarding_onboardingscreen_js",
       "target": "kineticapp_src_components_primarybutton_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L18",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "kineticapp_src_components_primarybutton_js",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports_from",
@@ -6920,6 +8420,17 @@
       "target": "kineticapp_src_contexts_authcontext_js"
     },
     {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "kineticapp_src_contexts_authcontext_js",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -6995,6 +8506,17 @@
       "confidence_score": 1.0,
       "source": "kineticapp_src_screens_onboarding_onboardingscreen_js",
       "target": "contexts_authcontext_authcontext"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "contexts_authcontext_authcontext",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -7149,6 +8671,17 @@
       "target": "kineticapp_src_contexts_themecontext_js"
     },
     {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "kineticapp_src_contexts_themecontext_js",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -7279,6 +8812,17 @@
       "confidence_score": 1.0,
       "source": "kineticapp_src_screens_onboarding_onboardingscreen_js",
       "target": "contexts_themecontext_themecontext"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "contexts_themecontext_themecontext",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports_from",
@@ -8663,6 +10207,339 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L542",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_onboardingscreen",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L691",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_styles",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "kineticapp_src_theme_colors_js",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "theme_colors_colors",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "kineticapp_src_services_api_js",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L24",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_authcontextvalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L28",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_goaltype",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L29",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_leveltype",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L31",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_onboardingform",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L41",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_goaldef",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L47",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_leveldef",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L53",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_progressdotsprops",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L58",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_stepgoalprops",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L64",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_stepmetricsprops",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L70",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_steplevelprops",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L76",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_stepfreqprops",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L82",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_stepanamnesisprops",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L88",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_stepgeneratingprops",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L94",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_goals",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L100",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_levels",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L106",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_days_labels",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L108",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_gen_steps",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L118",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_goal_api_map",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L124",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_level_api_map",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L131",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_progressdots",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L153",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_stepgoal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L186",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_stepmetrics",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L282",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_steplevel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L315",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_stepfreq",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L379",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_medical_chips",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L382",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_buildmedicalvalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L388",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_stepanamnesis",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
+      "source_location": "L492",
+      "weight": 1.0,
+      "source": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
+      "target": "onboarding_onboardingscreen_stepgenerating",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "KineticApp/src/services/api.js",
       "source_location": "L8",
       "weight": 1.0,
@@ -9033,8 +10910,18 @@
       "source_location": "L1",
       "weight": 1.0,
       "source": "claude_md",
-      "target": "kinect_claude_graphify",
+      "target": "kinectapp_claude_graphify",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "claude_md",
+      "target": "kinect_claude_graphify"
     },
     {
       "relation": "contains",
@@ -9043,8 +10930,18 @@
       "source_location": "L1",
       "weight": 1.0,
       "source": "gemini_md",
-      "target": "kinect_gemini_graphify",
+      "target": "kinectapp_gemini_graphify",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "GEMINI.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gemini_md",
+      "target": "kinect_gemini_graphify"
     },
     {
       "relation": "contains",
@@ -9052,9 +10949,9 @@
       "source_file": "Plan/BackendPlan.md",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_backendplan_md",
-      "target": "plan_backendplan_instru_es_de_sistema_arquiteto_back_end_java_kinetic_app",
-      "confidence_score": 1.0
+      "target": "plan_backendplan_instru_es_de_sistema_arquiteto_back_end_java_kinetic_app"
     },
     {
       "relation": "contains",
@@ -9062,9 +10959,9 @@
       "source_file": "Plan/BackendPlan.md",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_backendplan_instru_es_de_sistema_arquiteto_back_end_java_kinetic_app",
-      "target": "plan_backendplan_contexto_e_arquitetura",
-      "confidence_score": 1.0
+      "target": "plan_backendplan_contexto_e_arquitetura"
     },
     {
       "relation": "contains",
@@ -9072,9 +10969,9 @@
       "source_file": "Plan/BackendPlan.md",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_backendplan_instru_es_de_sistema_arquiteto_back_end_java_kinetic_app",
-      "target": "plan_backendplan_stack_tecnol_gico_obrigat_rio",
-      "confidence_score": 1.0
+      "target": "plan_backendplan_stack_tecnol_gico_obrigat_rio"
     },
     {
       "relation": "contains",
@@ -9082,9 +10979,9 @@
       "source_file": "Plan/BackendPlan.md",
       "source_location": "L15",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_backendplan_instru_es_de_sistema_arquiteto_back_end_java_kinetic_app",
-      "target": "plan_backendplan_padr_es_de_c_digo_e_clean_architecture",
-      "confidence_score": 1.0
+      "target": "plan_backendplan_padr_es_de_c_digo_e_clean_architecture"
     },
     {
       "relation": "contains",
@@ -9092,9 +10989,9 @@
       "source_file": "Plan/BackendPlan.md",
       "source_location": "L23",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_backendplan_instru_es_de_sistema_arquiteto_back_end_java_kinetic_app",
-      "target": "plan_backendplan_roadmap_de_execu_o_modo_ag_ntico",
-      "confidence_score": 1.0
+      "target": "plan_backendplan_roadmap_de_execu_o_modo_ag_ntico"
     },
     {
       "relation": "contains",
@@ -9102,9 +10999,9 @@
       "source_file": "Plan/BackendPlan.md",
       "source_location": "L27",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_backendplan_roadmap_de_execu_o_modo_ag_ntico",
-      "target": "plan_backendplan_fase_1_funda_o_e_conex_o_com_supabase",
-      "confidence_score": 1.0
+      "target": "plan_backendplan_fase_1_funda_o_e_conex_o_com_supabase"
     },
     {
       "relation": "contains",
@@ -9112,9 +11009,9 @@
       "source_file": "Plan/BackendPlan.md",
       "source_location": "L32",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_backendplan_roadmap_de_execu_o_modo_ag_ntico",
-      "target": "plan_backendplan_fase_2_entidade_de_autentica_o_traditional_login",
-      "confidence_score": 1.0
+      "target": "plan_backendplan_fase_2_entidade_de_autentica_o_traditional_login"
     },
     {
       "relation": "contains",
@@ -9122,9 +11019,9 @@
       "source_file": "Plan/BackendPlan.md",
       "source_location": "L37",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_backendplan_roadmap_de_execu_o_modo_ag_ntico",
-      "target": "plan_backendplan_fase_3_controllers_de_entrada",
-      "confidence_score": 1.0
+      "target": "plan_backendplan_fase_3_controllers_de_entrada"
     },
     {
       "relation": "contains",
@@ -9132,9 +11029,9 @@
       "source_file": "Plan/CLAUDE.md",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_claude_md",
-      "target": "plan_claude_plano_de_implementa_o_back_end_api_de_estat_sticas_get_stats_summary",
-      "confidence_score": 1.0
+      "target": "plan_claude_plano_de_implementa_o_back_end_api_de_estat_sticas_get_stats_summary"
     },
     {
       "relation": "contains",
@@ -9142,9 +11039,9 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_design1_md",
-      "target": "plan_design1_design_system_specification_high_performance_athleticism",
-      "confidence_score": 1.0
+      "target": "plan_design1_design_system_specification_high_performance_athleticism"
     },
     {
       "relation": "contains",
@@ -9152,9 +11049,9 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_design1_design_system_specification_high_performance_athleticism",
-      "target": "plan_design1_1_overview_creative_north_star_the_digital_kineticist",
-      "confidence_score": 1.0
+      "target": "plan_design1_1_overview_creative_north_star_the_digital_kineticist"
     },
     {
       "relation": "contains",
@@ -9162,9 +11059,9 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_design1_design_system_specification_high_performance_athleticism",
-      "target": "plan_design1_2_colors_tonal_depth_the_neon_pulse",
-      "confidence_score": 1.0
+      "target": "plan_design1_2_colors_tonal_depth_the_neon_pulse"
     },
     {
       "relation": "contains",
@@ -9172,9 +11069,9 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L34",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_design1_design_system_specification_high_performance_athleticism",
-      "target": "plan_design1_3_typography_editorial_authority",
-      "confidence_score": 1.0
+      "target": "plan_design1_3_typography_editorial_authority"
     },
     {
       "relation": "contains",
@@ -9182,9 +11079,9 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L47",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_design1_design_system_specification_high_performance_athleticism",
-      "target": "plan_design1_4_elevation_depth_tonal_layering",
-      "confidence_score": 1.0
+      "target": "plan_design1_4_elevation_depth_tonal_layering"
     },
     {
       "relation": "contains",
@@ -9192,9 +11089,9 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L56",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_design1_design_system_specification_high_performance_athleticism",
-      "target": "plan_design1_5_components_the_athletic_kit",
-      "confidence_score": 1.0
+      "target": "plan_design1_5_components_the_athletic_kit"
     },
     {
       "relation": "contains",
@@ -9202,9 +11099,9 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L77",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_design1_design_system_specification_high_performance_athleticism",
-      "target": "plan_design1_6_do_s_and_don_ts",
-      "confidence_score": 1.0
+      "target": "plan_design1_6_do_s_and_don_ts"
     },
     {
       "relation": "contains",
@@ -9212,9 +11109,9 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_design1_2_colors_tonal_depth_the_neon_pulse",
-      "target": "plan_design1_palette_highlights",
-      "confidence_score": 1.0
+      "target": "plan_design1_palette_highlights"
     },
     {
       "relation": "contains",
@@ -9222,9 +11119,9 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L19",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_design1_2_colors_tonal_depth_the_neon_pulse",
-      "target": "plan_design1_the_no_line_rule",
-      "confidence_score": 1.0
+      "target": "plan_design1_the_no_line_rule"
     },
     {
       "relation": "contains",
@@ -9232,9 +11129,9 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L22",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_design1_2_colors_tonal_depth_the_neon_pulse",
-      "target": "plan_design1_surface_hierarchy_nesting",
-      "confidence_score": 1.0
+      "target": "plan_design1_surface_hierarchy_nesting"
     },
     {
       "relation": "contains",
@@ -9242,9 +11139,9 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L29",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_design1_2_colors_tonal_depth_the_neon_pulse",
-      "target": "plan_design1_the_glass_gradient_rule",
-      "confidence_score": 1.0
+      "target": "plan_design1_the_glass_gradient_rule"
     },
     {
       "relation": "contains",
@@ -9252,9 +11149,9 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L58",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_design1_5_components_the_athletic_kit",
-      "target": "plan_design1_buttons_the_kinetic_drivers",
-      "confidence_score": 1.0
+      "target": "plan_design1_buttons_the_kinetic_drivers"
     },
     {
       "relation": "contains",
@@ -9262,9 +11159,9 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L63",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_design1_5_components_the_athletic_kit",
-      "target": "plan_design1_cards_lists_the_performance_modules",
-      "confidence_score": 1.0
+      "target": "plan_design1_cards_lists_the_performance_modules"
     },
     {
       "relation": "contains",
@@ -9272,9 +11169,9 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L67",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_design1_5_components_the_athletic_kit",
-      "target": "plan_design1_input_fields",
-      "confidence_score": 1.0
+      "target": "plan_design1_input_fields"
     },
     {
       "relation": "contains",
@@ -9282,9 +11179,9 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L71",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_design1_5_components_the_athletic_kit",
-      "target": "plan_design1_specialized_fitness_components",
-      "confidence_score": 1.0
+      "target": "plan_design1_specialized_fitness_components"
     },
     {
       "relation": "contains",
@@ -9292,9 +11189,9 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L79",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_design1_6_do_s_and_don_ts",
-      "target": "plan_design1_do",
-      "confidence_score": 1.0
+      "target": "plan_design1_do"
     },
     {
       "relation": "contains",
@@ -9302,9 +11199,9 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L85",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_design1_6_do_s_and_don_ts",
-      "target": "plan_design1_don_t",
-      "confidence_score": 1.0
+      "target": "plan_design1_don_t"
     },
     {
       "relation": "contains",
@@ -9312,9 +11209,9 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_plan_md",
-      "target": "plan_plan_plano_de_implementa_o_blindagem_de_dados_ux_e_dashboard_de_desempenho",
-      "confidence_score": 1.0
+      "target": "plan_plan_plano_de_implementa_o_blindagem_de_dados_ux_e_dashboard_de_desempenho"
     },
     {
       "relation": "contains",
@@ -9322,9 +11219,9 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_plan_plano_de_implementa_o_blindagem_de_dados_ux_e_dashboard_de_desempenho",
-      "target": "plan_plan_1_vis_o_geral",
-      "confidence_score": 1.0
+      "target": "plan_plan_1_vis_o_geral"
     },
     {
       "relation": "contains",
@@ -9332,9 +11229,9 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_plan_plano_de_implementa_o_blindagem_de_dados_ux_e_dashboard_de_desempenho",
-      "target": "plan_plan_2_refatora_o_back_end_blindagem_de_dados_java",
-      "confidence_score": 1.0
+      "target": "plan_plan_2_refatora_o_back_end_blindagem_de_dados_java"
     },
     {
       "relation": "contains",
@@ -9342,9 +11239,9 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L15",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_plan_plano_de_implementa_o_blindagem_de_dados_ux_e_dashboard_de_desempenho",
-      "target": "plan_plan_3_refatora_o_front_end_activesessionscreen_tsx_ux_e_valida_es",
-      "confidence_score": 1.0
+      "target": "plan_plan_3_refatora_o_front_end_activesessionscreen_tsx_ux_e_valida_es"
     },
     {
       "relation": "contains",
@@ -9352,9 +11249,9 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L38",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_plan_plano_de_implementa_o_blindagem_de_dados_ux_e_dashboard_de_desempenho",
-      "target": "plan_plan_4_statsscreen_e_evolu_o_mensal_typescript_gifted_charts",
-      "confidence_score": 1.0
+      "target": "plan_plan_4_statsscreen_e_evolu_o_mensal_typescript_gifted_charts"
     },
     {
       "relation": "contains",
@@ -9362,9 +11259,9 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L50",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_plan_plano_de_implementa_o_blindagem_de_dados_ux_e_dashboard_de_desempenho",
-      "target": "plan_plan_5_diretrizes_t_cnicas_para_o_agente_ide",
-      "confidence_score": 1.0
+      "target": "plan_plan_5_diretrizes_t_cnicas_para_o_agente_ide"
     },
     {
       "relation": "contains",
@@ -9372,9 +11269,9 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_plan_2_refatora_o_back_end_blindagem_de_dados_java",
-      "target": "plan_plan_a_atualiza_o_do_setlogdto_java",
-      "confidence_score": 1.0
+      "target": "plan_plan_a_atualiza_o_do_setlogdto_java"
     },
     {
       "relation": "contains",
@@ -9382,9 +11279,9 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L18",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_plan_3_refatora_o_front_end_activesessionscreen_tsx_ux_e_valida_es",
-      "target": "plan_plan_a_valida_o_individual_de_s_rie_bot_o_check",
-      "confidence_score": 1.0
+      "target": "plan_plan_a_valida_o_individual_de_s_rie_bot_o_check"
     },
     {
       "relation": "contains",
@@ -9392,9 +11289,9 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L25",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_plan_3_refatora_o_front_end_activesessionscreen_tsx_ux_e_valida_es",
-      "target": "plan_plan_b_novo_bot_o_sair_da_sess_o_texto_cinzento",
-      "confidence_score": 1.0
+      "target": "plan_plan_b_novo_bot_o_sair_da_sess_o_texto_cinzento"
     },
     {
       "relation": "contains",
@@ -9402,9 +11299,9 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L34",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_plan_3_refatora_o_front_end_activesessionscreen_tsx_ux_e_valida_es",
-      "target": "plan_plan_c_bot_o_principal_finalizar_treino_ciano",
-      "confidence_score": 1.0
+      "target": "plan_plan_c_bot_o_principal_finalizar_treino_ciano"
     },
     {
       "relation": "contains",
@@ -9412,9 +11309,9 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L41",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_plan_4_statsscreen_e_evolu_o_mensal_typescript_gifted_charts",
-      "target": "plan_plan_a_dashboards_visuais_statsscreen_tsx",
-      "confidence_score": 1.0
+      "target": "plan_plan_a_dashboards_visuais_statsscreen_tsx"
     },
     {
       "relation": "contains",
@@ -9422,9 +11319,9 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L46",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_plan_4_statsscreen_e_evolu_o_mensal_typescript_gifted_charts",
-      "target": "plan_plan_b_evolutionmodal_tsx_gatilho_de_30_dias",
-      "confidence_score": 1.0
+      "target": "plan_plan_b_evolutionmodal_tsx_gatilho_de_30_dias"
     },
     {
       "relation": "contains",
@@ -9432,9 +11329,9 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_plano_md",
-      "target": "plan_plano_plano_de_implementa_o_check_in_din_mico_e_tracking_mensal",
-      "confidence_score": 1.0
+      "target": "plan_plano_plano_de_implementa_o_check_in_din_mico_e_tracking_mensal"
     },
     {
       "relation": "contains",
@@ -9442,9 +11339,9 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_plano_plano_de_implementa_o_check_in_din_mico_e_tracking_mensal",
-      "target": "plan_plano_1_vis_o_geral",
-      "confidence_score": 1.0
+      "target": "plan_plano_1_vis_o_geral"
     },
     {
       "relation": "contains",
@@ -9452,9 +11349,9 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_plano_plano_de_implementa_o_check_in_din_mico_e_tracking_mensal",
-      "target": "plan_plano_2_regras_de_neg_cio_e_l_gica_matem_tica",
-      "confidence_score": 1.0
+      "target": "plan_plano_2_regras_de_neg_cio_e_l_gica_matem_tica"
     },
     {
       "relation": "contains",
@@ -9462,9 +11359,9 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_plano_plano_de_implementa_o_check_in_din_mico_e_tracking_mensal",
-      "target": "plan_plano_3_back_end_spring_boot_3_2_x_java_17",
-      "confidence_score": 1.0
+      "target": "plan_plano_3_back_end_spring_boot_3_2_x_java_17"
     },
     {
       "relation": "contains",
@@ -9472,9 +11369,9 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L29",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_plano_plano_de_implementa_o_check_in_din_mico_e_tracking_mensal",
-      "target": "plan_plano_4_front_end_react_native",
-      "confidence_score": 1.0
+      "target": "plan_plano_4_front_end_react_native"
     },
     {
       "relation": "contains",
@@ -9482,9 +11379,9 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_plano_3_back_end_spring_boot_3_2_x_java_17",
-      "target": "plan_plano_a_nova_entidade_e_tabela_workoutsession",
-      "confidence_score": 1.0
+      "target": "plan_plano_a_nova_entidade_e_tabela_workoutsession"
     },
     {
       "relation": "contains",
@@ -9492,9 +11389,9 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L17",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_plano_3_back_end_spring_boot_3_2_x_java_17",
-      "target": "plan_plano_b_novo_endpoint_de_registro",
-      "confidence_score": 1.0
+      "target": "plan_plano_b_novo_endpoint_de_registro"
     },
     {
       "relation": "contains",
@@ -9502,9 +11399,9 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L22",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_plano_3_back_end_spring_boot_3_2_x_java_17",
-      "target": "plan_plano_c_novo_endpoint_de_estat_sticas",
-      "confidence_score": 1.0
+      "target": "plan_plano_c_novo_endpoint_de_estat_sticas"
     },
     {
       "relation": "contains",
@@ -9512,9 +11409,9 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L31",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_plano_4_front_end_react_native",
-      "target": "plan_plano_a_gerenciamento_de_estado_usestate",
-      "confidence_score": 1.0
+      "target": "plan_plano_a_gerenciamento_de_estado_usestate"
     },
     {
       "relation": "contains",
@@ -9522,9 +11419,9 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L36",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_plano_4_front_end_react_native",
-      "target": "plan_plano_b_hook_do_cron_metro_useeffect",
-      "confidence_score": 1.0
+      "target": "plan_plano_b_hook_do_cron_metro_useeffect"
     },
     {
       "relation": "contains",
@@ -9532,9 +11429,9 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L40",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_plano_4_front_end_react_native",
-      "target": "plan_plano_c_atualiza_o_da_ui_design_existente",
-      "confidence_score": 1.0
+      "target": "plan_plano_c_atualiza_o_da_ui_design_existente"
     },
     {
       "relation": "contains",
@@ -9542,8 +11439,168 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L45",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_plano_4_front_end_react_native",
-      "target": "plan_plano_d_integra_o_axios",
+      "target": "plan_plano_d_integra_o_axios"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Plan/PLANONBOARDING.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "plan_planonboarding_md",
+      "target": "plan_planonboarding_plano_de_refatora_o_onboarding_cl_nico_e_blindagem_do_prompt_ia",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Plan/PLANONBOARDING.md",
+      "source_location": "L42",
+      "weight": 1.0,
+      "source": "plan_planonboarding_md",
+      "target": "plan_planonboarding_adendo_ao_plano_persist_ncia_e_tratamento_de_exce_o_da_ia",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Plan/PLANONBOARDING.md",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "plan_planonboarding_plano_de_refatora_o_onboarding_cl_nico_e_blindagem_do_prompt_ia",
+      "target": "plan_planonboarding_1_vis_o_geral",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Plan/PLANONBOARDING.md",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "plan_planonboarding_plano_de_refatora_o_onboarding_cl_nico_e_blindagem_do_prompt_ia",
+      "target": "plan_planonboarding_2_refatora_o_back_end_java_spring_boot",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Plan/PLANONBOARDING.md",
+      "source_location": "L27",
+      "weight": 1.0,
+      "source": "plan_planonboarding_plano_de_refatora_o_onboarding_cl_nico_e_blindagem_do_prompt_ia",
+      "target": "plan_planonboarding_3_refatora_o_front_end_react_native_typescript",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Plan/PLANONBOARDING.md",
+      "source_location": "L38",
+      "weight": 1.0,
+      "source": "plan_planonboarding_plano_de_refatora_o_onboarding_cl_nico_e_blindagem_do_prompt_ia",
+      "target": "plan_planonboarding_4_diretrizes",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Plan/PLANONBOARDING.md",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "plan_planonboarding_2_refatora_o_back_end_java_spring_boot",
+      "target": "plan_planonboarding_a_atualiza_o_de_entidades_e_dtos",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Plan/PLANONBOARDING.md",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "plan_planonboarding_2_refatora_o_back_end_java_spring_boot",
+      "target": "plan_planonboarding_b_refatora_o_do_buildprompt_servi_o_de_ia",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Plan/PLANONBOARDING.md",
+      "source_location": "L29",
+      "weight": 1.0,
+      "source": "plan_planonboarding_3_refatora_o_front_end_react_native_typescript",
+      "target": "plan_planonboarding_a_nova_tela_etapa_no_onboarding_medicalhistoryscreen_tsx_ou_step_equivalente",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Plan/PLANONBOARDING.md",
+      "source_location": "L46",
+      "weight": 1.0,
+      "source": "plan_planonboarding_adendo_ao_plano_persist_ncia_e_tratamento_de_exce_o_da_ia",
+      "target": "plan_planonboarding_1_back_end_ajuste_na_entidade_user_jpa_hibernate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Plan/PLANOREFATORA\u00c7\u00c3O.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "plan_planorefatora_o_md",
+      "target": "plan_planorefatora_o_plano_de_refatora_o_onboarding_flow_react_tsx_estrito",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Plan/PLANOREFATORA\u00c7\u00c3O.md",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "plan_planorefatora_o_plano_de_refatora_o_onboarding_flow_react_tsx_estrito",
+      "target": "plan_planorefatora_o_objetivo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Plan/PLANOREFATORA\u00c7\u00c3O.md",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "plan_planorefatora_o_plano_de_refatora_o_onboarding_flow_react_tsx_estrito",
+      "target": "plan_planorefatora_o_diretrizes_de_tipagem_strict_typescript",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Plan/PLANOREFATORA\u00c7\u00c3O.md",
+      "source_location": "L26",
+      "weight": 1.0,
+      "source": "plan_planorefatora_o_plano_de_refatora_o_onboarding_flow_react_tsx_estrito",
+      "target": "plan_planorefatora_o_tarefa_1_substitui_o_de_idade_por_data_de_nascimento",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Plan/PLANOREFATORA\u00c7\u00c3O.md",
+      "source_location": "L32",
+      "weight": 1.0,
+      "source": "plan_planorefatora_o_plano_de_refatora_o_onboarding_flow_react_tsx_estrito",
+      "target": "plan_planorefatora_o_tarefa_2_cria_o_da_etapa_de_anamnese",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Plan/PLANOREFATORA\u00c7\u00c3O.md",
+      "source_location": "L38",
+      "weight": 1.0,
+      "source": "plan_planorefatora_o_plano_de_refatora_o_onboarding_flow_react_tsx_estrito",
+      "target": "plan_planorefatora_o_tarefa_3_atualiza_o_do_controlador_principal_onboardingflow",
       "confidence_score": 1.0
     },
     {
@@ -9552,9 +11609,9 @@
       "source_file": "Plan/SOLUCAO.md",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_solucao_md",
-      "target": "plan_solucao_plano_de_debug_resolu_o_da_quebra_silenciosa_na_gera_o_de_treino",
-      "confidence_score": 1.0
+      "target": "plan_solucao_plano_de_debug_resolu_o_da_quebra_silenciosa_na_gera_o_de_treino"
     },
     {
       "relation": "contains",
@@ -9562,9 +11619,9 @@
       "source_file": "Plan/SOLUCAO.md",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_solucao_plano_de_debug_resolu_o_da_quebra_silenciosa_na_gera_o_de_treino",
-      "target": "plan_solucao_1_contexto_do_problema",
-      "confidence_score": 1.0
+      "target": "plan_solucao_1_contexto_do_problema"
     },
     {
       "relation": "contains",
@@ -9572,9 +11629,9 @@
       "source_file": "Plan/SOLUCAO.md",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_solucao_plano_de_debug_resolu_o_da_quebra_silenciosa_na_gera_o_de_treino",
-      "target": "plan_solucao_2_suspeitos_principais",
-      "confidence_score": 1.0
+      "target": "plan_solucao_2_suspeitos_principais"
     },
     {
       "relation": "contains",
@@ -9582,9 +11639,9 @@
       "source_file": "Plan/SOLUCAO.md",
       "source_location": "L12",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_solucao_plano_de_debug_resolu_o_da_quebra_silenciosa_na_gera_o_de_treino",
-      "target": "plan_solucao_3_a_es_exigidas_para_a_ia_passo_a_passo_do_debug",
-      "confidence_score": 1.0
+      "target": "plan_solucao_3_a_es_exigidas_para_a_ia_passo_a_passo_do_debug"
     },
     {
       "relation": "contains",
@@ -9592,9 +11649,9 @@
       "source_file": "Plan/SOLUCAO.md",
       "source_location": "L14",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_solucao_3_a_es_exigidas_para_a_ia_passo_a_passo_do_debug",
-      "target": "plan_solucao_a_adicionar_logs_de_rastreamento_tracing",
-      "confidence_score": 1.0
+      "target": "plan_solucao_a_adicionar_logs_de_rastreamento_tracing"
     },
     {
       "relation": "contains",
@@ -9602,9 +11659,9 @@
       "source_file": "Plan/SOLUCAO.md",
       "source_location": "L22",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_solucao_3_a_es_exigidas_para_a_ia_passo_a_passo_do_debug",
-      "target": "plan_solucao_b_blindar_o_recebimento_da_data",
-      "confidence_score": 1.0
+      "target": "plan_solucao_b_blindar_o_recebimento_da_data"
     },
     {
       "relation": "contains",
@@ -9612,11 +11669,11 @@
       "source_file": "Plan/SOLUCAO.md",
       "source_location": "L26",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plan_solucao_3_a_es_exigidas_para_a_ia_passo_a_passo_do_debug",
-      "target": "plan_solucao_c_expor_a_exce_o_raiz",
-      "confidence_score": 1.0
+      "target": "plan_solucao_c_expor_a_exce_o_raiz"
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "f565e7f18055b58379ac8c63800caf88e49669f9"
+  "built_at_commit": "818e83475751485f39d3867fcea483dabae3f6da"
 }
