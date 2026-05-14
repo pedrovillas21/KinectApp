@@ -60,7 +60,8 @@ public class WorkoutService {
                 request.weight(),
                 heightCm,
                 request.goal(),
-                request.frequency()
+                request.frequency(),
+                request.medicalConditions()
         );
 
         log.info("Resposta do Gemini recebida com sucesso. Salvando entidades...");
@@ -109,6 +110,9 @@ public class WorkoutService {
         user.setGoal(request.goal());
         user.setFrequency(request.frequency());
         user.setLevel(request.level());
+        if (request.medicalConditions() != null) {
+            user.setMedicalConditions(request.medicalConditions());
+        }
         userRepository.save(user);
 
         List<WorkoutPlan> savedPlans = workoutPlanRepository.saveAll(workoutPlansToSave);

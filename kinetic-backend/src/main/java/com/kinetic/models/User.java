@@ -44,4 +44,7 @@ public class User {
     private String goal;
 
     private Integer frequency;
+
+    @Column(columnDefinition = "TEXT")
+    private String medicalConditions;
 }

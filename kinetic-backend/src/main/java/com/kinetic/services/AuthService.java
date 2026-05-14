@@ -54,7 +54,8 @@ public class AuthService {
                 user.getWeight(),
                 user.getHeight(),
                 user.getGoal(),
-                user.getFrequency()
+                user.getFrequency(),
+                user.getMedicalConditions()
         );
     }
 
