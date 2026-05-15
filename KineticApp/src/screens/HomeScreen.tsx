@@ -1,393 +1,246 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
+  ActivityIndicator,
   ScrollView,
+  StyleSheet,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ThemeContext } from '../contexts/ThemeContext';
-import { COLORS } from '../theme/colors';
+import { useFocusEffect } from '@react-navigation/native';
+
 import AppHeader from '../components/AppHeader';
+import HomeGreeting from '../components/home/HomeGreeting';
+import NextWorkoutCard from '../components/home/NextWorkoutCard';
+import AdherenceCard from '../components/home/AdherenceCard';
+import RankingCard from '../components/home/RankingCard';
+import WeeklyChart from '../components/home/WeeklyChart';
+import OnboardingPrompt from '../components/home/OnboardingPrompt';
+
+import { AuthContext } from '../contexts/AuthContext';
 import api from '../services/api';
-import { PieChart } from 'react-native-gifted-charts';
-import { HomeDashboardResponseDTO } from '../types';
+import { KINETIC } from '../theme/kinetic';
+import type {
+  HomeDashboardResponseDTO,
+  NextWorkoutDTO,
+  RankingEntryDTO,
+  WeeklyActivityPointDTO,
+} from '../types';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface LeaderboardEntry {
-  id: string;
-  name: string;
-  minutes: number;
-  rank: number;
-  medal: string;
+interface AuthContextShape {
+  currentUser: { id: string | number; nome?: string } | null;
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const LEADERS: LeaderboardEntry[] = [
-  { id: '1', name: 'Alex Sterling', minutes: 340, rank: 1, medal: '#FFD700' },
-  { id: '2', name: 'Marcus Chen',   minutes: 290, rank: 2, medal: '#C0C0C0' },
-  { id: '3', name: 'Sarah Jenkins', minutes: 215, rank: 3, medal: '#CD7F32' },
-  { id: '4', name: 'You',           minutes: 180, rank: 4, medal: 'transparent' },
-];
-
-const WEEK_DAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
-
-const EMPTY_DASHBOARD: HomeDashboardResponseDTO = {
-  completedSessions: 0,
-  targetSessions: 0,
-  efficiencyPercentage: 0,
-};
-
-// ─── Component ────────────────────────────────────────────────────────────────
+interface HomeNavigationProp {
+  navigate: (screen: string, params?: Record<string, unknown>) => void;
+}
 
 interface HomeScreenProps {
-  navigation: { navigate: (screen: string) => void };
+  navigation: HomeNavigationProp;
+}
+
+const FALLBACK_RANKING: RankingEntryDTO[] = [
+  {
+    id: 'rk-1',
+    position: 1,
+    name: 'Alex Sterling',
+    minutes: 340,
+    delta: 12,
+    online: true,
+    isCurrentUser: false,
+  },
+  {
+    id: 'rk-2',
+    position: 2,
+    name: 'Marcus Chen',
+    minutes: 290,
+    delta: -5,
+    online: false,
+    isCurrentUser: false,
+  },
+  {
+    id: 'rk-3',
+    position: 3,
+    name: 'Sarah Jenkins',
+    minutes: 215,
+    delta: 18,
+    online: true,
+    isCurrentUser: false,
+  },
+];
+
+const WEEK_DAYS_PT: ReadonlyArray<string> = [
+  'Dom',
+  'Seg',
+  'Ter',
+  'Qua',
+  'Qui',
+  'Sex',
+  'Sáb',
+];
+
+function buildEmptyWeek(todayIndex: number): WeeklyActivityPointDTO[] {
+  return WEEK_DAYS_PT.map((day, idx) => ({
+    day,
+    minutes: 0,
+    isToday: idx === todayIndex,
+  }));
+}
+
+function buildFallbackDashboard(firstName: string): HomeDashboardResponseDTO {
+  const todayIndex = new Date().getDay();
+  return {
+    workoutOnboardingCompleted: false,
+    userFirstName: firstName,
+    streakDays: 0,
+    completedSessions: 0,
+    targetSessions: 0,
+    efficiencyPercentage: 0,
+    nextWorkout: null,
+    ranking: FALLBACK_RANKING,
+    weeklyActivity: buildEmptyWeek(todayIndex),
+  };
+}
+
+function extractFirstName(fullName: string | undefined): string {
+  if (!fullName) return 'Atleta';
+  const [first] = fullName.trim().split(/\s+/);
+  return first || 'Atleta';
 }
 
 export default function HomeScreen({ navigation }: HomeScreenProps) {
-  const { isDarkMode } = useContext(ThemeContext);
+  const { currentUser } = useContext(AuthContext) as AuthContextShape;
+  const firstName = extractFirstName(currentUser?.nome);
 
-  const [dashboard, setDashboard] = useState<HomeDashboardResponseDTO>(EMPTY_DASHBOARD);
-  const [activityData] = useState<number[]>([0, 0, 0, 0, 0, 0, 0]);
+  const [dashboard, setDashboard] = useState<HomeDashboardResponseDTO>(() =>
+    buildFallbackDashboard(firstName),
+  );
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const fetchMonthlyStats = async (): Promise<void> => {
+  const loadDashboard = useCallback(async (): Promise<void> => {
     try {
-      const response = await api.get('/sessions/monthly-stats');
-      const raw = response.data;
+      const { data } = await api.get<HomeDashboardResponseDTO>('/home/dashboard');
       setDashboard({
-        completedSessions: Number(raw.completedSessions) || 0,
-        targetSessions: Number(raw.targetSessions) || 0,
-        efficiencyPercentage: Number(raw.efficiencyPercentage ?? raw.efficiency) || 0,
+        workoutOnboardingCompleted: Boolean(data.workoutOnboardingCompleted),
+        userFirstName: data.userFirstName || firstName,
+        streakDays: Number(data.streakDays) || 0,
+        completedSessions: Number(data.completedSessions) || 0,
+        targetSessions: Number(data.targetSessions) || 0,
+        efficiencyPercentage: Number(data.efficiencyPercentage) || 0,
+        nextWorkout: data.nextWorkout ?? null,
+        ranking: Array.isArray(data.ranking) ? data.ranking : FALLBACK_RANKING,
+        weeklyActivity:
+          Array.isArray(data.weeklyActivity) && data.weeklyActivity.length === 7
+            ? data.weeklyActivity
+            : buildEmptyWeek(new Date().getDay()),
       });
-    } catch (e) {
-      console.error('Erro ao carregar estatísticas mensais:', e);
+    } catch (error) {
+      console.warn(
+        '[HomeScreen] /home/dashboard indisponível, usando estado vazio:',
+        error,
+      );
+      setDashboard(buildFallbackDashboard(firstName));
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [firstName]);
 
   useEffect(() => {
-    fetchMonthlyStats();
-  }, []);
+    loadDashboard();
+  }, [loadDashboard]);
 
-  const todayIndex = new Date().getDay();
-  const visualEfficiency = Math.min(Math.max(dashboard.efficiencyPercentage, 0), 100);
+  useFocusEffect(
+    useCallback(() => {
+      loadDashboard();
+    }, [loadDashboard]),
+  );
 
-  const progressText =
-    dashboard.targetSessions === 0
-      ? 'Gere seu primeiro treino para definir sua meta!'
-      : `${dashboard.completedSessions} out of ${dashboard.targetSessions} sessions completed this month. Keep the momentum high.`;
+  const handleStartWorkout = useCallback(
+    (workout: NextWorkoutDTO): void => {
+      navigation.navigate('ActiveSession', {
+        workoutPlanId: workout.workoutPlanId,
+      });
+    },
+    [navigation],
+  );
 
-  const donutData = [
-    { value: visualEfficiency, color: '#00FFFF' },
-    { value: 100 - visualEfficiency, color: '#2A2A2A' },
-  ];
+  const handleGenerateWorkout = useCallback((): void => {
+    navigation.navigate('Train');
+  }, [navigation]);
 
-  const THEME = {
-    bg: isDarkMode ? COLORS.darkBackground : COLORS.lightBackground,
-    textPrimary: isDarkMode ? COLORS.textPrimaryDark : COLORS.textPrimaryLight,
-    textSec: isDarkMode ? COLORS.textSecondaryDark : COLORS.textSecondaryLight,
-    card: isDarkMode ? COLORS.darkCard : COLORS.lightCard,
-  };
+  const handleViewAllRanking = useCallback((): void => {
+    navigation.navigate('Social');
+  }, [navigation]);
+
+  const showOnboarding =
+    !dashboard.workoutOnboardingCompleted || dashboard.nextWorkout === null;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: THEME.bg }]}>
-      <AppHeader />
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <AppHeader streakDays={showOnboarding ? 0 : dashboard.streakDays} />
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-
-        {/* ── Monthly Progress ─────────────────────────────────────────── */}
-        <View style={styles.progressSection}>
-          <Text style={styles.sectionOverline}>MONTHLY PROGRESS</Text>
-          <Text style={[styles.titleLine, { color: THEME.textPrimary }]}>
-            You're crushing
-          </Text>
-          <Text style={[styles.titleLine, { color: THEME.textPrimary }]}>
-            the{' '}
-            <Text style={styles.titleKinetic}>Kinetic</Text>
-            {' '}pace.
-          </Text>
-          <Text style={styles.progressDesc}>{progressText}</Text>
-
-          <PieChart
-            donut
-            innerCircleColor={THEME.bg}
-            radius={70}
-            innerRadius={55}
-            data={donutData}
-            centerLabelComponent={() => (
-              <View style={styles.donutCenter}>
-                <Text style={styles.donutValue}>{visualEfficiency}%</Text>
-                <Text style={styles.donutEffLabel}>EFFICIENCY</Text>
-              </View>
-            )}
-          />
+      {isLoading ? (
+        <View style={styles.loading}>
+          <ActivityIndicator color={KINETIC.primary} />
         </View>
-
-        {/* ── Check-in Card ────────────────────────────────────────────── */}
-        <LinearGradient
-          colors={['#00E5FF', '#00daf3']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.checkinCard}
+      ) : (
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
         >
-          <View style={styles.checkIconCircle}>
-            <Text style={styles.checkIconText}>✓</Text>
-          </View>
+          {showOnboarding ? (
+            <OnboardingPrompt
+              name={dashboard.userFirstName || firstName}
+              onGenerateWorkout={handleGenerateWorkout}
+            />
+          ) : (
+            <>
+              <HomeGreeting
+                name={dashboard.userFirstName || firstName}
+                streakDays={dashboard.streakDays}
+              />
 
-          <Text style={styles.checkinTitle}>Check-in Now</Text>
-          <Text style={styles.checkinDesc}>Log your current session at the Arena</Text>
-
-          <TouchableOpacity
-            style={styles.startWorkoutBtn}
-            onPress={() => navigation.navigate('Train')}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.startWorkoutText}>START WORKOUT</Text>
-          </TouchableOpacity>
-        </LinearGradient>
-
-        {/* ── Leaderboard ──────────────────────────────────────────────── */}
-        <View style={styles.routineHeader}>
-          <View>
-            <Text style={styles.routineTitle}>KINECT LIDERSHIP</Text>
-            <Text style={styles.routineSub}>Competição semanal de tempo na arena.</Text>
-          </View>
-        </View>
-
-        <View style={[styles.leaderboardCard, { backgroundColor: THEME.card }]}>
-          {LEADERS.map((ldr, index) => (
-            <View
-              key={ldr.id}
-              style={[styles.leaderRow, index % 2 === 1 && styles.leaderRowAlt]}
-            >
-              <View style={styles.leaderRankCol}>
-                <Text style={[styles.leaderRankTxt, ldr.rank <= 3 && { color: ldr.medal }]}>
-                  {ldr.rank}o
-                </Text>
-              </View>
-              <View style={styles.leaderInfoCol}>
-                <Text style={styles.leaderName}>{ldr.name}</Text>
-                <Text style={styles.leaderMin}>{ldr.minutes} min</Text>
-              </View>
-              {ldr.rank <= 3 && (
-                <View style={[styles.medalDot, { backgroundColor: ldr.medal }]} />
+              {dashboard.nextWorkout && (
+                <NextWorkoutCard
+                  workout={dashboard.nextWorkout}
+                  onStart={() => handleStartWorkout(dashboard.nextWorkout!)}
+                />
               )}
-            </View>
-          ))}
-        </View>
 
-        {/* ── Weekly Activity ──────────────────────────────────────────── */}
-        <View style={[styles.statsCard, { backgroundColor: THEME.card }]}>
-          <Text style={styles.statsLabel}>WEEKLY ACTIVITY (MINUTES)</Text>
+              <AdherenceCard
+                completed={dashboard.completedSessions}
+                target={dashboard.targetSessions}
+              />
 
-          <View style={styles.chartContainer}>
-            {activityData.map((val, idx) => {
-              const maxVal = Math.max(...activityData, 60);
-              const height = (val / maxVal) * 80;
-              const isToday = idx === todayIndex;
+              <RankingCard
+                items={dashboard.ranking}
+                onPressViewAll={handleViewAllRanking}
+              />
 
-              return (
-                <View key={idx} style={styles.barCol}>
-                  <View style={styles.barWrap}>
-                    <View
-                      style={[
-                        styles.barFill,
-                        { height, backgroundColor: isToday ? COLORS.neonBlue : '#333' },
-                      ]}
-                    />
-                  </View>
-                  <Text style={[styles.barLabel, isToday && { color: COLORS.neonBlue }]}>
-                    {WEEK_DAYS[idx]}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
-        </View>
+              <WeeklyChart data={dashboard.weeklyActivity} />
+            </>
+          )}
 
-      </ScrollView>
+          <View style={styles.bottomSpacer} />
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  scrollContent: { paddingHorizontal: 24, paddingBottom: 40 },
-
-  // Progress section
-  progressSection: {
-    marginTop: 16,
-    alignItems: 'center',
-    marginBottom: 32,
+  container: {
+    flex: 1,
+    backgroundColor: KINETIC.bg,
   },
-  sectionOverline: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    letterSpacing: 1.5,
-    color: '#A0A0A0',
-    marginBottom: 12,
-    textTransform: 'uppercase',
-  },
-  titleLine: {
-    fontSize: 32,
-    fontStyle: 'italic',
-    fontWeight: '900',
-    lineHeight: 38,
-    textAlign: 'center',
-  },
-  titleKinetic: {
-    color: '#00E5FF',
-    fontStyle: 'italic',
-  },
-  progressDesc: {
-    color: '#A0A0A0',
-    textAlign: 'center',
-    fontSize: 13,
-    marginTop: 16,
-    marginBottom: 28,
-    lineHeight: 20,
-    paddingHorizontal: 20,
-  },
-  donutCenter: {
+  loading: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  donutValue: {
-    color: '#FFFFFF',
-    fontSize: 26,
-    fontWeight: '900',
+  scrollContent: {
+    paddingBottom: 24,
   },
-  donutEffLabel: {
-    color: '#A0A0A0',
-    fontSize: 9,
-    letterSpacing: 1,
-    fontWeight: '600',
-    marginTop: -2,
-  },
-
-  // Check-in card
-  checkinCard: {
-    borderRadius: 16,
-    padding: 28,
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  checkIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(0,0,0,0.12)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  checkIconText: {
-    color: '#131313',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  checkinTitle: {
-    color: '#131313',
-    fontSize: 20,
-    fontWeight: '800',
-    marginBottom: 6,
-  },
-  checkinDesc: {
-    color: 'rgba(0,0,0,0.55)',
-    fontSize: 13,
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  startWorkoutBtn: {
-    backgroundColor: '#131313',
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 30,
-    shadowColor: '#00daf3',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 32,
-    elevation: 4,
-  },
-  startWorkoutText: {
-    color: '#FFFFFF',
-    fontWeight: '800',
-    fontSize: 12,
-    letterSpacing: 1,
-  },
-
-  // Leaderboard
-  routineHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    marginBottom: 20,
-  },
-  routineTitle: {
-    color: COLORS.neonBlue,
-    fontSize: 18,
-    fontStyle: 'italic',
-    fontWeight: '900',
-    letterSpacing: 1,
-  },
-  routineSub: { color: '#888', fontSize: 12, marginTop: 4 },
-  leaderboardCard: {
-    borderRadius: 16,
-    paddingVertical: 8,
-    marginBottom: 32,
-  },
-  leaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  leaderRowAlt: {
-    backgroundColor: 'rgba(255,255,255,0.025)',
-  },
-  leaderRankCol: { width: 32, alignItems: 'center' },
-  leaderRankTxt: {
-    color: '#888',
-    fontSize: 16,
-    fontWeight: 'bold',
-    fontStyle: 'italic',
-  },
-  leaderInfoCol: { flex: 1, paddingLeft: 12 },
-  leaderName: { color: '#FFF', fontSize: 15, fontWeight: 'bold' },
-  leaderMin: { color: '#888', fontSize: 12, marginTop: 2 },
-  medalDot: { width: 12, height: 12, borderRadius: 6 },
-
-  // Weekly activity
-  statsCard: { borderRadius: 16, padding: 24 },
-  statsLabel: {
-    color: '#666',
-    fontSize: 10,
-    letterSpacing: 1,
-    fontWeight: 'bold',
-    marginBottom: 24,
-  },
-  chartContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
+  bottomSpacer: {
     height: 100,
-    marginTop: 8,
   },
-  barCol: { alignItems: 'center', width: 40 },
-  barWrap: {
-    height: 80,
-    justifyContent: 'flex-end',
-    width: 14,
-    backgroundColor: '#1C1C1C',
-    borderRadius: 7,
-    overflow: 'hidden',
-    marginBottom: 8,
-  },
-  barFill: { width: '100%', borderRadius: 7 },
-  barLabel: { color: '#888', fontSize: 9, fontWeight: 'bold' },
 });
