@@ -4,8 +4,8 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import { AuthContext } from '../contexts/AuthContext';
-import { ThemeContext } from '../contexts/ThemeContext';
 import CustomDrawerContent from '../components/CustomDrawerContent';
+import BottomTabBar from '../components/BottomTabBar';
 
 // Telas de Auth
 import LoginScreen from '../screens/Auth/LoginScreen';
@@ -30,18 +30,10 @@ const Tab = createBottomTabNavigator();
 const Drawer = createDrawerNavigator();
 
 function TabNavigator() {
-  const { isDarkMode } = useContext(ThemeContext);
   return (
     <Tab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: isDarkMode ? '#131313' : '#FFF',
-          borderTopColor: isDarkMode ? '#333' : '#E0E0E0',
-        },
-        tabBarActiveTintColor: '#00E5FF',
-        tabBarInactiveTintColor: '#888',
-      }}
+      screenOptions={{ headerShown: false }}
+      tabBar={(props) => <BottomTabBar {...props} />}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Train" component={WorkoutScreen} />

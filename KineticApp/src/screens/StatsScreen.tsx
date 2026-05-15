@@ -1040,7 +1040,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: CONTENT_PAD,
     paddingTop: 14,
-    paddingBottom: 48,
+    paddingBottom: 120,
   },
   card: {
     backgroundColor: T.card,
