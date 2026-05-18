@@ -11,6 +11,14 @@ export const AuthProvider = ({ children }) => {
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   const [workoutPlans, setWorkoutPlans] = useState([]);
 
+  // Onboarding é considerado completo quando o back-end tem os campos
+  // de perfil populados (goal/level). Isso evita perder o estado por troca
+  // de device, limpeza de cache ou inconsistência da chave por usuário.
+  const isOnboardedFromUser = (user) => {
+    if (!user) return false;
+    return Boolean(user.goal) && Boolean(user.level);
+  };
+
   // Ao iniciar o app, verifica se há sessão salva no AsyncStorage
   useEffect(() => {
     const loadStoredSession = async () => {
@@ -20,11 +28,9 @@ export const AuthProvider = ({ children }) => {
 
         if (token && userJson) {
           const user = JSON.parse(userJson);
-          // Chave de onboarding por usuário (evita vazamento entre contas)
-          const onboarded = await AsyncStorage.getItem(`@kinetic_onboarded_${user.id}`);
           setCurrentUser(user);
           setIsLoggedIn(true);
-          setHasOnboarded(onboarded === 'true');
+          setHasOnboarded(isOnboardedFromUser(user));
         }
       } catch (e) {
         console.error('Erro ao carregar sessão:', e);
@@ -83,12 +89,9 @@ export const AuthProvider = ({ children }) => {
       await AsyncStorage.setItem('@kinetic_token', token);
       await AsyncStorage.setItem('@kinetic_user', JSON.stringify(userPayload));
 
-      // Chave de onboarding por usuário
-      const onboarded = await AsyncStorage.getItem(`@kinetic_onboarded_${id}`);
-
       setCurrentUser(userPayload);
       setIsLoggedIn(true);
-      setHasOnboarded(onboarded === 'true');
+      setHasOnboarded(isOnboardedFromUser(userPayload));
 
       return { success: true };
     } catch (e) {
@@ -124,27 +127,21 @@ export const AuthProvider = ({ children }) => {
       setWorkoutPlans(data.workoutPlans);
     }
 
-    // 1. Salva o nível como dado adicional do usuário, se informado
+    // Atualiza os dados de perfil em memória/AsyncStorage para refletir o que
+    // o back-end acabou de persistir durante a geração do treino.
     const profileFields = ['level', 'birthDate', 'weight', 'height', 'goal', 'frequency'];
-    const hasProfileUpdates = profileFields.some((field) => data?.[field] !== undefined);
-    if (hasProfileUpdates) {
-      const updatedUser = { ...currentUser };
-      profileFields.forEach((field) => {
-        if (data?.[field] !== undefined) {
-          updatedUser[field] = data[field];
-        }
-      });
-      setCurrentUser(updatedUser);
-      await AsyncStorage.setItem('@kinetic_user', JSON.stringify(updatedUser));
-    }
+    const updatedUser = { ...currentUser };
+    profileFields.forEach((field) => {
+      if (data?.[field] !== undefined) {
+        updatedUser[field] = data[field];
+      }
+    });
+    setCurrentUser(updatedUser);
+    await AsyncStorage.setItem('@kinetic_user', JSON.stringify(updatedUser));
 
-    // 2. Persiste per-user para evitar vazamento entre contas
-    const userId = currentUser?.id;
-    if (userId) {
-      await AsyncStorage.setItem(`@kinetic_onboarded_${userId}`, 'true');
-      // 3. Libera a navegação
-      setHasOnboarded(true);
-    }
+    // hasOnboarded agora é derivado do próprio perfil: se goal+level estão
+    // preenchidos, o servidor já reconhece o usuário como onboardado.
+    setHasOnboarded(isOnboardedFromUser(updatedUser));
   };
 
   const verifyEmail = async (email) => {

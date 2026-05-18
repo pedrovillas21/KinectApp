@@ -113,6 +113,7 @@ public class WorkoutService {
         if (request.medicalConditions() != null) {
             user.setMedicalConditions(request.medicalConditions());
         }
+        user.setWorkoutOnboardingCompleted(true);
         userRepository.save(user);
 
         List<WorkoutPlan> savedPlans = workoutPlanRepository.saveAll(workoutPlansToSave);

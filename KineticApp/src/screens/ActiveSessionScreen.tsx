@@ -20,6 +20,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
   const bgColor = '#121212'; 
 
   const workoutData = route?.params?.workoutData;
+  const workoutPlanId: string | undefined = route?.params?.workoutPlanId;
   const exercises = workoutData?.data ?? [];
 
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -173,7 +174,8 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
             const payload: LogSessionRequestDTO = {
               durationInSeconds: elapsedTime,
               date: new Date().toISOString().split('T')[0],
-              exercisesLog: allLogs
+              exercisesLog: allLogs,
+              workoutPlanId,
             };
 
             if (timerRef.current) clearInterval(timerRef.current);
@@ -217,7 +219,8 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
     const payload: LogSessionRequestDTO = {
       durationInSeconds: elapsedTime,
       date: new Date().toISOString().split('T')[0],
-      exercisesLog: finalLogs
+      exercisesLog: finalLogs,
+      workoutPlanId,
     };
 
     try {

@@ -9,6 +9,7 @@ export interface LogSessionRequestDTO {
   durationInSeconds: number;
   date: string; // ISO format YYYY-MM-DD
   exercisesLog: SetLogDto[];
+  workoutPlanId?: string;
 }
 
 export type StatsPeriodId = 'week' | 'month' | 'q' | 'year';
@@ -114,6 +115,21 @@ export interface WeeklyActivityPointDTO {
   minutes: number;
   /** True quando este ponto corresponde ao dia atual. */
   isToday: boolean;
+}
+
+/** Resposta crua de GET /api/sessions/weekly-activity. */
+export interface WeeklyActivityDayApiDTO {
+  /** Data no formato ISO YYYY-MM-DD. */
+  date: string;
+  /** Minutos treinados nesse dia (já agregados pelo back-end). */
+  minutes: number;
+}
+
+export interface WeeklyActivityApiResponseDTO {
+  weekStartDate: string;
+  weekEndDate: string;
+  totalMinutes: number;
+  days: WeeklyActivityDayApiDTO[];
 }
 
 export interface HomeDashboardResponseDTO {

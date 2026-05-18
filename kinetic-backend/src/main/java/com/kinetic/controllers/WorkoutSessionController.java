@@ -2,6 +2,7 @@ package com.kinetic.controllers;
 
 import com.kinetic.dtos.LogSessionRequestDTO;
 import com.kinetic.dtos.MonthlyStatsResponseDTO;
+import com.kinetic.dtos.WeeklyActivityResponseDTO;
 import com.kinetic.services.WorkoutSessionService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
@@ -40,5 +41,11 @@ public class WorkoutSessionController {
     public ResponseEntity<MonthlyStatsResponseDTO> getMonthlyStats() {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         return ResponseEntity.ok(workoutSessionService.getMonthlyStats(userEmail));
+    }
+
+    @GetMapping("/weekly-activity")
+    public ResponseEntity<WeeklyActivityResponseDTO> getWeeklyActivity() {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ResponseEntity.ok(workoutSessionService.getWeeklyActivity(userEmail));
     }
 }

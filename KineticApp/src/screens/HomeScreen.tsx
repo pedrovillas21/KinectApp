@@ -23,6 +23,7 @@ import type {
   HomeDashboardResponseDTO,
   NextWorkoutDTO,
   RankingEntryDTO,
+  WeeklyActivityApiResponseDTO,
   WeeklyActivityPointDTO,
 } from '../types';
 
@@ -38,6 +39,38 @@ interface HomeScreenProps {
   navigation: HomeNavigationProp;
 }
 
+// ─── Tipos do back-end existente ──────────────────────────────────────────────
+// O endpoint /api/workouts/my-plans devolve uma lista de planos. Mapeamos para
+// NextWorkoutDTO pegando o primeiro plano como "próxima ficha pendente"; a
+// lógica de ciclo completo é uma tarefa futura do back-end (cf. plano).
+interface ExerciseAPI {
+  id: string;
+  name: string;
+  muscles: string;
+  type: string;
+  sets: number;
+  reps: string;
+  weight: string;
+  restTime: string;
+}
+
+interface WorkoutPlanAPI {
+  id: string;
+  title: string;
+  subtitle?: string | null;
+  tag?: string | null;
+  level?: string | null;
+  createdAt?: string | null;
+  data: ExerciseAPI[];
+}
+
+interface MonthlyStatsAPI {
+  completedSessions: number;
+  targetSessions: number;
+  efficiency: number;
+}
+
+// ─── Constantes ──────────────────────────────────────────────────────────────
 const FALLBACK_RANKING: RankingEntryDTO[] = [
   {
     id: 'rk-1',
@@ -78,6 +111,7 @@ const WEEK_DAYS_PT: ReadonlyArray<string> = [
   'Sáb',
 ];
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 function buildEmptyWeek(todayIndex: number): WeeklyActivityPointDTO[] {
   return WEEK_DAYS_PT.map((day, idx) => ({
     day,
@@ -86,19 +120,30 @@ function buildEmptyWeek(todayIndex: number): WeeklyActivityPointDTO[] {
   }));
 }
 
-function buildFallbackDashboard(firstName: string): HomeDashboardResponseDTO {
-  const todayIndex = new Date().getDay();
-  return {
-    workoutOnboardingCompleted: false,
-    userFirstName: firstName,
-    streakDays: 0,
-    completedSessions: 0,
-    targetSessions: 0,
-    efficiencyPercentage: 0,
-    nextWorkout: null,
-    ranking: FALLBACK_RANKING,
-    weeklyActivity: buildEmptyWeek(todayIndex),
-  };
+/**
+ * Mapeia a resposta crua do back-end (datas + minutos) para os pontos consumidos
+ * pelo BarChart, marcando o dia atual com isToday. A ordem segue Domingo → Sábado.
+ */
+function mapWeeklyActivity(
+  response: WeeklyActivityApiResponseDTO,
+  todayIso: string,
+): WeeklyActivityPointDTO[] {
+  if (!Array.isArray(response.days) || response.days.length !== 7) {
+    return buildEmptyWeek(new Date().getDay());
+  }
+  return response.days.map((entry, idx) => ({
+    day: WEEK_DAYS_PT[idx],
+    minutes: Number(entry.minutes) || 0,
+    isToday: entry.date === todayIso,
+  }));
+}
+
+function todayIsoDate(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function extractFirstName(fullName: string | undefined): string {
@@ -107,42 +152,94 @@ function extractFirstName(fullName: string | undefined): string {
   return first || 'Atleta';
 }
 
+/**
+ * Converte o WorkoutPlan vindo do back-end no NextWorkoutDTO consumido pelo card.
+ * - duração estimada: ~1.2min por série (heurística; até o BE expor o campo).
+ * - grupos musculares: deduplicação preservando ordem dos exercícios.
+ */
+function mapPlanToNextWorkout(plan: WorkoutPlanAPI): NextWorkoutDTO {
+  const exercises = plan.data ?? [];
+  const totalSets = exercises.reduce((acc, ex) => acc + (ex.sets ?? 0), 0);
+  const durationInMinutes = Math.max(20, Math.round(totalSets * 1.2));
+
+  const muscleSet = new Set<string>();
+  const muscleGroups: string[] = [];
+  exercises.forEach(ex => {
+    const m = (ex.muscles ?? '').trim();
+    if (!m) return;
+    const key = m.toLowerCase();
+    if (!muscleSet.has(key)) {
+      muscleSet.add(key);
+      muscleGroups.push(m);
+    }
+  });
+
+  const tag = (plan.tag ?? plan.subtitle ?? 'TREINO').toUpperCase();
+  const name = plan.title || 'Próximo treino';
+
+  return {
+    tag,
+    name,
+    durationInMinutes,
+    exerciseCount: exercises.length,
+    muscleGroups: muscleGroups.length > 0 ? muscleGroups : ['Corpo inteiro'],
+    workoutPlanId: plan.id,
+  };
+}
+
 export default function HomeScreen({ navigation }: HomeScreenProps) {
   const { currentUser } = useContext(AuthContext) as AuthContextShape;
   const firstName = extractFirstName(currentUser?.nome);
 
-  const [dashboard, setDashboard] = useState<HomeDashboardResponseDTO>(() =>
-    buildFallbackDashboard(firstName),
+  const [plans, setPlans] = useState<WorkoutPlanAPI[]>([]);
+  const [completedSessions, setCompletedSessions] = useState<number>(0);
+  const [targetSessions, setTargetSessions] = useState<number>(0);
+  const [efficiency, setEfficiency] = useState<number>(0);
+  const [weeklyActivity, setWeeklyActivity] = useState<WeeklyActivityPointDTO[]>(
+    () => buildEmptyWeek(new Date().getDay()),
   );
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const loadDashboard = useCallback(async (): Promise<void> => {
-    try {
-      const { data } = await api.get<HomeDashboardResponseDTO>('/home/dashboard');
-      setDashboard({
-        workoutOnboardingCompleted: Boolean(data.workoutOnboardingCompleted),
-        userFirstName: data.userFirstName || firstName,
-        streakDays: Number(data.streakDays) || 0,
-        completedSessions: Number(data.completedSessions) || 0,
-        targetSessions: Number(data.targetSessions) || 0,
-        efficiencyPercentage: Number(data.efficiencyPercentage) || 0,
-        nextWorkout: data.nextWorkout ?? null,
-        ranking: Array.isArray(data.ranking) ? data.ranking : FALLBACK_RANKING,
-        weeklyActivity:
-          Array.isArray(data.weeklyActivity) && data.weeklyActivity.length === 7
-            ? data.weeklyActivity
-            : buildEmptyWeek(new Date().getDay()),
-      });
-    } catch (error) {
-      console.warn(
-        '[HomeScreen] /home/dashboard indisponível, usando estado vazio:',
-        error,
+    const [plansResult, statsResult, weeklyResult] = await Promise.allSettled([
+      api.get<WorkoutPlanAPI[]>('/workouts/my-plans'),
+      api.get<MonthlyStatsAPI>('/sessions/monthly-stats'),
+      api.get<WeeklyActivityApiResponseDTO>('/sessions/weekly-activity'),
+    ]);
+
+    if (plansResult.status === 'fulfilled') {
+      setPlans(
+        Array.isArray(plansResult.value.data) ? plansResult.value.data : [],
       );
-      setDashboard(buildFallbackDashboard(firstName));
-    } finally {
-      setIsLoading(false);
+    } else {
+      console.warn('[HomeScreen] /workouts/my-plans falhou:', plansResult.reason);
+      setPlans([]);
     }
-  }, [firstName]);
+
+    if (statsResult.status === 'fulfilled') {
+      const raw = statsResult.value.data;
+      setCompletedSessions(Number(raw.completedSessions) || 0);
+      setTargetSessions(Number(raw.targetSessions) || 0);
+      setEfficiency(Number(raw.efficiency) || 0);
+    } else {
+      console.warn(
+        '[HomeScreen] /sessions/monthly-stats falhou:',
+        statsResult.reason,
+      );
+    }
+
+    if (weeklyResult.status === 'fulfilled') {
+      setWeeklyActivity(mapWeeklyActivity(weeklyResult.value.data, todayIsoDate()));
+    } else {
+      console.warn(
+        '[HomeScreen] /sessions/weekly-activity falhou:',
+        weeklyResult.reason,
+      );
+      setWeeklyActivity(buildEmptyWeek(new Date().getDay()));
+    }
+
+    setIsLoading(false);
+  }, []);
 
   useEffect(() => {
     loadDashboard();
@@ -154,13 +251,30 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     }, [loadDashboard]),
   );
 
+  const nextWorkout: NextWorkoutDTO | null =
+    plans.length > 0 ? mapPlanToNextWorkout(plans[0]) : null;
+
+  const dashboard: HomeDashboardResponseDTO = {
+    workoutOnboardingCompleted: plans.length > 0,
+    userFirstName: firstName,
+    streakDays: 0,
+    completedSessions,
+    targetSessions,
+    efficiencyPercentage: efficiency,
+    nextWorkout,
+    ranking: FALLBACK_RANKING,
+    weeklyActivity,
+  };
+
   const handleStartWorkout = useCallback(
     (workout: NextWorkoutDTO): void => {
+      const plan = plans.find(p => p.id === workout.workoutPlanId) ?? plans[0];
       navigation.navigate('ActiveSession', {
+        workoutData: plan,
         workoutPlanId: workout.workoutPlanId,
       });
     },
-    [navigation],
+    [navigation, plans],
   );
 
   const handleGenerateWorkout = useCallback((): void => {
@@ -171,8 +285,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     navigation.navigate('Social');
   }, [navigation]);
 
-  const showOnboarding =
-    !dashboard.workoutOnboardingCompleted || dashboard.nextWorkout === null;
+  const showOnboarding = dashboard.nextWorkout === null;
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
@@ -189,13 +302,13 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         >
           {showOnboarding ? (
             <OnboardingPrompt
-              name={dashboard.userFirstName || firstName}
+              name={dashboard.userFirstName}
               onGenerateWorkout={handleGenerateWorkout}
             />
           ) : (
             <>
               <HomeGreeting
-                name={dashboard.userFirstName || firstName}
+                name={dashboard.userFirstName}
                 streakDays={dashboard.streakDays}
               />
 
@@ -241,6 +354,6 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   bottomSpacer: {
-    height: 100,
+    height: 140,
   },
 });
