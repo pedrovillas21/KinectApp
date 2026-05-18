@@ -1,8 +1,7 @@
 import React from 'react';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BlurView } from 'expo-blur';
 import Svg, { Circle, Path } from 'react-native-svg';
 
 const T = {
@@ -80,22 +79,8 @@ export default function BottomTabBar({
 
   return (
     <View
-      pointerEvents="box-none"
-      style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom, 12) }]}
+      style={[styles.wrapper, { bottom: insets.bottom + 8 }]}
     >
-      {Platform.OS === 'ios' ? (
-        <BlurView
-          intensity={32}
-          tint="dark"
-          style={StyleSheet.absoluteFill}
-        />
-      ) : (
-        <View
-          style={[StyleSheet.absoluteFill, styles.androidFallback]}
-          pointerEvents="none"
-        />
-      )}
-
       <View style={styles.row}>
         {state.routes.map((route, index) => {
           const meta =
@@ -159,15 +144,15 @@ export default function BottomTabBar({
 const styles = StyleSheet.create({
   wrapper: {
     position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
+    left: 12,
+    right: 12,
     paddingTop: 8,
-    paddingHorizontal: 12,
-    backgroundColor: 'transparent',
-  },
-  androidFallback: {
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    paddingBottom: 8,
+    paddingHorizontal: 4,
+    backgroundColor: T.bg,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   row: {
     flexDirection: 'row',
