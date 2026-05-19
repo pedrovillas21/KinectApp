@@ -110,8 +110,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
   const handleStartWorkout = useCallback(
     (workout: NextWorkoutDTO): void => {
-      const plan =
-        plans.find(p => p.id === workout.workoutPlanId) ?? plans[0];
+      const plan = plans.find(p => p.id === workout.workoutPlanId);
       if (!plan) return;
       navigation.navigate('ActiveSession', {
         workoutData: plan,

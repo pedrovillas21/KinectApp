@@ -263,7 +263,7 @@ function NextWorkoutCard({ workout }) {
 
 // ─── Adherence strip ───────────────────────────────────────────
 function AdherenceStrip({ done, total }) {
-  const pct = done / total;
+  const pct = total > 0 ? done / total : 0;
   const r = 26, circ = 2 * Math.PI * r;
   return (
     <div style={{
@@ -436,7 +436,7 @@ function WeeklyChart({ data }) {
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14,
       }}>
-        <div style={{ fontFamily: HK.font, fontSize: 13, fontWeight: 700, color: HK.text2, letterSpacing: 0.3, textTransform: 'uppercase', fontSize: 11 }}>
+        <div style={{ fontFamily: HK.font, fontSize: 11, fontWeight: 700, color: HK.text2, letterSpacing: 0.3, textTransform: 'uppercase' }}>
           Atividade da semana
         </div>
         <div style={{ fontFamily: HK.font, fontSize: 10, color: HK.text3, fontWeight: 500 }}>min</div>

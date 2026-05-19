@@ -17,6 +17,7 @@ function RankingRow({ item, isFirst }: RankingRowProps) {
   const posColor = rankingPositionColor(item.position);
   const chipBg = rankingPositionChipBg(item.position);
   const deltaPositive = item.delta > 0;
+  const deltaNeutral = item.delta === 0;
   const avatarLetter = item.name.charAt(0).toUpperCase();
 
   return (
@@ -59,10 +60,10 @@ function RankingRow({ item, isFirst }: RankingRowProps) {
           <Text
             style={[
               styles.delta,
-              { color: deltaPositive ? KINETIC.success : KINETIC.warn },
+              { color: deltaPositive ? KINETIC.success : deltaNeutral ? KINETIC.textDim : KINETIC.warn },
             ]}
           >
-            {deltaPositive ? '↑' : '↓'}
+            {deltaPositive ? '↑' : deltaNeutral ? '→' : '↓'}
             {Math.abs(item.delta)} vs semana passada
           </Text>
         </View>
@@ -92,14 +93,16 @@ export default function RankingCard({ items, onPressViewAll }: RankingCardProps)
           <Text style={styles.title}>Ranking da Arena</Text>
           <Text style={styles.subtitle}>Competição semanal · minutos na arena</Text>
         </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Ver tudo"
-          onPress={onPressViewAll}
-          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-        >
-          <Text style={styles.viewAll}>Ver tudo</Text>
-        </Pressable>
+        {onPressViewAll && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Ver tudo"
+            onPress={onPressViewAll}
+            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+          >
+            <Text style={styles.viewAll}>Ver tudo</Text>
+          </Pressable>
+        )}
       </View>
 
       <View style={styles.list}>

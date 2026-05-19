@@ -9,23 +9,14 @@ import {
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { COLORS } from '../theme/colors';
-
-const HK = {
-  bg: '#131313',
-  surface: '#1c1b1b',
-  text: '#f5f6f7',
-  textDim: 'rgba(245,246,247,0.62)',
-  gold: '#F5C518',
-  goldDim: 'rgba(245,197,24,0.12)',
-  goldBorder: 'rgba(245,197,24,0.25)',
-};
+import { KINETIC } from '../theme/kinetic';
 
 interface AppHeaderProps {
   /** Sequência atual de dias consecutivos. Quando > 0, exibe a chip de streak. */
   streakDays?: number;
   /** Callback do botão de notificações. */
   onPressNotifications?: () => void;
-  /** Quando true, oculta o badge de notificações (não-lidas). */
+  /** Quando true, exibe o badge de notificações não-lidas. */
   hasUnreadNotifications?: boolean;
 }
 
@@ -42,7 +33,7 @@ export default function AppHeader({
         {streakDays > 0 && (
           <View style={styles.streakChip}>
             <Svg width={12} height={12} viewBox="0 0 24 24">
-              <Path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill={HK.gold} />
+              <Path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill={KINETIC.gold} />
             </Svg>
             <Text style={styles.streakText}>{streakDays} dias</Text>
           </View>
@@ -59,7 +50,7 @@ export default function AppHeader({
             <Path
               d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"
               fill="none"
-              stroke={HK.textDim}
+              stroke={KINETIC.textDim}
               strokeWidth={1.8}
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -67,7 +58,7 @@ export default function AppHeader({
             <Path
               d="M13.73 21a2 2 0 01-3.46 0"
               fill="none"
-              stroke={HK.textDim}
+              stroke={KINETIC.textDim}
               strokeWidth={1.8}
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -89,10 +80,10 @@ const styles = StyleSheet.create({
     paddingTop:
       Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) + 14 : 14,
     paddingBottom: 14,
-    backgroundColor: HK.bg,
+    backgroundColor: KINETIC.bg,
   },
   brand: {
-    color: HK.text,
+    color: KINETIC.text,
     fontSize: 22,
     fontWeight: '900',
     letterSpacing: -0.5,
@@ -109,12 +100,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 999,
-    backgroundColor: HK.goldDim,
+    backgroundColor: 'rgba(245,197,24,0.12)',
     borderWidth: 1,
-    borderColor: HK.goldBorder,
+    borderColor: 'rgba(245,197,24,0.25)',
   },
   streakText: {
-    color: HK.gold,
+    color: KINETIC.gold,
     fontSize: 12,
     fontWeight: '700',
   },
@@ -122,7 +113,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 11,
-    backgroundColor: HK.surface,
+    backgroundColor: KINETIC.surface1,
     alignItems: 'center',
     justifyContent: 'center',
   },

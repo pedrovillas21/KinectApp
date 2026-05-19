@@ -48,6 +48,6 @@ public class User {
     @Column(columnDefinition = "TEXT")
     private String medicalConditions;
 
-    @Column(name = "workout_onboarding_completed", nullable = false)
+    @Column(name = "workout_onboarding_completed", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private Boolean workoutOnboardingCompleted = false;
 }

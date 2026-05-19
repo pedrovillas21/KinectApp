@@ -15,10 +15,11 @@ const RING_RADIUS = 26;
 const RING_CIRC = 2 * Math.PI * RING_RADIUS;
 
 export default function AdherenceCard({ completed, target }: AdherenceCardProps) {
+  const safeCompleted = Math.max(completed, 0);
   const safeTarget = Math.max(target, 1);
-  const ratio = Math.min(completed / safeTarget, 1);
+  const ratio = Math.min(safeCompleted / safeTarget, 1);
   const percent = Math.round(ratio * 100);
-  const remaining = Math.max(target - completed, 0);
+  const remaining = Math.max(target - safeCompleted, 0);
 
   return (
     <View style={styles.card}>

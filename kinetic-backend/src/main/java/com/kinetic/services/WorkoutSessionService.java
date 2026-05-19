@@ -78,14 +78,16 @@ public class WorkoutSessionService {
 
         UUID planId = request.workoutPlanId();
         if (planId != null) {
-            workoutPlanRepository.findById(planId).ifPresent(plan -> {
-                WorkoutExecutionLog log = new WorkoutExecutionLog();
-                log.setUser(user);
-                log.setWorkoutPlan(plan);
-                log.setCompletionDate(LocalDateTime.now());
-                log.setDurationMinutes((int) Math.round(request.durationInSeconds() / 60.0));
-                workoutExecutionLogRepository.save(log);
-            });
+            workoutPlanRepository.findById(planId)
+                    .filter(plan -> plan.getUser().getId().equals(user.getId()))
+                    .ifPresent(plan -> {
+                        WorkoutExecutionLog log = new WorkoutExecutionLog();
+                        log.setUser(user);
+                        log.setWorkoutPlan(plan);
+                        log.setCompletionDate(LocalDateTime.now());
+                        log.setDurationMinutes((int) Math.round(request.durationInSeconds() / 60.0));
+                        workoutExecutionLogRepository.save(log);
+                    });
         }
     }
 

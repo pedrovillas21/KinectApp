@@ -21,10 +21,12 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -102,7 +104,7 @@ public class HomeAggregatorService {
     }
 
     private NextWorkoutResponseDTO mapPlanToDTO(WorkoutPlan plan) {
-        List<Exercise> exercises = plan.getExercises();
+        List<Exercise> exercises = plan.getExercises() != null ? plan.getExercises() : List.of();
 
         int totalSets = exercises.stream()
                 .mapToInt(e -> e.getSets() != null ? e.getSets() : 0)
@@ -130,11 +132,14 @@ public class HomeAggregatorService {
     }
 
     private int calculateStreak(UUID userId) {
-        LocalDate date = LocalDate.now();
+        LocalDate today = LocalDate.now();
+        Set<LocalDate> sessionDates = new HashSet<>(
+                workoutSessionRepository.findSessionDatesByUserIdBetween(userId, today.minusDays(365), today)
+        );
         int streak = 0;
         for (int i = 0; i < 366; i++) {
-            LocalDate checkDate = date.minusDays(i);
-            if (workoutSessionRepository.existsByUserIdAndSessionDate(userId, checkDate)) {
+            LocalDate checkDate = today.minusDays(i);
+            if (sessionDates.contains(checkDate)) {
                 streak++;
             } else if (i > 0) {
                 // gap found after today — stop; if today has no session yet the streak still continues from yesterday

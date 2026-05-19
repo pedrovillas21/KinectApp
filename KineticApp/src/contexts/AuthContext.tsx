@@ -236,6 +236,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const completeOnboarding = async (
     data: CompleteOnboardingData,
   ): Promise<void> => {
+    if (!currentUser) return;
+
     if (Array.isArray(data?.workoutPlans)) {
       setWorkoutPlans(data.workoutPlans);
     }
@@ -252,7 +254,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const updatedUser: KineticUser = { ...currentUser } as KineticUser;
     for (const field of profileFields) {
       if (data?.[field] !== undefined) {
-        (updatedUser as Record<string, unknown>)[field] = data[field];
+        (updatedUser as unknown as Record<string, unknown>)[field] = data[field];
       }
     }
 
