@@ -19,10 +19,19 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
             LocalDate endDate
     );
 
+    boolean existsByUserIdAndSessionDate(UUID userId, LocalDate sessionDate);
+
     List<WorkoutSession> findByUserIdAndSessionDateBetween(
             UUID userId,
             LocalDate startDate,
             LocalDate endDate
+    );
+
+    @Query("SELECT ws.sessionDate FROM WorkoutSession ws WHERE ws.user.id = :userId AND ws.sessionDate BETWEEN :startDate AND :endDate")
+    List<LocalDate> findSessionDatesByUserIdBetween(
+            @Param("userId") UUID userId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
     );
 
     /** Contagem de sessões por usuário no intervalo — usado pelo CommunityStatsService para calcular a média global. */

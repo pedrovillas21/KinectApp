@@ -13,7 +13,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemeContext } from '../../contexts/ThemeContext';
 import { AuthContext } from '../../contexts/AuthContext';
 import { COLORS } from '../../theme/colors';
-import HeaderLogo from '../../components/HeaderLogo';
 import CustomInput from '../../components/CustomInput';
 import PrimaryButton from '../../components/PrimaryButton';
 import api from '../../services/api';
@@ -647,8 +646,6 @@ export default function OnboardingScreen() {
       )}
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <HeaderLogo showBack={false} title="" />
-
         {step === 0 && (
           <StepGoal value={form.goal} onChange={v => setForm({ ...form, goal: v })} isDark={isDark} />
         )}

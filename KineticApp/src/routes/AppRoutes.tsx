@@ -1,23 +1,18 @@
 import React, { useContext } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import { AuthContext } from '../contexts/AuthContext';
-import { ThemeContext } from '../contexts/ThemeContext';
-import CustomDrawerContent from '../components/CustomDrawerContent';
+import BottomTabBar from '../components/BottomTabBar';
 
-// Telas de Auth
 import LoginScreen from '../screens/Auth/LoginScreen';
 import RegisterScreen from '../screens/Auth/RegisterScreen';
 import ForgotPasswordScreen from '../screens/Auth/ForgotPasswordScreen';
 import VerifyCodeScreen from '../screens/Auth/VerifyCodeScreen';
 import ResetPasswordScreen from '../screens/Auth/ResetPasswordScreen';
 
-// Tela de Onboarding
 import OnboardingScreen from '../screens/Onboarding/OnboardingScreen';
 
-// Telas Main
 import HomeScreen from '../screens/HomeScreen';
 import WorkoutScreen from '../screens/WorkoutScreen';
 import StatsScreen from '../screens/StatsScreen';
@@ -25,23 +20,20 @@ import SocialScreen from '../screens/SocialScreen';
 import GearScreen from '../screens/GearScreen';
 import ActiveSessionScreen from '../screens/ActiveSessionScreen';
 
+interface AuthContextShape {
+  isLoggedIn: boolean;
+  hasOnboarded: boolean;
+  isLoadingAuth: boolean;
+}
+
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
-const Drawer = createDrawerNavigator();
 
-function TabNavigator() {
-  const { isDarkMode } = useContext(ThemeContext);
+function MainTabs(): React.ReactElement {
   return (
     <Tab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: isDarkMode ? '#131313' : '#FFF',
-          borderTopColor: isDarkMode ? '#333' : '#E0E0E0',
-        },
-        tabBarActiveTintColor: '#00E5FF',
-        tabBarInactiveTintColor: '#888',
-      }}
+      screenOptions={{ headerShown: false }}
+      tabBar={(props) => <BottomTabBar {...props} />}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Train" component={WorkoutScreen} />
@@ -52,22 +44,13 @@ function TabNavigator() {
   );
 }
 
-function DrawerNavigator() {
-  return (
-    <Drawer.Navigator 
-      drawerContent={(props) => <CustomDrawerContent {...props} />}
-      screenOptions={{ headerShown: false, drawerStyle: { backgroundColor: '#1A1A1A' } }}
-    >
-      <Drawer.Screen name="MainTabs" component={TabNavigator} />
-    </Drawer.Navigator>
-  );
-}
-
-export default function AppRoutes() {
-  const { isLoggedIn, hasOnboarded, isLoadingAuth } = useContext(AuthContext);
+export default function AppRoutes(): React.ReactElement | null {
+  const { isLoggedIn, hasOnboarded, isLoadingAuth } = useContext(
+    AuthContext,
+  ) as AuthContextShape;
 
   if (isLoadingAuth) {
-    return null; // Evita flicker enquanto o AsyncStorage carrega a sessão
+    return null;
   }
 
   if (!isLoggedIn) {
@@ -92,7 +75,7 @@ export default function AppRoutes() {
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Drawer" component={DrawerNavigator} />
+      <Stack.Screen name="MainTabs" component={MainTabs} />
       <Stack.Screen name="ActiveSession" component={ActiveSessionScreen} />
     </Stack.Navigator>
   );

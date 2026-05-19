@@ -9,6 +9,7 @@ export interface LogSessionRequestDTO {
   durationInSeconds: number;
   date: string; // ISO format YYYY-MM-DD
   exercisesLog: SetLogDto[];
+  workoutPlanId?: string;
 }
 
 export type StatsPeriodId = 'week' | 'month' | 'q' | 'year';
@@ -77,10 +78,76 @@ export interface StatsSummaryResponseDTO {
   insight: StatsInsightDTO;
 }
 
+export interface NextWorkoutDTO {
+  /** Tag exibida no card (ex.: "PUSH · DIA 3 DE 5"). */
+  tag: string;
+  /** Nome do treino (ex.: "Peito + Tríceps"). */
+  name: string;
+  /** Duração estimada em minutos. */
+  durationInMinutes: number;
+  /** Quantidade total de exercícios. */
+  exerciseCount: number;
+  /** Lista de grupos musculares trabalhados. */
+  muscleGroups: string[];
+  /** Identificador da ficha de treino (usado ao iniciar a sessão). */
+  workoutPlanId: string;
+}
+
+export interface RankingEntryDTO {
+  id: string;
+  /** Posição absoluta no ranking. */
+  position: number;
+  name: string;
+  /** Total de minutos na arena no período. */
+  minutes: number;
+  /** Delta de minutos vs. semana anterior. */
+  delta: number;
+  /** True quando o usuário está online. */
+  online: boolean;
+  /** True quando esta entrada é o próprio usuário. */
+  isCurrentUser: boolean;
+}
+
+export interface WeeklyActivityPointDTO {
+  /** Rótulo curto do dia (ex.: "Seg"). */
+  day: string;
+  /** Minutos treinados naquele dia. */
+  minutes: number;
+  /** True quando este ponto corresponde ao dia atual. */
+  isToday: boolean;
+}
+
+/** Resposta crua de GET /api/sessions/weekly-activity. */
+export interface WeeklyActivityDayApiDTO {
+  /** Data no formato ISO YYYY-MM-DD. */
+  date: string;
+  /** Minutos treinados nesse dia (já agregados pelo back-end). */
+  minutes: number;
+}
+
+export interface WeeklyActivityApiResponseDTO {
+  weekStartDate: string;
+  weekEndDate: string;
+  totalMinutes: number;
+  days: WeeklyActivityDayApiDTO[];
+}
+
 export interface HomeDashboardResponseDTO {
+  /** Status de onboarding do treino (back-end). */
+  workoutOnboardingCompleted: boolean;
+  /** Primeiro nome do usuário, usado na saudação. */
+  userFirstName: string;
+  /** Sequência atual de dias consecutivos. */
+  streakDays: number;
   completedSessions: number;
   targetSessions: number;
   efficiencyPercentage: number;
+  /** Próxima ficha pendente do ciclo. Null quando ainda não há treino gerado. */
+  nextWorkout: NextWorkoutDTO | null;
+  /** Top entradas do ranking semanal da arena. */
+  ranking: RankingEntryDTO[];
+  /** Pontos da semana corrente para o gráfico de barras. */
+  weeklyActivity: WeeklyActivityPointDTO[];
 }
 
 export interface UpdateWeightRequestDTO {

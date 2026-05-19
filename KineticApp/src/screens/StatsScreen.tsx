@@ -13,7 +13,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LineChart } from 'react-native-gifted-charts';
 import Svg, { Circle, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
 import {LinearGradient} from 'expo-linear-gradient';
-import AppHeader from '../components/AppHeader';
 import EvolutionModal from '../components/EvolutionModal';
 import api from '../services/api';
 import {
@@ -896,7 +895,6 @@ export default function StatsScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <AppHeader />
         <View style={styles.center}>
           <ActivityIndicator size="large" color={T.accent} />
         </View>
@@ -907,7 +905,6 @@ export default function StatsScreen() {
   if (!stats) {
     return (
       <SafeAreaView style={styles.container}>
-        <AppHeader />
         <ScrollView
           contentContainerStyle={styles.zeroContainer}
           refreshControl={
@@ -937,7 +934,6 @@ export default function StatsScreen() {
   if (!hasAnyVolume && !hasAnyWeight && stats.efficiencyPercentage === 0) {
     return (
       <SafeAreaView style={styles.container}>
-        <AppHeader />
         <ScrollView
           contentContainerStyle={styles.zeroContainer}
           refreshControl={
@@ -963,8 +959,6 @@ export default function StatsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <AppHeader />
-
       <View style={styles.topBar}>
         <View style={styles.titleRow}>
           <View>
@@ -1046,7 +1040,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: CONTENT_PAD,
     paddingTop: 14,
-    paddingBottom: 48,
+    paddingBottom: 120,
   },
   card: {
     backgroundColor: T.card,
