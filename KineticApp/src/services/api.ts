@@ -26,12 +26,6 @@ export const setSignOutHandler = (
 api.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     const token = await AsyncStorage.getItem('@kinetic_token');
-    console.log(
-      '[api] request:',
-      config.url,
-      '| token:',
-      token ? `${token.substring(0, 20)}...` : 'AUSENTE',
-    );
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

@@ -2,25 +2,28 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Circle, Path } from 'react-native-svg';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
+import Svg, { Circle, Path, Polyline } from 'react-native-svg';
 
 const T = {
-  bg: '#0a0d10',
-  text: '#f5f6f7',
-  text2: 'rgba(245,246,247,0.62)',
-  accent: '#1ee0ee',
-  accentDim: 'rgba(30,224,238,0.10)',
-  accentSoft: 'rgba(30,224,238,0.16)',
+  primary:    '#00E5FF',
+  primaryDim: 'rgba(0,229,255,0.10)',
+  primarySoft:'rgba(0,229,255,0.20)',
+  text3:      'rgba(245,246,247,0.36)',
 };
+
+const GRADIENT_COLORS    = ['rgba(19,19,19,0)', 'rgba(19,19,19,0.96)', '#131313'] as const;
+const GRADIENT_LOCATIONS: [number, number, number] = [0, 0.28, 1];
 
 type IconName = 'home' | 'train' | 'stats' | 'social' | 'profile';
 
 const ROUTE_META: Record<string, { label: string; icon: IconName }> = {
-  Home: { label: 'Início', icon: 'home' },
-  Train: { label: 'Treinar', icon: 'train' },
-  Stats: { label: 'Stats', icon: 'stats' },
-  Social: { label: 'Social', icon: 'social' },
-  Profile: { label: 'Perfil', icon: 'profile' },
+  Home:    { label: 'Home',    icon: 'home'    },
+  Train:   { label: 'Treinar', icon: 'train'   },
+  Stats:   { label: 'Stats',   icon: 'stats'   },
+  Social:  { label: 'Social',  icon: 'social'  },
+  Profile: { label: 'Perfil',  icon: 'profile' },
 };
 
 function TabIcon({ name, color }: { name: IconName; color: string }) {
@@ -36,7 +39,8 @@ function TabIcon({ name, color }: { name: IconName; color: string }) {
     case 'home':
       return (
         <Svg width={size} height={size} viewBox="0 0 24 24">
-          <Path d="M3.5 11 12 4l8.5 7V20a1 1 0 0 1-1 1h-4v-6h-7v6h-4a1 1 0 0 1-1-1v-9Z" {...common} />
+          <Path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" {...common} />
+          <Polyline points="9 22 9 12 15 12 15 22" {...common} />
         </Svg>
       );
     case 'train':
@@ -54,54 +58,50 @@ function TabIcon({ name, color }: { name: IconName; color: string }) {
     case 'social':
       return (
         <Svg width={size} height={size} viewBox="0 0 24 24">
-          <Circle cx="9" cy="8" r="3" {...common} />
-          <Path d="M3 20c0-3 3-5 6-5s6 2 6 5" {...common} />
-          <Circle cx="17" cy="9" r="2.5" {...common} />
-          <Path d="M14 20c0-2.5 2-4 3-4s4 1.5 4 4" {...common} />
+          <Path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" {...common} />
+          <Circle cx="9" cy="7" r="4" {...common} />
+          <Path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" {...common} />
         </Svg>
       );
     case 'profile':
       return (
         <Svg width={size} height={size} viewBox="0 0 24 24">
-          <Circle cx="12" cy="9" r="3.5" {...common} />
-          <Path d="M5 20c0-4 3-6 7-6s7 2 7 6" {...common} />
+          <Path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" {...common} />
+          <Circle cx="12" cy="7" r="4" {...common} />
         </Svg>
       );
   }
 }
 
-export default function BottomTabBar({
-  state,
-  descriptors,
-  navigation,
-}: BottomTabBarProps) {
+export default function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
 
   return (
     <View
-      style={[styles.wrapper, { bottom: insets.bottom + 8 }]}
+      pointerEvents="box-none"
+      style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom, 26) }]}
     >
+      {/* blur + gradient de fundo */}
+      <BlurView style={StyleSheet.absoluteFill} intensity={10} tint="dark" pointerEvents="none" />
+      <LinearGradient
+        colors={GRADIENT_COLORS}
+        locations={GRADIENT_LOCATIONS}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
+
       <View style={styles.row}>
         {state.routes.map((route, index) => {
-          const meta =
-            ROUTE_META[route.name] ?? { label: route.name, icon: 'home' as IconName };
+          const meta     = ROUTE_META[route.name] ?? { label: route.name, icon: 'home' as IconName };
           const isFocused = state.index === index;
-          const color = isFocused ? T.accent : T.text2;
+          const color     = isFocused ? T.primary : T.text3;
 
           const onPress = () => {
-            const event = navigation.emit({
-              type: 'tabPress',
-              target: route.key,
-              canPreventDefault: true,
-            });
-            if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name, route.params);
-            }
+            const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+            if (!isFocused && !event.defaultPrevented) navigation.navigate(route.name, route.params);
           };
 
-          const onLongPress = () => {
-            navigation.emit({ type: 'tabLongPress', target: route.key });
-          };
+          const onLongPress = () => navigation.emit({ type: 'tabLongPress', target: route.key });
 
           const { options } = descriptors[route.key];
 
@@ -119,18 +119,12 @@ export default function BottomTabBar({
               <View
                 style={[
                   styles.iconWrap,
-                  isFocused && {
-                    backgroundColor: T.accentDim,
-                    borderColor: T.accentSoft,
-                  },
+                  isFocused && { backgroundColor: T.primaryDim, borderColor: T.primarySoft },
                 ]}
               >
                 <TabIcon name={meta.icon} color={color} />
               </View>
-              <Text
-                style={[styles.label, { color }]}
-                numberOfLines={1}
-              >
+              <Text style={[styles.label, { color, fontWeight: isFocused ? '700' : '500' }]} numberOfLines={1}>
                 {meta.label}
               </Text>
             </Pressable>
@@ -144,29 +138,24 @@ export default function BottomTabBar({
 const styles = StyleSheet.create({
   wrapper: {
     position: 'absolute',
-    left: 12,
-    right: 12,
-    paddingTop: 8,
-    paddingBottom: 8,
-    paddingHorizontal: 4,
-    backgroundColor: T.bg,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    left: 0, right: 0, bottom: 0,
+    paddingTop: 0,
+    backgroundColor: 'transparent',
   },
   row: {
     flexDirection: 'row',
-    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingTop: 8,
   },
   tab: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 4,
-    gap: 4,
+    paddingVertical: 6,
+    gap: 3,
   },
   iconWrap: {
     paddingHorizontal: 14,
-    paddingVertical: 4,
+    paddingVertical: 5,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: 'transparent',
@@ -175,7 +164,6 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.4,
+    letterSpacing: 0.3,
   },
 });
