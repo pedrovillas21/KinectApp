@@ -17,7 +17,7 @@ import HomeScreen from '../screens/HomeScreen';
 import WorkoutScreen from '../screens/WorkoutScreen';
 import StatsScreen from '../screens/StatsScreen';
 import SocialScreen from '../screens/SocialScreen';
-import GearScreen from '../screens/GearScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 import ActiveSessionScreen from '../screens/ActiveSessionScreen';
 
 interface AuthContextShape {
@@ -39,7 +39,7 @@ function MainTabs(): React.ReactElement {
       <Tab.Screen name="Train" component={WorkoutScreen} />
       <Tab.Screen name="Stats" component={StatsScreen} />
       <Tab.Screen name="Social" component={SocialScreen} />
-      <Tab.Screen name="Profile" component={GearScreen} />
+      <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );
 }
