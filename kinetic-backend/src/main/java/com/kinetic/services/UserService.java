@@ -1,26 +1,39 @@
 package com.kinetic.services;
 
 import com.kinetic.dtos.UpdateWeightRequestDTO;
+import com.kinetic.dtos.UserProfileResponseDTO;
 import com.kinetic.models.User;
+import com.kinetic.models.UserLoginStreak;
 import com.kinetic.models.WeightHistory;
+import com.kinetic.repositories.UserLoginStreakRepository;
 import com.kinetic.repositories.UserRepository;
 import com.kinetic.repositories.WeightHistoryRepository;
+import com.kinetic.repositories.WorkoutExecutionLogRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
     private final WeightHistoryRepository weightHistoryRepository;
+    private final UserLoginStreakRepository userLoginStreakRepository;
+    private final WorkoutExecutionLogRepository workoutExecutionLogRepository;
 
-    public UserService(UserRepository userRepository, WeightHistoryRepository weightHistoryRepository) {
+    public UserService(UserRepository userRepository,
+                       WeightHistoryRepository weightHistoryRepository,
+                       UserLoginStreakRepository userLoginStreakRepository,
+                       WorkoutExecutionLogRepository workoutExecutionLogRepository) {
         this.userRepository = userRepository;
         this.weightHistoryRepository = weightHistoryRepository;
+        this.userLoginStreakRepository = userLoginStreakRepository;
+        this.workoutExecutionLogRepository = workoutExecutionLogRepository;
     }
 
     @Transactional
@@ -58,5 +71,52 @@ public class UserService {
                     return daysBetween >= 30;
                 })
                 .orElse(false);
+    }
+
+    @Transactional
+    public UserProfileResponseDTO getUserProfile(String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        recordDailyLogin(user);
+
+        LocalDate memberSince = user.getCreatedAt() != null ? user.getCreatedAt().toLocalDate() : null;
+        int streak = calculateConsecutiveLoginStreak(user);
+        int totalWorkouts = (int) workoutExecutionLogRepository.countByUser(user);
+
+        return new UserProfileResponseDTO(
+                user.getNome(),
+                user.getEmail(),
+                memberSince,
+                streak,
+                totalWorkouts,
+                user.getGoal()
+        );
+    }
+
+    private void recordDailyLogin(User user) {
+        LocalDate today = LocalDate.now();
+        if (userLoginStreakRepository.existsByUserAndLoginDate(user, today)) return;
+        UserLoginStreak entry = new UserLoginStreak();
+        entry.setUser(user);
+        entry.setLoginDate(today);
+        userLoginStreakRepository.save(entry);
+    }
+
+    private int calculateConsecutiveLoginStreak(User user) {
+        LocalDate today = LocalDate.now();
+        Set<LocalDate> loginDates = new HashSet<>(
+                userLoginStreakRepository.findLoginDatesByUserSince(user, today.minusDays(365))
+        );
+        int streak = 0;
+        for (int i = 0; i < 366; i++) {
+            LocalDate checkDate = today.minusDays(i);
+            if (loginDates.contains(checkDate)) {
+                streak++;
+            } else if (i > 0) {
+                break;
+            }
+        }
+        return streak;
     }
 }

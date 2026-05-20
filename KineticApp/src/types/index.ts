@@ -153,3 +153,12 @@ export interface HomeDashboardResponseDTO {
 export interface UpdateWeightRequestDTO {
   newWeight: number;
 }
+
+export interface UserProfileResponse {
+  fullName: string;
+  email: string;
+  memberSince: string;
+  consecutiveDaysLogged: number;
+  totalWorkoutsDone: number;
+  targetGoal: string;
+}

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Modal,
   Pressable,
   ScrollView,
@@ -11,6 +12,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KINETIC } from '../theme/kinetic';
 import Svg, { Circle, Path, Polygon, Polyline, Rect } from 'react-native-svg';
+import api from '../services/api';
+import { UserProfileResponse } from '../types';
+import { formatMemberSince, formatProfileName } from '../utils/formatters';
 
 // ─── Mock user ────────────────────────────────────────────────
 const USER = {
@@ -243,7 +247,17 @@ function Row({ icon, label, value, sub, onPress, accent, danger, badge }: RowPro
 }
 
 // ─── Identity Hero ────────────────────────────────────────────
-function IdentityHero({ user }: { user: typeof USER }) {
+interface HeroUserData {
+  name: string;
+  email: string;
+  memberSince: string;
+  initial: string;
+  streak: number;
+  totalWorkouts: number;
+  goalLabel: string;
+}
+
+function IdentityHero({ user }: { user: HeroUserData }) {
   const goalWord = user.goalLabel.split(' ')[0];
   const goalRest = user.goalLabel.split(' ').slice(1).join(' ');
 
@@ -437,7 +451,44 @@ function LogoutSheet({ open, onCancel, onConfirm }: { open: boolean; onCancel: (
 // ─── Screen ───────────────────────────────────────────────────
 export default function ProfileScreen() {
   const [logoutOpen, setLogoutOpen] = useState(false);
+  const [profileData, setProfileData] = useState<UserProfileResponse | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const user = USER;
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setIsLoading(true);
+        const response = await api.get<UserProfileResponse>('/users/profile');
+        setProfileData(response.data);
+      } catch (error) {
+        console.error('Erro ao carregar dados do perfil:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  const heroData: HeroUserData = profileData
+    ? {
+        name: formatProfileName(profileData.fullName),
+        email: profileData.email,
+        memberSince: formatMemberSince(profileData.memberSince),
+        initial: profileData.fullName.trim().charAt(0).toUpperCase(),
+        streak: profileData.consecutiveDaysLogged,
+        totalWorkouts: profileData.totalWorkoutsDone,
+        goalLabel: profileData.targetGoal,
+      }
+    : {
+        name: user.name,
+        email: user.email,
+        memberSince: user.memberSince,
+        initial: user.initial,
+        streak: user.streak,
+        totalWorkouts: user.totalWorkouts,
+        goalLabel: user.goalLabel,
+      };
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
@@ -454,7 +505,13 @@ export default function ProfileScreen() {
         contentContainerStyle={s.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <IdentityHero user={user} />
+        {isLoading ? (
+          <View style={s.heroLoadingPlaceholder}>
+            <ActivityIndicator size="small" color={KINETIC.primary} />
+          </View>
+        ) : (
+          <IdentityHero user={heroData} />
+        )}
 
         <View style={s.section}><ProtocolSection user={user} /></View>
         <View style={s.section}><AccountSection user={user} onLogout={() => setLogoutOpen(true)} /></View>
@@ -497,6 +554,15 @@ const s = StyleSheet.create({
   scrollContent: { paddingBottom: 32, gap: 22 },
 
   section: { paddingHorizontal: 20 },
+
+  heroLoadingPlaceholder: {
+    marginHorizontal: 16,
+    height: 160,
+    borderRadius: 22,
+    backgroundColor: KINETIC.surface1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 
   // Hero
   hero: {
