@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Modal,
@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { KINETIC } from '../theme/kinetic';
 import Svg, { Circle, Path, Polygon, Polyline, Rect } from 'react-native-svg';
 import api from '../services/api';
+import { AuthContext } from '../contexts/AuthContext';
 import { UserProfileResponse } from '../types';
 import { formatMemberSince, formatProfileName } from '../utils/formatters';
 
@@ -331,7 +332,7 @@ function ProtocolSection({ user }: { user: typeof USER }) {
 }
 
 // ─── Conta ────────────────────────────────────────────────────
-function AccountSection({ user, onLogout }: { user: typeof USER; onLogout: () => void }) {
+function AccountSection({ user }: { user: typeof USER }) {
   const isPro = user.plan === 'pro';
   return (
     <View>
@@ -450,10 +451,20 @@ function LogoutSheet({ open, onCancel, onConfirm }: { open: boolean; onCancel: (
 
 // ─── Screen ───────────────────────────────────────────────────
 export default function ProfileScreen() {
+  const { signOut } = useContext(AuthContext);
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [profileData, setProfileData] = useState<UserProfileResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const user = USER;
+
+  const handleConfirmSignOut = async () => {
+    setLogoutOpen(false);
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Erro ao deslogar:', error);
+    }
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -514,7 +525,7 @@ export default function ProfileScreen() {
         )}
 
         <View style={s.section}><ProtocolSection user={user} /></View>
-        <View style={s.section}><AccountSection user={user} onLogout={() => setLogoutOpen(true)} /></View>
+        <View style={s.section}><AccountSection user={user} /></View>
         <View style={s.section}><PreferencesSection /></View>
         <View style={s.section}><CommunitySection /></View>
         <View style={s.section}><DataSection /></View>
@@ -525,7 +536,7 @@ export default function ProfileScreen() {
       <LogoutSheet
         open={logoutOpen}
         onCancel={() => setLogoutOpen(false)}
-        onConfirm={() => setLogoutOpen(false)}
+        onConfirm={handleConfirmSignOut}
       />
     </SafeAreaView>
   );
