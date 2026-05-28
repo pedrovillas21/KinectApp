@@ -8,999 +8,999 @@
       "file_type": "code",
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L1",
-      "id": "kineticapp_src_constants_protocol_ts",
       "community": 1,
-      "norm_label": "protocol.ts"
+      "norm_label": "protocol.ts",
+      "id": "kineticapp_src_constants_protocol_ts"
     },
     {
       "label": "GoalType",
       "file_type": "code",
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L5",
-      "id": "constants_protocol_goaltype",
       "community": 1,
-      "norm_label": "goaltype"
+      "norm_label": "goaltype",
+      "id": "constants_protocol_goaltype"
     },
     {
       "label": "LevelType",
       "file_type": "code",
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L6",
-      "id": "constants_protocol_leveltype",
       "community": 1,
-      "norm_label": "leveltype"
+      "norm_label": "leveltype",
+      "id": "constants_protocol_leveltype"
     },
     {
       "label": "GoalDef",
       "file_type": "code",
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L8",
-      "id": "constants_protocol_goaldef",
       "community": 1,
-      "norm_label": "goaldef"
+      "norm_label": "goaldef",
+      "id": "constants_protocol_goaldef"
     },
     {
       "label": "LevelDef",
       "file_type": "code",
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L14",
-      "id": "constants_protocol_leveldef",
       "community": 1,
-      "norm_label": "leveldef"
+      "norm_label": "leveldef",
+      "id": "constants_protocol_leveldef"
     },
     {
       "label": "GOALS",
       "file_type": "code",
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L20",
-      "id": "constants_protocol_goals",
       "community": 1,
-      "norm_label": "goals"
+      "norm_label": "goals",
+      "id": "constants_protocol_goals"
     },
     {
       "label": "LEVELS",
       "file_type": "code",
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L26",
-      "id": "constants_protocol_levels",
       "community": 1,
-      "norm_label": "levels"
+      "norm_label": "levels",
+      "id": "constants_protocol_levels"
     },
     {
       "label": "DAYS_LABELS",
       "file_type": "code",
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L32",
-      "id": "constants_protocol_days_labels",
       "community": 1,
-      "norm_label": "days_labels"
+      "norm_label": "days_labels",
+      "id": "constants_protocol_days_labels"
     },
     {
       "label": "GOAL_API_MAP",
       "file_type": "code",
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L35",
-      "id": "constants_protocol_goal_api_map",
       "community": 1,
-      "norm_label": "goal_api_map"
+      "norm_label": "goal_api_map",
+      "id": "constants_protocol_goal_api_map"
     },
     {
       "label": "LEVEL_API_MAP",
       "file_type": "code",
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L41",
-      "id": "constants_protocol_level_api_map",
       "community": 1,
-      "norm_label": "level_api_map"
+      "norm_label": "level_api_map",
+      "id": "constants_protocol_level_api_map"
     },
     {
       "label": "ProtocolOption",
       "file_type": "code",
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L48",
-      "id": "constants_protocol_protocoloption",
       "community": 1,
-      "norm_label": "protocoloption"
+      "norm_label": "protocoloption",
+      "id": "constants_protocol_protocoloption"
     },
     {
       "label": "GOAL_OPTIONS",
       "file_type": "code",
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L55",
-      "id": "constants_protocol_goal_options",
       "community": 1,
-      "norm_label": "goal_options"
+      "norm_label": "goal_options",
+      "id": "constants_protocol_goal_options"
     },
     {
       "label": "LEVEL_OPTIONS",
       "file_type": "code",
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L61",
-      "id": "constants_protocol_level_options",
       "community": 1,
-      "norm_label": "level_options"
+      "norm_label": "level_options",
+      "id": "constants_protocol_level_options"
     },
     {
       "label": "FREQUENCY_OPTIONS",
       "file_type": "code",
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L68",
-      "id": "constants_protocol_frequency_options",
       "community": 1,
-      "norm_label": "frequency_options"
+      "norm_label": "frequency_options",
+      "id": "constants_protocol_frequency_options"
     },
     {
       "label": "goalLabel()",
       "file_type": "code",
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L77",
-      "id": "constants_protocol_goallabel",
       "community": 1,
-      "norm_label": "goallabel()"
+      "norm_label": "goallabel()",
+      "id": "constants_protocol_goallabel"
     },
     {
       "label": "levelLabel()",
       "file_type": "code",
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L83",
-      "id": "constants_protocol_levellabel",
       "community": 1,
-      "norm_label": "levellabel()"
+      "norm_label": "levellabel()",
+      "id": "constants_protocol_levellabel"
     },
     {
       "label": "ageFromBirthDate()",
       "file_type": "code",
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L89",
-      "id": "constants_protocol_agefrombirthdate",
       "community": 1,
-      "norm_label": "agefrombirthdate()"
+      "norm_label": "agefrombirthdate()",
+      "id": "constants_protocol_agefrombirthdate"
     },
     {
       "label": "hasMedicalInfo()",
       "file_type": "code",
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L101",
-      "id": "constants_protocol_hasmedicalinfo",
       "community": 1,
-      "norm_label": "hasmedicalinfo()"
+      "norm_label": "hasmedicalinfo()",
+      "id": "constants_protocol_hasmedicalinfo"
     },
     {
       "label": "ProfileScreen.tsx",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L1",
-      "id": "kineticapp_src_screens_profilescreen_tsx",
       "community": 1,
-      "norm_label": "profilescreen.tsx"
+      "norm_label": "profilescreen.tsx",
+      "id": "kineticapp_src_screens_profilescreen_tsx"
     },
     {
       "label": "USER",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L33",
-      "id": "screens_profilescreen_user",
       "community": 1,
-      "norm_label": "user"
+      "norm_label": "user",
+      "id": "screens_profilescreen_user"
     },
     {
       "label": "C",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L52",
-      "id": "screens_profilescreen_c",
       "community": 1,
-      "norm_label": "c"
+      "norm_label": "c",
+      "id": "screens_profilescreen_c"
     },
     {
       "label": "stroke",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L61",
-      "id": "screens_profilescreen_stroke",
       "community": 1,
-      "norm_label": "stroke"
+      "norm_label": "stroke",
+      "id": "screens_profilescreen_stroke"
     },
     {
       "label": "stroke2",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L62",
-      "id": "screens_profilescreen_stroke2",
       "community": 1,
-      "norm_label": "stroke2"
+      "norm_label": "stroke2",
+      "id": "screens_profilescreen_stroke2"
     },
     {
       "label": "strokeDanger",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L63",
-      "id": "screens_profilescreen_strokedanger",
       "community": 1,
-      "norm_label": "strokedanger"
+      "norm_label": "strokedanger",
+      "id": "screens_profilescreen_strokedanger"
     },
     {
       "label": "Icons",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L65",
-      "id": "screens_profilescreen_icons",
       "community": 1,
-      "norm_label": "icons"
+      "norm_label": "icons",
+      "id": "screens_profilescreen_icons"
     },
     {
       "label": "SectionTitle()",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L203",
-      "id": "screens_profilescreen_sectiontitle",
       "community": 1,
-      "norm_label": "sectiontitle()"
+      "norm_label": "sectiontitle()",
+      "id": "screens_profilescreen_sectiontitle"
     },
     {
       "label": "RowGroup()",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L212",
-      "id": "screens_profilescreen_rowgroup",
       "community": 1,
-      "norm_label": "rowgroup()"
+      "norm_label": "rowgroup()",
+      "id": "screens_profilescreen_rowgroup"
     },
     {
       "label": "Badge",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L226",
-      "id": "screens_profilescreen_badge",
       "community": 1,
-      "norm_label": "badge"
+      "norm_label": "badge",
+      "id": "screens_profilescreen_badge"
     },
     {
       "label": "RowProps",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L227",
-      "id": "screens_profilescreen_rowprops",
       "community": 1,
-      "norm_label": "rowprops"
+      "norm_label": "rowprops",
+      "id": "screens_profilescreen_rowprops"
     },
     {
       "label": "Row()",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L238",
-      "id": "screens_profilescreen_row",
       "community": 1,
-      "norm_label": "row()"
+      "norm_label": "row()",
+      "id": "screens_profilescreen_row"
     },
     {
       "label": "HeroUserData",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L263",
-      "id": "screens_profilescreen_herouserdata",
       "community": 1,
-      "norm_label": "herouserdata"
+      "norm_label": "herouserdata",
+      "id": "screens_profilescreen_herouserdata"
     },
     {
       "label": "IdentityHero()",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L273",
-      "id": "screens_profilescreen_identityhero",
       "community": 1,
-      "norm_label": "identityhero()"
+      "norm_label": "identityhero()",
+      "id": "screens_profilescreen_identityhero"
     },
     {
       "label": "ProtocolForm",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L314",
-      "id": "screens_profilescreen_protocolform",
       "community": 1,
-      "norm_label": "protocolform"
+      "norm_label": "protocolform",
+      "id": "screens_profilescreen_protocolform"
     },
     {
       "label": "ProtocolSectionProps",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L324",
-      "id": "screens_profilescreen_protocolsectionprops",
       "community": 1,
-      "norm_label": "protocolsectionprops"
+      "norm_label": "protocolsectionprops",
+      "id": "screens_profilescreen_protocolsectionprops"
     },
     {
       "label": "ProtocolSection()",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L335",
-      "id": "screens_profilescreen_protocolsection",
       "community": 1,
-      "norm_label": "protocolsection()"
+      "norm_label": "protocolsection()",
+      "id": "screens_profilescreen_protocolsection"
     },
     {
       "label": "OptionPickerModalProps",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L392",
-      "id": "screens_profilescreen_optionpickermodalprops",
       "community": 1,
-      "norm_label": "optionpickermodalprops"
+      "norm_label": "optionpickermodalprops",
+      "id": "screens_profilescreen_optionpickermodalprops"
     },
     {
       "label": "OptionPickerModal()",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L401",
-      "id": "screens_profilescreen_optionpickermodal",
       "community": 1,
-      "norm_label": "optionpickermodal()"
+      "norm_label": "optionpickermodal()",
+      "id": "screens_profilescreen_optionpickermodal"
     },
     {
       "label": "MetricsModalProps",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L437",
-      "id": "screens_profilescreen_metricsmodalprops",
       "community": 1,
-      "norm_label": "metricsmodalprops"
+      "norm_label": "metricsmodalprops",
+      "id": "screens_profilescreen_metricsmodalprops"
     },
     {
       "label": "isoToDisplay()",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L445",
-      "id": "screens_profilescreen_isotodisplay",
       "community": 1,
-      "norm_label": "isotodisplay()"
+      "norm_label": "isotodisplay()",
+      "id": "screens_profilescreen_isotodisplay"
     },
     {
       "label": "MetricsModal()",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L450",
-      "id": "screens_profilescreen_metricsmodal",
       "community": 1,
-      "norm_label": "metricsmodal()"
+      "norm_label": "metricsmodal()",
+      "id": "screens_profilescreen_metricsmodal"
     },
     {
       "label": "AnamnesisModalProps",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L553",
-      "id": "screens_profilescreen_anamnesismodalprops",
       "community": 1,
-      "norm_label": "anamnesismodalprops"
+      "norm_label": "anamnesismodalprops",
+      "id": "screens_profilescreen_anamnesismodalprops"
     },
     {
       "label": "AnamnesisModal()",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L560",
-      "id": "screens_profilescreen_anamnesismodal",
       "community": 1,
-      "norm_label": "anamnesismodal()"
+      "norm_label": "anamnesismodal()",
+      "id": "screens_profilescreen_anamnesismodal"
     },
     {
       "label": "AccountSection()",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L609",
-      "id": "screens_profilescreen_accountsection",
       "community": 1,
-      "norm_label": "accountsection()"
+      "norm_label": "accountsection()",
+      "id": "screens_profilescreen_accountsection"
     },
     {
       "label": "PreferencesSection()",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L634",
-      "id": "screens_profilescreen_preferencessection",
       "community": 1,
-      "norm_label": "preferencessection()"
+      "norm_label": "preferencessection()",
+      "id": "screens_profilescreen_preferencessection"
     },
     {
       "label": "CommunitySection()",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L648",
-      "id": "screens_profilescreen_communitysection",
       "community": 1,
-      "norm_label": "communitysection()"
+      "norm_label": "communitysection()",
+      "id": "screens_profilescreen_communitysection"
     },
     {
       "label": "DataSection()",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L661",
-      "id": "screens_profilescreen_datasection",
       "community": 1,
-      "norm_label": "datasection()"
+      "norm_label": "datasection()",
+      "id": "screens_profilescreen_datasection"
     },
     {
       "label": "SupportSection()",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L674",
-      "id": "screens_profilescreen_supportsection",
       "community": 1,
-      "norm_label": "supportsection()"
+      "norm_label": "supportsection()",
+      "id": "screens_profilescreen_supportsection"
     },
     {
       "label": "LogoutSection()",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L688",
-      "id": "screens_profilescreen_logoutsection",
       "community": 1,
-      "norm_label": "logoutsection()"
+      "norm_label": "logoutsection()",
+      "id": "screens_profilescreen_logoutsection"
     },
     {
       "label": "LogoutSheet()",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L702",
-      "id": "screens_profilescreen_logoutsheet",
       "community": 1,
-      "norm_label": "logoutsheet()"
+      "norm_label": "logoutsheet()",
+      "id": "screens_profilescreen_logoutsheet"
     },
     {
       "label": "ProfileNavigationProp",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L727",
-      "id": "screens_profilescreen_profilenavigationprop",
       "community": 1,
-      "norm_label": "profilenavigationprop"
+      "norm_label": "profilenavigationprop",
+      "id": "screens_profilescreen_profilenavigationprop"
     },
     {
       "label": "ProfileScreenProps",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L731",
-      "id": "screens_profilescreen_profilescreenprops",
       "community": 1,
-      "norm_label": "profilescreenprops"
+      "norm_label": "profilescreenprops",
+      "id": "screens_profilescreen_profilescreenprops"
     },
     {
       "label": "ProtocolModal",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L735",
-      "id": "screens_profilescreen_protocolmodal",
       "community": 1,
-      "norm_label": "protocolmodal"
+      "norm_label": "protocolmodal",
+      "id": "screens_profilescreen_protocolmodal"
     },
     {
       "label": "ProfileScreen()",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L737",
-      "id": "screens_profilescreen_profilescreen",
       "community": 1,
-      "norm_label": "profilescreen()"
+      "norm_label": "profilescreen()",
+      "id": "screens_profilescreen_profilescreen"
     },
     {
       "label": "s",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L939",
-      "id": "screens_profilescreen_s",
       "community": 1,
-      "norm_label": "s"
+      "norm_label": "s",
+      "id": "screens_profilescreen_s"
     },
     {
       "label": "index.ts",
       "file_type": "code",
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L1",
-      "id": "kineticapp_src_types_index_ts",
       "community": 2,
-      "norm_label": "index.ts"
+      "norm_label": "index.ts",
+      "id": "kineticapp_src_types_index_ts"
     },
     {
       "label": "SetLogDto",
       "file_type": "code",
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L1",
-      "id": "types_index_setlogdto",
       "community": 2,
-      "norm_label": "setlogdto"
+      "norm_label": "setlogdto",
+      "id": "types_index_setlogdto"
     },
     {
       "label": "LogSessionRequestDTO",
       "file_type": "code",
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L8",
-      "id": "types_index_logsessionrequestdto",
       "community": 2,
-      "norm_label": "logsessionrequestdto"
+      "norm_label": "logsessionrequestdto",
+      "id": "types_index_logsessionrequestdto"
     },
     {
       "label": "StatsPeriodId",
       "file_type": "code",
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L15",
-      "id": "types_index_statsperiodid",
       "community": 2,
-      "norm_label": "statsperiodid"
+      "norm_label": "statsperiodid",
+      "id": "types_index_statsperiodid"
     },
     {
       "label": "StatsPeriodOption",
       "file_type": "code",
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L17",
-      "id": "types_index_statsperiodoption",
       "community": 2,
-      "norm_label": "statsperiodoption"
+      "norm_label": "statsperiodoption",
+      "id": "types_index_statsperiodoption"
     },
     {
       "label": "VolumeByMuscleGroupDTO",
       "file_type": "code",
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L22",
-      "id": "types_index_volumebymusclegroupdto",
       "community": 2,
-      "norm_label": "volumebymusclegroupdto"
+      "norm_label": "volumebymusclegroupdto",
+      "id": "types_index_volumebymusclegroupdto"
     },
     {
       "label": "WeightPointDTO",
       "file_type": "code",
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L31",
-      "id": "types_index_weightpointdto",
       "community": 2,
-      "norm_label": "weightpointdto"
+      "norm_label": "weightpointdto",
+      "id": "types_index_weightpointdto"
     },
     {
       "label": "WeightSummaryDTO",
       "file_type": "code",
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L36",
-      "id": "types_index_weightsummarydto",
       "community": 2,
-      "norm_label": "weightsummarydto"
+      "norm_label": "weightsummarydto",
+      "id": "types_index_weightsummarydto"
     },
     {
       "label": "VolumeSummaryDTO",
       "file_type": "code",
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L46",
-      "id": "types_index_volumesummarydto",
       "community": 2,
-      "norm_label": "volumesummarydto"
+      "norm_label": "volumesummarydto",
+      "id": "types_index_volumesummarydto"
     },
     {
       "label": "CommunityComparisonDTO",
       "file_type": "code",
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L54",
-      "id": "types_index_communitycomparisondto",
       "community": 2,
-      "norm_label": "communitycomparisondto"
+      "norm_label": "communitycomparisondto",
+      "id": "types_index_communitycomparisondto"
     },
     {
       "label": "StatsInsightDTO",
       "file_type": "code",
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L61",
-      "id": "types_index_statsinsightdto",
       "community": 2,
-      "norm_label": "statsinsightdto"
+      "norm_label": "statsinsightdto",
+      "id": "types_index_statsinsightdto"
     },
     {
       "label": "StatsSummaryResponseDTO",
       "file_type": "code",
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L66",
-      "id": "types_index_statssummaryresponsedto",
       "community": 2,
-      "norm_label": "statssummaryresponsedto"
+      "norm_label": "statssummaryresponsedto",
+      "id": "types_index_statssummaryresponsedto"
     },
     {
       "label": "NextWorkoutDTO",
       "file_type": "code",
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L81",
-      "id": "types_index_nextworkoutdto",
       "community": 3,
-      "norm_label": "nextworkoutdto"
+      "norm_label": "nextworkoutdto",
+      "id": "types_index_nextworkoutdto"
     },
     {
       "label": "RankingEntryDTO",
       "file_type": "code",
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L96",
-      "id": "types_index_rankingentrydto",
       "community": 3,
-      "norm_label": "rankingentrydto"
+      "norm_label": "rankingentrydto",
+      "id": "types_index_rankingentrydto"
     },
     {
       "label": "WeeklyActivityPointDTO",
       "file_type": "code",
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L111",
-      "id": "types_index_weeklyactivitypointdto",
       "community": 3,
-      "norm_label": "weeklyactivitypointdto"
+      "norm_label": "weeklyactivitypointdto",
+      "id": "types_index_weeklyactivitypointdto"
     },
     {
       "label": "WeeklyActivityDayApiDTO",
       "file_type": "code",
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L121",
-      "id": "types_index_weeklyactivitydayapidto",
       "community": 2,
-      "norm_label": "weeklyactivitydayapidto"
+      "norm_label": "weeklyactivitydayapidto",
+      "id": "types_index_weeklyactivitydayapidto"
     },
     {
       "label": "WeeklyActivityApiResponseDTO",
       "file_type": "code",
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L128",
-      "id": "types_index_weeklyactivityapiresponsedto",
       "community": 2,
-      "norm_label": "weeklyactivityapiresponsedto"
+      "norm_label": "weeklyactivityapiresponsedto",
+      "id": "types_index_weeklyactivityapiresponsedto"
     },
     {
       "label": "HomeDashboardResponseDTO",
       "file_type": "code",
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L135",
-      "id": "types_index_homedashboardresponsedto",
       "community": 3,
-      "norm_label": "homedashboardresponsedto"
+      "norm_label": "homedashboardresponsedto",
+      "id": "types_index_homedashboardresponsedto"
     },
     {
       "label": "UpdateWeightRequestDTO",
       "file_type": "code",
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L153",
-      "id": "types_index_updateweightrequestdto",
       "community": 2,
-      "norm_label": "updateweightrequestdto"
+      "norm_label": "updateweightrequestdto",
+      "id": "types_index_updateweightrequestdto"
     },
     {
       "label": "UserProfileResponse",
       "file_type": "code",
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L157",
-      "id": "types_index_userprofileresponse",
       "community": 2,
-      "norm_label": "userprofileresponse"
+      "norm_label": "userprofileresponse",
+      "id": "types_index_userprofileresponse"
     },
     {
       "label": "GenerateWorkoutRequest",
       "file_type": "code",
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L181",
-      "id": "types_index_generateworkoutrequest",
       "community": 2,
-      "norm_label": "generateworkoutrequest"
+      "norm_label": "generateworkoutrequest",
+      "id": "types_index_generateworkoutrequest"
     },
     {
       "label": "UserProfileResponseDTO.java",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/UserProfileResponseDTO.java",
       "source_location": "L1",
-      "id": "kinetic_backend_src_main_java_com_kinetic_dtos_userprofileresponsedto_java",
       "community": 52,
-      "norm_label": "userprofileresponsedto.java"
+      "norm_label": "userprofileresponsedto.java",
+      "id": "kinetic_backend_src_main_java_com_kinetic_dtos_userprofileresponsedto_java"
     },
     {
       "label": "WorkoutPlan.java",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/WorkoutPlan.java",
       "source_location": "L1",
-      "id": "kinetic_backend_src_main_java_com_kinetic_models_workoutplan_java",
       "community": 37,
-      "norm_label": "workoutplan.java"
+      "norm_label": "workoutplan.java",
+      "id": "kinetic_backend_src_main_java_com_kinetic_models_workoutplan_java"
     },
     {
       "label": "WorkoutPlan",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/WorkoutPlan.java",
       "source_location": "L14",
-      "id": "models_workoutplan_workoutplan",
       "community": 37,
-      "norm_label": "workoutplan"
+      "norm_label": "workoutplan",
+      "id": "models_workoutplan_workoutplan"
     },
     {
       "label": "WorkoutPlanRepository.java",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutPlanRepository.java",
       "source_location": "L1",
-      "id": "kinetic_backend_src_main_java_com_kinetic_repositories_workoutplanrepository_java",
       "community": 7,
-      "norm_label": "workoutplanrepository.java"
+      "norm_label": "workoutplanrepository.java",
+      "id": "kinetic_backend_src_main_java_com_kinetic_repositories_workoutplanrepository_java"
     },
     {
       "label": "WorkoutPlanRepository",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutPlanRepository.java",
       "source_location": "L14",
-      "id": "repositories_workoutplanrepository_workoutplanrepository",
       "community": 7,
-      "norm_label": "workoutplanrepository"
+      "norm_label": "workoutplanrepository",
+      "id": "repositories_workoutplanrepository_workoutplanrepository"
     },
     {
       "label": ".findByUserId()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutPlanRepository.java",
       "source_location": "L17",
-      "id": "repositories_workoutplanrepository_workoutplanrepository_findbyuserid",
       "community": 7,
-      "norm_label": ".findbyuserid()"
+      "norm_label": ".findbyuserid()",
+      "id": "repositories_workoutplanrepository_workoutplanrepository_findbyuserid"
     },
     {
       "label": ".findByUserIdOrderByCreatedAtAsc()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutPlanRepository.java",
       "source_location": "L20",
-      "id": "repositories_workoutplanrepository_workoutplanrepository_findbyuseridorderbycreatedatasc",
       "community": 7,
-      "norm_label": ".findbyuseridorderbycreatedatasc()"
+      "norm_label": ".findbyuseridorderbycreatedatasc()",
+      "id": "repositories_workoutplanrepository_workoutplanrepository_findbyuseridorderbycreatedatasc"
     },
     {
       "label": ".findByUserIdAndStatus()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutPlanRepository.java",
       "source_location": "L23",
-      "id": "repositories_workoutplanrepository_workoutplanrepository_findbyuseridandstatus",
       "community": 7,
-      "norm_label": ".findbyuseridandstatus()"
+      "norm_label": ".findbyuseridandstatus()",
+      "id": "repositories_workoutplanrepository_workoutplanrepository_findbyuseridandstatus"
     },
     {
       "label": ".findByUserIdAndStatusOrderByCreatedAtAsc()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutPlanRepository.java",
       "source_location": "L26",
-      "id": "repositories_workoutplanrepository_workoutplanrepository_findbyuseridandstatusorderbycreatedatasc",
       "community": 7,
-      "norm_label": ".findbyuseridandstatusorderbycreatedatasc()"
+      "norm_label": ".findbyuseridandstatusorderbycreatedatasc()",
+      "id": "repositories_workoutplanrepository_workoutplanrepository_findbyuseridandstatusorderbycreatedatasc"
     },
     {
       "label": ".archiveActivePlans()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutPlanRepository.java",
       "source_location": "L30",
-      "id": "repositories_workoutplanrepository_workoutplanrepository_archiveactiveplans",
       "community": 7,
-      "norm_label": ".archiveactiveplans()"
+      "norm_label": ".archiveactiveplans()",
+      "id": "repositories_workoutplanrepository_workoutplanrepository_archiveactiveplans"
     },
     {
       "label": "HomeAggregatorService.java",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/HomeAggregatorService.java",
       "source_location": "L1",
-      "id": "kinetic_backend_src_main_java_com_kinetic_services_homeaggregatorservice_java",
       "community": 5,
-      "norm_label": "homeaggregatorservice.java"
+      "norm_label": "homeaggregatorservice.java",
+      "id": "kinetic_backend_src_main_java_com_kinetic_services_homeaggregatorservice_java"
     },
     {
       "label": "HomeAggregatorService",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/HomeAggregatorService.java",
       "source_location": "L32",
-      "id": "services_homeaggregatorservice_homeaggregatorservice",
       "community": 5,
-      "norm_label": "homeaggregatorservice"
+      "norm_label": "homeaggregatorservice",
+      "id": "services_homeaggregatorservice_homeaggregatorservice"
     },
     {
       "label": ".HomeAggregatorService()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/HomeAggregatorService.java",
       "source_location": "L42",
-      "id": "services_homeaggregatorservice_homeaggregatorservice_homeaggregatorservice",
       "community": 5,
-      "norm_label": ".homeaggregatorservice()"
+      "norm_label": ".homeaggregatorservice()",
+      "id": "services_homeaggregatorservice_homeaggregatorservice_homeaggregatorservice"
     },
     {
       "label": ".buildDashboardData()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/HomeAggregatorService.java",
       "source_location": "L52",
-      "id": "services_homeaggregatorservice_homeaggregatorservice_builddashboarddata",
       "community": 5,
-      "norm_label": ".builddashboarddata()"
+      "norm_label": ".builddashboarddata()",
+      "id": "services_homeaggregatorservice_homeaggregatorservice_builddashboarddata"
     },
     {
       "label": ".buildNextWorkout()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/HomeAggregatorService.java",
       "source_location": "L84",
-      "id": "services_homeaggregatorservice_homeaggregatorservice_buildnextworkout",
       "community": 5,
-      "norm_label": ".buildnextworkout()"
+      "norm_label": ".buildnextworkout()",
+      "id": "services_homeaggregatorservice_homeaggregatorservice_buildnextworkout"
     },
     {
       "label": ".mapPlanToDTO()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/HomeAggregatorService.java",
       "source_location": "L106",
-      "id": "services_homeaggregatorservice_homeaggregatorservice_mapplantodto",
       "community": 5,
-      "norm_label": ".mapplantodto()"
+      "norm_label": ".mapplantodto()",
+      "id": "services_homeaggregatorservice_homeaggregatorservice_mapplantodto"
     },
     {
       "label": ".calculateStreak()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/HomeAggregatorService.java",
       "source_location": "L134",
-      "id": "services_homeaggregatorservice_homeaggregatorservice_calculatestreak",
       "community": 5,
-      "norm_label": ".calculatestreak()"
+      "norm_label": ".calculatestreak()",
+      "id": "services_homeaggregatorservice_homeaggregatorservice_calculatestreak"
     },
     {
       "label": ".calculateAdherence()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/HomeAggregatorService.java",
       "source_location": "L152",
-      "id": "services_homeaggregatorservice_homeaggregatorservice_calculateadherence",
       "community": 5,
-      "norm_label": ".calculateadherence()"
+      "norm_label": ".calculateadherence()",
+      "id": "services_homeaggregatorservice_homeaggregatorservice_calculateadherence"
     },
     {
       "label": ".buildWeeklyActivity()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/HomeAggregatorService.java",
       "source_location": "L166",
-      "id": "services_homeaggregatorservice_homeaggregatorservice_buildweeklyactivity",
       "community": 5,
-      "norm_label": ".buildweeklyactivity()"
+      "norm_label": ".buildweeklyactivity()",
+      "id": "services_homeaggregatorservice_homeaggregatorservice_buildweeklyactivity"
     },
     {
       "label": ".buildMockRanking()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/HomeAggregatorService.java",
       "source_location": "L193",
-      "id": "services_homeaggregatorservice_homeaggregatorservice_buildmockranking",
       "community": 5,
-      "norm_label": ".buildmockranking()"
+      "norm_label": ".buildmockranking()",
+      "id": "services_homeaggregatorservice_homeaggregatorservice_buildmockranking"
     },
     {
       "label": ".extractFirstName()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/HomeAggregatorService.java",
       "source_location": "L202",
-      "id": "services_homeaggregatorservice_homeaggregatorservice_extractfirstname",
       "community": 5,
-      "norm_label": ".extractfirstname()"
+      "norm_label": ".extractfirstname()",
+      "id": "services_homeaggregatorservice_homeaggregatorservice_extractfirstname"
     },
     {
       "label": "UserService.java",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/UserService.java",
       "source_location": "L1",
-      "id": "kinetic_backend_src_main_java_com_kinetic_services_userservice_java",
       "community": 4,
-      "norm_label": "userservice.java"
+      "norm_label": "userservice.java",
+      "id": "kinetic_backend_src_main_java_com_kinetic_services_userservice_java"
     },
     {
       "label": "UserService",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/UserService.java",
       "source_location": "L21",
-      "id": "services_userservice_userservice",
       "community": 4,
-      "norm_label": "userservice"
+      "norm_label": "userservice",
+      "id": "services_userservice_userservice"
     },
     {
       "label": ".UserService()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/UserService.java",
       "source_location": "L29",
-      "id": "services_userservice_userservice_userservice",
       "community": 4,
-      "norm_label": ".userservice()"
+      "norm_label": ".userservice()",
+      "id": "services_userservice_userservice_userservice"
     },
     {
       "label": ".updateUserWeight()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/UserService.java",
       "source_location": "L39",
-      "id": "services_userservice_userservice_updateuserweight",
       "community": 4,
-      "norm_label": ".updateuserweight()"
+      "norm_label": ".updateuserweight()",
+      "id": "services_userservice_userservice_updateuserweight"
     },
     {
       "label": ".needsWeightUpdate()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/UserService.java",
       "source_location": "L64",
-      "id": "services_userservice_userservice_needsweightupdate",
       "community": 4,
-      "norm_label": ".needsweightupdate()"
+      "norm_label": ".needsweightupdate()",
+      "id": "services_userservice_userservice_needsweightupdate"
     },
     {
       "label": ".getUserProfile()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/UserService.java",
       "source_location": "L76",
-      "id": "services_userservice_userservice_getuserprofile",
       "community": 4,
-      "norm_label": ".getuserprofile()"
+      "norm_label": ".getuserprofile()",
+      "id": "services_userservice_userservice_getuserprofile"
     },
     {
       "label": ".recordDailyLogin()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/UserService.java",
       "source_location": "L103",
-      "id": "services_userservice_userservice_recorddailylogin",
       "community": 4,
-      "norm_label": ".recorddailylogin()"
+      "norm_label": ".recorddailylogin()",
+      "id": "services_userservice_userservice_recorddailylogin"
     },
     {
       "label": ".calculateConsecutiveLoginStreak()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/UserService.java",
       "source_location": "L112",
-      "id": "services_userservice_userservice_calculateconsecutiveloginstreak",
       "community": 4,
-      "norm_label": ".calculateconsecutiveloginstreak()"
+      "norm_label": ".calculateconsecutiveloginstreak()",
+      "id": "services_userservice_userservice_calculateconsecutiveloginstreak"
     },
     {
       "label": "WorkoutService.java",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutService.java",
       "source_location": "L1",
-      "id": "kinetic_backend_src_main_java_com_kinetic_services_workoutservice_java",
       "community": 7,
-      "norm_label": "workoutservice.java"
+      "norm_label": "workoutservice.java",
+      "id": "kinetic_backend_src_main_java_com_kinetic_services_workoutservice_java"
     },
     {
       "label": "WorkoutService",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutService.java",
       "source_location": "L22",
-      "id": "services_workoutservice_workoutservice",
       "community": 7,
-      "norm_label": "workoutservice"
+      "norm_label": "workoutservice",
+      "id": "services_workoutservice_workoutservice"
     },
     {
       "label": ".WorkoutService()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutService.java",
       "source_location": "L30",
-      "id": "services_workoutservice_workoutservice_workoutservice",
       "community": 7,
-      "norm_label": ".workoutservice()"
+      "norm_label": ".workoutservice()",
+      "id": "services_workoutservice_workoutservice_workoutservice"
     },
     {
       "label": ".generateWorkoutForUser()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutService.java",
       "source_location": "L38",
-      "id": "services_workoutservice_workoutservice_generateworkoutforuser",
       "community": 7,
-      "norm_label": ".generateworkoutforuser()"
+      "norm_label": ".generateworkoutforuser()",
+      "id": "services_workoutservice_workoutservice_generateworkoutforuser"
     },
     {
       "label": ".getMyPlans()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutService.java",
       "source_location": "L130",
-      "id": "services_workoutservice_workoutservice_getmyplans",
       "community": 7,
-      "norm_label": ".getmyplans()"
+      "norm_label": ".getmyplans()",
+      "id": "services_workoutservice_workoutservice_getmyplans"
     },
     {
       "label": ".findUserByEmail()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutService.java",
       "source_location": "L139",
-      "id": "services_workoutservice_workoutservice_finduserbyemail",
       "community": 7,
-      "norm_label": ".finduserbyemail()"
+      "norm_label": ".finduserbyemail()",
+      "id": "services_workoutservice_workoutservice_finduserbyemail"
     },
     {
       "label": ".validateRequest()",
       "file_type": "code",
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutService.java",
       "source_location": "L144",
-      "id": "services_workoutservice_workoutservice_validaterequest",
       "community": 7,
-      "norm_label": ".validaterequest()"
+      "norm_label": ".validaterequest()",
+      "id": "services_workoutservice_workoutservice_validaterequest"
     },
     {
       "label": "home.jsx",
@@ -17512,5 +17512,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "ba43348bb5d1b425b23da0dbe60eab19331807c1"
+  "built_at_commit": "00c89c068684f11347c656ee12b8dfd7f194e8ed"
 }
