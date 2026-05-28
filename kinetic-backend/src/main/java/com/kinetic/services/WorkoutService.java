@@ -116,6 +116,10 @@ public class WorkoutService {
         user.setWorkoutOnboardingCompleted(true);
         userRepository.save(user);
 
+        // Arquiva o plano vigente (preserva historico) antes de promover o novo a 'active'.
+        // Apos a geracao bem-sucedida do Gemini, ja na mesma transacao: se algo falhar, tudo reverte.
+        workoutPlanRepository.archiveActivePlans(user.getId());
+
         List<WorkoutPlan> savedPlans = workoutPlanRepository.saveAll(workoutPlansToSave);
 
         return savedPlans.stream()
@@ -127,7 +131,7 @@ public class WorkoutService {
     public List<WorkoutPlanResponseDTO> getMyPlans(String userEmail) {
         User user = findUserByEmail(userEmail);
 
-        return workoutPlanRepository.findByUserId(user.getId()).stream()
+        return workoutPlanRepository.findByUserIdAndStatus(user.getId(), "active").stream()
                 .map(WorkoutPlanResponseDTO::fromEntity)
                 .toList();
     }

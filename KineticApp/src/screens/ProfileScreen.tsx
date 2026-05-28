@@ -1,11 +1,13 @@
 import React, { useContext, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Modal,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -14,8 +16,18 @@ import { KINETIC } from '../theme/kinetic';
 import Svg, { Circle, Path, Polygon, Polyline, Rect } from 'react-native-svg';
 import api from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
-import { UserProfileResponse } from '../types';
+import { GenerateWorkoutRequest, UserProfileResponse } from '../types';
 import { formatMemberSince, formatProfileName } from '../utils/formatters';
+import {
+  ageFromBirthDate,
+  goalLabel,
+  GOAL_OPTIONS,
+  hasMedicalInfo,
+  levelLabel,
+  LEVEL_OPTIONS,
+  FREQUENCY_OPTIONS,
+  ProtocolOption,
+} from '../constants/protocol';
 
 // ─── Mock user ────────────────────────────────────────────────
 const USER = {
@@ -299,21 +311,61 @@ function IdentityHero({ user }: { user: HeroUserData }) {
 }
 
 // ─── Protocolo de Treino ──────────────────────────────────────
-function ProtocolSection({ user }: { user: typeof USER }) {
-  const anamComplete = user.anamneseAnswered === user.anamneseQuestions;
+interface ProtocolForm {
+  goal: string;
+  weight: number;
+  height: number;
+  birthDate: string; // ISO YYYY-MM-DD
+  level: string;
+  frequency: number;
+  medicalConditions: string;
+}
+
+interface ProtocolSectionProps {
+  form: ProtocolForm;
+  onEditGoal: () => void;
+  onEditMetrics: () => void;
+  onEditLevel: () => void;
+  onEditFrequency: () => void;
+  onEditAnamnesis: () => void;
+  onRegenerate: () => void;
+  isRegenerating: boolean;
+}
+
+function ProtocolSection({
+  form,
+  onEditGoal,
+  onEditMetrics,
+  onEditLevel,
+  onEditFrequency,
+  onEditAnamnesis,
+  onRegenerate,
+  isRegenerating,
+}: ProtocolSectionProps) {
+  const age = ageFromBirthDate(form.birthDate);
+  const metricsValue = [
+    form.weight ? `${form.weight}kg` : null,
+    form.height ? `${form.height}cm` : null,
+    age != null ? `${age}a` : null,
+  ]
+    .filter(Boolean)
+    .join(' · ') || 'Adicionar';
+
+  const anamComplete = hasMedicalInfo(form.medicalConditions);
+
   return (
     <View>
       <SectionTitle sub="O que alimenta sua IA">Protocolo de Treino</SectionTitle>
       <RowGroup>
-        <Row icon={Icons.target} label="Objetivo" value={user.goalLabel} onPress={() => {}} accent />
-        <Row icon={Icons.scaleLevel} label="Métricas" value={`${user.weight}kg · ${user.height}cm · ${user.age}a`} onPress={() => {}} />
-        <Row icon={Icons.level} label="Nível de experiência" value={user.level} onPress={() => {}} />
-        <Row icon={Icons.calendar} label="Frequência semanal" value={`${user.daysPerWeek} dias`} onPress={() => {}} />
+        <Row icon={Icons.target} label="Objetivo" value={goalLabel(form.goal)} onPress={onEditGoal} accent />
+        <Row icon={Icons.scaleLevel} label="Métricas" value={metricsValue} onPress={onEditMetrics} />
+        <Row icon={Icons.level} label="Nível de experiência" value={levelLabel(form.level)} onPress={onEditLevel} />
+        <Row icon={Icons.calendar} label="Frequência semanal" value={form.frequency ? `${form.frequency} dias` : 'Definir'} onPress={onEditFrequency} />
         <Row
           icon={Icons.med}
           label="Anamnese"
-          sub={anamComplete ? 'Lesões, equipamento, restrições' : `${user.anamneseAnswered} de ${user.anamneseQuestions} respondidas`}
-          onPress={() => {}}
+          sub={anamComplete ? 'Lesões, restrições e condições informadas' : 'Toque para informar lesões ou restrições'}
+          onPress={onEditAnamnesis}
           badge={
             anamComplete
               ? { text: 'completa', color: KINETIC.success, bg: 'rgba(74,222,128,0.14)' }
@@ -322,12 +374,234 @@ function ProtocolSection({ user }: { user: typeof USER }) {
         />
       </RowGroup>
 
-      <TouchableOpacity style={s.regenBtn} activeOpacity={0.8}>
-        {Icons.sparkle}
-        <Text style={s.regenBtnText}>Regenerar treino com IA</Text>
+      <TouchableOpacity
+        style={[s.regenBtn, isRegenerating && s.regenBtnDisabled]}
+        activeOpacity={0.8}
+        onPress={onRegenerate}
+        disabled={isRegenerating}
+      >
+        {isRegenerating ? <ActivityIndicator size="small" color={KINETIC.primary} /> : Icons.sparkle}
+        <Text style={s.regenBtnText}>{isRegenerating ? 'Regenerando…' : 'Regenerar treino com IA'}</Text>
       </TouchableOpacity>
       <Text style={s.regenHint}>Recria seu plano baseado nos dados acima</Text>
     </View>
+  );
+}
+
+// ─── Modais de edição do protocolo ────────────────────────────
+interface OptionPickerModalProps {
+  visible: boolean;
+  title: string;
+  options: ProtocolOption[];
+  selected: string;
+  onSelect: (value: string) => void;
+  onClose: () => void;
+}
+
+function OptionPickerModal({ visible, title, options, selected, onSelect, onClose }: OptionPickerModalProps) {
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={s.sheetOverlay} onPress={onClose} />
+      <View style={s.sheet}>
+        <View style={s.sheetHandle} />
+        <Text style={s.sheetTitle}>{title}</Text>
+        <View style={s.optionList}>
+          {options.map((opt) => {
+            const active = opt.value === selected;
+            return (
+              <TouchableOpacity
+                key={opt.value}
+                style={[s.optionCard, active && s.optionCardActive]}
+                activeOpacity={0.8}
+                onPress={() => {
+                  onSelect(opt.value);
+                  onClose();
+                }}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={s.optionTitle}>{opt.title}</Text>
+                  <Text style={s.optionSub}>{opt.sub}</Text>
+                </View>
+                <View style={[s.optionRadio, active && s.optionRadioActive]}>
+                  {active && <Text style={s.optionRadioCheck}>✓</Text>}
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+interface MetricsModalProps {
+  visible: boolean;
+  form: ProtocolForm;
+  onSave: (patch: Pick<ProtocolForm, 'weight' | 'height' | 'birthDate'>) => void;
+  onClose: () => void;
+}
+
+// Converte ISO YYYY-MM-DD ↔ exibição DD/MM/AAAA
+function isoToDisplay(iso: string): string {
+  if (!iso || iso.length < 10) return '';
+  return `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}`;
+}
+
+function MetricsModal({ visible, form, onSave, onClose }: MetricsModalProps) {
+  const [weight, setWeight] = useState<string>(form.weight ? String(form.weight) : '');
+  const [height, setHeight] = useState<string>(form.height ? String(form.height) : '');
+  const [birthDisplay, setBirthDisplay] = useState<string>(isoToDisplay(form.birthDate));
+  const [error, setError] = useState<string>('');
+
+  // Re-sincroniza ao reabrir o modal com dados atualizados.
+  useEffect(() => {
+    if (visible) {
+      setWeight(form.weight ? String(form.weight) : '');
+      setHeight(form.height ? String(form.height) : '');
+      setBirthDisplay(isoToDisplay(form.birthDate));
+      setError('');
+    }
+  }, [visible, form.weight, form.height, form.birthDate]);
+
+  const handleBirthChange = (text: string) => {
+    const cleaned = text.replace(/\D/g, '');
+    let formatted = cleaned;
+    if (cleaned.length > 2) formatted = `${cleaned.slice(0, 2)}/${cleaned.slice(2)}`;
+    if (cleaned.length > 4) formatted = `${cleaned.slice(0, 2)}/${cleaned.slice(2, 4)}/${cleaned.slice(4, 8)}`;
+    setBirthDisplay(formatted);
+  };
+
+  const handleSave = () => {
+    const w = parseFloat(weight.replace(',', '.'));
+    const h = parseFloat(height.replace(',', '.'));
+    if (!w || w <= 0 || w > 500) return setError('Peso inválido.');
+    if (!h || h <= 0 || h > 300) return setError('Altura inválida (cm).');
+
+    const cleaned = birthDisplay.replace(/\D/g, '');
+    if (cleaned.length !== 8) return setError('Data de nascimento incompleta.');
+    const d = cleaned.slice(0, 2);
+    const m = cleaned.slice(2, 4);
+    const y = cleaned.slice(4, 8);
+    const iso = `${y}-${m}-${d}`;
+    const date = new Date(iso);
+    const rollover =
+      date.getFullYear() !== parseInt(y, 10) ||
+      date.getMonth() + 1 !== parseInt(m, 10) ||
+      date.getDate() !== parseInt(d, 10);
+    if (Number.isNaN(date.getTime()) || rollover || date >= new Date()) {
+      return setError('Data inválida ou no futuro.');
+    }
+    const ageYears = ageFromBirthDate(iso);
+    if (ageYears == null || ageYears < 13 || ageYears > 120) {
+      return setError('Idade deve estar entre 13 e 120 anos.');
+    }
+
+    onSave({ weight: w, height: h, birthDate: iso });
+    onClose();
+  };
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={s.sheetOverlay} onPress={onClose} />
+      <View style={s.sheet}>
+        <View style={s.sheetHandle} />
+        <Text style={s.sheetTitle}>Suas métricas</Text>
+
+        <Text style={s.inputLabel}>DATA DE NASCIMENTO</Text>
+        <TextInput
+          style={s.input}
+          value={birthDisplay}
+          onChangeText={handleBirthChange}
+          placeholder="DD/MM/AAAA"
+          placeholderTextColor={KINETIC.textMuted}
+          keyboardType="number-pad"
+          maxLength={10}
+        />
+        <Text style={s.inputLabel}>PESO (KG)</Text>
+        <TextInput
+          style={s.input}
+          value={weight}
+          onChangeText={setWeight}
+          placeholder="78"
+          placeholderTextColor={KINETIC.textMuted}
+          keyboardType="decimal-pad"
+        />
+        <Text style={s.inputLabel}>ALTURA (CM)</Text>
+        <TextInput
+          style={s.input}
+          value={height}
+          onChangeText={setHeight}
+          placeholder="175"
+          placeholderTextColor={KINETIC.textMuted}
+          keyboardType="number-pad"
+        />
+        {!!error && <Text style={s.inputError}>{error}</Text>}
+
+        <View style={s.sheetButtons}>
+          <TouchableOpacity style={s.sheetCancel} onPress={onClose} activeOpacity={0.8}>
+            <Text style={s.sheetCancelText}>Cancelar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={s.sheetSave} onPress={handleSave} activeOpacity={0.8}>
+            <Text style={s.sheetSaveText}>Salvar</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+interface AnamnesisModalProps {
+  visible: boolean;
+  value: string;
+  onSave: (value: string) => void;
+  onClose: () => void;
+}
+
+function AnamnesisModal({ visible, value, onSave, onClose }: AnamnesisModalProps) {
+  const initial = hasMedicalInfo(value) ? value : '';
+  const [text, setText] = useState<string>(initial);
+
+  useEffect(() => {
+    if (visible) setText(hasMedicalInfo(value) ? value : '');
+  }, [visible, value]);
+
+  const handleSave = () => {
+    const trimmed = text.trim();
+    onSave(trimmed.length > 0 ? trimmed : 'Nenhuma');
+    onClose();
+  };
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={s.sheetOverlay} onPress={onClose} />
+      <View style={s.sheet}>
+        <View style={s.sheetHandle} />
+        <Text style={s.sheetTitle}>Anamnese</Text>
+        <Text style={s.sheetBody}>
+          Possui alguma lesão, dor articular ou restrição médica que a IA deva considerar?
+        </Text>
+        <TextInput
+          style={s.anamnesisInput}
+          value={text}
+          onChangeText={setText}
+          placeholder="Ex: hérnia de disco L4-L5, dor no ombro direito, asma…"
+          placeholderTextColor={KINETIC.textMuted}
+          multiline
+          numberOfLines={4}
+          textAlignVertical="top"
+        />
+        <Text style={s.inputHint}>Deixe em branco se não houver restrições.</Text>
+
+        <View style={s.sheetButtons}>
+          <TouchableOpacity style={s.sheetCancel} onPress={onClose} activeOpacity={0.8}>
+            <Text style={s.sheetCancelText}>Cancelar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={s.sheetSave} onPress={handleSave} activeOpacity={0.8}>
+            <Text style={s.sheetSaveText}>Salvar</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -450,11 +724,24 @@ function LogoutSheet({ open, onCancel, onConfirm }: { open: boolean; onCancel: (
 }
 
 // ─── Screen ───────────────────────────────────────────────────
-export default function ProfileScreen() {
+interface ProfileNavigationProp {
+  navigate: (screen: string, params?: Record<string, unknown>) => void;
+}
+
+interface ProfileScreenProps {
+  navigation: ProfileNavigationProp;
+}
+
+type ProtocolModal = 'goal' | 'metrics' | 'level' | 'frequency' | 'anamnesis' | null;
+
+export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const { signOut } = useContext(AuthContext);
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [profileData, setProfileData] = useState<UserProfileResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [protocolForm, setProtocolForm] = useState<ProtocolForm | null>(null);
+  const [activeModal, setActiveModal] = useState<ProtocolModal>(null);
+  const [isRegenerating, setIsRegenerating] = useState<boolean>(false);
   const user = USER;
 
   const handleConfirmSignOut = async () => {
@@ -472,6 +759,16 @@ export default function ProfileScreen() {
         setIsLoading(true);
         const response = await api.get<UserProfileResponse>('/users/profile');
         setProfileData(response.data);
+        const p = response.data;
+        setProtocolForm({
+          goal: p.targetGoal ?? '',
+          weight: p.weight ?? 0,
+          height: p.height ?? 0,
+          birthDate: p.birthDate ?? '',
+          level: p.level ?? '',
+          frequency: p.frequency ?? 0,
+          medicalConditions: p.medicalConditions ?? '',
+        });
       } catch (error) {
         console.error('Erro ao carregar dados do perfil:', error);
       } finally {
@@ -480,6 +777,48 @@ export default function ProfileScreen() {
     };
     fetchProfile();
   }, []);
+
+  const patchForm = (patch: Partial<ProtocolForm>) =>
+    setProtocolForm((prev) => (prev ? { ...prev, ...patch } : prev));
+
+  const handleRegenerate = async () => {
+    if (!protocolForm) return;
+    const { goal, weight, height, birthDate, level, frequency, medicalConditions } = protocolForm;
+
+    if (!goal || !level || !birthDate || !weight || !height || !frequency) {
+      Alert.alert(
+        'Dados incompletos',
+        'Preencha objetivo, métricas, nível e frequência antes de regenerar o treino.',
+      );
+      return;
+    }
+
+    try {
+      setIsRegenerating(true);
+      const payload: GenerateWorkoutRequest = {
+        birthDate,
+        weight,
+        height,
+        goal,
+        frequency,
+        level,
+        medicalConditions: medicalConditions?.trim() || 'Nenhuma',
+      };
+      await api.post('/workouts/generate', payload);
+      Alert.alert('Pronto!', 'Seu treino foi regenerado com sucesso com base nos novos dados.');
+      navigation.navigate('Home');
+    } catch (e) {
+      const err = e as { response?: { data?: unknown } };
+      const raw = err.response?.data;
+      const message =
+        typeof raw === 'string' && raw
+          ? raw
+          : 'Não foi possível regenerar o treino agora. Tente novamente.';
+      Alert.alert('Erro', message);
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
 
   const heroData: HeroUserData = profileData
     ? {
@@ -524,7 +863,20 @@ export default function ProfileScreen() {
           <IdentityHero user={heroData} />
         )}
 
-        <View style={s.section}><ProtocolSection user={user} /></View>
+        {protocolForm && (
+          <View style={s.section}>
+            <ProtocolSection
+              form={protocolForm}
+              onEditGoal={() => setActiveModal('goal')}
+              onEditMetrics={() => setActiveModal('metrics')}
+              onEditLevel={() => setActiveModal('level')}
+              onEditFrequency={() => setActiveModal('frequency')}
+              onEditAnamnesis={() => setActiveModal('anamnesis')}
+              onRegenerate={handleRegenerate}
+              isRegenerating={isRegenerating}
+            />
+          </View>
+        )}
         <View style={s.section}><AccountSection user={user} /></View>
         <View style={s.section}><PreferencesSection /></View>
         <View style={s.section}><CommunitySection /></View>
@@ -532,6 +884,47 @@ export default function ProfileScreen() {
         <View style={s.section}><SupportSection /></View>
         <View style={s.section}><LogoutSection onLogout={() => setLogoutOpen(true)} /></View>
       </ScrollView>
+
+      {protocolForm && (
+        <>
+          <OptionPickerModal
+            visible={activeModal === 'goal'}
+            title="Objetivo principal"
+            options={GOAL_OPTIONS}
+            selected={protocolForm.goal}
+            onSelect={(value) => patchForm({ goal: value })}
+            onClose={() => setActiveModal(null)}
+          />
+          <OptionPickerModal
+            visible={activeModal === 'level'}
+            title="Nível de experiência"
+            options={LEVEL_OPTIONS}
+            selected={protocolForm.level}
+            onSelect={(value) => patchForm({ level: value })}
+            onClose={() => setActiveModal(null)}
+          />
+          <OptionPickerModal
+            visible={activeModal === 'frequency'}
+            title="Frequência semanal"
+            options={FREQUENCY_OPTIONS}
+            selected={String(protocolForm.frequency)}
+            onSelect={(value) => patchForm({ frequency: parseInt(value, 10) })}
+            onClose={() => setActiveModal(null)}
+          />
+          <MetricsModal
+            visible={activeModal === 'metrics'}
+            form={protocolForm}
+            onSave={(patch) => patchForm(patch)}
+            onClose={() => setActiveModal(null)}
+          />
+          <AnamnesisModal
+            visible={activeModal === 'anamnesis'}
+            value={protocolForm.medicalConditions}
+            onSave={(value) => patchForm({ medicalConditions: value })}
+            onClose={() => setActiveModal(null)}
+          />
+        </>
+      )}
 
       <LogoutSheet
         open={logoutOpen}
@@ -646,7 +1039,52 @@ const s = StyleSheet.create({
     borderWidth: 1, borderColor: KINETIC.primarySoft,
   },
   regenBtnText: { color: KINETIC.primary, fontSize: 13, fontWeight: '700' },
+  regenBtnDisabled: { opacity: 0.6 },
   regenHint: { fontSize: 10, color: KINETIC.textMuted, marginTop: 6, textAlign: 'center' },
+
+  // Option picker modal
+  optionList: { gap: 10, marginTop: 8 },
+  optionCard: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    padding: 14, borderRadius: 14,
+    backgroundColor: KINETIC.surface2,
+    borderWidth: 1, borderColor: 'transparent',
+  },
+  optionCardActive: { borderColor: KINETIC.primary, backgroundColor: KINETIC.primaryDim },
+  optionTitle: { fontSize: 15, fontWeight: '700', color: KINETIC.text },
+  optionSub: { fontSize: 12, color: KINETIC.textDim, marginTop: 2 },
+  optionRadio: {
+    width: 22, height: 22, borderRadius: 11,
+    borderWidth: 1.5, borderColor: KINETIC.ghostHi,
+    alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+  },
+  optionRadioActive: { borderColor: KINETIC.primary, backgroundColor: KINETIC.primary },
+  optionRadioCheck: { color: '#001a1f', fontSize: 13, fontWeight: '800' },
+
+  // Inputs (metrics / anamnesis modals)
+  inputLabel: {
+    fontSize: 10, fontWeight: '700', color: KINETIC.textMuted,
+    letterSpacing: 1, textTransform: 'uppercase', marginTop: 14, marginBottom: 6,
+  },
+  input: {
+    backgroundColor: KINETIC.surface2, borderRadius: 12,
+    paddingHorizontal: 14, paddingVertical: 12,
+    fontSize: 15, color: KINETIC.text,
+    borderWidth: 1, borderColor: KINETIC.ghost,
+  },
+  inputError: { fontSize: 12, color: '#ff6b7a', marginTop: 10 },
+  inputHint: { fontSize: 11, color: KINETIC.textMuted, marginTop: 8 },
+  anamnesisInput: {
+    backgroundColor: KINETIC.surface2, borderRadius: 12,
+    paddingHorizontal: 14, paddingVertical: 12, marginTop: 14,
+    fontSize: 15, color: KINETIC.text, minHeight: 110,
+    borderWidth: 1, borderColor: KINETIC.ghost,
+  },
+  sheetSave: {
+    flex: 1, paddingVertical: 14, borderRadius: 14,
+    backgroundColor: KINETIC.primary, alignItems: 'center',
+  },
+  sheetSaveText: { fontSize: 14, fontWeight: '800', color: '#001a1f' },
 
   // Delete button
   deleteBtn: { marginTop: 14, paddingVertical: 10, alignItems: 'center' },

@@ -90,7 +90,13 @@ public class UserService {
                 memberSince,
                 streak,
                 totalWorkouts,
-                user.getGoal()
+                user.getGoal(),
+                user.getBirthDate(),
+                user.getWeight(),
+                user.getHeight(),
+                user.getLevel(),
+                user.getFrequency(),
+                user.getMedicalConditions()
         );
     }
 

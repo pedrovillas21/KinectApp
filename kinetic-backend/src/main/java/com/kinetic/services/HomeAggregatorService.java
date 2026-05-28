@@ -55,7 +55,7 @@ public class HomeAggregatorService {
                 .orElseThrow(() -> new EntityNotFoundException("Usuario nao encontrado."));
 
         String firstName = extractFirstName(user.getNome());
-        List<WorkoutPlan> plans = workoutPlanRepository.findByUserIdOrderByCreatedAtAsc(user.getId());
+        List<WorkoutPlan> plans = workoutPlanRepository.findByUserIdAndStatusOrderByCreatedAtAsc(user.getId(), "active");
         boolean onboardingCompleted = Boolean.TRUE.equals(user.getWorkoutOnboardingCompleted()) || !plans.isEmpty();
 
         if (!onboardingCompleted) {

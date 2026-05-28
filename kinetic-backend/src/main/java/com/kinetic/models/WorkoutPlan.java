@@ -36,6 +36,10 @@ public class WorkoutPlan {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    // Ciclo de vida do plano: 'active' (vigente) ou 'archived' (substituido por regeneracao).
+    @Column(nullable = false)
+    private String status = "active";
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     @com.fasterxml.jackson.annotation.JsonIgnore
