@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `f538c593`
+- Built from commit: `ba43348b`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -27,7 +27,7 @@
 - [[_COMMUNITY_Community 9|Community 9]]
 - [[_COMMUNITY_Community 10|Community 10]]
 - [[_COMMUNITY_Community 11|Community 11]]
-- [[_COMMUNITY_Community 12|Community 12]]
+- [[_COMMUNITY_Community 13|Community 13]]
 - [[_COMMUNITY_Community 14|Community 14]]
 - [[_COMMUNITY_Community 15|Community 15]]
 - [[_COMMUNITY_Community 16|Community 16]]
@@ -50,11 +50,11 @@
 - [[_COMMUNITY_Community 34|Community 34]]
 - [[_COMMUNITY_Community 35|Community 35]]
 - [[_COMMUNITY_Community 36|Community 36]]
-- [[_COMMUNITY_Community 38|Community 38]]
+- [[_COMMUNITY_Community 37|Community 37]]
 - [[_COMMUNITY_Community 39|Community 39]]
 - [[_COMMUNITY_Community 40|Community 40]]
 - [[_COMMUNITY_Community 41|Community 41]]
-- [[_COMMUNITY_Community 43|Community 43]]
+- [[_COMMUNITY_Community 42|Community 42]]
 - [[_COMMUNITY_Community 44|Community 44]]
 - [[_COMMUNITY_Community 45|Community 45]]
 - [[_COMMUNITY_Community 46|Community 46]]
@@ -68,8 +68,8 @@
 1. `COLORS` - 24 edges
 2. `ThemeContext` - 20 edges
 3. `AuthContext` - 14 edges
-4. `JwtUtil` - 10 edges
-5. `HomeAggregatorService` - 10 edges
+4. `HomeAggregatorService` - 10 edges
+5. `JwtUtil` - 10 edges
 6. `KINETIC` - 10 edges
 7. `StatsService` - 8 edges
 8. `UserService` - 7 edges
@@ -79,13 +79,13 @@
 ## Surprising Connections (you probably didn't know these)
 - `DeltaChip()` --calls--> `formatNumberPtBR()`  [EXTRACTED]
   KineticApp/src/screens/StatsScreen.tsx → KineticApp/src/utils/statsUtils.ts
-- `RankingRow()` --calls--> `rankingPositionColor()`  [EXTRACTED]
-  KineticApp/src/components/home/RankingCard.tsx → KineticApp/src/theme/kinetic.ts
-- `RankingRow()` --calls--> `rankingPositionChipBg()`  [EXTRACTED]
-  KineticApp/src/components/home/RankingCard.tsx → KineticApp/src/theme/kinetic.ts
 - `ProtocolSection()` --calls--> `goalLabel()`  [EXTRACTED]
   KineticApp/src/screens/ProfileScreen.tsx → KineticApp/src/constants/protocol.ts
 - `ProtocolSection()` --calls--> `levelLabel()`  [EXTRACTED]
+  KineticApp/src/screens/ProfileScreen.tsx → KineticApp/src/constants/protocol.ts
+- `ProtocolSection()` --calls--> `ageFromBirthDate()`  [EXTRACTED]
+  KineticApp/src/screens/ProfileScreen.tsx → KineticApp/src/constants/protocol.ts
+- `ProtocolSection()` --calls--> `hasMedicalInfo()`  [EXTRACTED]
   KineticApp/src/screens/ProfileScreen.tsx → KineticApp/src/constants/protocol.ts
 
 ## Communities (78 total, 23 thin omitted)
@@ -107,16 +107,16 @@ Cohesion: 0.05
 Nodes (36): AdherenceCardProps, styles, getGreeting(), HomeGreeting(), HomeGreetingProps, styles, NextWorkoutCardProps, styles (+28 more)
 
 ### Community 4 - "Community 4"
+Cohesion: 0.06
+Nodes (9): AuthController, UserController, UserLoginStreakRepository, UserRepository, WorkoutExecutionLogRepository, CustomUserDetailsService, AuthService, UserService (+1 more)
+
+### Community 5 - "Community 5"
 Cohesion: 0.07
 Nodes (10): HomeController, json(), of(), getText(), WorkoutSessionRepository, RuntimeException, GeminiService, InvalidGeminiResponseException (+2 more)
 
-### Community 5 - "Community 5"
+### Community 6 - "Community 6"
 Cohesion: 0.05
 Nodes (28): AuthContextValue, AuthResult, CompleteOnboardingData, KineticUser, WorkoutPlanItem, AuthContextValue, DAYS_LABELS, GEN_STEPS (+20 more)
-
-### Community 6 - "Community 6"
-Cohesion: 0.08
-Nodes (14): endDate(), fromString(), id(), insightTag(), previousEndDate(), previousStartDate(), startDate(), targetSessions() (+6 more)
 
 ### Community 7 - "Community 7"
 Cohesion: 0.06
@@ -124,7 +124,7 @@ Nodes (8): WorkoutController, WorkoutPlanRepository, WorkoutService, DATA, Icons
 
 ### Community 8 - "Community 8"
 Cohesion: 0.08
-Nodes (8): AuthController, OncePerRequestFilter, UserRepository, CustomUserDetailsService, JwtAuthenticationFilter, JwtUtil, AuthService, UserDetailsService
+Nodes (14): endDate(), fromString(), id(), insightTag(), previousEndDate(), previousStartDate(), startDate(), targetSessions() (+6 more)
 
 ### Community 9 - "Community 9"
 Cohesion: 0.07
@@ -132,15 +132,15 @@ Nodes (10): AGES, DAYS, DEFAULT_FORM, GOALS, HEIGHTS, K, LEVELS, STEPS (+2 more)
 
 ### Community 10 - "Community 10"
 Cohesion: 0.11
-Nodes (4): UserController, UserLoginStreakRepository, WorkoutExecutionLogRepository, UserService
+Nodes (3): Ic, PF, USER
 
 ### Community 11 - "Community 11"
 Cohesion: 0.11
-Nodes (3): Ic, PF, USER
-
-### Community 12 - "Community 12"
-Cohesion: 0.11
 Nodes (17): 1. Overview & Creative North Star: "The Digital Kineticist", 2. Colors: Tonal Depth & The Neon Pulse, 3. Typography: Editorial Authority, 4. Elevation & Depth: Tonal Layering, 5. Components: The Athletic Kit, 6. Do’s and Don’ts, Buttons (The Kinetic Drivers), Cards & Lists (The Performance Modules) (+9 more)
+
+### Community 13 - "Community 13"
+Cohesion: 0.24
+Nodes (3): OncePerRequestFilter, JwtAuthenticationFilter, JwtUtil
 
 ### Community 14 - "Community 14"
 Cohesion: 0.14
@@ -191,14 +191,14 @@ Cohesion: 0.5
 Nodes (3): config, { getDefaultConfig }, path
 
 ## Knowledge Gaps
-- **241 isolated node(s):** `HK`, `MOCK`, `TAB_ICONS`, `K`, `GOALS` (+236 more)
+- **241 isolated node(s):** `GoalType`, `LevelType`, `GoalDef`, `LevelDef`, `GOALS` (+236 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **23 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **What connects `HK`, `MOCK`, `TAB_ICONS` to the rest of the system?**
+- **What connects `GoalType`, `LevelType`, `GoalDef` to the rest of the system?**
   _241 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.05 - nodes in this community are weakly interconnected._
@@ -209,6 +209,6 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `Community 3` be split into smaller, more focused modules?**
   _Cohesion score 0.05 - nodes in this community are weakly interconnected._
 - **Should `Community 4` be split into smaller, more focused modules?**
-  _Cohesion score 0.07 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06 - nodes in this community are weakly interconnected._
 - **Should `Community 5` be split into smaller, more focused modules?**
-  _Cohesion score 0.05 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.07 - nodes in this community are weakly interconnected._
