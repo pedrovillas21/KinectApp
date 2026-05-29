@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 
 import java.time.Duration;
@@ -25,8 +27,11 @@ public class GeminiService {
     @Value("${gemini.api.key}")
     private String apiKey;
 
-    @Value("${gemini.api.url}")
-    private String apiUrl;
+    @Value("${gemini.api.base-url}")
+    private String apiBaseUrl;
+
+    @Value("${gemini.api.models}")
+    private String geminiModelsConfig;
 
     public GeminiService(ObjectMapper objectMapper) {
         JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory();
@@ -53,24 +58,44 @@ public class GeminiService {
                 List.of(GeminiRequestDto.Content.of(prompt)),
                 GeminiRequestDto.GenerationConfig.json());
 
-        GeminiResponseDto response = restClient.post()
-                .uri(apiUrl + "?key=" + apiKey)
-                .contentType(Objects.requireNonNull(MediaType.APPLICATION_JSON))
-                .body(requestDto)
-                .retrieve()
-                .body(GeminiResponseDto.class);
+        String[] models = geminiModelsConfig.split(",");
+        Exception lastException = null;
 
-        if (response == null || response.getText() == null) {
-            throw new RuntimeException("Failed to get response from Gemini API");
+        for (String model : models) {
+            String url = apiBaseUrl + "/" + model.trim() + ":generateContent?key=" + apiKey;
+            try {
+                GeminiResponseDto response = restClient.post()
+                        .uri(url)
+                        .contentType(Objects.requireNonNull(MediaType.APPLICATION_JSON))
+                        .body(requestDto)
+                        .retrieve()
+                        .body(GeminiResponseDto.class);
+
+                if (response == null || response.getText() == null) {
+                    throw new RuntimeException("Failed to get response from Gemini API");
+                }
+
+                String jsonText = response.getText();
+                try {
+                    return objectMapper.readValue(jsonText, new TypeReference<List<GeneratedWorkoutPlanDto>>() {});
+                } catch (JsonProcessingException e) {
+                    throw new InvalidGeminiResponseException("A IA retornou um treino em formato invalido. Tente gerar novamente.", e);
+                }
+            } catch (InvalidGeminiResponseException e) {
+                throw e;
+            } catch (RestClientResponseException e) {
+                int status = e.getStatusCode().value();
+                if (status == 429 || status == 500 || status == 502 || status == 503) {
+                    lastException = e;
+                } else {
+                    throw e;
+                }
+            } catch (RestClientException e) {
+                lastException = e;
+            }
         }
 
-        String jsonText = response.getText();
-
-        try {
-            return objectMapper.readValue(jsonText, new TypeReference<List<GeneratedWorkoutPlanDto>>() {});
-        } catch (JsonProcessingException e) {
-            throw new InvalidGeminiResponseException("A IA retornou um treino em formato invalido. Tente gerar novamente.", e);
-        }
+        throw new RuntimeException("Todos os modelos de IA estão indisponíveis no momento. Tente novamente mais tarde.", lastException);
     }
 
     public static class InvalidGeminiResponseException extends RuntimeException {
