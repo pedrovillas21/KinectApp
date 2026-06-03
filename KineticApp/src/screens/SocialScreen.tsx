@@ -7,35 +7,32 @@ import { COLORS } from '../theme/colors';
 import AppHeader from '../components/AppHeader';
 import SquadBar from '../components/SquadBar';
 import FeedPost from '../components/FeedPost';
-import { mockSquad, mockFeed } from '../utils/mockData';
+import { mockSquad, mockFeed, FeedPostData } from '../utils/mockData';
 
 export default function SocialScreen() {
   const { isDarkMode } = useContext(ThemeContext);
-  const isDark = isDarkMode;
 
-  const [feedData, setFeedData] = useState(mockFeed);
+  const [feedData, setFeedData] = useState<FeedPostData[]>(mockFeed);
 
   const handleOpenCamera = async () => {
-    // Pedir permissão
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-    
-    if (permissionResult.granted === false) {
-      alert("Precisamos de permissão para acessar a câmera!");
+
+    if (!permissionResult.granted) {
+      alert('Precisamos de permissão para acessar a câmera!');
       return;
     }
 
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
-      aspect: [4, 5], // aspect ratio retrato parecido com feed
+      aspect: [4, 5],
       quality: 0.8,
     });
 
     if (!result.canceled) {
-      // Simula a criação de um novo post
-      const newPost = {
+      const newPost: FeedPostData = {
         id: 'p' + Math.random().toString(),
-        author: { name: 'You', avatarUrl: 'https://i.pravatar.cc/150?u=you' },
+        author: { id: 'me', name: 'You', avatarUrl: 'https://i.pravatar.cc/150?u=you', hasNewUpdate: false },
         timestamp: 'JUST NOW',
         category: 'CUSTOM WORKOUT',
         imageUrl: result.assets[0].uri,
@@ -48,39 +45,38 @@ export default function SocialScreen() {
         isLikedByMe: false,
       };
 
-      setFeedData(prev => [newPost, ...prev]);
+      setFeedData((prev) => [newPost, ...prev]);
     }
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: isDark ? COLORS.darkBackground : COLORS.lightBackground }]}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: isDarkMode ? COLORS.darkBackground : COLORS.lightBackground },
+      ]}
+    >
       <AppHeader />
 
       <FlatList
         data={feedData}
-        keyExtractor={item => item.id}
+        keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={<SquadBar items={mockSquad} />}
         renderItem={({ item }) => <FeedPost post={item} />}
       />
 
-      {/* FAB - Floating Action Button */}
       <TouchableOpacity style={styles.fab} onPress={handleOpenCamera}>
         <Text style={styles.fabIcon}>+</Text>
       </TouchableOpacity>
-
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  listContent: {
-    paddingBottom: 100, // Espaço pro FAB não cobrir conteúdo
-  },
+  container: { flex: 1 },
+  listContent: { paddingBottom: 100 },
   fab: {
     position: 'absolute',
     bottom: 32,
@@ -102,5 +98,5 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: 'bold',
     lineHeight: 34,
-  }
+  },
 });

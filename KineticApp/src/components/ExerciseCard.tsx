@@ -1,32 +1,52 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-export default function ExerciseCard({ exercise, isDarkMode }) {
-  // Currently building only the layout skeleton with flexbox.
-  // Colors and visual styling will be added later based on the design/mockup.
+interface Exercise {
+  name: string;
+  sets: number;
+  reps: string | number;
+  weight: string;
+  restTime: string;
+}
+
+interface Props {
+  exercise: Exercise;
+  isDarkMode?: boolean;
+}
+
+export default function ExerciseCard({ exercise, isDarkMode }: Props) {
   return (
-    <View style={[
-      styles.card,
-      isDarkMode ? styles.cardDark : styles.cardLight
-    ]}>
+    <View style={[styles.card, isDarkMode ? styles.cardDark : styles.cardLight]}>
       <View style={styles.headerRow}>
         <Text style={[styles.title, isDarkMode ? styles.textDark : styles.textLight]}>
           {exercise.name}
         </Text>
       </View>
-      
+
       <View style={styles.statsRow}>
         <View style={styles.statColumn}>
-          <Text style={[styles.statLabel, isDarkMode ? styles.textMutedDark : styles.textMutedLight]}>Sets/Reps</Text>
-          <Text style={[styles.statValue, isDarkMode ? styles.textDark : styles.textLight]}>{exercise.sets} x {exercise.reps}</Text>
+          <Text style={[styles.statLabel, isDarkMode ? styles.textMutedDark : styles.textMutedLight]}>
+            Sets/Reps
+          </Text>
+          <Text style={[styles.statValue, isDarkMode ? styles.textDark : styles.textLight]}>
+            {exercise.sets} x {exercise.reps}
+          </Text>
         </View>
         <View style={styles.statColumn}>
-          <Text style={[styles.statLabel, isDarkMode ? styles.textMutedDark : styles.textMutedLight]}>Weight</Text>
-          <Text style={[styles.statValue, isDarkMode ? styles.textDark : styles.textLight]}>{exercise.weight}</Text>
+          <Text style={[styles.statLabel, isDarkMode ? styles.textMutedDark : styles.textMutedLight]}>
+            Weight
+          </Text>
+          <Text style={[styles.statValue, isDarkMode ? styles.textDark : styles.textLight]}>
+            {exercise.weight}
+          </Text>
         </View>
         <View style={styles.statColumn}>
-          <Text style={[styles.statLabel, isDarkMode ? styles.textMutedDark : styles.textMutedLight]}>Rest</Text>
-          <Text style={[styles.statValue, isDarkMode ? styles.textDark : styles.textLight]}>{exercise.restTime}</Text>
+          <Text style={[styles.statLabel, isDarkMode ? styles.textMutedDark : styles.textMutedLight]}>
+            Rest
+          </Text>
+          <Text style={[styles.statValue, isDarkMode ? styles.textDark : styles.textLight]}>
+            {exercise.restTime}
+          </Text>
         </View>
       </View>
     </View>
@@ -38,7 +58,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     padding: 16,
     borderRadius: 8,
-    borderWidth: 1, // Optional: border to define limits until mockup arrives
+    borderWidth: 1,
   },
   cardDark: {
     backgroundColor: '#1E1E1E',
@@ -76,5 +96,5 @@ const styles = StyleSheet.create({
   textDark: { color: '#FFF' },
   textLight: { color: '#000' },
   textMutedDark: { color: '#AAA' },
-  textMutedLight: { color: '#666' }
+  textMutedLight: { color: '#666' },
 });

@@ -10,12 +10,17 @@ import api, {
   setSignOutHandler,
   refreshAccessToken,
   logoutUser,
-  ACCESS_TOKEN_KEY,
-  REFRESH_TOKEN_KEY,
 } from '../services/api';
+import {
+  getRefreshToken,
+  clearTokens,
+  setTokens,
+  migrateLegacyTokens,
+} from '../services/tokenStorage';
 import { isJwtExpired } from '../utils/jwt';
 
 const USER_KEY = '@kinetic_user';
+const REMEMBERED_USER_KEY = '@kinetic_remembered_user';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -29,6 +34,13 @@ export interface KineticUser {
   height: number | null;
   goal: string | null;
   frequency: number | null;
+}
+
+export interface RememberedUser {
+  id: string | number;
+  nome: string;
+  email: string;
+  streak?: number;
 }
 
 export interface WorkoutPlanItem {
@@ -59,11 +71,14 @@ interface AuthContextValue {
   isLoggedIn: boolean;
   hasOnboarded: boolean;
   currentUser: KineticUser | null;
+  rememberedUser: RememberedUser | null;
   isLoadingAuth: boolean;
   workoutPlans: WorkoutPlanItem[];
   setWorkoutPlans: (plans: WorkoutPlanItem[]) => void;
   signIn: (args: { email: string; password: string }) => Promise<AuthResult>;
   signOut: () => Promise<void>;
+  unlockSession: () => Promise<void>;
+  forgetRememberedUser: () => Promise<void>;
   register: (args: {
     name: string;
     email: string;
@@ -91,6 +106,7 @@ export const AuthContext = createContext<AuthContextValue>(
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<KineticUser | null>(null);
+  const [rememberedUser, setRememberedUser] = useState<RememberedUser | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hasOnboarded, setHasOnboarded] = useState(false);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
@@ -101,11 +117,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return Boolean(user.goal) && Boolean(user.level);
   };
 
-  // Fonte de verdade do servidor: verifica se o usuário já possui treino gerado.
-  // Usado para confirmar o status de onboarding quando o perfil local está
-  // incompleto (ex.: a geração concluiu no backend mas o cliente caiu por
-  // timeout). Retorna a lista de planos ativos — vazia em caso de falha de rede,
-  // para nunca bloquear o usuário indevidamente.
   const fetchExistingPlans = async (): Promise<WorkoutPlanItem[]> => {
     try {
       const res = await api.get<WorkoutPlanItem[]>('/workouts/my-plans');
@@ -117,44 +128,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    const loadStoredSession = async () => {
+    const bootstrap = async () => {
       try {
-        const token = await AsyncStorage.getItem(ACCESS_TOKEN_KEY);
-        const userJson = await AsyncStorage.getItem(USER_KEY);
+        // Migration must complete before any routing decision.
+        await migrateLegacyTokens();
 
-        // Access token expirado: tenta renová-lo com o refresh token antes de
-        // descartar a sessão (assim o usuário não é deslogado a cada 24h e não
-        // disparamos requests fadados ao 401 no startup).
-        const hasValidAccess = Boolean(token) && !isJwtExpired(token as string);
-        const validToken = hasValidAccess ? token : await refreshAccessToken();
-
-        if (validToken && userJson) {
-          const user = JSON.parse(userJson) as KineticUser;
-          setCurrentUser(user);
-          setIsLoggedIn(true);
-
-          const localOnboarded = isOnboardedFromUser(user);
-          setHasOnboarded(localOnboarded);
-
-          // Se o perfil local não indica onboarding completo, confirma com o
-          // backend: havendo treino, o usuário já passou do onboarding e vai
-          // direto para a Home (evita repetir todo o fluxo num novo login).
-          if (!localOnboarded) {
-            const plans = await fetchExistingPlans();
-            if (plans.length > 0) {
-              setWorkoutPlans(plans);
-              setHasOnboarded(true);
-            }
-          }
-        } else if (token || userJson) {
-          // Sessão ausente/expirada/corrompida e sem refresh válido: limpa o
-          // storage para não montar telas autenticadas que dariam 401.
-          await AsyncStorage.multiRemove([
-            ACCESS_TOKEN_KEY,
-            REFRESH_TOKEN_KEY,
-            USER_KEY,
-          ]);
+        const rememberedJson = await AsyncStorage.getItem(REMEMBERED_USER_KEY);
+        if (rememberedJson) {
+          setRememberedUser(JSON.parse(rememberedJson) as RememberedUser);
         }
+        // No silent login — user must explicitly unlock via biometrics or password.
       } catch (e) {
         console.error('Erro ao carregar sessão:', e);
       } finally {
@@ -162,8 +145,60 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     };
 
-    loadStoredSession();
+    bootstrap();
   }, []);
+
+  // Called after successful biometric auth — exchanges the stored refresh token
+  // for a fresh access token without asking the user for a password.
+  const unlockSession = async (): Promise<void> => {
+    try {
+      const newToken = await refreshAccessToken();
+      if (!newToken) {
+        await forgetRememberedUser();
+        return;
+      }
+
+      const userJson = await AsyncStorage.getItem(USER_KEY);
+      if (!userJson) {
+        await forgetRememberedUser();
+        return;
+      }
+
+      const user = JSON.parse(userJson) as KineticUser;
+      setCurrentUser(user);
+      setIsLoggedIn(true);
+
+      const localOnboarded = isOnboardedFromUser(user);
+      setHasOnboarded(localOnboarded);
+
+      if (!localOnboarded) {
+        const plans = await fetchExistingPlans();
+        if (plans.length > 0) {
+          setWorkoutPlans(plans);
+          setHasOnboarded(true);
+        }
+      }
+    } catch (e) {
+      console.error('Erro ao desbloquear sessão:', e);
+      await forgetRememberedUser();
+    }
+  };
+
+  // "Trocar conta" — wipes everything and shows the Welcome screen.
+  const forgetRememberedUser = async (): Promise<void> => {
+    try {
+      await clearTokens();
+      await AsyncStorage.multiRemove([USER_KEY, REMEMBERED_USER_KEY]);
+    } catch (e) {
+      console.error('Erro ao esquecer usuário:', e);
+    } finally {
+      setRememberedUser(null);
+      setCurrentUser(null);
+      setIsLoggedIn(false);
+      setHasOnboarded(false);
+      setWorkoutPlans([]);
+    }
+  };
 
   const register = async ({
     name,
@@ -250,20 +285,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         frequency,
       };
 
+      const remembered: RememberedUser = { id, nome, email: userEmail };
+
+      await setTokens(token, refreshToken);
       await AsyncStorage.multiSet([
-        [ACCESS_TOKEN_KEY, token],
-        [REFRESH_TOKEN_KEY, refreshToken],
         [USER_KEY, JSON.stringify(userPayload)],
+        [REMEMBERED_USER_KEY, JSON.stringify(remembered)],
       ]);
 
       setCurrentUser(userPayload);
+      setRememberedUser(remembered);
       setIsLoggedIn(true);
 
       const localOnboarded = isOnboardedFromUser(userPayload);
       setHasOnboarded(localOnboarded);
 
-      // Perfil incompleto no login não significa onboarding pendente: se o
-      // backend já tem treino para o usuário, pula o onboarding e vai pra Home.
       if (!localOnboarded) {
         const plans = await fetchExistingPlans();
         if (plans.length > 0) {
@@ -286,21 +322,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Explicit logout (Profile → "Sair") → always returns to Welcome, not the card.
   const signOut = useCallback(async (): Promise<void> => {
     try {
-      const refreshToken = await AsyncStorage.getItem(REFRESH_TOKEN_KEY);
+      const refreshToken = await getRefreshToken();
       if (refreshToken) {
         await logoutUser(refreshToken);
       }
-      await AsyncStorage.multiRemove([
-        ACCESS_TOKEN_KEY,
-        REFRESH_TOKEN_KEY,
-        USER_KEY,
-      ]);
+      await clearTokens();
+      await AsyncStorage.multiRemove([USER_KEY, REMEMBERED_USER_KEY]);
     } catch (e) {
       console.error('Erro ao limpar sessão do storage:', e);
     } finally {
       setCurrentUser(null);
+      setRememberedUser(null);
       setIsLoggedIn(false);
       setHasOnboarded(false);
       setWorkoutPlans([]);
@@ -376,8 +411,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Troca de senha do usuário autenticado: o backend valida a senha atual
-  // antes de gravar a nova (endpoint protegido /users/change-password).
   const changePassword = async (
     currentPassword: string,
     newPassword: string,
@@ -401,11 +434,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isLoggedIn,
         hasOnboarded,
         currentUser,
+        rememberedUser,
         isLoadingAuth,
         workoutPlans,
         setWorkoutPlans,
         signIn,
         signOut,
+        unlockSession,
+        forgetRememberedUser,
         register,
         completeOnboarding,
         verifyEmail,

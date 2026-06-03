@@ -1,9 +1,17 @@
 import React, { useContext, useState } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity,
-  ScrollView, KeyboardAvoidingView, Platform, Alert
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RouteProp } from '@react-navigation/native';
 import { ThemeContext } from '../../contexts/ThemeContext';
 import { AuthContext } from '../../contexts/AuthContext';
 import { COLORS } from '../../theme/colors';
@@ -12,12 +20,15 @@ import CustomInput from '../../components/CustomInput';
 import PrimaryButton from '../../components/PrimaryButton';
 import PasswordRequirements from '../../components/PasswordRequirements';
 
-export default function ResetPasswordScreen({ navigation, route }) {
+type Props = {
+  navigation: NativeStackNavigationProp<any>;
+  route: RouteProp<{ ResetPassword: { email?: string } }, 'ResetPassword'>;
+};
+
+export default function ResetPasswordScreen({ navigation, route }: Props) {
   const { isDarkMode } = useContext(ThemeContext);
   const { resetPassword } = useContext(AuthContext);
-  const isDark = isDarkMode;
 
-  // E-mail vem da tela anterior via params
   const email = route?.params?.email ?? '';
 
   const [newPassword, setNewPassword] = useState('');
@@ -29,7 +40,8 @@ export default function ResetPasswordScreen({ navigation, route }) {
   const hasLowercase = /[a-z]/.test(newPassword);
   const hasNumber = /\d/.test(newPassword);
   const hasSymbol = /[!@#$%^&*]/.test(newPassword);
-  const isPasswordValid = hasMinLength && hasUppercase && hasLowercase && hasNumber && hasSymbol;
+  const isPasswordValid =
+    hasMinLength && hasUppercase && hasLowercase && hasNumber && hasSymbol;
   const doPasswordsMatch = newPassword && newPassword === confirmPassword;
 
   const handleReset = async () => {
@@ -58,21 +70,36 @@ export default function ResetPasswordScreen({ navigation, route }) {
     Alert.alert(
       'Senha atualizada! ✅',
       'Sua senha foi redefinida com sucesso. Faça login com a nova senha.',
-      [{ text: 'Fazer Login', onPress: () => navigation.navigate('Login') }]
+      [{ text: 'Fazer Login', onPress: () => navigation.navigate('Login') }],
     );
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: isDark ? COLORS.darkBackground : COLORS.lightBackground }]}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: isDarkMode ? COLORS.darkBackground : COLORS.lightBackground },
+      ]}
+    >
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <HeaderLogo showBack />
 
-          <Text style={[styles.title, { color: isDark ? COLORS.textPrimaryDark : COLORS.textPrimaryLight }]}>
+          <Text
+            style={[
+              styles.title,
+              { color: isDarkMode ? COLORS.textPrimaryDark : COLORS.textPrimaryLight },
+            ]}
+          >
             Redefinir Senha
           </Text>
 
-          <Text style={[styles.subtitle, { color: isDark ? COLORS.textSecondaryDark : COLORS.textSecondaryLight }]}>
+          <Text
+            style={[
+              styles.subtitle,
+              { color: isDarkMode ? COLORS.textSecondaryDark : COLORS.textSecondaryLight },
+            ]}
+          >
             {email ? `Redefinindo para: ${email}` : 'Insira sua nova senha.'}
           </Text>
 
@@ -104,8 +131,16 @@ export default function ResetPasswordScreen({ navigation, route }) {
             />
           </View>
 
-          <TouchableOpacity style={styles.footerButton} onPress={() => navigation.navigate('Login')}>
-            <Text style={[styles.footerText, { color: isDark ? COLORS.textSecondaryDark : COLORS.textSecondaryLight }]}>
+          <TouchableOpacity
+            style={styles.footerButton}
+            onPress={() => navigation.navigate('Login')}
+          >
+            <Text
+              style={[
+                styles.footerText,
+                { color: isDarkMode ? COLORS.textSecondaryDark : COLORS.textSecondaryLight },
+              ]}
+            >
               ◂ Voltar para o login
             </Text>
           </TouchableOpacity>

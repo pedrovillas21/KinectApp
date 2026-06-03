@@ -1,9 +1,33 @@
-import React, { useContext, useState } from 'react';
-import { TextInput, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useContext, useState, ReactNode } from 'react';
+import {
+  TextInput,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
 import { ThemeContext } from '../contexts/ThemeContext';
 import { COLORS } from '../theme/colors';
 
-export default function CustomInput({ label, placeholder, value, onChangeText, secureTextEntry, isPassword, icon }) {
+interface Props {
+  label?: string;
+  placeholder?: string;
+  value?: string;
+  onChangeText?: (text: string) => void;
+  secureTextEntry?: boolean;
+  isPassword?: boolean;
+  icon?: ReactNode;
+}
+
+export default function CustomInput({
+  label,
+  placeholder,
+  value,
+  onChangeText,
+  secureTextEntry,
+  isPassword,
+  icon,
+}: Props) {
   const { isDarkMode } = useContext(ThemeContext);
   const [isPasswordHidden, setIsPasswordHidden] = useState(true);
 
@@ -16,8 +40,17 @@ export default function CustomInput({ label, placeholder, value, onChangeText, s
 
   return (
     <View style={styles.container}>
-      {label && <Text style={[styles.label, { color: themeColors.label }]}>{label.toUpperCase()}</Text>}
-      <View style={[styles.inputContainer, { backgroundColor: themeColors.bg, borderColor: themeColors.border }]}>
+      {label && (
+        <Text style={[styles.label, { color: themeColors.label }]}>
+          {label.toUpperCase()}
+        </Text>
+      )}
+      <View
+        style={[
+          styles.inputContainer,
+          { backgroundColor: themeColors.bg, borderColor: themeColors.border },
+        ]}
+      >
         {icon && <View style={styles.iconContainer}>{icon}</View>}
         <TextInput
           style={[styles.input, { color: themeColors.text }]}
@@ -28,7 +61,10 @@ export default function CustomInput({ label, placeholder, value, onChangeText, s
           secureTextEntry={isPassword ? isPasswordHidden : secureTextEntry}
         />
         {isPassword && (
-          <TouchableOpacity onPress={() => setIsPasswordHidden(!isPasswordHidden)} style={styles.eyeIconContainer}>
+          <TouchableOpacity
+            onPress={() => setIsPasswordHidden(!isPasswordHidden)}
+            style={styles.eyeIconContainer}
+          >
             <Text style={styles.eyeIconText}>{isPasswordHidden ? '👁️' : '👁️‍🗨️'}</Text>
           </TouchableOpacity>
         )}
@@ -72,5 +108,5 @@ const styles = StyleSheet.create({
   eyeIconText: {
     fontSize: 18,
     color: '#888',
-  }
+  },
 });

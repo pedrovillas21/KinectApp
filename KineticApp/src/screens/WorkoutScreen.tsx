@@ -1,22 +1,45 @@
 import React, { useCallback, useContext, useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, ListRenderItemInfo, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ThemeContext } from '../contexts/ThemeContext';
-import { AuthContext } from '../contexts/AuthContext';
+import { AuthContext, WorkoutPlanItem } from '../contexts/AuthContext';
 import { COLORS } from '../theme/colors';
 import AppHeader from '../components/AppHeader';
 import api from '../services/api';
 
-export default function WorkoutScreen({ navigation }) {
+interface Exercise {
+  id?: string;
+  name: string;
+  muscles: string;
+  type: string;
+  sets: number | string;
+  reps: number | string;
+  weight: string;
+  restTime: string;
+}
+
+interface Props {
+  navigation: NativeStackNavigationProp<any>;
+}
+
+type ViewMode = 'LIST' | 'DETAIL';
+
+interface MuscleStyle {
+  bg: string;
+  text: string;
+}
+
+export default function WorkoutScreen({ navigation }: Props) {
   const { isDarkMode } = useContext(ThemeContext);
   const { workoutPlans, setWorkoutPlans } = useContext(AuthContext);
   const isDark = isDarkMode;
 
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
-  const [viewMode, setViewMode] = useState('LIST');
-  const [selectedRoutineId, setSelectedRoutineId] = useState(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('LIST');
+  const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(null);
 
   const THEME = {
     bg: isDark ? COLORS.darkBackground : COLORS.lightBackground,
@@ -26,7 +49,6 @@ export default function WorkoutScreen({ navigation }) {
   };
 
   const fetchWorkoutPlans = useCallback(async () => {
-    // Apenas ativa o indicador de carregamento de tela cheia se não houver planos
     if (!Array.isArray(workoutPlans) || workoutPlans.length === 0) {
       setIsLoading(true);
     }
@@ -35,7 +57,7 @@ export default function WorkoutScreen({ navigation }) {
     try {
       const response = await api.get('/workouts/my-plans');
       setWorkoutPlans(Array.isArray(response.data) ? response.data : []);
-    } catch (error) {
+    } catch (error: any) {
       const message = error.response?.data || 'Nao foi possivel carregar seus treinos.';
       setErrorMessage(typeof message === 'string' ? message : 'Nao foi possivel carregar seus treinos.');
     } finally {
@@ -54,7 +76,7 @@ export default function WorkoutScreen({ navigation }) {
     [selectedRoutineId, workoutPlans]
   );
 
-  const openRoutineDetail = (id) => {
+  const openRoutineDetail = (id: string) => {
     setSelectedRoutineId(id);
     setViewMode('DETAIL');
   };
@@ -64,7 +86,7 @@ export default function WorkoutScreen({ navigation }) {
     setSelectedRoutineId(null);
   };
 
-  const MUSCLE_COLORS = {
+  const MUSCLE_COLORS: Record<string, MuscleStyle> = {
     PEITO: { bg: '#1a0a2e', text: '#A78BFA' },
     OMBRO: { bg: '#0a1a2e', text: '#60A5FA' },
     TRICEPS: { bg: '#0a2e1a', text: '#34D399' },
@@ -77,11 +99,11 @@ export default function WorkoutScreen({ navigation }) {
     PANTURRILHA: { bg: '#0a0a2e', text: '#818CF8' },
   };
 
-  const normalizeMuscle = (muscle) => {
+  const normalizeMuscle = (muscle: string | undefined): string => {
     if (!muscle) return '';
     return muscle
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[̀-ͯ]/g, '')
       .toUpperCase();
   };
 
@@ -97,7 +119,7 @@ export default function WorkoutScreen({ navigation }) {
     </View>
   );
 
-  const renderWorkoutCard = ({ item }) => {
+  const renderWorkoutCard = ({ item }: ListRenderItemInfo<WorkoutPlanItem>) => {
     const exercises = item.data ?? [];
 
     return (
@@ -127,7 +149,7 @@ export default function WorkoutScreen({ navigation }) {
     );
   };
 
-  const renderExerciseCard = ({ item }) => {
+  const renderExerciseCard = ({ item, index }: ListRenderItemInfo<Exercise>) => {
     const muscleColor = MUSCLE_COLORS[normalizeMuscle(item.muscles)] ?? { bg: '#1a1a1a', text: COLORS.neonBlue };
 
     return (
@@ -187,7 +209,7 @@ export default function WorkoutScreen({ navigation }) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: THEME.bg }]}>
         <AppHeader />
-        <FlatList
+        <FlatList<WorkoutPlanItem>
           data={workoutPlans}
           keyExtractor={(item) => item.id}
           renderItem={renderWorkoutCard}
@@ -208,7 +230,7 @@ export default function WorkoutScreen({ navigation }) {
   }
 
   const workout = selectedWorkout ?? workoutPlans[0];
-  const exercises = workout?.data ?? [];
+  const exercises = (workout?.data ?? []) as Exercise[];
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: THEME.bg }]}>
@@ -220,7 +242,7 @@ export default function WorkoutScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      <FlatList
+      <FlatList<Exercise>
         data={exercises}
         keyExtractor={(item, index) => item.id ?? `${item.name}-${index}`}
         showsVerticalScrollIndicator={false}

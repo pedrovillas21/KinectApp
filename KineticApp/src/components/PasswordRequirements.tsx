@@ -3,32 +3,47 @@ import { View, Text, StyleSheet } from 'react-native';
 import { ThemeContext } from '../contexts/ThemeContext';
 import { COLORS } from '../theme/colors';
 
-export default function PasswordRequirements({ passwordValue }) {
-  const { isDarkMode } = useContext(ThemeContext);
-  const isDark = isDarkMode;
+interface Props {
+  passwordValue: string;
+}
 
-  const hasMinLength  = passwordValue.length >= 8;
-  const hasUppercase  = /[A-Z]/.test(passwordValue);
-  const hasLowercase  = /[a-z]/.test(passwordValue);
-  const hasNumber     = /\d/.test(passwordValue);
-  const hasSymbol     = /[!@#$%^&*]/.test(passwordValue);
+interface ReqProps {
+  met: boolean;
+  label: string;
+}
 
-  const Req = ({ met, label }) => (
+function Req({ met, label }: ReqProps) {
+  return (
     <Text style={styles.reqItem}>
       <Text style={met ? styles.checkIcon : styles.uncheckIcon}>{met ? '✓' : '●'}</Text>
       {' '}{label}
     </Text>
   );
+}
+
+export default function PasswordRequirements({ passwordValue }: Props) {
+  const { isDarkMode } = useContext(ThemeContext);
+
+  const hasMinLength = passwordValue.length >= 8;
+  const hasUppercase = /[A-Z]/.test(passwordValue);
+  const hasLowercase = /[a-z]/.test(passwordValue);
+  const hasNumber = /\d/.test(passwordValue);
+  const hasSymbol = /[!@#$%^&*]/.test(passwordValue);
 
   return (
-    <View style={[styles.requirementsCard, { backgroundColor: isDark ? COLORS.darkCard : COLORS.lightCard }]}>
+    <View
+      style={[
+        styles.requirementsCard,
+        { backgroundColor: isDarkMode ? COLORS.darkCard : COLORS.lightCard },
+      ]}
+    >
       <Text style={styles.reqTitle}>REQUISITOS DE SEGURANÇA</Text>
       <View style={styles.reqGrid}>
         <Req met={hasMinLength} label="8+ caracteres" />
         <Req met={hasUppercase} label="Letra maiúscula" />
         <Req met={hasLowercase} label="Letra minúscula" />
-        <Req met={hasNumber}    label="Um número" />
-        <Req met={hasSymbol}    label="Símbolo especial" />
+        <Req met={hasNumber} label="Um número" />
+        <Req met={hasSymbol} label="Símbolo especial" />
       </View>
     </View>
   );

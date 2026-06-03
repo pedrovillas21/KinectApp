@@ -5,6 +5,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { AuthContext } from '../contexts/AuthContext';
 import BottomTabBar from '../components/BottomTabBar';
 
+import WelcomeScreen from '../screens/Auth/WelcomeScreen';
+import RecurringUserScreen from '../screens/Auth/RecurringUserScreen';
 import LoginScreen from '../screens/Auth/LoginScreen';
 import RegisterScreen from '../screens/Auth/RegisterScreen';
 import ForgotPasswordScreen from '../screens/Auth/ForgotPasswordScreen';
@@ -19,12 +21,6 @@ import StatsScreen from '../screens/StatsScreen';
 import SocialScreen from '../screens/SocialScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ActiveSessionScreen from '../screens/ActiveSessionScreen';
-
-interface AuthContextShape {
-  isLoggedIn: boolean;
-  hasOnboarded: boolean;
-  isLoadingAuth: boolean;
-}
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -45,9 +41,8 @@ function MainTabs(): React.ReactElement {
 }
 
 export default function AppRoutes(): React.ReactElement | null {
-  const { isLoggedIn, hasOnboarded, isLoadingAuth } = useContext(
-    AuthContext,
-  ) as AuthContextShape;
+  const { isLoggedIn, hasOnboarded, isLoadingAuth, rememberedUser } =
+    useContext(AuthContext);
 
   if (isLoadingAuth) {
     return null;
@@ -55,7 +50,12 @@ export default function AppRoutes(): React.ReactElement | null {
 
   if (!isLoggedIn) {
     return (
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator
+        screenOptions={{ headerShown: false }}
+        initialRouteName={rememberedUser ? 'RecurringUser' : 'Welcome'}
+      >
+        <Stack.Screen name="Welcome" component={WelcomeScreen} />
+        <Stack.Screen name="RecurringUser" component={RecurringUserScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />

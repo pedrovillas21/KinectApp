@@ -1,10 +1,24 @@
-import React from 'react';
-import { TouchableOpacity, Text, ActivityIndicator, StyleSheet, View } from 'react-native';
+import React, { ReactNode } from 'react';
+import {
+  TouchableOpacity,
+  Text,
+  ActivityIndicator,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { COLORS } from '../theme/colors';
 
-export default function PrimaryButton({ title, onPress, isLoading, icon, disabled }) {
+interface Props {
+  title: string;
+  onPress: () => void;
+  isLoading?: boolean;
+  icon?: ReactNode;
+  disabled?: boolean;
+}
+
+export default function PrimaryButton({ title, onPress, isLoading, icon, disabled }: Props) {
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={[styles.button, disabled && styles.buttonDisabled]}
       onPress={onPress}
       disabled={isLoading || disabled}
@@ -34,7 +48,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
-    elevation: 6, // for android
+    elevation: 6,
   },
   buttonDisabled: {
     backgroundColor: '#333333',
@@ -54,5 +68,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '900',
     letterSpacing: 1,
-  }
+  },
 });

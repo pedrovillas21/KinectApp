@@ -4,7 +4,12 @@ import { ThemeContext } from '../contexts/ThemeContext';
 import { COLORS } from '../theme/colors';
 import ThemeToggle from './ThemeToggle';
 
-export default function HeaderLogo({ showBack, title }) {
+interface Props {
+  showBack?: boolean;
+  title?: string;
+}
+
+export default function HeaderLogo({ showBack, title }: Props) {
   const { isDarkMode } = useContext(ThemeContext);
 
   return (
@@ -13,7 +18,7 @@ export default function HeaderLogo({ showBack, title }) {
         {showBack && <Text style={[styles.backIcon, { color: COLORS.neonBlue }]}>{'<-'}</Text>}
         <Text style={[styles.brand, { color: COLORS.neonBlue }]}>KINETIC</Text>
       </View>
-      
+
       <View style={styles.rightGroup}>
         <ThemeToggle />
       </View>
@@ -47,5 +52,5 @@ const styles = StyleSheet.create({
   rightGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-  }
+  },
 });
