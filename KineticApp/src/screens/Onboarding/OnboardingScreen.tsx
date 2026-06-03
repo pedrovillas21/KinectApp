@@ -586,11 +586,9 @@ export default function OnboardingScreen() {
         level:             levelApi,
         medicalConditions: snapshot.medicalConditions?.trim() || 'Nenhuma',
       }, {
-        // Geração via IA (Gemini) pode levar bem mais que o timeout global de 15s,
-        // especialmente com o fallback entre modelos no backend (read timeout de 120s
-        // por modelo). Sem este override, o cliente abortava aos 15s e exibia um erro
-        // falso-positivo enquanto o backend concluía e salvava o treino normalmente.
-        timeout: 120000,
+        // O backend tenta até N modelos com 120s de read timeout cada.
+        // 3 modelos × 120s + 60s de buffer = 420s. Mantemos 480s para folga.
+        timeout: 480000,
       });
 
       await completeOnboarding({

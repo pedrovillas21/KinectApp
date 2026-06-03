@@ -8,6 +8,7 @@ import com.kinetic.dtos.RegisterDTO;
 import com.kinetic.dtos.ResetPasswordDTO;
 import com.kinetic.dtos.VerifyEmailDTO;
 import com.kinetic.services.AuthService;
+import com.kinetic.services.InvalidRefreshTokenException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -42,7 +43,7 @@ public class AuthController {
         try {
             RefreshResponseDTO response = authService.refresh(dto.getRefreshToken());
             return ResponseEntity.ok(response);
-        } catch (Exception e) {
+        } catch (InvalidRefreshTokenException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }

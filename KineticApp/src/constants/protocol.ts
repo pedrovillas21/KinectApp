@@ -88,7 +88,12 @@ export function levelLabel(value?: string | null): string {
 /** Idade em anos a partir de uma data de nascimento ISO (YYYY-MM-DD). null se inválida. */
 export function ageFromBirthDate(birthDate?: string | null): number | null {
   if (!birthDate) return null;
-  const birth = new Date(birthDate);
+  const parts = birthDate.split('-').map(Number);
+  if (parts.length !== 3 || parts.some(Number.isNaN)) return null;
+  const [year, month, day] = parts;
+  // Usar construtor local evita que YYYY-MM-DD seja interpretado como UTC midnight,
+  // o que em fusos negativos deslocaria a data para o dia anterior.
+  const birth = new Date(year, month - 1, day);
   if (Number.isNaN(birth.getTime())) return null;
   const now = new Date();
   let age = now.getFullYear() - birth.getFullYear();

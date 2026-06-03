@@ -10,6 +10,7 @@ import com.kinetic.repositories.UserRepository;
 import com.kinetic.repositories.WeightHistoryRepository;
 import com.kinetic.repositories.WorkoutExecutionLogRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -73,12 +74,10 @@ public class UserService {
                 .orElse(false);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public UserProfileResponseDTO getUserProfile(String userEmail) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
-
-        recordDailyLogin(user);
 
         LocalDate memberSince = user.getCreatedAt() != null ? user.getCreatedAt().toLocalDate() : null;
         int streak = calculateConsecutiveLoginStreak(user);
@@ -100,28 +99,31 @@ public class UserService {
         );
     }
 
-    private void recordDailyLogin(User user) {
-        LocalDate today = LocalDate.now();
-        if (userLoginStreakRepository.existsByUserAndLoginDate(user, today)) return;
-        UserLoginStreak entry = new UserLoginStreak();
-        entry.setUser(user);
-        entry.setLoginDate(today);
-        userLoginStreakRepository.save(entry);
+    @Transactional
+    public void recordDailyLogin(User user) {
+        try {
+            UserLoginStreak entry = new UserLoginStreak();
+            entry.setUser(user);
+            entry.setLoginDate(LocalDate.now());
+            userLoginStreakRepository.save(entry);
+        } catch (DataIntegrityViolationException ignored) {
+            // concurrent insert hit unique constraint — login already recorded today
+        }
     }
 
     private int calculateConsecutiveLoginStreak(User user) {
         LocalDate today = LocalDate.now();
         Set<LocalDate> loginDates = new HashSet<>(
-                userLoginStreakRepository.findLoginDatesByUserSince(user, today.minusDays(365))
+                userLoginStreakRepository.findAllLoginDatesByUser(user)
         );
         int streak = 0;
-        for (int i = 0; i < 366; i++) {
-            LocalDate checkDate = today.minusDays(i);
-            if (loginDates.contains(checkDate)) {
+        for (int i = 0; ; i++) {
+            if (loginDates.contains(today.minusDays(i))) {
                 streak++;
             } else if (i > 0) {
                 break;
             }
+            // i == 0 and today missing: keep going to allow streak from yesterday
         }
         return streak;
     }

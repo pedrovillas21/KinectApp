@@ -81,7 +81,9 @@ public class GeminiService {
                         .body(GeminiResponseDto.class);
 
                 if (response == null || response.getText() == null) {
-                    throw new RuntimeException("Failed to get response from Gemini API");
+                    log.warn("Modelo '{}' retornou resposta vazia. Tentando o próximo modelo...", model);
+                    lastException = new RuntimeException("Resposta vazia do modelo: " + model);
+                    continue;
                 }
 
                 String jsonText = response.getText();
@@ -90,11 +92,9 @@ public class GeminiService {
                     log.info("Sucesso: ficha de treino gerada pelo modelo '{}' (tentativa {}/{}).", model, i + 1, models.length);
                     return plan;
                 } catch (JsonProcessingException e) {
-                    throw new InvalidGeminiResponseException("A IA retornou um treino em formato invalido. Tente gerar novamente.", e);
+                    log.warn("Modelo '{}' retornou JSON inválido. Tentando o próximo modelo...", model);
+                    lastException = new InvalidGeminiResponseException("A IA retornou um treino em formato invalido. Tente gerar novamente.", e);
                 }
-            } catch (InvalidGeminiResponseException e) {
-                log.warn("Modelo '{}' respondeu, mas retornou um treino em formato inválido. Abortando tentativas.", model);
-                throw e;
             } catch (RestClientResponseException e) {
                 int status = e.getStatusCode().value();
                 if (status == 429 || status == 500 || status == 502 || status == 503) {

@@ -48,18 +48,18 @@ public class RefreshTokenService {
         return rawToken;
     }
 
-    public record RotationResult(String accessToken, String refreshToken) {}
+    public record RotationResult(String accessToken, String refreshToken, String userEmail) {}
 
     @Transactional
     public RotationResult rotate(String rawToken) {
         String hash = sha256Hex(rawToken);
         RefreshToken existing = refreshTokenRepository.findByTokenHash(hash)
-                .orElseThrow(() -> new RuntimeException("Refresh token inválido."));
+                .orElseThrow(() -> new InvalidRefreshTokenException("Refresh token inválido."));
 
         // Tokens expirados são rejeitados aqui e varridos pelo purgeExpiredTokens()
         // diário — não apagamos na hora porque o rollback da exceção desfaria o delete.
         if (existing.getExpiryDate().isBefore(Instant.now())) {
-            throw new RuntimeException("Refresh token expirado.");
+            throw new InvalidRefreshTokenException("Refresh token expirado.");
         }
 
         User user = existing.getUser();
@@ -68,7 +68,7 @@ public class RefreshTokenService {
         String newAccessToken = jwtUtil.generateToken(user.getEmail());
         String newRawRefresh = createForUser(user);
 
-        return new RotationResult(newAccessToken, newRawRefresh);
+        return new RotationResult(newAccessToken, newRawRefresh, user.getEmail());
     }
 
     @Transactional

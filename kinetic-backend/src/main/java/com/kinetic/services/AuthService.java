@@ -23,6 +23,7 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenService refreshTokenService;
+    private final UserService userService;
 
     public User register(RegisterDTO dto) {
         if (userRepository.existsByEmail(dto.getEmail())) {
@@ -45,6 +46,8 @@ public class AuthService {
         User user = userRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
 
+        userService.recordDailyLogin(user);
+
         String token = jwtUtil.generateToken(user.getEmail());
         String refreshToken = refreshTokenService.createForUser(user);
         return new AuthResponseDTO(
@@ -65,6 +68,7 @@ public class AuthService {
 
     public RefreshResponseDTO refresh(String rawRefreshToken) {
         RefreshTokenService.RotationResult result = refreshTokenService.rotate(rawRefreshToken);
+        userRepository.findByEmail(result.userEmail()).ifPresent(userService::recordDailyLogin);
         return new RefreshResponseDTO(result.accessToken(), result.refreshToken());
     }
 
