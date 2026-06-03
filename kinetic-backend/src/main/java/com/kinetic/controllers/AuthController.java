@@ -2,6 +2,8 @@ package com.kinetic.controllers;
 
 import com.kinetic.dtos.AuthResponseDTO;
 import com.kinetic.dtos.LoginDTO;
+import com.kinetic.dtos.RefreshResponseDTO;
+import com.kinetic.dtos.RefreshTokenDTO;
 import com.kinetic.dtos.RegisterDTO;
 import com.kinetic.dtos.ResetPasswordDTO;
 import com.kinetic.dtos.VerifyEmailDTO;
@@ -33,6 +35,22 @@ public class AuthController {
     public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginDTO dto) {
         AuthResponseDTO response = authService.login(dto);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(@Valid @RequestBody RefreshTokenDTO dto) {
+        try {
+            RefreshResponseDTO response = authService.refresh(dto.getRefreshToken());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@Valid @RequestBody RefreshTokenDTO dto) {
+        authService.logout(dto.getRefreshToken());
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/verify-email")

@@ -804,7 +804,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         level,
         medicalConditions: medicalConditions?.trim() || 'Nenhuma',
       };
-      await api.post('/workouts/generate', payload);
+      await api.post('/workouts/generate', payload, { timeout: 120000 });
       Alert.alert('Pronto!', 'Seu treino foi regenerado com sucesso com base nos novos dados.');
       navigation.navigate('Home');
     } catch (e) {

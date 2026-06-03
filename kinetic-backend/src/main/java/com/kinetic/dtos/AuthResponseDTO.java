@@ -5,6 +5,7 @@ import java.util.UUID;
 
 public record AuthResponseDTO(
         String token,
+        String refreshToken,
         UUID id,
         String nome,
         String email,

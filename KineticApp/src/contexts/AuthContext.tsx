@@ -6,7 +6,16 @@ import React, {
   ReactNode,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import api, { setSignOutHandler } from '../services/api';
+import api, {
+  setSignOutHandler,
+  refreshAccessToken,
+  logoutUser,
+  ACCESS_TOKEN_KEY,
+  REFRESH_TOKEN_KEY,
+} from '../services/api';
+import { isJwtExpired } from '../utils/jwt';
+
+const USER_KEY = '@kinetic_user';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -88,17 +97,59 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return Boolean(user.goal) && Boolean(user.level);
   };
 
+  // Fonte de verdade do servidor: verifica se o usuário já possui treino gerado.
+  // Usado para confirmar o status de onboarding quando o perfil local está
+  // incompleto (ex.: a geração concluiu no backend mas o cliente caiu por
+  // timeout). Retorna a lista de planos ativos — vazia em caso de falha de rede,
+  // para nunca bloquear o usuário indevidamente.
+  const fetchExistingPlans = async (): Promise<WorkoutPlanItem[]> => {
+    try {
+      const res = await api.get<WorkoutPlanItem[]>('/workouts/my-plans');
+      return Array.isArray(res.data) ? res.data : [];
+    } catch (e) {
+      console.warn('Falha ao verificar treinos existentes:', e);
+      return [];
+    }
+  };
+
   useEffect(() => {
     const loadStoredSession = async () => {
       try {
-        const token = await AsyncStorage.getItem('@kinetic_token');
-        const userJson = await AsyncStorage.getItem('@kinetic_user');
+        const token = await AsyncStorage.getItem(ACCESS_TOKEN_KEY);
+        const userJson = await AsyncStorage.getItem(USER_KEY);
 
-        if (token && userJson) {
+        // Access token expirado: tenta renová-lo com o refresh token antes de
+        // descartar a sessão (assim o usuário não é deslogado a cada 24h e não
+        // disparamos requests fadados ao 401 no startup).
+        const hasValidAccess = Boolean(token) && !isJwtExpired(token as string);
+        const validToken = hasValidAccess ? token : await refreshAccessToken();
+
+        if (validToken && userJson) {
           const user = JSON.parse(userJson) as KineticUser;
           setCurrentUser(user);
           setIsLoggedIn(true);
-          setHasOnboarded(isOnboardedFromUser(user));
+
+          const localOnboarded = isOnboardedFromUser(user);
+          setHasOnboarded(localOnboarded);
+
+          // Se o perfil local não indica onboarding completo, confirma com o
+          // backend: havendo treino, o usuário já passou do onboarding e vai
+          // direto para a Home (evita repetir todo o fluxo num novo login).
+          if (!localOnboarded) {
+            const plans = await fetchExistingPlans();
+            if (plans.length > 0) {
+              setWorkoutPlans(plans);
+              setHasOnboarded(true);
+            }
+          }
+        } else if (token || userJson) {
+          // Sessão ausente/expirada/corrompida e sem refresh válido: limpa o
+          // storage para não montar telas autenticadas que dariam 401.
+          await AsyncStorage.multiRemove([
+            ACCESS_TOKEN_KEY,
+            REFRESH_TOKEN_KEY,
+            USER_KEY,
+          ]);
         }
       } catch (e) {
         console.error('Erro ao carregar sessão:', e);
@@ -154,6 +205,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await api.post<{
         token: string;
+        refreshToken: string;
         id: string | number;
         nome: string;
         email: string;
@@ -170,6 +222,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       const {
         token,
+        refreshToken,
         id,
         nome,
         email: userEmail,
@@ -193,12 +246,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         frequency,
       };
 
-      await AsyncStorage.setItem('@kinetic_token', token);
-      await AsyncStorage.setItem('@kinetic_user', JSON.stringify(userPayload));
+      await AsyncStorage.multiSet([
+        [ACCESS_TOKEN_KEY, token],
+        [REFRESH_TOKEN_KEY, refreshToken],
+        [USER_KEY, JSON.stringify(userPayload)],
+      ]);
 
       setCurrentUser(userPayload);
       setIsLoggedIn(true);
-      setHasOnboarded(isOnboardedFromUser(userPayload));
+
+      const localOnboarded = isOnboardedFromUser(userPayload);
+      setHasOnboarded(localOnboarded);
+
+      // Perfil incompleto no login não significa onboarding pendente: se o
+      // backend já tem treino para o usuário, pula o onboarding e vai pra Home.
+      if (!localOnboarded) {
+        const plans = await fetchExistingPlans();
+        if (plans.length > 0) {
+          setWorkoutPlans(plans);
+          setHasOnboarded(true);
+        }
+      }
 
       return { success: true };
     } catch (e: unknown) {
@@ -216,8 +284,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = useCallback(async (): Promise<void> => {
     try {
-      await AsyncStorage.removeItem('@kinetic_token');
-      await AsyncStorage.removeItem('@kinetic_user');
+      const refreshToken = await AsyncStorage.getItem(REFRESH_TOKEN_KEY);
+      if (refreshToken) {
+        await logoutUser(refreshToken);
+      }
+      await AsyncStorage.multiRemove([
+        ACCESS_TOKEN_KEY,
+        REFRESH_TOKEN_KEY,
+        USER_KEY,
+      ]);
     } catch (e) {
       console.error('Erro ao limpar sessão do storage:', e);
     } finally {
@@ -259,7 +334,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     setCurrentUser(updatedUser);
-    await AsyncStorage.setItem('@kinetic_user', JSON.stringify(updatedUser));
+    await AsyncStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
     setHasOnboarded(isOnboardedFromUser(updatedUser));
   };
 

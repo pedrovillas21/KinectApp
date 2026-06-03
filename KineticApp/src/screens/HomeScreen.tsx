@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -98,10 +98,8 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     setIsLoading(false);
   }, []);
 
-  useEffect(() => {
-    loadDashboard();
-  }, [loadDashboard]);
-
+  // useFocusEffect já cobre a montagem inicial e cada retorno de foco à tela,
+  // então não há useEffect separado (evita o request duplicado no startup).
   useFocusEffect(
     useCallback(() => {
       loadDashboard();
