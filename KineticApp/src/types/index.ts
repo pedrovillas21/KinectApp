@@ -153,3 +153,37 @@ export interface HomeDashboardResponseDTO {
 export interface UpdateWeightRequestDTO {
   newWeight: number;
 }
+
+export interface UserProfileResponse {
+  fullName: string;
+  email: string;
+  memberSince: string;
+  consecutiveDaysLogged: number;
+  totalWorkoutsDone: number;
+  targetGoal: string;
+  /** Data de nascimento ISO (YYYY-MM-DD); idade é derivada no app. */
+  birthDate: string | null;
+  weight: number | null;
+  height: number | null;
+  /** Nível no formato do backend: 'INICIANTE' | 'INTERMEDIÁRIO' | 'PRO'. */
+  level: string | null;
+  /** Frequência semanal (dias de treino). */
+  frequency: number | null;
+  /** Anamnese em texto livre (ex.: 'Nenhuma', 'Dor no ombro direito'). */
+  medicalConditions: string | null;
+}
+
+/**
+ * Payload de geração/regeneração de treino — espelha GenerateWorkoutRequestDto do backend.
+ * Enviado para POST /api/workouts/generate. Os valores de `goal`/`level` usam o
+ * formato canônico do backend (ver src/constants/protocol.ts).
+ */
+export interface GenerateWorkoutRequest {
+  birthDate: string;
+  weight: number;
+  height: number;
+  goal: string;
+  frequency: number;
+  level: string;
+  medicalConditions: string;
+}

@@ -1,12 +1,14 @@
 package com.kinetic.controllers;
 
 import com.kinetic.dtos.UpdateWeightRequestDTO;
+import com.kinetic.dtos.UserProfileResponseDTO;
 import com.kinetic.services.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +22,17 @@ public class UserController {
 
     public UserController(UserService userService) {
         this.userService = userService;
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<?> getProfile() {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        try {
+            UserProfileResponseDTO profile = userService.getUserProfile(userEmail);
+            return ResponseEntity.ok(profile);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
     @PostMapping("/weight")

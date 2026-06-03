@@ -1,0 +1,19 @@
+# Variáveis de ambiente (NUNCA versionar)
+.env
+.env.*
+.env*.local
+
+# Maven build output
+target/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

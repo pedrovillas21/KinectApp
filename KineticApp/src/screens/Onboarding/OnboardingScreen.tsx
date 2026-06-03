@@ -585,6 +585,10 @@ export default function OnboardingScreen() {
         frequency:         snapshot.days.length,
         level:             levelApi,
         medicalConditions: snapshot.medicalConditions?.trim() || 'Nenhuma',
+      }, {
+        // O backend tenta até N modelos com 120s de read timeout cada.
+        // 3 modelos × 120s + 60s de buffer = 420s. Mantemos 480s para folga.
+        timeout: 480000,
       });
 
       await completeOnboarding({

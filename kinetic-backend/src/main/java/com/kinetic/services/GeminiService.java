@@ -5,10 +5,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kinetic.dtos.GeminiRequestDto;
 import com.kinetic.dtos.GeminiResponseDto;
 import com.kinetic.dtos.GeneratedWorkoutPlanDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 
 import java.time.Duration;
@@ -19,14 +23,19 @@ import com.fasterxml.jackson.core.type.TypeReference;
 @Service
 public class GeminiService {
 
+    private static final Logger log = LoggerFactory.getLogger(GeminiService.class);
+
     private final RestClient restClient;
     private final ObjectMapper objectMapper;
 
     @Value("${gemini.api.key}")
     private String apiKey;
 
-    @Value("${gemini.api.url}")
-    private String apiUrl;
+    @Value("${gemini.api.base-url}")
+    private String apiBaseUrl;
+
+    @Value("${gemini.api.models}")
+    private String geminiModelsConfig;
 
     public GeminiService(ObjectMapper objectMapper) {
         JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory();
@@ -53,24 +62,56 @@ public class GeminiService {
                 List.of(GeminiRequestDto.Content.of(prompt)),
                 GeminiRequestDto.GenerationConfig.json());
 
-        GeminiResponseDto response = restClient.post()
-                .uri(apiUrl + "?key=" + apiKey)
-                .contentType(Objects.requireNonNull(MediaType.APPLICATION_JSON))
-                .body(requestDto)
-                .retrieve()
-                .body(GeminiResponseDto.class);
+        String[] models = geminiModelsConfig.split(",");
+        Exception lastException = null;
 
-        if (response == null || response.getText() == null) {
-            throw new RuntimeException("Failed to get response from Gemini API");
+        log.info("Iniciando geração de ficha de treino. {} modelo(s) configurado(s) para tentativa (em ordem): {}",
+                models.length, geminiModelsConfig);
+
+        for (int i = 0; i < models.length; i++) {
+            String model = models[i].trim();
+            log.info("Tentativa {}/{}: consultando modelo de IA '{}'...", i + 1, models.length, model);
+            String url = apiBaseUrl + "/" + model + ":generateContent?key=" + apiKey;
+            try {
+                GeminiResponseDto response = restClient.post()
+                        .uri(url)
+                        .contentType(Objects.requireNonNull(MediaType.APPLICATION_JSON))
+                        .body(requestDto)
+                        .retrieve()
+                        .body(GeminiResponseDto.class);
+
+                if (response == null || response.getText() == null) {
+                    log.warn("Modelo '{}' retornou resposta vazia. Tentando o próximo modelo...", model);
+                    lastException = new RuntimeException("Resposta vazia do modelo: " + model);
+                    continue;
+                }
+
+                String jsonText = response.getText();
+                try {
+                    List<GeneratedWorkoutPlanDto> plan = objectMapper.readValue(jsonText, new TypeReference<List<GeneratedWorkoutPlanDto>>() {});
+                    log.info("Sucesso: ficha de treino gerada pelo modelo '{}' (tentativa {}/{}).", model, i + 1, models.length);
+                    return plan;
+                } catch (JsonProcessingException e) {
+                    log.warn("Modelo '{}' retornou JSON inválido. Tentando o próximo modelo...", model);
+                    lastException = new InvalidGeminiResponseException("A IA retornou um treino em formato invalido. Tente gerar novamente.", e);
+                }
+            } catch (RestClientResponseException e) {
+                int status = e.getStatusCode().value();
+                if (status == 429 || status == 500 || status == 502 || status == 503) {
+                    log.warn("Modelo '{}' indisponível (HTTP {}). Tentando o próximo modelo...", model, status);
+                    lastException = e;
+                } else {
+                    log.error("Modelo '{}' retornou erro HTTP {} não recuperável. Abortando tentativas.", model, status);
+                    throw e;
+                }
+            } catch (RestClientException e) {
+                log.warn("Falha de comunicação com o modelo '{}': {}. Tentando o próximo modelo...", model, e.getMessage());
+                lastException = e;
+            }
         }
 
-        String jsonText = response.getText();
-
-        try {
-            return objectMapper.readValue(jsonText, new TypeReference<List<GeneratedWorkoutPlanDto>>() {});
-        } catch (JsonProcessingException e) {
-            throw new InvalidGeminiResponseException("A IA retornou um treino em formato invalido. Tente gerar novamente.", e);
-        }
+        log.error("Todos os {} modelo(s) de IA falharam. Nenhuma ficha de treino pôde ser gerada.", models.length);
+        throw new RuntimeException("Todos os modelos de IA estão indisponíveis no momento. Tente novamente mais tarde.", lastException);
     }
 
     public static class InvalidGeminiResponseException extends RuntimeException {
