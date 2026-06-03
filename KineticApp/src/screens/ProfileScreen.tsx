@@ -606,14 +606,20 @@ function AnamnesisModal({ visible, value, onSave, onClose }: AnamnesisModalProps
 }
 
 // ─── Conta ────────────────────────────────────────────────────
-function AccountSection({ user }: { user: typeof USER }) {
-  const isPro = user.plan === 'pro';
+interface AccountSectionProps {
+  email: string;
+  plan: 'free' | 'pro';
+  onChangePassword: () => void;
+}
+
+function AccountSection({ email, plan, onChangePassword }: AccountSectionProps) {
+  const isPro = plan === 'pro';
   return (
     <View>
       <SectionTitle>Conta</SectionTitle>
       <RowGroup>
-        <Row icon={Icons.mail} label="Email" value={user.email} onPress={() => {}} />
-        <Row icon={Icons.lock} label="Alterar senha" onPress={() => {}} />
+        <Row icon={Icons.mail} label="Email" value={email} />
+        <Row icon={Icons.lock} label="Alterar senha" onPress={onChangePassword} />
         <Row
           icon={Icons.crown}
           label={isPro ? 'Plano Premium' : 'Plano Gratuito'}
@@ -723,6 +729,124 @@ function LogoutSheet({ open, onCancel, onConfirm }: { open: boolean; onCancel: (
   );
 }
 
+// ─── Alterar senha ────────────────────────────────────────────
+// Mesmo padrão do backend (ChangePasswordDTO): 8–20 caracteres, com ao menos
+// uma minúscula, uma maiúscula e um caractere especial.
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*_=+-]).{8,20}$/;
+
+interface ChangePasswordModalProps {
+  visible: boolean;
+  onClose: () => void;
+  onSubmit: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
+  onSuccess: () => void;
+}
+
+function ChangePasswordModal({ visible, onClose, onSubmit, onSuccess }: ChangePasswordModalProps) {
+  const [current, setCurrent] = useState('');
+  const [next, setNext] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [show, setShow] = useState(false);
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (visible) {
+      setCurrent('');
+      setNext('');
+      setConfirm('');
+      setShow(false);
+      setError('');
+      setSubmitting(false);
+    }
+  }, [visible]);
+
+  const handleSubmit = async () => {
+    if (!current || !next || !confirm) return setError('Preencha todos os campos.');
+    if (!PASSWORD_REGEX.test(next)) {
+      return setError('A nova senha precisa de 8 a 20 caracteres, com maiúscula, minúscula e um caractere especial.');
+    }
+    if (next !== confirm) return setError('A confirmação não corresponde à nova senha.');
+    if (next === current) return setError('A nova senha deve ser diferente da atual.');
+
+    setError('');
+    setSubmitting(true);
+    const result = await onSubmit(current, next);
+    setSubmitting(false);
+
+    if (result.success) {
+      onClose();
+      onSuccess();
+    } else {
+      setError(result.error || 'Não foi possível alterar a senha.');
+    }
+  };
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={s.sheetOverlay} onPress={onClose} />
+      <View style={s.sheet}>
+        <View style={s.sheetHandle} />
+        <Text style={s.sheetTitle}>Alterar senha</Text>
+
+        <Text style={s.inputLabel}>SENHA ATUAL</Text>
+        <TextInput
+          style={s.input}
+          value={current}
+          onChangeText={setCurrent}
+          placeholder="••••••••"
+          placeholderTextColor={KINETIC.textMuted}
+          secureTextEntry={!show}
+          autoCapitalize="none"
+        />
+        <Text style={s.inputLabel}>NOVA SENHA</Text>
+        <TextInput
+          style={s.input}
+          value={next}
+          onChangeText={setNext}
+          placeholder="••••••••"
+          placeholderTextColor={KINETIC.textMuted}
+          secureTextEntry={!show}
+          autoCapitalize="none"
+        />
+        <Text style={s.inputLabel}>CONFIRMAR NOVA SENHA</Text>
+        <TextInput
+          style={s.input}
+          value={confirm}
+          onChangeText={setConfirm}
+          placeholder="••••••••"
+          placeholderTextColor={KINETIC.textMuted}
+          secureTextEntry={!show}
+          autoCapitalize="none"
+        />
+
+        <TouchableOpacity onPress={() => setShow((v) => !v)} activeOpacity={0.7} style={s.showPasswordToggle}>
+          <Text style={s.showPasswordText}>{show ? 'Ocultar senhas' : 'Mostrar senhas'}</Text>
+        </TouchableOpacity>
+
+        {!!error && <Text style={s.inputError}>{error}</Text>}
+
+        <View style={s.sheetButtons}>
+          <TouchableOpacity style={s.sheetCancel} onPress={onClose} activeOpacity={0.8} disabled={submitting}>
+            <Text style={s.sheetCancelText}>Cancelar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[s.sheetSave, submitting && s.regenBtnDisabled]}
+            onPress={handleSubmit}
+            activeOpacity={0.8}
+            disabled={submitting}
+          >
+            {submitting ? (
+              <ActivityIndicator size="small" color="#001a1f" />
+            ) : (
+              <Text style={s.sheetSaveText}>Salvar</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 // ─── Screen ───────────────────────────────────────────────────
 interface ProfileNavigationProp {
   navigate: (screen: string, params?: Record<string, unknown>) => void;
@@ -735,14 +859,19 @@ interface ProfileScreenProps {
 type ProtocolModal = 'goal' | 'metrics' | 'level' | 'frequency' | 'anamnesis' | null;
 
 export default function ProfileScreen({ navigation }: ProfileScreenProps) {
-  const { signOut } = useContext(AuthContext);
+  const { signOut, currentUser, changePassword } = useContext(AuthContext);
   const [logoutOpen, setLogoutOpen] = useState(false);
+  const [passwordOpen, setPasswordOpen] = useState(false);
   const [profileData, setProfileData] = useState<UserProfileResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [protocolForm, setProtocolForm] = useState<ProtocolForm | null>(null);
   const [activeModal, setActiveModal] = useState<ProtocolModal>(null);
   const [isRegenerating, setIsRegenerating] = useState<boolean>(false);
   const user = USER;
+
+  // Email real do usuário logado: prioriza o perfil do servidor e cai para o
+  // usuário em sessão (disponível antes do fetch concluir).
+  const accountEmail = profileData?.email ?? currentUser?.email ?? user.email;
 
   const handleConfirmSignOut = async () => {
     setLogoutOpen(false);
@@ -751,6 +880,16 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     } catch (error) {
       console.error('Erro ao deslogar:', error);
     }
+  };
+
+  // Após trocar a senha o backend revoga as sessões; desloga aqui para que o
+  // usuário entre novamente com a nova senha (fluxo mais imersivo).
+  const handlePasswordChanged = () => {
+    Alert.alert(
+      'Senha alterada',
+      'Sua senha foi atualizada. Faça login novamente com a nova senha.',
+      [{ text: 'OK', onPress: () => { void signOut(); } }],
+    );
   };
 
   useEffect(() => {
@@ -877,7 +1016,13 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             />
           </View>
         )}
-        <View style={s.section}><AccountSection user={user} /></View>
+        <View style={s.section}>
+          <AccountSection
+            email={accountEmail}
+            plan={user.plan}
+            onChangePassword={() => setPasswordOpen(true)}
+          />
+        </View>
         <View style={s.section}><PreferencesSection /></View>
         <View style={s.section}><CommunitySection /></View>
         <View style={s.section}><DataSection /></View>
@@ -925,6 +1070,13 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           />
         </>
       )}
+
+      <ChangePasswordModal
+        visible={passwordOpen}
+        onClose={() => setPasswordOpen(false)}
+        onSubmit={changePassword}
+        onSuccess={handlePasswordChanged}
+      />
 
       <LogoutSheet
         open={logoutOpen}
@@ -1074,6 +1226,8 @@ const s = StyleSheet.create({
   },
   inputError: { fontSize: 12, color: '#ff6b7a', marginTop: 10 },
   inputHint: { fontSize: 11, color: KINETIC.textMuted, marginTop: 8 },
+  showPasswordToggle: { alignSelf: 'flex-start', marginTop: 12, paddingVertical: 2 },
+  showPasswordText: { fontSize: 12, color: KINETIC.primary, fontWeight: '600' },
   anamnesisInput: {
     backgroundColor: KINETIC.surface2, borderRadius: 12,
     paddingHorizontal: 14, paddingVertical: 12, marginTop: 14,

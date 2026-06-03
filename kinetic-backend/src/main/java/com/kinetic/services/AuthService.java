@@ -46,7 +46,9 @@ public class AuthService {
         User user = userRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
 
-        userService.recordDailyLogin(user);
+        // Registro de streak é best-effort: uma falha aqui (ex.: corrida no
+        // insert diário) jamais deve impedir um login com credenciais válidas.
+        recordDailyLoginSafely(user);
 
         String token = jwtUtil.generateToken(user.getEmail());
         String refreshToken = refreshTokenService.createForUser(user);
@@ -68,8 +70,19 @@ public class AuthService {
 
     public RefreshResponseDTO refresh(String rawRefreshToken) {
         RefreshTokenService.RotationResult result = refreshTokenService.rotate(rawRefreshToken);
-        userRepository.findByEmail(result.userEmail()).ifPresent(userService::recordDailyLogin);
+        userRepository.findByEmail(result.userEmail()).ifPresent(this::recordDailyLoginSafely);
         return new RefreshResponseDTO(result.accessToken(), result.refreshToken());
+    }
+
+    // Isola o registro de streak: por ser @Transactional, qualquer falha só
+    // aflora no commit (quando o método do UserService retorna). Capturamos
+    // aqui para que login/refresh sigam mesmo se o registro do dia falhar.
+    private void recordDailyLoginSafely(User user) {
+        try {
+            userService.recordDailyLogin(user);
+        } catch (Exception ignored) {
+            // best-effort: não bloqueia autenticação por falha no registro de login
+        }
     }
 
     public void logout(String rawRefreshToken) {

@@ -1,5 +1,6 @@
 package com.kinetic.controllers;
 
+import com.kinetic.dtos.ChangePasswordDTO;
 import com.kinetic.dtos.UpdateWeightRequestDTO;
 import com.kinetic.dtos.UserProfileResponseDTO;
 import com.kinetic.services.UserService;
@@ -32,6 +33,19 @@ public class UserController {
             return ResponseEntity.ok(profile);
         } catch (EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordDTO request) {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        try {
+            userService.changePassword(userEmail, request);
+            return ResponseEntity.ok("Senha alterada com sucesso.");
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 

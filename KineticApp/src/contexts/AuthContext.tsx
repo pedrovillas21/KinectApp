@@ -75,6 +75,10 @@ interface AuthContextValue {
     email: string,
     newPassword: string,
   ) => Promise<AuthResult>;
+  changePassword: (
+    currentPassword: string,
+    newPassword: string,
+  ) => Promise<AuthResult>;
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -372,6 +376,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Troca de senha do usuário autenticado: o backend valida a senha atual
+  // antes de gravar a nova (endpoint protegido /users/change-password).
+  const changePassword = async (
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<AuthResult> => {
+    try {
+      await api.post('/users/change-password', { currentPassword, newPassword });
+      return { success: true };
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: unknown } };
+      const message = err.response?.data || 'Erro ao alterar a senha.';
+      return {
+        success: false,
+        error: typeof message === 'string' ? message : JSON.stringify(message),
+      };
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -387,6 +410,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         completeOnboarding,
         verifyEmail,
         resetPassword,
+        changePassword,
       }}
     >
       {children}

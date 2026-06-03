@@ -1,5 +1,6 @@
 package com.kinetic.services;
 
+import com.kinetic.dtos.ChangePasswordDTO;
 import com.kinetic.dtos.UpdateWeightRequestDTO;
 import com.kinetic.dtos.UserProfileResponseDTO;
 import com.kinetic.models.User;
@@ -11,6 +12,7 @@ import com.kinetic.repositories.WeightHistoryRepository;
 import com.kinetic.repositories.WorkoutExecutionLogRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,15 +28,21 @@ public class UserService {
     private final WeightHistoryRepository weightHistoryRepository;
     private final UserLoginStreakRepository userLoginStreakRepository;
     private final WorkoutExecutionLogRepository workoutExecutionLogRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenService refreshTokenService;
 
     public UserService(UserRepository userRepository,
                        WeightHistoryRepository weightHistoryRepository,
                        UserLoginStreakRepository userLoginStreakRepository,
-                       WorkoutExecutionLogRepository workoutExecutionLogRepository) {
+                       WorkoutExecutionLogRepository workoutExecutionLogRepository,
+                       PasswordEncoder passwordEncoder,
+                       RefreshTokenService refreshTokenService) {
         this.userRepository = userRepository;
         this.weightHistoryRepository = weightHistoryRepository;
         this.userLoginStreakRepository = userLoginStreakRepository;
         this.workoutExecutionLogRepository = workoutExecutionLogRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.refreshTokenService = refreshTokenService;
     }
 
     @Transactional
@@ -60,6 +68,26 @@ public class UserService {
             weightHistoryRepository.save(newHistory);
         }
 
+    }
+
+    @Transactional
+    public void changePassword(String userEmail, ChangePasswordDTO dto) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getSenha())) {
+            throw new IllegalArgumentException("Senha atual incorreta.");
+        }
+        if (passwordEncoder.matches(dto.getNewPassword(), user.getSenha())) {
+            throw new IllegalArgumentException("A nova senha deve ser diferente da atual.");
+        }
+
+        user.setSenha(passwordEncoder.encode(dto.getNewPassword()));
+        userRepository.save(user);
+
+        // Invalida todas as sessões (refresh tokens) após a troca: o usuário
+        // precisa entrar novamente com a nova senha em todos os dispositivos.
+        refreshTokenService.revokeAllForUser(user);
     }
 
     public boolean needsWeightUpdate(String userEmail) {
@@ -101,11 +129,25 @@ public class UserService {
 
     @Transactional
     public void recordDailyLogin(User user) {
+        LocalDate today = LocalDate.now();
+
+        // Pula o insert se o login de hoje já foi registrado. Sem esta checagem,
+        // um segundo login no mesmo dia violaria a constraint única
+        // (user_id, login_date) — e como o INSERT do Hibernate só vai a flush no
+        // commit (fora do try/catch abaixo), a exceção derrubaria o /auth/login
+        // inteiro com 500, fazendo o usuário parecer estar com a senha errada.
+        if (userLoginStreakRepository.existsByUserAndLoginDate(user, today)) {
+            return;
+        }
+
         try {
             UserLoginStreak entry = new UserLoginStreak();
             entry.setUser(user);
-            entry.setLoginDate(LocalDate.now());
-            userLoginStreakRepository.save(entry);
+            entry.setLoginDate(today);
+            // saveAndFlush força o INSERT aqui dentro do try, para que uma corrida
+            // concorrente (dois logins simultâneos do mesmo usuário) seja capturada
+            // em vez de estourar no commit.
+            userLoginStreakRepository.saveAndFlush(entry);
         } catch (DataIntegrityViolationException ignored) {
             // concurrent insert hit unique constraint — login already recorded today
         }

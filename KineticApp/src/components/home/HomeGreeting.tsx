@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { KINETIC } from '../../theme/kinetic';
 
@@ -7,15 +7,20 @@ interface HomeGreetingProps {
   streakDays: number;
 }
 
-function getGreeting(date: Date = new Date()): string {
-  const hour = date.getHours();
+function getGreeting(): string {
+  const hour = new Date().getHours();
   if (hour < 12) return 'Bom dia';
   if (hour < 18) return 'Boa tarde';
   return 'Boa noite';
 }
 
 export default function HomeGreeting({ name, streakDays }: HomeGreetingProps) {
-  const salutation = getGreeting();
+  const [salutation, setSalutation] = useState(getGreeting);
+
+  useEffect(() => {
+    const interval = setInterval(() => setSalutation(getGreeting()), 60_000);
+    return () => clearInterval(interval);
+  }, []);
   const showStreak = streakDays >= 3;
 
   return (

@@ -22,6 +22,7 @@ import api from '../../services/api';
 // Type assertion para AuthContext (arquivo JS sem declaração de tipos)
 interface AuthContextValue {
   completeOnboarding: (data: Record<string, unknown>) => Promise<void>;
+  signOut: () => Promise<void>;
 }
 
 export type GoalType = 'loss' | 'mass' | 'perf' | '';
@@ -206,7 +207,9 @@ function StepMetrics({ data, onChange, isDark }: StepMetricsProps) {
       const m = cleaned.slice(2, 4);
       const y = cleaned.slice(4, 8);
       const iso = `${y}-${m}-${d}`;
-      const date = new Date(iso);
+      // Constrói a data em horário local para evitar o problema de UTC midnight
+      // que desloca o dia em fusos negativos (ex: Brasil UTC-3)
+      const date = new Date(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(d, 10));
       const now = new Date();
 
       // Rejeita datas que o JS silenciosamente ajusta (ex: 31/02 → 02/03)
@@ -539,8 +542,8 @@ function StepGenerating({ goalLabel, daysCount }: StepGeneratingProps) {
 
 // ─── OnboardingScreen ─────────────────────────────────────────────────────────
 export default function OnboardingScreen() {
-  const { isDarkMode }          = useContext(ThemeContext);
-  const { completeOnboarding }  = useContext(AuthContext) as AuthContextValue;
+  const { isDarkMode }                       = useContext(ThemeContext);
+  const { completeOnboarding, signOut }      = useContext(AuthContext) as AuthContextValue;
   const isDark = isDarkMode;
 
   const [step, setStep] = useState<number>(0);
@@ -630,9 +633,21 @@ export default function OnboardingScreen() {
       {step < 5 && (
         <View style={styles.topBar}>
           <TouchableOpacity
-            onPress={() => setStep(s => Math.max(0, s - 1))}
-            disabled={step === 0}
-            style={[styles.backBtn, step === 0 && styles.backBtnDisabled]}
+            onPress={() => {
+              if (step === 0) {
+                Alert.alert(
+                  'Sair do cadastro?',
+                  'Você perderá o progresso e voltará para a tela de login.',
+                  [
+                    { text: 'Cancelar', style: 'cancel' },
+                    { text: 'Sair', style: 'destructive', onPress: () => void signOut() },
+                  ],
+                );
+              } else {
+                setStep(s => s - 1);
+              }
+            }}
+            style={styles.backBtn}
           >
             <Text style={styles.backBtnText}>‹</Text>
           </TouchableOpacity>
