@@ -2,7 +2,9 @@ import React, { useContext, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -502,50 +504,52 @@ function MetricsModal({ visible, form, onSave, onClose }: MetricsModalProps) {
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable style={s.sheetOverlay} onPress={onClose} />
-      <View style={s.sheet}>
-        <View style={s.sheetHandle} />
-        <Text style={s.sheetTitle}>Suas métricas</Text>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.sheetKAV}>
+        <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
+        <View style={s.sheetPanel}>
+          <View style={s.sheetHandle} />
+          <Text style={s.sheetTitle}>Suas métricas</Text>
 
-        <Text style={s.inputLabel}>DATA DE NASCIMENTO</Text>
-        <TextInput
-          style={s.input}
-          value={birthDisplay}
-          onChangeText={handleBirthChange}
-          placeholder="DD/MM/AAAA"
-          placeholderTextColor={KINETIC.textMuted}
-          keyboardType="number-pad"
-          maxLength={10}
-        />
-        <Text style={s.inputLabel}>PESO (KG)</Text>
-        <TextInput
-          style={s.input}
-          value={weight}
-          onChangeText={setWeight}
-          placeholder="78"
-          placeholderTextColor={KINETIC.textMuted}
-          keyboardType="decimal-pad"
-        />
-        <Text style={s.inputLabel}>ALTURA (CM)</Text>
-        <TextInput
-          style={s.input}
-          value={height}
-          onChangeText={setHeight}
-          placeholder="175"
-          placeholderTextColor={KINETIC.textMuted}
-          keyboardType="number-pad"
-        />
-        {!!error && <Text style={s.inputError}>{error}</Text>}
+          <Text style={s.inputLabel}>DATA DE NASCIMENTO</Text>
+          <TextInput
+            style={s.input}
+            value={birthDisplay}
+            onChangeText={handleBirthChange}
+            placeholder="DD/MM/AAAA"
+            placeholderTextColor={KINETIC.textMuted}
+            keyboardType="number-pad"
+            maxLength={10}
+          />
+          <Text style={s.inputLabel}>PESO (KG)</Text>
+          <TextInput
+            style={s.input}
+            value={weight}
+            onChangeText={setWeight}
+            placeholder="78"
+            placeholderTextColor={KINETIC.textMuted}
+            keyboardType="decimal-pad"
+          />
+          <Text style={s.inputLabel}>ALTURA (CM)</Text>
+          <TextInput
+            style={s.input}
+            value={height}
+            onChangeText={setHeight}
+            placeholder="175"
+            placeholderTextColor={KINETIC.textMuted}
+            keyboardType="number-pad"
+          />
+          {!!error && <Text style={s.inputError}>{error}</Text>}
 
-        <View style={s.sheetButtons}>
-          <TouchableOpacity style={s.sheetCancel} onPress={onClose} activeOpacity={0.8}>
-            <Text style={s.sheetCancelText}>Cancelar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.sheetSave} onPress={handleSave} activeOpacity={0.8}>
-            <Text style={s.sheetSaveText}>Salvar</Text>
-          </TouchableOpacity>
+          <View style={s.sheetButtons}>
+            <TouchableOpacity style={s.sheetCancel} onPress={onClose} activeOpacity={0.8}>
+              <Text style={s.sheetCancelText}>Cancelar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={s.sheetSave} onPress={handleSave} activeOpacity={0.8}>
+              <Text style={s.sheetSaveText}>Salvar</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -573,34 +577,36 @@ function AnamnesisModal({ visible, value, onSave, onClose }: AnamnesisModalProps
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable style={s.sheetOverlay} onPress={onClose} />
-      <View style={s.sheet}>
-        <View style={s.sheetHandle} />
-        <Text style={s.sheetTitle}>Anamnese</Text>
-        <Text style={s.sheetBody}>
-          Possui alguma lesão, dor articular ou restrição médica que a IA deva considerar?
-        </Text>
-        <TextInput
-          style={s.anamnesisInput}
-          value={text}
-          onChangeText={setText}
-          placeholder="Ex: hérnia de disco L4-L5, dor no ombro direito, asma…"
-          placeholderTextColor={KINETIC.textMuted}
-          multiline
-          numberOfLines={4}
-          textAlignVertical="top"
-        />
-        <Text style={s.inputHint}>Deixe em branco se não houver restrições.</Text>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.sheetKAV}>
+        <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
+        <View style={s.sheetPanel}>
+          <View style={s.sheetHandle} />
+          <Text style={s.sheetTitle}>Anamnese</Text>
+          <Text style={s.sheetBody}>
+            Possui alguma lesão, dor articular ou restrição médica que a IA deva considerar?
+          </Text>
+          <TextInput
+            style={s.anamnesisInput}
+            value={text}
+            onChangeText={setText}
+            placeholder="Ex: hérnia de disco L4-L5, dor no ombro direito, asma…"
+            placeholderTextColor={KINETIC.textMuted}
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+          />
+          <Text style={s.inputHint}>Deixe em branco se não houver restrições.</Text>
 
-        <View style={s.sheetButtons}>
-          <TouchableOpacity style={s.sheetCancel} onPress={onClose} activeOpacity={0.8}>
-            <Text style={s.sheetCancelText}>Cancelar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.sheetSave} onPress={handleSave} activeOpacity={0.8}>
-            <Text style={s.sheetSaveText}>Salvar</Text>
-          </TouchableOpacity>
+          <View style={s.sheetButtons}>
+            <TouchableOpacity style={s.sheetCancel} onPress={onClose} activeOpacity={0.8}>
+              <Text style={s.sheetCancelText}>Cancelar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={s.sheetSave} onPress={handleSave} activeOpacity={0.8}>
+              <Text style={s.sheetSaveText}>Salvar</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -783,66 +789,68 @@ function ChangePasswordModal({ visible, onClose, onSubmit, onSuccess }: ChangePa
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable style={s.sheetOverlay} onPress={onClose} />
-      <View style={s.sheet}>
-        <View style={s.sheetHandle} />
-        <Text style={s.sheetTitle}>Alterar senha</Text>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.sheetKAV}>
+        <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
+        <View style={s.sheetPanel}>
+          <View style={s.sheetHandle} />
+          <Text style={s.sheetTitle}>Alterar senha</Text>
 
-        <Text style={s.inputLabel}>SENHA ATUAL</Text>
-        <TextInput
-          style={s.input}
-          value={current}
-          onChangeText={setCurrent}
-          placeholder="••••••••"
-          placeholderTextColor={KINETIC.textMuted}
-          secureTextEntry={!show}
-          autoCapitalize="none"
-        />
-        <Text style={s.inputLabel}>NOVA SENHA</Text>
-        <TextInput
-          style={s.input}
-          value={next}
-          onChangeText={setNext}
-          placeholder="••••••••"
-          placeholderTextColor={KINETIC.textMuted}
-          secureTextEntry={!show}
-          autoCapitalize="none"
-        />
-        <Text style={s.inputLabel}>CONFIRMAR NOVA SENHA</Text>
-        <TextInput
-          style={s.input}
-          value={confirm}
-          onChangeText={setConfirm}
-          placeholder="••••••••"
-          placeholderTextColor={KINETIC.textMuted}
-          secureTextEntry={!show}
-          autoCapitalize="none"
-        />
+          <Text style={s.inputLabel}>SENHA ATUAL</Text>
+          <TextInput
+            style={s.input}
+            value={current}
+            onChangeText={setCurrent}
+            placeholder="••••••••"
+            placeholderTextColor={KINETIC.textMuted}
+            secureTextEntry={!show}
+            autoCapitalize="none"
+          />
+          <Text style={s.inputLabel}>NOVA SENHA</Text>
+          <TextInput
+            style={s.input}
+            value={next}
+            onChangeText={setNext}
+            placeholder="••••••••"
+            placeholderTextColor={KINETIC.textMuted}
+            secureTextEntry={!show}
+            autoCapitalize="none"
+          />
+          <Text style={s.inputLabel}>CONFIRMAR NOVA SENHA</Text>
+          <TextInput
+            style={s.input}
+            value={confirm}
+            onChangeText={setConfirm}
+            placeholder="••••••••"
+            placeholderTextColor={KINETIC.textMuted}
+            secureTextEntry={!show}
+            autoCapitalize="none"
+          />
 
-        <TouchableOpacity onPress={() => setShow((v) => !v)} activeOpacity={0.7} style={s.showPasswordToggle}>
-          <Text style={s.showPasswordText}>{show ? 'Ocultar senhas' : 'Mostrar senhas'}</Text>
-        </TouchableOpacity>
-
-        {!!error && <Text style={s.inputError}>{error}</Text>}
-
-        <View style={s.sheetButtons}>
-          <TouchableOpacity style={s.sheetCancel} onPress={onClose} activeOpacity={0.8} disabled={submitting}>
-            <Text style={s.sheetCancelText}>Cancelar</Text>
+          <TouchableOpacity onPress={() => setShow((v) => !v)} activeOpacity={0.7} style={s.showPasswordToggle}>
+            <Text style={s.showPasswordText}>{show ? 'Ocultar senhas' : 'Mostrar senhas'}</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[s.sheetSave, submitting && s.regenBtnDisabled]}
-            onPress={handleSubmit}
-            activeOpacity={0.8}
-            disabled={submitting}
-          >
-            {submitting ? (
-              <ActivityIndicator size="small" color="#001a1f" />
-            ) : (
-              <Text style={s.sheetSaveText}>Salvar</Text>
-            )}
-          </TouchableOpacity>
+
+          {!!error && <Text style={s.inputError}>{error}</Text>}
+
+          <View style={s.sheetButtons}>
+            <TouchableOpacity style={s.sheetCancel} onPress={onClose} activeOpacity={0.8} disabled={submitting}>
+              <Text style={s.sheetCancelText}>Cancelar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[s.sheetSave, submitting && s.regenBtnDisabled]}
+              onPress={handleSubmit}
+              activeOpacity={0.8}
+              disabled={submitting}
+            >
+              {submitting ? (
+                <ActivityIndicator size="small" color="#001a1f" />
+              ) : (
+                <Text style={s.sheetSaveText}>Salvar</Text>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -1245,6 +1253,14 @@ const s = StyleSheet.create({
   deleteBtnText: {
     fontSize: 12, color: KINETIC.textMuted, fontWeight: '500',
     textDecorationLine: 'underline',
+  },
+
+  // KAV bottom-sheet (modais com inputs)
+  sheetKAV: { flex: 1, justifyContent: 'flex-end' },
+  sheetPanel: {
+    backgroundColor: KINETIC.surface1,
+    borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    paddingHorizontal: 20, paddingTop: 14, paddingBottom: 36,
   },
 
   // Logout sheet

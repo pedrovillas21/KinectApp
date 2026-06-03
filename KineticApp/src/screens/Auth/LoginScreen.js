@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  KeyboardAvoidingView, Platform, Alert
+  KeyboardAvoidingView, Platform, Alert, ScrollView
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemeContext } from '../../contexts/ThemeContext';
@@ -35,7 +35,11 @@ export default function LoginScreen({ navigation }) {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.inner}>
         <HeaderLogo />
 
-        <View style={styles.content}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           <Text style={[styles.title, { color: isDark ? COLORS.textPrimaryDark : COLORS.textPrimaryLight }]}>
             Bem-vindo de volta!
           </Text>
@@ -65,7 +69,7 @@ export default function LoginScreen({ navigation }) {
               Ainda não tem conta? <Text style={{ color: COLORS.neonBlue }}>Cadastre-se</Text>
             </Text>
           </TouchableOpacity>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -73,8 +77,8 @@ export default function LoginScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  inner: { flex: 1, paddingHorizontal: 24, paddingBottom: 40 },
-  content: { flex: 1, justifyContent: 'center' },
+  inner: { flex: 1, paddingHorizontal: 24 },
+  content: { flexGrow: 1, justifyContent: 'center', paddingBottom: 40 },
   title: {
     fontSize: 32,
     fontWeight: 'bold',

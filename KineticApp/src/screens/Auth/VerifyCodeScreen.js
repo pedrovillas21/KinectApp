@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemeContext } from '../../contexts/ThemeContext';
 import { COLORS } from '../../theme/colors';
@@ -16,7 +16,11 @@ export default function VerifyCodeScreen({ navigation }) {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.inner}>
         <HeaderLogo showBack />
         
-        <View style={styles.content}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           <Text style={[styles.title, { color: isDark ? COLORS.textPrimaryDark : COLORS.textPrimaryLight }]}>
             Verifique seu E-mail
           </Text>
@@ -27,7 +31,7 @@ export default function VerifyCodeScreen({ navigation }) {
           <CustomInput label="CÓDIGO DE VERIFICAÇÃO" placeholder="000000" />
 
           <PrimaryButton title="VERIFICAR" onPress={() => navigation.navigate('ResetPassword')} />
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -35,8 +39,8 @@ export default function VerifyCodeScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  inner: { flex: 1, paddingHorizontal: 24, paddingBottom: 40 },
-  content: { flex: 1, justifyContent: 'center' },
+  inner: { flex: 1, paddingHorizontal: 24 },
+  content: { flexGrow: 1, justifyContent: 'center', paddingBottom: 40 },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
