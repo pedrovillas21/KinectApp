@@ -82,11 +82,23 @@ export const refreshAccessToken = async (): Promise<string | null> => {
   return refreshPromise;
 };
 
+const PUBLIC_ROUTES = [
+  '/auth/register',
+  '/auth/login',
+  '/auth/refresh',
+  '/auth/logout',
+  '/auth/verify-email',
+  '/auth/reset-password',
+];
+
 api.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
-    const token = await getAccessToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const isPublic = PUBLIC_ROUTES.some(route => config.url?.startsWith(route));
+    if (!isPublic) {
+      const token = await getAccessToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },

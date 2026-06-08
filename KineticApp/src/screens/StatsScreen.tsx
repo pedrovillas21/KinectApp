@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import PlanEvolutionCard from '../components/PlanEvolutionCard';
 import {
   ActivityIndicator,
   Dimensions,
@@ -17,6 +18,7 @@ import EvolutionModal from '../components/EvolutionModal';
 import api from '../services/api';
 import {
   CommunityComparisonDTO,
+  PlanEvolutionResponseDTO,
   StatsInsightDTO,
   StatsPeriodId,
   StatsSummaryResponseDTO,
@@ -813,6 +815,7 @@ export default function StatsScreen() {
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [stats, setStats] = useState<StatsSummaryResponseDTO | null>(null);
+  const [planEvolution, setPlanEvolution] = useState<PlanEvolutionResponseDTO | null>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   // O modal de atualização de peso só pode aparecer uma vez por sessão.
@@ -858,6 +861,13 @@ export default function StatsScreen() {
     setLoading(true);
     fetchStats(period);
   }, [period, fetchStats]);
+
+  // Busca evolução de ciclo uma única vez no mount — independente do seletor de período.
+  useEffect(() => {
+    api.get<PlanEvolutionResponseDTO>('/stats/plan-evolution')
+      .then(res => setPlanEvolution(res.data))
+      .catch(err => console.warn('plan-evolution fetch failed', err));
+  }, []);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -983,6 +993,7 @@ export default function StatsScreen() {
           ) : null}
           <KpiStrip kpis={kpis} />
           <InsightBlock insight={stats.insight} />
+          {planEvolution && <PlanEvolutionCard data={planEvolution} />}
           <ConsistencyCard
             completed={stats.completedSessions}
             target={stats.targetSessions}

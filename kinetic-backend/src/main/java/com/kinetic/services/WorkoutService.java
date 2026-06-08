@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -26,13 +27,16 @@ public class WorkoutService {
     private final GeminiService geminiService;
     private final WorkoutPlanRepository workoutPlanRepository;
     private final UserRepository userRepository;
+    private final PlanCycleSnapshotService planCycleSnapshotService;
 
     public WorkoutService(GeminiService geminiService,
                           WorkoutPlanRepository workoutPlanRepository,
-                          UserRepository userRepository) {
+                          UserRepository userRepository,
+                          PlanCycleSnapshotService planCycleSnapshotService) {
         this.geminiService = geminiService;
         this.workoutPlanRepository = workoutPlanRepository;
         this.userRepository = userRepository;
+        this.planCycleSnapshotService = planCycleSnapshotService;
     }
 
     @Transactional
@@ -50,7 +54,13 @@ public class WorkoutService {
 
         User user = findUserByEmail(userEmail);
         log.info("Usuário encontrado. Atualizando perfil... (Idade calculada com data {}: {} anos)", request.birthDate(), age);
-        
+
+        // Captura estado pré-regeneração antes de sobrescrever o perfil
+        String oldGoal = user.getGoal();
+        double oldWeight = user.getWeight() != null ? user.getWeight() : 0.0;
+        Optional<java.time.LocalDateTime> earliestActivePlan =
+                workoutPlanRepository.findEarliestActiveCreatedAt(user.getId());
+
         double heightCm = request.height() < 3 ? request.height() * 100 : request.height();
 
         log.info("Perfil verificado. Prompto sendo montado e chamando API do Gemini...");
@@ -115,6 +125,19 @@ public class WorkoutService {
         }
         user.setWorkoutOnboardingCompleted(true);
         userRepository.save(user);
+
+        // Se havia plano ativo, captura snapshot do ciclo encerrado antes de arquivar.
+        // Ocorre dentro da mesma @Transactional — falha reverte snapshot + archiveActivePlans juntos.
+        earliestActivePlan.ifPresent(cycleStartDateTime -> {
+            if (oldGoal != null && !oldGoal.isBlank()) {
+                planCycleSnapshotService.captureSnapshot(
+                        user,
+                        cycleStartDateTime.toLocalDate(),
+                        oldGoal,
+                        oldWeight
+                );
+            }
+        });
 
         // Arquiva o plano vigente (preserva historico) antes de promover o novo a 'active'.
         // Apos a geracao bem-sucedida do Gemini, ja na mesma transacao: se algo falhar, tudo reverte.

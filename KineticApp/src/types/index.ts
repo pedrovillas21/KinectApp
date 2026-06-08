@@ -150,6 +150,31 @@ export interface HomeDashboardResponseDTO {
   weeklyActivity: WeeklyActivityPointDTO[];
 }
 
+export interface MetricDeltaDTO {
+  previous: number;
+  current: number;
+  delta: number;
+  /** True quando a direção da variação é favorável ao objetivo do usuário. */
+  good: boolean;
+}
+
+export interface PlanEvolutionResponseDTO {
+  /** False quando ainda não houve nenhuma regeneração (sem snapshot anterior). */
+  available: boolean;
+  /** False quando o ciclo atual ainda não tem sessões registradas. */
+  currentCycleStarted: boolean;
+  currentCycleStart: string | null; // ISO YYYY-MM-DD
+  goal: string | null;
+  weight: MetricDeltaDTO | null;
+  volume: MetricDeltaDTO | null;
+  adherence: MetricDeltaDTO | null;
+  previousCompletedSessions: number;
+  currentCompletedSessions: number;
+  /** Volume por grupo muscular do ciclo anterior (para detalhe). */
+  volumeByMuscle: Record<string, number> | null;
+  insight: StatsInsightDTO | null;
+}
+
 export interface UpdateWeightRequestDTO {
   newWeight: number;
 }

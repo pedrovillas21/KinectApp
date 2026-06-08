@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { ThemeContext } from '../contexts/ThemeContext';
 import { COLORS } from '../theme/colors';
 import ThemeToggle from './ThemeToggle';
@@ -11,11 +12,16 @@ interface Props {
 
 export default function HeaderLogo({ showBack, title }: Props) {
   const { isDarkMode } = useContext(ThemeContext);
+  const navigation = useNavigation();
 
   return (
     <View style={styles.container}>
       <View style={styles.leftGroup}>
-        {showBack && <Text style={[styles.backIcon, { color: COLORS.neonBlue }]}>{'<-'}</Text>}
+        {showBack && (
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Text style={[styles.backIcon, { color: COLORS.neonBlue }]}>{'<-'}</Text>
+          </TouchableOpacity>
+        )}
         <Text style={[styles.brand, { color: COLORS.neonBlue }]}>KINETIC</Text>
       </View>
 
@@ -38,9 +44,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  backButton: {
+    marginRight: 12,
+    padding: 4,
+  },
   backIcon: {
     fontSize: 20,
-    marginRight: 12,
     fontWeight: 'bold',
   },
   brand: {

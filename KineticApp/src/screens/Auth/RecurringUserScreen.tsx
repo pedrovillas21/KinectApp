@@ -7,6 +7,10 @@ import {
   ActivityIndicator,
   Animated,
   Easing,
+  TextInput,
+  Alert,
+  Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as LocalAuthentication from 'expo-local-authentication';
@@ -38,7 +42,6 @@ type Props = {
   navigation: NativeStackNavigationProp<any>;
 };
 
-// Face ID SVG icon
 function FaceIcon({ color = A.primary, size = 40 }: { color?: string; size?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -76,12 +79,73 @@ function CheckIcon({ size = 36 }: { size?: number }) {
   );
 }
 
+function LockIcon({ size = 16, color = A.text3 }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2z"
+        stroke={color}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M7 11V7a5 5 0 0110 0v4"
+        stroke={color}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function EyeIcon({ size = 18, color = A.text3, closed = false }: { size?: number; color?: string; closed?: boolean }) {
+  if (closed) {
+    return (
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <Path
+          d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"
+          stroke={color}
+          strokeWidth={1.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <Path
+          d="M1 1l22 22"
+          stroke={color}
+          strokeWidth={1.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </Svg>
+    );
+  }
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+        stroke={color}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Circle cx="12" cy="12" r="3" stroke={color} strokeWidth={1.5} />
+    </Svg>
+  );
+}
+
 export default function RecurringUserScreen({ navigation }: Props) {
-  const { rememberedUser, unlockSession, forgetRememberedUser } = useContext(AuthContext);
+  const { rememberedUser, unlockSession, signIn } = useContext(AuthContext);
 
   const [security, setSecurity] = useState<SecurityState>('loading');
   const [bioState, setBioState] = useState<BiometricState>('idle');
   const [unlocking, setUnlocking] = useState(false);
+
+  const [showPasswordMode, setShowPasswordMode] = useState(false);
+  const [password, setPassword] = useState('');
+  const [showPwd, setShowPwd] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
 
   // Rotation for scanning ring
   const rotation = useState(new Animated.Value(0))[0];
@@ -142,8 +206,14 @@ export default function RecurringUserScreen({ navigation }: Props) {
     }
   };
 
-  const handleUsePassword = () => {
-    navigation.navigate('Login', { email: rememberedUser?.email ?? '' });
+  const handleInlineLogin = async () => {
+    if (loginLoading || !password) return;
+    setLoginLoading(true);
+    const result = await signIn({ email: rememberedUser?.email ?? '', password });
+    setLoginLoading(false);
+    if (!result.success) {
+      Alert.alert('Erro ao entrar', result.error);
+    }
   };
 
   const initials = rememberedUser?.nome
@@ -153,7 +223,11 @@ export default function RecurringUserScreen({ navigation }: Props) {
         .slice(0, 2)
         .join('')
         .toUpperCase()
+    : rememberedUser?.email
+    ? rememberedUser.email[0].toUpperCase()
     : '?';
+
+  const displayName = rememberedUser?.nome || rememberedUser?.email?.split('@')[0] || '—';
 
   const ringColor =
     bioState === 'success'
@@ -185,112 +259,159 @@ export default function RecurringUserScreen({ navigation }: Props) {
       />
 
       <SafeAreaView style={styles.safe}>
-        {/* Header: label + trocar conta */}
-        <View style={styles.header}>
-          <Text style={styles.headerLabel}>CONTA ATIVA</Text>
-          <TouchableOpacity onPress={forgetRememberedUser}>
-            <Text style={styles.switchBtn}>Trocar conta</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* User card */}
-        <View style={styles.card}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initials}</Text>
-          </View>
-          <View style={styles.cardInfo}>
-            <Text style={styles.cardName}>{rememberedUser?.nome}</Text>
-            <Text style={styles.cardEmail}>{rememberedUser?.email}</Text>
-          </View>
-          {rememberedUser?.streak != null && (
-            <View style={styles.streakBadge}>
-              <Text style={styles.streakEmoji}>🔥</Text>
-              <Text style={styles.streakCount}>{rememberedUser.streak}</Text>
-            </View>
-          )}
-        </View>
-
-        {/* Biometric area */}
-        <View style={styles.biometricArea}>
-          {security === 'loading' ? (
-            <ActivityIndicator color={A.primary} size="large" />
-          ) : security === 'none' ? (
-            <Text style={styles.noSecurityMsg}>
-              Nenhuma biometria ou PIN configurado.{'\n'}Use e-mail e senha.
-            </Text>
-          ) : (
-            <TouchableOpacity
-              style={styles.ringWrap}
-              onPress={handleBiometricUnlock}
-              activeOpacity={0.8}
-              disabled={bioState === 'scanning' || bioState === 'success'}
-            >
-              {/* Outer ring track */}
-              <View style={styles.ringTrack} />
-
-              {/* Animated scanning ring */}
-              {bioState === 'scanning' && (
-                <Animated.View style={[styles.ringIndicator, rotateStyle]}>
-                  <View style={styles.ringDot} />
-                </Animated.View>
-              )}
-
-              {/* Success ring */}
-              {bioState === 'success' && (
-                <View style={[styles.ringIndicator, styles.ringIndicatorFull]} />
-              )}
-
-              {/* Center icon */}
-              <View
-                style={[
-                  styles.ringCenter,
-                  bioState === 'success' && styles.ringCenterSuccess,
-                ]}
-              >
-                {bioState === 'success' ? (
-                  <CheckIcon size={36} />
-                ) : (
-                  <FaceIcon
-                    size={40}
-                    color={bioState === 'error' ? '#FF4444' : A.primary}
-                  />
-                )}
-              </View>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.kav}
+          enabled={showPasswordMode}
+        >
+          {/* Header: label + trocar conta */}
+          <View style={styles.header}>
+            <Text style={styles.headerLabel}>CONTA ATIVA</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+              <Text style={styles.switchBtn}>Trocar conta</Text>
             </TouchableOpacity>
-          )}
+          </View>
 
-          {/* State label */}
-          {security !== 'loading' && security !== 'none' && (
-            <>
-              <Text
-                style={[
-                  styles.bioTitle,
-                  bioState === 'success' && { color: A.primary },
-                  bioState === 'error' && { color: '#FF4444' },
-                ]}
+          {/* User card */}
+          <View style={styles.card}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{initials}</Text>
+            </View>
+            <View style={styles.cardInfo}>
+              <Text style={styles.cardName}>{displayName}</Text>
+              <Text style={styles.cardEmail}>{rememberedUser?.email}</Text>
+            </View>
+            {rememberedUser?.streak != null && (
+              <View style={styles.streakBadge}>
+                <Text style={styles.streakEmoji}>🔥</Text>
+                <Text style={styles.streakCount}>{rememberedUser.streak}</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Biometric area */}
+          <View style={styles.biometricArea}>
+            {security === 'loading' ? (
+              <ActivityIndicator color={A.primary} size="large" />
+            ) : security === 'none' ? (
+              <Text style={styles.noSecurityMsg}>
+                Nenhuma biometria ou PIN configurado.{'\n'}Use e-mail e senha.
+              </Text>
+            ) : (
+              <TouchableOpacity
+                style={styles.ringWrap}
+                onPress={handleBiometricUnlock}
+                activeOpacity={0.8}
+                disabled={bioState === 'scanning' || bioState === 'success'}
               >
-                {bioState === 'idle' &&
-                  (security === 'biometric' ? 'Entrar com Face ID' : 'Entrar com PIN')}
-                {bioState === 'scanning' && 'Verificando…'}
-                {bioState === 'success' && 'Identidade confirmada'}
-                {bioState === 'error' && 'Não reconhecido'}
-              </Text>
-              <Text style={styles.bioSubtitle}>
-                {bioState === 'idle' && 'Toque no ícone para autenticar'}
-                {bioState === 'scanning' && 'Olhe para o dispositivo'}
-                {bioState === 'success' && 'Abrindo seu protocolo…'}
-                {bioState === 'error' && 'Tente novamente ou use sua senha'}
-              </Text>
-            </>
-          )}
-        </View>
+                {/* Outer ring track */}
+                <View style={styles.ringTrack} />
 
-        {/* Fallback link */}
-        <View style={styles.fallback}>
-          <TouchableOpacity onPress={handleUsePassword} style={styles.fallbackBtn}>
-            <Text style={styles.fallbackText}>Usar e-mail e senha</Text>
-          </TouchableOpacity>
-        </View>
+                {/* Animated scanning ring */}
+                {bioState === 'scanning' && (
+                  <Animated.View style={[styles.ringIndicator, rotateStyle]}>
+                    <View style={styles.ringDot} />
+                  </Animated.View>
+                )}
+
+                {/* Success ring */}
+                {bioState === 'success' && (
+                  <View style={[styles.ringIndicator, styles.ringIndicatorFull]} />
+                )}
+
+                {/* Center icon */}
+                <View
+                  style={[
+                    styles.ringCenter,
+                    bioState === 'success' && styles.ringCenterSuccess,
+                  ]}
+                >
+                  {bioState === 'success' ? (
+                    <CheckIcon size={36} />
+                  ) : (
+                    <FaceIcon
+                      size={40}
+                      color={bioState === 'error' ? '#FF4444' : A.primary}
+                    />
+                  )}
+                </View>
+              </TouchableOpacity>
+            )}
+
+            {/* State label */}
+            {security !== 'loading' && security !== 'none' && (
+              <>
+                <Text
+                  style={[
+                    styles.bioTitle,
+                    bioState === 'success' && { color: A.primary },
+                    bioState === 'error' && { color: '#FF4444' },
+                  ]}
+                >
+                  {bioState === 'idle' &&
+                    (security === 'biometric' ? 'Entrar com Face ID' : 'Entrar com PIN')}
+                  {bioState === 'scanning' && 'Verificando…'}
+                  {bioState === 'success' && 'Identidade confirmada'}
+                  {bioState === 'error' && 'Não reconhecido'}
+                </Text>
+                <Text style={styles.bioSubtitle}>
+                  {bioState === 'idle' && 'Toque no ícone para autenticar'}
+                  {bioState === 'scanning' && 'Olhe para o dispositivo'}
+                  {bioState === 'success' && 'Abrindo seu protocolo…'}
+                  {bioState === 'error' && 'Tente novamente ou use sua senha'}
+                </Text>
+              </>
+            )}
+          </View>
+
+          {/* Fallback / inline password section */}
+          <View style={styles.fallback}>
+            {/* Toggle button: "Usar e-mail e senha" / "Ocultar" */}
+            <TouchableOpacity
+              onPress={() => {
+                setShowPasswordMode(!showPasswordMode);
+                setPassword('');
+              }}
+              style={styles.fallbackBtn}
+            >
+              <Text style={styles.fallbackText}>
+                {showPasswordMode ? 'Ocultar' : 'Usar e-mail e senha'}
+              </Text>
+            </TouchableOpacity>
+
+            {/* Inline password fields */}
+            {showPasswordMode && (
+              <View style={styles.passwordSection}>
+                <View style={styles.inlineInputWrap}>
+                  <LockIcon />
+                  <TextInput
+                    style={styles.inlineInput}
+                    placeholder="Senha"
+                    placeholderTextColor={A.text3}
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPwd}
+                    autoFocus
+                  />
+                  <TouchableOpacity onPress={() => setShowPwd(!showPwd)} style={styles.eyeBtn} activeOpacity={0.7}>
+                    <EyeIcon closed={!showPwd} />
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  style={[styles.inlineLoginBtn, (!password || loginLoading) && styles.inlineLoginBtnDisabled]}
+                  onPress={handleInlineLogin}
+                  disabled={!password || loginLoading}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.inlineLoginBtnText}>
+                    {loginLoading ? 'Entrando…' : 'Entrar'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </View>
   );
@@ -305,6 +426,9 @@ const styles = StyleSheet.create({
     backgroundColor: A.bg,
   },
   safe: {
+    flex: 1,
+  },
+  kav: {
     flex: 1,
   },
   glowOrb: {
@@ -490,15 +614,65 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: 16,
     alignItems: 'center',
+    gap: 0,
   },
   fallbackBtn: {
-    paddingVertical: 14,
-    paddingHorizontal: 24,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    backgroundColor: A.s2,
+    borderWidth: 1,
+    borderColor: A.ghostHi,
+    marginBottom: 0,
   },
   fallbackText: {
     fontFamily: 'System',
     fontSize: 13,
     fontWeight: '600',
     color: A.text2,
+  },
+  passwordSection: {
+    marginTop: 12,
+    width: '100%',
+    gap: 10,
+  },
+  inlineInputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: A.s1,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: A.ghostHi,
+    paddingHorizontal: 14,
+    height: 52,
+  },
+  inlineInput: {
+    flex: 1,
+    fontSize: 15,
+    color: A.text,
+    padding: 0,
+  },
+  eyeBtn: {
+    padding: 4,
+  },
+  inlineLoginBtn: {
+    paddingVertical: 16,
+    borderRadius: 16,
+    backgroundColor: A.s1,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  inlineLoginBtnDisabled: {
+    opacity: 0.45,
+    borderColor: A.ghostHi,
+  },
+  inlineLoginBtnText: {
+    fontFamily: 'System',
+    fontSize: 16,
+    fontWeight: '700',
+    color: A.text,
   },
 });
