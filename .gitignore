@@ -38,6 +38,9 @@ ios/
 .env.staging
 .env.production
 .env.*
+# template versionado (sem segredos) — exceções ao ignore acima
+!.env.example
+!**/.env.example
 
 # ─── Dados Sensíveis / Chaves ────────────────
 *.pem
