@@ -267,9 +267,10 @@ public class StatsService {
         Map<String, Double> currentVolumeMap = volumeMapFromDB(user.getId(), cycleStart, today);
         double currentTotalVolume = currentVolumeMap.values().stream().mapToDouble(Double::doubleValue).sum();
 
-        // Peso atual
-        double currentWeight = weightHistoryRepository.findFirstByUserOrderByLoggedAtDesc(user)
-                .map(wh -> wh.getWeight())
+        // Peso atual: último registro dentro do ciclo corrente, ou fallback para o perfil.
+        double currentWeight = weightHistoryRepository
+                .findFirstByUserAndLoggedAtBetweenOrderByLoggedAtDesc(user, cycleStart, today)
+                .map(WeightHistory::getWeight)
                 .orElse(user.getWeight() != null ? user.getWeight() : 0.0);
 
         // Snapshots anteriores

@@ -73,6 +73,9 @@ interface AuthContextValue {
   currentUser: KineticUser | null;
   rememberedUser: RememberedUser | null;
   isLoadingAuth: boolean;
+  // True logo após um logout explícito — leva o roteamento direto ao Login (em vez do
+  // card de usuário persistente ou da tela de boas-vindas). Resetado ao logar de novo.
+  justLoggedOut: boolean;
   workoutPlans: WorkoutPlanItem[];
   setWorkoutPlans: (plans: WorkoutPlanItem[]) => void;
   signIn: (args: { email: string; password: string }) => Promise<AuthResult>;
@@ -111,6 +114,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [hasOnboarded, setHasOnboarded] = useState(false);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   const [workoutPlans, setWorkoutPlans] = useState<WorkoutPlanItem[]>([]);
+  const [justLoggedOut, setJustLoggedOut] = useState(false);
 
   const isOnboardedFromUser = (user: KineticUser | null): boolean => {
     if (!user) return false;
@@ -166,6 +170,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       const user = JSON.parse(userJson) as KineticUser;
       setCurrentUser(user);
+      setJustLoggedOut(false);
       setIsLoggedIn(true);
 
       const localOnboarded = isOnboardedFromUser(user);
@@ -295,6 +300,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       setCurrentUser(userPayload);
       setRememberedUser(remembered);
+      setJustLoggedOut(false);
       setIsLoggedIn(true);
 
       const localOnboarded = isOnboardedFromUser(userPayload);
@@ -336,6 +342,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setCurrentUser(null);
       setRememberedUser(null);
+      // Marca antes de derrubar isLoggedIn para que o roteamento já monte a auth stack
+      // direto no Login (e não no card de usuário persistente / Welcome).
+      setJustLoggedOut(true);
       setIsLoggedIn(false);
       setHasOnboarded(false);
       setWorkoutPlans([]);
@@ -436,6 +445,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         currentUser,
         rememberedUser,
         isLoadingAuth,
+        justLoggedOut,
         workoutPlans,
         setWorkoutPlans,
         signIn,

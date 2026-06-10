@@ -16,6 +16,9 @@ public interface WeightHistoryRepository extends JpaRepository<WeightHistory, Lo
 
     Optional<WeightHistory> findFirstByUserOrderByLoggedAtDesc(User user);
 
+    Optional<WeightHistory> findFirstByUserAndLoggedAtBetweenOrderByLoggedAtDesc(
+            User user, LocalDate startDate, LocalDate endDate);
+
     List<WeightHistory> findAllByUserOrderByLoggedAtAsc(User user);
 
     /** Pontos de peso dentro do intervalo do período selecionado, ordenados cronologicamente. */

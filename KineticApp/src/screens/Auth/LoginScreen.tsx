@@ -188,7 +188,15 @@ export default function LoginScreen({ navigation, route }: Props) {
         >
           {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.7}>
+            <TouchableOpacity
+              onPress={() =>
+                // Pós-logout o Login é a rota inicial (pilha vazia atrás): goBack() dispararia
+                // o erro "GO_BACK não tratado". Nesse caso vamos para o Welcome.
+                navigation.canGoBack() ? navigation.goBack() : navigation.replace('Welcome')
+              }
+              style={styles.backBtn}
+              activeOpacity={0.7}
+            >
               <BackArrowIcon />
             </TouchableOpacity>
             <Text style={styles.headerText}>Bem-vindo de volta</Text>

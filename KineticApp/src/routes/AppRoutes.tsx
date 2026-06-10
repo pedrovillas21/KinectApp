@@ -41,7 +41,7 @@ function MainTabs(): React.ReactElement {
 }
 
 export default function AppRoutes(): React.ReactElement | null {
-  const { isLoggedIn, hasOnboarded, isLoadingAuth, rememberedUser } =
+  const { isLoggedIn, hasOnboarded, isLoadingAuth, rememberedUser, justLoggedOut } =
     useContext(AuthContext);
 
   if (isLoadingAuth) {
@@ -49,10 +49,21 @@ export default function AppRoutes(): React.ReactElement | null {
   }
 
   if (!isLoggedIn) {
+    // Logout explícito → Login direto. App reaberto com sessão lembrada → card RecurringUser.
+    // Primeiro acesso (sem lembrado, sem logout) → Welcome.
+    const initialAuthRoute = justLoggedOut
+      ? 'Login'
+      : rememberedUser
+      ? 'RecurringUser'
+      : 'Welcome';
     return (
+      // key distinta dos outros navigators: garante remontagem ao alternar logado/deslogado,
+      // sem isso o React reconcilia a mesma instância de Stack.Navigator e o initialRouteName
+      // (avaliado só na 1ª montagem) nunca reflete o estado atual de auth.
       <Stack.Navigator
+        key="auth-stack"
         screenOptions={{ headerShown: false }}
-        initialRouteName={rememberedUser ? 'RecurringUser' : 'Welcome'}
+        initialRouteName={initialAuthRoute}
       >
         <Stack.Screen name="Welcome" component={WelcomeScreen} />
         <Stack.Screen name="RecurringUser" component={RecurringUserScreen} />
@@ -67,14 +78,14 @@ export default function AppRoutes(): React.ReactElement | null {
 
   if (!hasOnboarded) {
     return (
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator key="onboarding-stack" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Onboarding" component={OnboardingScreen} />
       </Stack.Navigator>
     );
   }
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator key="main-stack" screenOptions={{ headerShown: false }}>
       <Stack.Screen name="MainTabs" component={MainTabs} />
       <Stack.Screen name="ActiveSession" component={ActiveSessionScreen} />
     </Stack.Navigator>

@@ -14,6 +14,17 @@ interface SetData {
   completed: boolean;
 }
 
+// Data do calendário LOCAL do usuário (YYYY-MM-DD). Não usar toISOString(), que
+// devolve a data em UTC: treinos feitos à noite (BRT) virariam o dia em UTC e a
+// sessão nasceria datada "amanhã" em relação ao LocalDate.now() do servidor,
+// caindo fora da janela [início, hoje] do StatsScreen.
+function localDateString(d: Date = new Date()): string {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export default function ActiveSessionScreen({ navigation, route }: any) {
   const { isDarkMode } = useContext(ThemeContext);
   
@@ -173,7 +184,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
             // Gravação parcial
             const payload: LogSessionRequestDTO = {
               durationInSeconds: elapsedTime,
-              date: new Date().toISOString().split('T')[0],
+              date: localDateString(),
               exercisesLog: allLogs,
               workoutPlanId,
             };
@@ -218,7 +229,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
 
     const payload: LogSessionRequestDTO = {
       durationInSeconds: elapsedTime,
-      date: new Date().toISOString().split('T')[0],
+      date: localDateString(),
       exercisesLog: finalLogs,
       workoutPlanId,
     };

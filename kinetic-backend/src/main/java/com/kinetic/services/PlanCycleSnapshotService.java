@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kinetic.models.PlanCycleSnapshot;
 import com.kinetic.models.User;
+import com.kinetic.models.WeightHistory;
 import com.kinetic.repositories.ExerciseSetLogRepository;
 import com.kinetic.repositories.PlanCycleSnapshotRepository;
 import com.kinetic.repositories.WeightHistoryRepository;
@@ -80,10 +81,12 @@ public class PlanCycleSnapshotService {
             log.warn("Falha ao serializar volumeByMuscle para JSON: {}", e.getMessage());
         }
 
-        // Peso final: último registro ou fallback para oldWeight
+        // Peso final: último registro dentro do ciclo, ou fallback para oldWeight (peso do perfil
+        // antes da regeneração). Limitar ao intervalo do ciclo evita poluição por registros de
+        // ciclos anteriores quando o usuário tem histórico manual de longa data.
         double endWeight = weightHistoryRepository
-                .findFirstByUserOrderByLoggedAtDesc(user)
-                .map(wh -> wh.getWeight())
+                .findFirstByUserAndLoggedAtBetweenOrderByLoggedAtDesc(user, cycleStart, cycleEnd)
+                .map(WeightHistory::getWeight)
                 .orElse(oldWeight);
 
         PlanCycleSnapshot snapshot = new PlanCycleSnapshot();
