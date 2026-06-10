@@ -6,7 +6,8 @@ import { COLORS } from '../theme/colors';
 import SerieCard from '../components/SerieCard';
 import AppHeader from '../components/AppHeader';
 import { SetLogDto, LogSessionRequestDTO } from '../types';
-import api from '../services/api'; // Certifique-se de que o api.js/ts está configurado
+import api from '../services/api';
+import useWorkoutPresence from '../hooks/useWorkoutPresence';
 
 interface SetData {
   weight: string;
@@ -26,16 +27,17 @@ function localDateString(d: Date = new Date()): string {
 }
 
 export default function ActiveSessionScreen({ navigation, route }: any) {
-  const { isDarkMode } = useContext(ThemeContext);
-  
-  const bgColor = '#121212'; 
+  useContext(ThemeContext);
+  const { markSaved } = useWorkoutPresence();
+
+  const bgColor = '#121212';
 
   const workoutData = route?.params?.workoutData;
   const workoutPlanId: string | undefined = route?.params?.workoutPlanId;
   const exercises = workoutData?.data ?? [];
 
   const [elapsedTime, setElapsedTime] = useState(0);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Armazena todos os logs de todas as séries já preenchidas
   const [globalSetsLog, setGlobalSetsLog] = useState<SetLogDto[]>([]);
@@ -127,6 +129,8 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
     setGlobalSetsLog(prev => [...prev, ...mappedLogs]);
   };
 
+  const isLastExercise = currentIndex === exercises.length - 1;
+
   const handleNextAction = () => {
     const hasAnyCompleted = setsData.some(s => s.completed);
 
@@ -193,6 +197,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
 
             api.post('/sessions/log', payload)
               .then(() => {
+                markSaved();
                 Alert.alert('Treino Salvo', 'As séries concluídas foram guardadas.');
                 navigation.goBack();
               })
@@ -236,6 +241,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
 
     try {
       await api.post('/sessions/log', payload);
+      markSaved();
       Alert.alert('Parabéns!', 'Seu treino foi salvo com sucesso.');
       navigation.goBack();
     } catch (error) {
@@ -243,8 +249,6 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
       Alert.alert('Erro', 'Não foi possível salvar os dados do treino.');
     }
   };
-
-  const isLastExercise = currentIndex === exercises.length - 1;
 
   if (!currentExercise) {
     return (

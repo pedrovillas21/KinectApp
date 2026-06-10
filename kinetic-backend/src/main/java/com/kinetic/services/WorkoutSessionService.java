@@ -38,17 +38,20 @@ public class WorkoutSessionService {
     private final ExerciseRepository exerciseRepository;
     private final WorkoutPlanRepository workoutPlanRepository;
     private final WorkoutExecutionLogRepository workoutExecutionLogRepository;
+    private final PresenceService presenceService;
 
     public WorkoutSessionService(WorkoutSessionRepository workoutSessionRepository,
                                  UserRepository userRepository,
                                  ExerciseRepository exerciseRepository,
                                  WorkoutPlanRepository workoutPlanRepository,
-                                 WorkoutExecutionLogRepository workoutExecutionLogRepository) {
+                                 WorkoutExecutionLogRepository workoutExecutionLogRepository,
+                                 PresenceService presenceService) {
         this.workoutSessionRepository = workoutSessionRepository;
         this.userRepository = userRepository;
         this.exerciseRepository = exerciseRepository;
         this.workoutPlanRepository = workoutPlanRepository;
         this.workoutExecutionLogRepository = workoutExecutionLogRepository;
+        this.presenceService = presenceService;
     }
 
     @Transactional
@@ -75,6 +78,7 @@ public class WorkoutSessionService {
         }
 
         workoutSessionRepository.save(session);
+        presenceService.endSession(userEmail);
 
         UUID planId = request.workoutPlanId();
         if (planId != null) {

@@ -179,6 +179,76 @@ export interface UpdateWeightRequestDTO {
   newWeight: number;
 }
 
+// ── Social ─────────────────────────────────────────────────────────────────
+
+export type PresenceStatus = 'TRAINING' | 'ONLINE' | 'OFFLINE';
+export type ConnectionState = 'NONE' | 'PENDING_OUTGOING' | 'PENDING_INCOMING' | 'CONNECTED';
+export type PostIntensity = 'LEVE' | 'MODERADO' | 'ALTA';
+
+export interface SquadMember {
+  id: string;
+  nome: string;
+  avatarUrl: string;
+  status: PresenceStatus;
+  hasNewUpdate: boolean;
+}
+
+export interface FeedAuthor {
+  id: string;
+  nome: string;
+  avatarUrl: string;
+}
+
+export interface FeedPostData {
+  id: string;
+  author: FeedAuthor;
+  timestamp: string;
+  category: string;
+  imageUrl: string | null;
+  duration: string;
+  calories: string;
+  badge?: string | null;
+  likesCount: number;
+  commentsCount: number;
+  caption: string;
+  isLikedByMe: boolean;
+  createdAt: string;
+}
+
+export interface UserCard {
+  id: string;
+  nome: string;
+  avatarUrl: string;
+  connectionState: ConnectionState;
+}
+
+export interface Comment {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorAvatarUrl: string;
+  body: string;
+  createdAt: string;
+}
+
+export interface CreatePostRequest {
+  category?: string;
+  intensity?: PostIntensity;
+  durationMinutes?: number;
+  calories?: number;
+  caption?: string;
+  imageUrl?: string;
+  badge?: string;
+}
+
+export interface Page<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  number: number;
+  last: boolean;
+}
+
 export interface UserProfileResponse {
   fullName: string;
   email: string;

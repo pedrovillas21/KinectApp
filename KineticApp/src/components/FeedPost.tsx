@@ -9,92 +9,101 @@ import {
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { COLORS } from '../theme/colors';
-
-interface Author {
-  name: string;
-  avatarUrl: string;
-}
-
-interface Post {
-  id: string;
-  author: Author;
-  timestamp: string;
-  category: string;
-  imageUrl: string;
-  duration: string;
-  calories: string;
-  badge?: string | null;
-  likesCount: number;
-  commentsCount: number;
-  caption: string;
-  isLikedByMe: boolean;
-}
+import type { FeedPostData } from '../types';
+import { avatarFallback } from '../services/socialService';
 
 interface Props {
-  post: Post;
+  post: FeedPostData;
+  onToggleLike?: (postId: string, liked: boolean) => Promise<number>;
+  onOpenComments?: (postId: string) => void;
 }
 
-export default function FeedPost({ post }: Props) {
+export default function FeedPost({ post, onToggleLike, onOpenComments }: Props) {
   const [isLiked, setIsLiked] = useState(post.isLikedByMe);
   const [likesCount, setLikesCount] = useState(post.likesCount);
 
-  const handleLike = () => {
-    if (isLiked) {
-      setLikesCount((prev) => prev - 1);
-      setIsLiked(false);
-    } else {
-      setLikesCount((prev) => prev + 1);
-      setIsLiked(true);
+  const handleLike = async () => {
+    const nextLiked = !isLiked;
+    setIsLiked(nextLiked);
+    setLikesCount((prev) => (nextLiked ? prev + 1 : prev - 1));
+
+    if (onToggleLike) {
+      try {
+        const serverCount = await onToggleLike(post.id, nextLiked);
+        setLikesCount(serverCount);
+      } catch {
+        setIsLiked(!nextLiked);
+        setLikesCount((prev) => (nextLiked ? prev - 1 : prev + 1));
+      }
     }
   };
+
+  const authorAvatar = avatarFallback(post.author.id, post.author.avatarUrl);
+  const authorName = post.author.nome;
+
+  const durationParts = post.duration ? post.duration.split(' ') : [];
+  const caloriesParts = post.calories ? post.calories.split(' ') : [];
+
+  const hasMetrics = durationParts.length > 0 || caloriesParts.length > 0;
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Image source={{ uri: post.author.avatarUrl }} style={styles.headerAvatar} />
+        <Image source={{ uri: authorAvatar }} style={styles.headerAvatar} />
         <View style={styles.headerTextCol}>
-          <Text style={styles.headerName}>{post.author.name}</Text>
-          <Text style={styles.headerMeta}>{post.timestamp} • {post.category}</Text>
+          <Text style={styles.headerName}>{authorName}</Text>
+          <Text style={styles.headerMeta}>
+            {post.timestamp}
+            {post.category ? ` • ${post.category}` : ''}
+          </Text>
         </View>
         <TouchableOpacity>
           <Text style={styles.dots}>⋮</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.imageWrapper}>
-        <ImageBackground
-          source={{ uri: post.imageUrl }}
-          style={styles.postImage}
-          imageStyle={{ borderRadius: 12 }}
-        >
-          {post.badge && (
-            <View style={styles.badgeWrap}>
-              <View style={styles.badgeDot} />
-              <Text style={styles.badgeText}>{post.badge}</Text>
-            </View>
-          )}
+      {post.imageUrl ? (
+        <View style={styles.imageWrapper}>
+          <ImageBackground
+            source={{ uri: post.imageUrl }}
+            style={styles.postImage}
+            imageStyle={{ borderRadius: 12 }}
+          >
+            {post.badge && (
+              <View style={styles.badgeWrap}>
+                <View style={styles.badgeDot} />
+                <Text style={styles.badgeText}>{post.badge}</Text>
+              </View>
+            )}
 
-          <BlurView intensity={20} tint="dark" style={styles.glassOverlay}>
-            <View style={styles.metricsRow}>
-              <View style={styles.metricBlock}>
-                <Text style={styles.metricLabel}>DURATION</Text>
-                <Text style={styles.metricValue}>
-                  {post.duration.split(' ')[0]}{' '}
-                  <Text style={{ fontSize: 12 }}>{post.duration.split(' ')[1]}</Text>
-                </Text>
-              </View>
-              <View style={styles.metricDivider} />
-              <View style={styles.metricBlock}>
-                <Text style={styles.metricLabel}>CALORIES</Text>
-                <Text style={styles.metricValue}>
-                  {post.calories.split(' ')[0]}{' '}
-                  <Text style={{ fontSize: 12 }}>{post.calories.split(' ')[1]}</Text>
-                </Text>
-              </View>
-            </View>
-          </BlurView>
-        </ImageBackground>
-      </View>
+            {hasMetrics && (
+              <BlurView intensity={20} tint="dark" style={styles.glassOverlay}>
+                <View style={styles.metricsRow}>
+                  <View style={styles.metricBlock}>
+                    <Text style={styles.metricLabel}>DURATION</Text>
+                    <Text style={styles.metricValue}>
+                      {durationParts[0] ?? '—'}
+                      {durationParts[1] ? (
+                        <Text style={{ fontSize: 12 }}> {durationParts[1]}</Text>
+                      ) : null}
+                    </Text>
+                  </View>
+                  <View style={styles.metricDivider} />
+                  <View style={styles.metricBlock}>
+                    <Text style={styles.metricLabel}>CALORIES</Text>
+                    <Text style={styles.metricValue}>
+                      {caloriesParts[0] ?? '—'}
+                      {caloriesParts[1] ? (
+                        <Text style={{ fontSize: 12 }}> {caloriesParts[1]}</Text>
+                      ) : null}
+                    </Text>
+                  </View>
+                </View>
+              </BlurView>
+            )}
+          </ImageBackground>
+        </View>
+      ) : null}
 
       <View style={styles.footerActions}>
         <TouchableOpacity style={styles.actionItem} onPress={handleLike}>
@@ -104,18 +113,20 @@ export default function FeedPost({ post }: Props) {
           <Text style={styles.actionText}>{likesCount}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.actionItem}>
+        <TouchableOpacity style={styles.actionItem} onPress={() => onOpenComments?.(post.id)}>
           <Text style={styles.actionIcon}>💬</Text>
           <Text style={styles.actionText}>{post.commentsCount}</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.captionContainer}>
-        <Text style={styles.captionText}>
-          <Text style={styles.captionAuthor}>{post.author.name} </Text>
-          {post.caption}
-        </Text>
-      </View>
+      {post.caption ? (
+        <View style={styles.captionContainer}>
+          <Text style={styles.captionText}>
+            <Text style={styles.captionAuthor}>{authorName} </Text>
+            {post.caption}
+          </Text>
+        </View>
+      ) : null}
     </View>
   );
 }

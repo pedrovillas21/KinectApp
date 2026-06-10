@@ -1,32 +1,73 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, ListRenderItem } from 'react-native';
+import React, { useRef } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  Image,
+  Animated,
+  ListRenderItem,
+} from 'react-native';
 import { COLORS } from '../theme/colors';
-
-interface SquadItem {
-  id: string;
-  name: string;
-  avatarUrl: string;
-  hasNewUpdate: boolean;
-}
+import { presenceColor } from '../theme/kinetic';
+import type { SquadMember } from '../types';
 
 interface Props {
-  items: SquadItem[];
+  items: SquadMember[];
+  onAddPress?: () => void;
+  onFindPress?: () => void;
+  onMemberPress?: (member: SquadMember) => void;
 }
 
-export default function SquadBar({ items }: Props) {
-  const renderItem: ListRenderItem<SquadItem> = ({ item }) => (
-    <View style={styles.itemContainer}>
-      <View style={[styles.avatarWrap, item.hasNewUpdate && styles.avatarNewUpdate]}>
-        <Image source={{ uri: item.avatarUrl }} style={styles.avatarImage} />
-      </View>
-      <Text style={styles.avatarName}>{item.name.split(' ')[0]}</Text>
-    </View>
+function PulsingRing({ color }: { color: string }) {
+  const opacity = useRef(new Animated.Value(1)).current;
+
+  React.useEffect(() => {
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, { toValue: 0.3, duration: 800, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 1, duration: 800, useNativeDriver: true }),
+      ])
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [opacity]);
+
+  return (
+    <Animated.View
+      style={[StyleSheet.absoluteFillObject, styles.pulseRing, { borderColor: color, opacity }]}
+    />
   );
+}
+
+export default function SquadBar({ items, onAddPress, onFindPress, onMemberPress }: Props) {
+  const renderItem: ListRenderItem<SquadMember> = ({ item }) => {
+    const ringColor = presenceColor(item.status);
+    const isTraining = item.status === 'TRAINING';
+    const avatar = item.avatarUrl ?? `https://i.pravatar.cc/150?u=${item.id}`;
+
+    return (
+      <TouchableOpacity
+        style={styles.itemContainer}
+        onPress={() => onMemberPress?.(item)}
+        activeOpacity={0.75}
+      >
+        <View style={[styles.avatarWrap, { borderColor: ringColor }]}>
+          {isTraining && <PulsingRing color={ringColor} />}
+          <Image source={{ uri: avatar }} style={styles.avatarImage} />
+        </View>
+        <Text style={styles.avatarName} numberOfLines={1}>
+          {item.nome.split(' ')[0]}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   const renderSearchButton = () => (
     <View style={styles.itemContainer}>
-      <TouchableOpacity style={styles.searchWrap}>
-        <Text style={styles.searchIcon}>🔍</Text>
+      <TouchableOpacity style={styles.actionWrap} onPress={onFindPress}>
+        <Text style={styles.actionIcon}>🔍</Text>
       </TouchableOpacity>
       <Text style={styles.avatarName}>Find</Text>
     </View>
@@ -36,7 +77,7 @@ export default function SquadBar({ items }: Props) {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Squad</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={onAddPress}>
           <Text style={styles.addText}>Add +</Text>
         </TouchableOpacity>
       </View>
@@ -80,10 +121,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
+    overflow: 'hidden',
   },
-  avatarNewUpdate: { borderColor: COLORS.neonBlue },
+  pulseRing: {
+    borderRadius: 32,
+    borderWidth: 2,
+    margin: -2,
+  },
   avatarImage: { width: 56, height: 56, borderRadius: 28 },
-  searchWrap: {
+  actionWrap: {
     width: 64,
     height: 64,
     borderRadius: 32,
@@ -92,6 +138,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
-  searchIcon: { fontSize: 20, color: '#CCC' },
+  actionIcon: { fontSize: 20, color: '#CCC' },
   avatarName: { color: '#CCC', fontSize: 11, fontWeight: 'bold' },
 });

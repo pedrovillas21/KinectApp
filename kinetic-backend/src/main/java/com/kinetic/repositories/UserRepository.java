@@ -19,4 +19,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     /** Par (userId, frequency) de todos os usuários com frequência definida — usado pelo CommunityStatsService. */
     @Query("SELECT u.id, u.frequency FROM User u WHERE u.frequency IS NOT NULL AND u.frequency > 0")
     List<Object[]> findAllUserIdAndFrequency();
+
+    List<User> findByNomeContainingIgnoreCaseAndIdNot(String nome, UUID id);
 }

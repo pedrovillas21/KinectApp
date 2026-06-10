@@ -9,28 +9,6 @@ export interface ExerciseItem {
   restTime: string;
 }
 
-export interface SquadMember {
-  id: string;
-  name: string;
-  avatarUrl: string;
-  hasNewUpdate: boolean;
-}
-
-export interface FeedPostData {
-  id: string;
-  author: SquadMember;
-  timestamp: string;
-  category: string;
-  imageUrl: string;
-  duration: string;
-  calories: string;
-  badge?: string | null;
-  likesCount: number;
-  commentsCount: number;
-  caption: string;
-  isLikedByMe: boolean;
-}
-
 // DIA A — Peito, Ombro e Tríceps (Push Day)
 export const DAY_A: ExerciseItem[] = [
   { id: 'a1', name: 'Supino Reto com Barra',     muscles: 'PEITO',   type: 'COMPOSTO', sets: 4, reps: '8-10',  weight: '80kg', restTime: '90s' },
@@ -75,40 +53,3 @@ export const WORKOUT_MAP: Record<string, { data: ExerciseItem[]; title: string; 
 
 export const DAILY_WORKOUT = DAY_A;
 
-export const mockSquad: SquadMember[] = [
-  { id: 's1', name: 'Sarah J.',   avatarUrl: 'https://i.pravatar.cc/150?u=sarahj',  hasNewUpdate: true  },
-  { id: 's2', name: 'Marcus T.', avatarUrl: 'https://i.pravatar.cc/150?u=marcust', hasNewUpdate: true  },
-  { id: 's3', name: 'Elena R.',  avatarUrl: 'https://i.pravatar.cc/150?u=elena',   hasNewUpdate: false },
-  { id: 's4', name: 'David M.',  avatarUrl: 'https://i.pravatar.cc/150?u=davidx',  hasNewUpdate: false },
-];
-
-export const mockFeed: FeedPostData[] = [
-  {
-    id: 'p1',
-    author: mockSquad[0],
-    timestamp: '2 HRS AGO',
-    category: 'HIGH INTENSITY',
-    imageUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=600&auto=format&fit=crop',
-    duration: '45 MIN',
-    calories: '420 KCAL',
-    badge: null,
-    likesCount: 24,
-    commentsCount: 5,
-    caption: 'Crushed the morning battle ropes session. Feeling the burn but completely energized for the day! 🔥⚡',
-    isLikedByMe: true,
-  },
-  {
-    id: 'p2',
-    author: mockSquad[1],
-    timestamp: '5 HRS AGO',
-    category: 'HEAVY LIFTING',
-    imageUrl: 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=600&auto=format&fit=crop',
-    duration: '80 MIN',
-    calories: '750 KCAL',
-    badge: 'NEW PR',
-    likesCount: 89,
-    commentsCount: 12,
-    caption: 'Finally hit that 405lb deadlift. The grind is paying off. Trust the process. 🦍💪',
-    isLikedByMe: false,
-  },
-];
