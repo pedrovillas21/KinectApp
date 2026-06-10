@@ -2,6 +2,7 @@ package com.kinetic.config;
 
 import com.kinetic.services.PresenceService;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -15,7 +16,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     }
 
     @Override
-    public void addInterceptors(InterceptorRegistry registry) {
+    public void addInterceptors(@NonNull InterceptorRegistry registry) {
         registry.addInterceptor(new LastActiveInterceptor(presenceService))
                 .addPathPatterns("/api/**")
                 .excludePathPatterns("/api/auth/**");

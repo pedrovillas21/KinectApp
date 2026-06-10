@@ -9,25 +9,35 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import * as ImagePicker from 'expo-image-picker';
 import { ThemeContext } from '../contexts/ThemeContext';
 import { COLORS } from '../theme/colors';
 import AppHeader from '../components/AppHeader';
 import SquadBar from '../components/SquadBar';
 import FeedPost from '../components/FeedPost';
 import UserSearchModal from '../components/UserSearchModal';
+import ConnectionRequestsModal from '../components/ConnectionRequestsModal';
 import CommentsSheet from '../components/CommentsSheet';
 import NewPostModal from '../components/NewPostModal';
+import StoryViewer from '../components/StoryViewer';
 import useSquadStatus from '../hooks/useSquadStatus';
 import {
   getFeed,
   likePost,
   unlikePost,
   getSquad,
+  getPendingRequests,
+  acceptConnection,
+  removeConnection,
+  getStories,
+  createStory,
 } from '../services/socialService';
-import type { FeedPostData, SquadMember } from '../types';
+import type { FeedPostData, SquadMember, PendingRequest, StoryGroup } from '../types';
 
 export default function SocialScreen() {
   const { isDarkMode } = useContext(ThemeContext);
+  const tabBarHeight = useBottomTabBarHeight();
 
   const [feed, setFeed] = useState<FeedPostData[]>([]);
   const [page, setPage] = useState(0);
@@ -36,8 +46,12 @@ export default function SocialScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [activeCommentsPostId, setActiveCommentsPostId] = useState<string | null>(null);
   const [showSearchModal, setShowSearchModal] = useState(false);
+  const [showRequests, setShowRequests] = useState(false);
   const [showNewPost, setShowNewPost] = useState(false);
   const [squadMembers, setSquadMembers] = useState<SquadMember[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>([]);
+  const [storyGroups, setStoryGroups] = useState<StoryGroup[]>([]);
+  const [storyViewerIndex, setStoryViewerIndex] = useState<number | null>(null);
 
   const liveSquad = useSquadStatus();
   const isFirstMount = useRef(true);
@@ -71,15 +85,55 @@ export default function SocialScreen() {
     }
   };
 
+  const loadRequests = async () => {
+    try {
+      const data = await getPendingRequests();
+      setPendingRequests(data);
+    } catch {
+      // silent
+    }
+  };
+
+  const loadStories = async () => {
+    try {
+      const data = await getStories();
+      setStoryGroups(data);
+    } catch {
+      // silent
+    }
+  };
+
   useEffect(() => {
     loadFeedPage(0, true);
     loadSquad();
+    loadRequests();
+    loadStories();
   }, []);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([loadFeedPage(0, true), loadSquad()]);
+    await Promise.all([loadFeedPage(0, true), loadSquad(), loadRequests(), loadStories()]);
     setRefreshing(false);
+  }, []);
+
+  // Aceitar conexão: vira amizade → atualiza solicitações, squad e feed.
+  const handleAcceptRequest = useCallback(async (requesterId: string) => {
+    setPendingRequests((prev) => prev.filter((r) => r.requesterId !== requesterId));
+    try {
+      await acceptConnection(requesterId);
+      await Promise.all([loadSquad(), loadFeedPage(0, true), loadRequests()]);
+    } catch {
+      loadRequests();
+    }
+  }, []);
+
+  const handleDeclineRequest = useCallback(async (requesterId: string) => {
+    setPendingRequests((prev) => prev.filter((r) => r.requesterId !== requesterId));
+    try {
+      await removeConnection(requesterId);
+    } catch {
+      loadRequests();
+    }
   }, []);
 
   const handleEndReached = useCallback(() => {
@@ -102,9 +156,35 @@ export default function SocialScreen() {
     setFeed((prev) => [post, ...prev]);
   };
 
+  // Bolha "Seu story": abre a câmera direto e publica uma story efêmera (24h),
+  // separada do feed de posts.
+  const handleAddStory = async () => {
+    const perm = await ImagePicker.requestCameraPermissionsAsync();
+    if (!perm.granted) return;
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [9, 16],
+      quality: 0.8,
+    });
+    if (result.canceled) return;
+    try {
+      await createStory({ imageUrl: result.assets[0].uri });
+      await loadStories();
+    } catch {
+      // silent — usuário pode tentar de novo
+    }
+  };
+
+  const openStory = (userId: string) => {
+    const index = storyGroups.findIndex((g) => g.userId === userId);
+    if (index >= 0) setStoryViewerIndex(index);
+  };
+
   const handleSearchClose = () => {
     setShowSearchModal(false);
     loadSquad();
+    loadRequests();
   };
 
   return (
@@ -114,7 +194,10 @@ export default function SocialScreen() {
         { backgroundColor: isDarkMode ? COLORS.darkBackground : COLORS.lightBackground },
       ]}
     >
-      <AppHeader />
+      <AppHeader
+        onPressNotifications={() => setShowRequests(true)}
+        hasUnreadNotifications={pendingRequests.length > 0}
+      />
 
       <FlatList
         data={feed}
@@ -124,8 +207,10 @@ export default function SocialScreen() {
         ListHeaderComponent={
           <SquadBar
             items={squadMembers}
+            storyUserIds={storyGroups.map((g) => g.userId)}
             onAddPress={() => setShowSearchModal(true)}
-            onFindPress={() => setShowSearchModal(true)}
+            onAddStory={handleAddStory}
+            onOpenStory={openStory}
           />
         }
         renderItem={({ item }) => (
@@ -161,11 +246,22 @@ export default function SocialScreen() {
         }
       />
 
-      <TouchableOpacity style={styles.fab} onPress={() => setShowNewPost(true)}>
+      <TouchableOpacity
+        style={[styles.fab, { bottom: tabBarHeight + 16 }]}
+        onPress={() => setShowNewPost(true)}
+      >
         <Text style={styles.fabIcon}>+</Text>
       </TouchableOpacity>
 
       <UserSearchModal visible={showSearchModal} onClose={handleSearchClose} />
+
+      <ConnectionRequestsModal
+        visible={showRequests}
+        requests={pendingRequests}
+        onClose={() => setShowRequests(false)}
+        onAccept={handleAcceptRequest}
+        onDecline={handleDeclineRequest}
+      />
 
       <CommentsSheet
         postId={activeCommentsPostId}
@@ -179,6 +275,13 @@ export default function SocialScreen() {
         onClose={() => setShowNewPost(false)}
         onPostCreated={handleNewPost}
       />
+
+      <StoryViewer
+        visible={storyViewerIndex !== null}
+        groups={storyGroups}
+        initialGroupIndex={storyViewerIndex ?? 0}
+        onClose={() => setStoryViewerIndex(null)}
+      />
     </SafeAreaView>
   );
 }
@@ -188,7 +291,6 @@ const styles = StyleSheet.create({
   listContent: { paddingBottom: 100 },
   fab: {
     position: 'absolute',
-    bottom: 32,
     right: 24,
     width: 64,
     height: 64,

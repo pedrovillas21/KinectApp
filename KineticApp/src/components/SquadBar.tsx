@@ -15,8 +15,11 @@ import type { SquadMember } from '../types';
 
 interface Props {
   items: SquadMember[];
+  /** Ids de membros com story ativa — recebem anel de destaque e abrem o visualizador. */
+  storyUserIds?: string[];
   onAddPress?: () => void;
-  onFindPress?: () => void;
+  onAddStory?: () => void;
+  onOpenStory?: (userId: string) => void;
   onMemberPress?: (member: SquadMember) => void;
 }
 
@@ -41,16 +44,25 @@ function PulsingRing({ color }: { color: string }) {
   );
 }
 
-export default function SquadBar({ items, onAddPress, onFindPress, onMemberPress }: Props) {
+export default function SquadBar({
+  items,
+  storyUserIds,
+  onAddPress,
+  onAddStory,
+  onOpenStory,
+  onMemberPress,
+}: Props) {
   const renderItem: ListRenderItem<SquadMember> = ({ item }) => {
-    const ringColor = presenceColor(item.status);
+    const hasStory = storyUserIds?.includes(item.id) ?? false;
+    // Story ativa tem prioridade visual: anel neon (estilo Instagram).
+    const ringColor = hasStory ? COLORS.neonBlue : presenceColor(item.status);
     const isTraining = item.status === 'TRAINING';
     const avatar = item.avatarUrl ?? `https://i.pravatar.cc/150?u=${item.id}`;
 
     return (
       <TouchableOpacity
         style={styles.itemContainer}
-        onPress={() => onMemberPress?.(item)}
+        onPress={() => (hasStory ? onOpenStory?.(item.id) : onMemberPress?.(item))}
         activeOpacity={0.75}
       >
         <View style={[styles.avatarWrap, { borderColor: ringColor }]}>
@@ -64,13 +76,18 @@ export default function SquadBar({ items, onAddPress, onFindPress, onMemberPress
     );
   };
 
-  const renderSearchButton = () => (
-    <View style={styles.itemContainer}>
-      <TouchableOpacity style={styles.actionWrap} onPress={onFindPress}>
-        <Text style={styles.actionIcon}>🔍</Text>
-      </TouchableOpacity>
-      <Text style={styles.avatarName}>Find</Text>
-    </View>
+  // Bolha "Seu story" no estilo Instagram: primeiro item da barra, abre a câmera.
+  const renderStoryButton = () => (
+    <TouchableOpacity
+      style={styles.itemContainer}
+      onPress={onAddStory}
+      activeOpacity={0.75}
+    >
+      <View style={styles.storyWrap}>
+        <Text style={styles.storyPlus}>+</Text>
+      </View>
+      <Text style={styles.avatarName}>Seu story</Text>
+    </TouchableOpacity>
   );
 
   return (
@@ -88,7 +105,7 @@ export default function SquadBar({ items, onAddPress, onFindPress, onMemberPress
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        ListFooterComponent={renderSearchButton}
+        ListHeaderComponent={renderStoryButton}
         contentContainerStyle={styles.listContent}
       />
     </View>
@@ -129,15 +146,23 @@ const styles = StyleSheet.create({
     margin: -2,
   },
   avatarImage: { width: 56, height: 56, borderRadius: 28 },
-  actionWrap: {
+  storyWrap: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#1E1E1E',
+    borderWidth: 2,
+    borderColor: COLORS.neonBlue,
+    backgroundColor: '#1C1C1E',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
   },
-  actionIcon: { fontSize: 20, color: '#CCC' },
+  storyPlus: {
+    color: COLORS.neonBlue,
+    fontSize: 30,
+    fontWeight: '300',
+    lineHeight: 32,
+    marginTop: -2,
+  },
   avatarName: { color: '#CCC', fontSize: 11, fontWeight: 'bold' },
 });

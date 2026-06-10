@@ -17,6 +17,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@SuppressWarnings("null")
 public class SocialService {
 
     private final UserRepository userRepository;
@@ -42,7 +43,11 @@ public class SocialService {
     @Transactional(readOnly = true)
     public List<UserCardDTO> searchUsers(String email, String query) {
         User me = findByEmail(email);
-        List<User> matches = userRepository.findByNomeContainingIgnoreCaseAndIdNot(query, me.getId());
+        // query nula/vazia → lista padrão (primeiros usuários ordenados por nome), para
+        // o usuário ver quem existe sem precisar adivinhar o nome.
+        String term = query != null ? query.trim() : "";
+        List<User> matches = userRepository
+                .findTop30ByNomeContainingIgnoreCaseAndIdNotOrderByNomeAsc(term, me.getId());
         return matches.stream()
                 .map(u -> new UserCardDTO(u.getId(), u.getNome(), avatarOf(u), connectionState(me, u)))
                 .toList();
@@ -63,11 +68,14 @@ public class SocialService {
         connectionRepository.save(conn);
     }
 
+    // accept/remove operam pelo id do OUTRO usuário (via findPair), não pelo id da conexão —
+    // é isso que o app tem em mãos (id do usuário no card / na solicitação).
     @Transactional
-    public void acceptConnection(String email, UUID connectionId) {
+    public void acceptConnection(String email, UUID otherUserId) {
         User me = findByEmail(email);
-        UserConnection conn = connectionRepository.findById(connectionId)
+        UserConnection conn = connectionRepository.findPair(me.getId(), otherUserId)
                 .orElseThrow(() -> new EntityNotFoundException("Connection not found"));
+        // Só o destinatário do pedido pode aceitar.
         if (!conn.getAddressee().getId().equals(me.getId())) throw new IllegalStateException("Not your request");
         conn.setStatus("ACCEPTED");
         conn.setRespondedAt(LocalDateTime.now());
@@ -75,14 +83,23 @@ public class SocialService {
     }
 
     @Transactional
-    public void removeConnection(String email, UUID connectionId) {
+    public void removeConnection(String email, UUID otherUserId) {
         User me = findByEmail(email);
-        UserConnection conn = connectionRepository.findById(connectionId)
+        // findPair já garante que `me` é uma das pontas da conexão.
+        UserConnection conn = connectionRepository.findPair(me.getId(), otherUserId)
                 .orElseThrow(() -> new EntityNotFoundException("Connection not found"));
-        boolean isParty = conn.getRequester().getId().equals(me.getId())
-                || conn.getAddressee().getId().equals(me.getId());
-        if (!isParty) throw new IllegalStateException("Not your connection");
         connectionRepository.delete(conn);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PendingRequestDTO> getPendingRequests(String email) {
+        User me = findByEmail(email);
+        return connectionRepository.findPendingIncomingFor(me.getId()).stream()
+                .map(c -> {
+                    User r = c.getRequester();
+                    return new PendingRequestDTO(c.getId(), r.getId(), r.getNome(), avatarOf(r), c.getCreatedAt());
+                })
+                .toList();
     }
 
     // ── Squad ────────────────────────────────────────────────────────────────
@@ -166,6 +183,57 @@ public class SocialService {
         postRepository.save(post);
 
         return toFeedPostDTO(post, Map.of(), Map.of(), Set.of());
+    }
+
+    // ── Stories ──────────────────────────────────────────────────────────────
+
+    @Transactional
+    public StoryDTO createStory(String email, CreateStoryRequest req) {
+        User me = findByEmail(email);
+        SocialPost story = new SocialPost();
+        story.setAuthor(me);
+        story.setKind("STORY");
+        story.setImageUrl(req.imageUrl());
+        story.setCaption(req.caption());
+        story.setExpiresAt(LocalDateTime.now().plusHours(24));
+        postRepository.save(story);
+        return new StoryDTO(story.getId(), story.getImageUrl(), story.getCaption(),
+                story.getCreatedAt(), story.getExpiresAt());
+    }
+
+    @Transactional(readOnly = true)
+    public List<StoryGroupDTO> getStories(String email) {
+        User me = findByEmail(email);
+        List<UUID> authorIds = getConnectedIds(me);
+        authorIds.add(me.getId());
+
+        List<SocialPost> stories = postRepository.findActiveStories(authorIds, LocalDateTime.now());
+
+        // Agrupa por autor preservando a ordem cronológica das stories.
+        Map<UUID, List<StoryDTO>> grouped = new LinkedHashMap<>();
+        Map<UUID, User> authors = new HashMap<>();
+        for (SocialPost s : stories) {
+            UUID authorId = s.getAuthor().getId();
+            grouped.computeIfAbsent(authorId, k -> new ArrayList<>())
+                    .add(new StoryDTO(s.getId(), s.getImageUrl(), s.getCaption(), s.getCreatedAt(), s.getExpiresAt()));
+            authors.putIfAbsent(authorId, s.getAuthor());
+        }
+
+        List<StoryGroupDTO> groups = new ArrayList<>();
+        grouped.forEach((authorId, list) -> {
+            User a = authors.get(authorId);
+            groups.add(new StoryGroupDTO(a.getId(), a.getNome(), avatarOf(a), list));
+        });
+
+        // Minha própria story primeiro; demais ordenadas pela story mais recente.
+        groups.sort((g1, g2) -> {
+            if (g1.userId().equals(me.getId())) return -1;
+            if (g2.userId().equals(me.getId())) return 1;
+            LocalDateTime t1 = g1.stories().get(g1.stories().size() - 1).createdAt();
+            LocalDateTime t2 = g2.stories().get(g2.stories().size() - 1).createdAt();
+            return t2.compareTo(t1);
+        });
+        return groups;
     }
 
     // ── Likes ────────────────────────────────────────────────────────────────

@@ -40,12 +40,13 @@ export default function UserSearchModal({ visible, onClose }: Props) {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    if (!visible) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (!query.trim()) { setResults([]); return; }
 
-    debounceRef.current = setTimeout(async () => {
+    const run = async () => {
       setLoading(true);
       try {
+        // Sem texto → backend devolve a lista padrão de usuários do banco.
         const data = await searchUsers(query.trim());
         setResults(data);
       } catch {
@@ -53,12 +54,19 @@ export default function UserSearchModal({ visible, onClose }: Props) {
       } finally {
         setLoading(false);
       }
-    }, 400);
+    };
+
+    // Lista padrão (query vazia) carrega na hora; digitação é debounced.
+    if (!query.trim()) {
+      run();
+    } else {
+      debounceRef.current = setTimeout(run, 400);
+    }
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [query]);
+  }, [query, visible]);
 
   const handleAction = async (item: UserCard) => {
     const optimisticState: ConnectionState =
@@ -126,13 +134,22 @@ export default function UserSearchModal({ visible, onClose }: Props) {
 
           {loading && <ActivityIndicator color={COLORS.neonBlue} style={styles.loader} />}
 
+          {!loading && results.length > 0 && (
+            <Text style={styles.sectionLabel}>
+              {query.trim() ? 'Resultados' : 'Sugestões'}
+            </Text>
+          )}
+
           <FlatList
             data={results}
             keyExtractor={(item) => item.id}
             renderItem={renderItem}
+            keyboardShouldPersistTaps="handled"
             ListEmptyComponent={
-              !loading && query.length > 0 ? (
-                <Text style={styles.empty}>Nenhum resultado.</Text>
+              !loading ? (
+                <Text style={styles.empty}>
+                  {query.trim() ? 'Nenhum resultado.' : 'Nenhum usuário cadastrado ainda.'}
+                </Text>
               ) : null
             }
           />
@@ -169,6 +186,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   loader: { marginVertical: 12 },
+  sectionLabel: {
+    color: KINETIC.textMuted,
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -6,6 +6,10 @@ import type {
   Comment,
   CreatePostRequest,
   Page,
+  PendingRequest,
+  Story,
+  StoryGroup,
+  CreateStoryRequest,
 } from '../types';
 
 export const avatarFallback = (id: string, url?: string | null): string =>
@@ -16,16 +20,22 @@ export const searchUsers = async (q: string): Promise<UserCard[]> => {
   return res.data;
 };
 
+export const getPendingRequests = async (): Promise<PendingRequest[]> => {
+  const res = await api.get<PendingRequest[]>('/social/connections/pending');
+  return res.data;
+};
+
 export const sendConnection = async (addresseeId: string): Promise<void> => {
   await api.post('/social/connections', { addresseeId });
 };
 
-export const acceptConnection = async (connectionId: string): Promise<void> => {
-  await api.post(`/social/connections/${connectionId}/accept`);
+// userId = id do outro usuário da conexão (quem enviou / quem está no card).
+export const acceptConnection = async (userId: string): Promise<void> => {
+  await api.post(`/social/connections/${userId}/accept`);
 };
 
-export const removeConnection = async (connectionId: string): Promise<void> => {
-  await api.delete(`/social/connections/${connectionId}`);
+export const removeConnection = async (userId: string): Promise<void> => {
+  await api.delete(`/social/connections/${userId}`);
 };
 
 export const toggleInSquad = async (userId: string): Promise<void> => {
@@ -49,6 +59,17 @@ export const getFeed = async (page = 0, size = 10): Promise<Page<FeedPostData>> 
 
 export const createPost = async (req: CreatePostRequest): Promise<FeedPostData> => {
   const res = await api.post<FeedPostData>('/social/posts', req);
+  return res.data;
+};
+
+// ── Stories (efêmeras, expiram em 24h) ──────────────────────────────────────
+export const getStories = async (): Promise<StoryGroup[]> => {
+  const res = await api.get<StoryGroup[]>('/social/stories');
+  return res.data;
+};
+
+export const createStory = async (req: CreateStoryRequest): Promise<Story> => {
+  const res = await api.post<Story>('/social/stories', req);
   return res.data;
 };
 

@@ -215,11 +215,42 @@ export interface FeedPostData {
   createdAt: string;
 }
 
+export interface Story {
+  id: string;
+  imageUrl: string | null;
+  caption: string | null;
+  createdAt: string;
+  /** ISO — momento em que a story expira (createdAt + 24h). */
+  expiresAt: string;
+}
+
+/** Stories de um mesmo autor, agrupadas para o anel/visualizador estilo Instagram. */
+export interface StoryGroup {
+  userId: string;
+  nome: string;
+  avatarUrl: string;
+  stories: Story[];
+}
+
+export interface CreateStoryRequest {
+  imageUrl: string;
+  caption?: string;
+}
+
 export interface UserCard {
   id: string;
   nome: string;
   avatarUrl: string;
   connectionState: ConnectionState;
+}
+
+export interface PendingRequest {
+  connectionId: string;
+  /** Id de quem enviou — usado para aceitar/recusar (accept/remove operam por id de usuário). */
+  requesterId: string;
+  nome: string;
+  avatarUrl: string;
+  requestedAt: string;
 }
 
 export interface Comment {

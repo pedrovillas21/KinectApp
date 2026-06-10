@@ -28,7 +28,8 @@ public class SocialController {
     // ── Search ──────────────────────────────────────────────────────────────
 
     @GetMapping("/users/search")
-    public ResponseEntity<List<UserCardDTO>> searchUsers(@RequestParam String q) {
+    public ResponseEntity<List<UserCardDTO>> searchUsers(
+            @RequestParam(required = false, defaultValue = "") String q) {
         String email = email();
         try {
             return ResponseEntity.ok(socialService.searchUsers(email, q));
@@ -49,6 +50,12 @@ public class SocialController {
         }
     }
 
+    @GetMapping("/connections/pending")
+    public ResponseEntity<List<PendingRequestDTO>> getPendingRequests() {
+        return ResponseEntity.ok(socialService.getPendingRequests(email()));
+    }
+
+    // {id} = id do usuário que enviou a solicitação (não o id da conexão).
     @PostMapping("/connections/{id}/accept")
     public ResponseEntity<?> acceptConnection(@PathVariable UUID id) {
         try {
@@ -107,6 +114,19 @@ public class SocialController {
     @PostMapping("/posts")
     public ResponseEntity<FeedPostDTO> createPost(@RequestBody CreatePostRequest req) {
         FeedPostDTO dto = socialService.createPost(email(), req);
+        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+    }
+
+    // ── Stories ──────────────────────────────────────────────────────────────
+
+    @GetMapping("/stories")
+    public ResponseEntity<List<StoryGroupDTO>> getStories() {
+        return ResponseEntity.ok(socialService.getStories(email()));
+    }
+
+    @PostMapping("/stories")
+    public ResponseEntity<StoryDTO> createStory(@RequestBody CreateStoryRequest req) {
+        StoryDTO dto = socialService.createStory(email(), req);
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 

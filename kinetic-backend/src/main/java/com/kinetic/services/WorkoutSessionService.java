@@ -5,7 +5,6 @@ import com.kinetic.dtos.WeeklyActivityDayDTO;
 import com.kinetic.dtos.WeeklyActivityResponseDTO;
 import com.kinetic.models.User;
 import com.kinetic.models.WorkoutExecutionLog;
-import com.kinetic.models.WorkoutPlan;
 import com.kinetic.models.WorkoutSession;
 import com.kinetic.dtos.LogSessionRequestDTO;
 import com.kinetic.dtos.SetLogDto;

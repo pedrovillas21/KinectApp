@@ -7,11 +7,12 @@ CREATE TABLE IF NOT EXISTS user_connections (
     addressee_in_squad   BOOLEAN NOT NULL DEFAULT TRUE,
     created_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     responded_at         TIMESTAMP,
-    CONSTRAINT chk_no_self_connection CHECK (requester_id <> addressee_id),
-    CONSTRAINT uq_connection_pair UNIQUE (
-        LEAST(requester_id::text, addressee_id::text),
-        GREATEST(requester_id::text, addressee_id::text)
-    )
+    CONSTRAINT chk_no_self_connection CHECK (requester_id <> addressee_id)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_connection_pair ON user_connections (
+    LEAST(requester_id::text, addressee_id::text),
+    GREATEST(requester_id::text, addressee_id::text)
 );
 
 CREATE INDEX IF NOT EXISTS idx_user_connections_requester ON user_connections (requester_id, status);
