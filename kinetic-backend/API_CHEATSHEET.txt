@@ -1,0 +1,273 @@
+==========================================================================
+ KINETIC BACKEND — COLINHA DE REQUISIÇÕES (fallback manual)
+==========================================================================
+ Use este arquivo se a collection do Postman falhar.
+ Base URL: http://localhost:8080
+ Prefixo de todas as rotas: /api
+
+ AUTENTICAÇÃO
+ - Públicas (NÃO precisam de token): tudo em /api/auth/**
+ - Todo o resto exige o header:
+       Authorization: Bearer <accessToken>
+   O <accessToken> vem na resposta do POST /api/auth/login (campo "token").
+ - Todo corpo (body) é JSON. Sempre envie:
+       Content-Type: application/json
+
+ FLUXO MÍNIMO PARA TESTAR
+ 1) POST /api/auth/register   -> cria o usuário
+ 2) POST /api/auth/login      -> copie "token" e "refreshToken" da resposta
+ 3) Use o "token" no header Authorization das próximas chamadas
+ 4) Token expirou (padrão 24h)? POST /api/auth/refresh
+
+ LEGENDA:  [obrigatório]   (opcional)
+==========================================================================
+
+
+--------------------------------------------------------------------------
+ 1) AUTH  (público — sem token)
+--------------------------------------------------------------------------
+
+POST /api/auth/register
+  [nome]   texto
+  [email]  e-mail válido
+  [senha]  8 a 20 caracteres, com >=1 maiúscula, >=1 minúscula e >=1 especial
+           (especiais aceitos: ! @ # $ % ^ & * _ = + -)
+  ex.:
+  {
+    "nome": "Test User",
+    "email": "test@kinetic.com",
+    "senha": "Senha@123"
+  }
+
+POST /api/auth/login
+  [email]  e-mail cadastrado
+  [senha]  senha do usuário
+  ex.:
+  {
+    "email": "test@kinetic.com",
+    "senha": "Senha@123"
+  }
+  -> resposta traz: token, refreshToken, id, nome, email, level, birthDate,
+     weight, height, goal, frequency, medicalConditions
+
+POST /api/auth/refresh
+  [refreshToken]  o refreshToken recebido no login
+  ex.:
+  { "refreshToken": "<cole-aqui>" }
+  -> resposta traz: token, refreshToken (novos)
+
+POST /api/auth/logout
+  [refreshToken]  o refreshToken a invalidar
+  ex.:
+  { "refreshToken": "<cole-aqui>" }
+
+POST /api/auth/verify-email
+  [email]  e-mail a verificar
+  ex.:
+  { "email": "test@kinetic.com" }
+
+POST /api/auth/reset-password
+  [email]        e-mail cadastrado
+  [newPassword]  mesma regra de complexidade do register
+  ex.:
+  {
+    "email": "test@kinetic.com",
+    "newPassword": "NovaSenha@123"
+  }
+
+
+--------------------------------------------------------------------------
+ 2) USERS  (precisa de token)
+--------------------------------------------------------------------------
+
+GET  /api/users/profile
+  sem corpo. (o usuário é identificado pelo token)
+
+POST /api/users/change-password
+  [currentPassword]  senha atual
+  [newPassword]      nova senha (regra de complexidade do register)
+  ex.:
+  {
+    "currentPassword": "Senha@123",
+    "newPassword": "NovaSenha@123"
+  }
+
+POST /api/users/weight
+  [newWeight]  número positivo (kg). aceita decimal.
+  ex.:
+  { "newWeight": 80.5 }
+
+
+--------------------------------------------------------------------------
+ 3) HOME  (precisa de token)
+--------------------------------------------------------------------------
+
+GET  /api/home/dashboard
+  sem corpo.
+
+
+--------------------------------------------------------------------------
+ 4) WORKOUTS  (precisa de token)
+--------------------------------------------------------------------------
+
+POST /api/workouts/generate
+  (todos opcionais no contrato, mas recomenda-se preencher p/ a IA)
+  (birthDate)          data no formato yyyy-MM-dd
+  (weight)             número (kg)
+  (height)             número (metros, ex.: 1.80)
+  (goal)               "Ganho de Massa" | "Perda de Gordura" | "Performance"
+  (frequency)          inteiro (treinos por semana, ex.: 4)
+  (level)              "INICIANTE" | "INTERMEDIÁRIO" | "PRO"
+  (medicalConditions)  texto livre (ex.: "Nenhuma")
+  ex.:
+  {
+    "birthDate": "1995-06-15",
+    "weight": 80.5,
+    "height": 1.80,
+    "goal": "Ganho de Massa",
+    "frequency": 4,
+    "level": "INTERMEDIÁRIO",
+    "medicalConditions": "Nenhuma"
+  }
+  OBS: exige GOOGLE_AI_API_KEY configurada no backend (.env).
+
+GET  /api/workouts/my-plans
+  sem corpo.
+  -> use os IDs daqui (exerciseId, workoutPlanId) no Log Session abaixo.
+
+
+--------------------------------------------------------------------------
+ 5) SESSIONS  (precisa de token)
+--------------------------------------------------------------------------
+
+POST   /api/sessions/start
+  sem corpo. -> retorna sessionId.
+
+DELETE /api/sessions/active
+  sem corpo. (encerra a sessão ativa)
+
+POST   /api/sessions/log
+  [durationInSeconds]  inteiro positivo (duração total em segundos)
+  [date]               data no formato yyyy-MM-dd
+  [exercisesLog]       lista NÃO vazia de séries (objetos abaixo)
+  (workoutPlanId)      UUID da ficha (pegue em /api/workouts/my-plans)
+
+  Cada item de exercisesLog:
+    [exerciseId]    UUID do exercício (de my-plans)
+    [setNumber]     inteiro >= 1 (nº da série)
+    [repsPerformed] inteiro >= 1 (repetições)
+    [weightUsed]    número >= 0 (use 0 para peso corporal)
+  ex.:
+  {
+    "durationInSeconds": 3600,
+    "date": "2026-06-10",
+    "workoutPlanId": "<uuid-da-ficha>",
+    "exercisesLog": [
+      { "exerciseId": "<uuid>", "setNumber": 1, "repsPerformed": 12, "weightUsed": 40.0 },
+      { "exerciseId": "<uuid>", "setNumber": 2, "repsPerformed": 10, "weightUsed": 42.5 }
+    ]
+  }
+
+GET    /api/sessions/monthly-stats
+  sem corpo.
+
+GET    /api/sessions/weekly-activity
+  sem corpo.
+
+
+--------------------------------------------------------------------------
+ 6) STATS  (precisa de token)
+--------------------------------------------------------------------------
+
+GET  /api/stats/summary?period=month
+  query (opcional) period: week | month | q | year   (padrão: month)
+  sem corpo.
+
+GET  /api/stats/plan-evolution
+  sem corpo.
+
+
+--------------------------------------------------------------------------
+ 7) SOCIAL  (precisa de token)
+--------------------------------------------------------------------------
+
+GET    /api/social/users/search?q=test
+  query (opcional) q: termo de busca (vazio = lista geral)
+  sem corpo.
+
+POST   /api/social/connections
+  [addresseeId]  UUID do usuário a conectar (pegue em users/search)
+  ex.:
+  { "addresseeId": "<uuid-do-usuario>" }
+
+GET    /api/social/connections/pending
+  sem corpo.
+
+POST   /api/social/connections/{id}/accept
+  {id} na URL = UUID de QUEM ENVIOU a solicitação. sem corpo.
+
+DELETE /api/social/connections/{id}
+  {id} na URL = UUID da conexão/usuário. sem corpo.
+
+GET    /api/social/squad
+  sem corpo.
+
+POST   /api/social/squad/{userId}/toggle
+  {userId} na URL = UUID do usuário. sem corpo.
+
+GET    /api/social/squad/status
+  sem corpo.
+
+GET    /api/social/feed?page=0&size=10
+  query (opcional) page (padrão 0), size (padrão 10). sem corpo.
+
+POST   /api/social/posts
+  (category)         texto (ex.: "Treino de Força")
+  (intensity)        texto (ex.: "Alta")
+  (durationMinutes)  inteiro
+  (calories)         inteiro
+  (caption)          texto da legenda
+  (imageUrl)         URL da imagem (ou null)
+  (badge)            texto/selo (ou null)
+  ex.:
+  {
+    "category": "Treino de Força",
+    "intensity": "Alta",
+    "durationMinutes": 60,
+    "calories": 450,
+    "caption": "Mais um treino concluído!",
+    "imageUrl": null,
+    "badge": null
+  }
+  -> resposta traz "id" do post (use em like/comments).
+
+GET    /api/social/stories
+  sem corpo.
+
+POST   /api/social/stories
+  (imageUrl)  URL da imagem
+  (caption)   texto
+  ex.:
+  {
+    "imageUrl": "https://picsum.photos/400/700",
+    "caption": "Bora treinar!"
+  }
+
+POST   /api/social/posts/{id}/like
+  {id} na URL = UUID do post. sem corpo. -> retorna { "likesCount": n }
+
+DELETE /api/social/posts/{id}/like
+  {id} na URL = UUID do post. sem corpo. -> retorna { "likesCount": n }
+
+GET    /api/social/posts/{id}/comments
+  {id} na URL = UUID do post. sem corpo.
+
+POST   /api/social/posts/{id}/comments
+  {id} na URL = UUID do post.
+  [body]  texto do comentário (não pode ser vazio)
+  ex.:
+  { "body": "Boa! Continue assim" }
+
+==========================================================================
+ FIM
+==========================================================================

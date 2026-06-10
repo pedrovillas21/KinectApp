@@ -1,0 +1,484 @@
+{
+  "info": {
+    "name": "Kinetic Backend API",
+    "_postman_id": "b2c3d4e5-0001-4a2b-9c3d-kinetic000001",
+    "description": "Coleção completa da API do kinetic-backend (Spring Boot).\n\n## Como usar\n1. Suba o backend: `cd kinetic-backend && ./mvnw spring-boot:run` (Windows: `.\\mvnw.cmd spring-boot:run`).\n2. Confira a variável de coleção `baseUrl` (padrão `http://localhost:8080`).\n3. Rode **Auth > Register** (cria o usuário) e depois **Auth > Login**.\n   - O login salva `accessToken`, `refreshToken` e `userId` automaticamente (script na aba *Scripts/Tests*).\n4. Os demais endpoints já usam `Authorization: Bearer {{accessToken}}` herdado da coleção.\n5. Quando o access token expirar (padrão 24h), rode **Auth > Refresh** para renovar.\n\nRotas públicas: apenas `/api/auth/**`. Todo o resto exige o Bearer token.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{accessToken}}", "type": "string" }
+    ]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "accessToken", "value": "" },
+    { "key": "refreshToken", "value": "" },
+    { "key": "userId", "value": "" },
+    { "key": "postId", "value": "" },
+    { "key": "workoutPlanId", "value": "" },
+    { "key": "exerciseId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Test User\",\n  \"email\": \"test@kinetic.com\",\n  \"senha\": \"Senha@123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] },
+            "description": "Cria um usuário. A senha deve ter 8–20 chars com ao menos 1 maiúscula, 1 minúscula e 1 caractere especial."
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.token) pm.collectionVariables.set('accessToken', json.token);",
+                  "  if (json.refreshToken) pm.collectionVariables.set('refreshToken', json.refreshToken);",
+                  "  if (json.id) pm.collectionVariables.set('userId', json.id);",
+                  "  console.log('Tokens salvos. userId =', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@kinetic.com\",\n  \"senha\": \"Senha@123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] },
+            "description": "Autentica e salva accessToken/refreshToken/userId nas variáveis da coleção."
+          }
+        },
+        {
+          "name": "Refresh",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.token) pm.collectionVariables.set('accessToken', json.token);",
+                  "  if (json.refreshToken) pm.collectionVariables.set('refreshToken', json.refreshToken);",
+                  "  console.log('Access token renovado.');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/refresh", "host": ["{{baseUrl}}"], "path": ["api", "auth", "refresh"] },
+            "description": "Gera um novo par de tokens a partir do refreshToken."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/logout", "host": ["{{baseUrl}}"], "path": ["api", "auth", "logout"] },
+            "description": "Invalida o refresh token."
+          }
+        },
+        {
+          "name": "Verify Email",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@kinetic.com\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/verify-email", "host": ["{{baseUrl}}"], "path": ["api", "auth", "verify-email"] },
+            "description": "Verifica se o e-mail existe (passo do fluxo de recuperação de senha)."
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@kinetic.com\",\n  \"newPassword\": \"NovaSenha@123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/reset-password", "host": ["{{baseUrl}}"], "path": ["api", "auth", "reset-password"] },
+            "description": "Redefine a senha. Mesma regra de complexidade do register."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/users/profile", "host": ["{{baseUrl}}"], "path": ["api", "users", "profile"] },
+            "description": "Perfil do usuário autenticado."
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"Senha@123\",\n  \"newPassword\": \"NovaSenha@123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/users/change-password", "host": ["{{baseUrl}}"], "path": ["api", "users", "change-password"] }
+          }
+        },
+        {
+          "name": "Update Weight",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newWeight\": 80.5\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/users/weight", "host": ["{{baseUrl}}"], "path": ["api", "users", "weight"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Home",
+      "item": [
+        {
+          "name": "Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/home/dashboard", "host": ["{{baseUrl}}"], "path": ["api", "home", "dashboard"] },
+            "description": "Dados agregados da home (BFF)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Workouts",
+      "item": [
+        {
+          "name": "Generate Workout (IA)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"birthDate\": \"1995-06-15\",\n  \"weight\": 80.5,\n  \"height\": 1.80,\n  \"goal\": \"Ganho de Massa\",\n  \"frequency\": 4,\n  \"level\": \"INTERMEDIÁRIO\",\n  \"medicalConditions\": \"Nenhuma\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/workouts/generate", "host": ["{{baseUrl}}"], "path": ["api", "workouts", "generate"] },
+            "description": "Gera fichas via Google Gemini.\n- goal: 'Ganho de Massa' | 'Perda de Gordura' | 'Performance'\n- level: 'INICIANTE' | 'INTERMEDIÁRIO' | 'PRO'\n- birthDate no formato yyyy-MM-dd.\nExige GOOGLE_AI_API_KEY configurada no backend."
+          }
+        },
+        {
+          "name": "My Plans",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/workouts/my-plans", "host": ["{{baseUrl}}"], "path": ["api", "workouts", "my-plans"] },
+            "description": "Lista as fichas do usuário. Use os exerciseId/workoutPlanId daqui para o Log Session."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sessions",
+      "item": [
+        {
+          "name": "Start Session",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/sessions/start", "host": ["{{baseUrl}}"], "path": ["api", "sessions", "start"] },
+            "description": "Inicia uma sessão de treino (presença). Retorna sessionId."
+          }
+        },
+        {
+          "name": "Clear Active Session",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/sessions/active", "host": ["{{baseUrl}}"], "path": ["api", "sessions", "active"] },
+            "description": "Encerra a sessão ativa do usuário."
+          }
+        },
+        {
+          "name": "Log Session",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"durationInSeconds\": 3600,\n  \"date\": \"2026-06-10\",\n  \"workoutPlanId\": \"{{workoutPlanId}}\",\n  \"exercisesLog\": [\n    {\n      \"exerciseId\": \"{{exerciseId}}\",\n      \"setNumber\": 1,\n      \"repsPerformed\": 12,\n      \"weightUsed\": 40.0\n    },\n    {\n      \"exerciseId\": \"{{exerciseId}}\",\n      \"setNumber\": 2,\n      \"repsPerformed\": 10,\n      \"weightUsed\": 42.5\n    }\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/sessions/log", "host": ["{{baseUrl}}"], "path": ["api", "sessions", "log"] },
+            "description": "Registra um treino concluído. Preencha exerciseId/workoutPlanId com IDs reais de 'My Plans'. weightUsed aceita 0 (peso corporal)."
+          }
+        },
+        {
+          "name": "Monthly Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/sessions/monthly-stats", "host": ["{{baseUrl}}"], "path": ["api", "sessions", "monthly-stats"] }
+          }
+        },
+        {
+          "name": "Weekly Activity",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/sessions/weekly-activity", "host": ["{{baseUrl}}"], "path": ["api", "sessions", "weekly-activity"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Stats",
+      "item": [
+        {
+          "name": "Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stats/summary?period=month",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "stats", "summary"],
+              "query": [{ "key": "period", "value": "month", "description": "week | month | q | year (padrão: month)" }]
+            }
+          }
+        },
+        {
+          "name": "Plan Evolution",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/stats/plan-evolution", "host": ["{{baseUrl}}"], "path": ["api", "stats", "plan-evolution"] },
+            "description": "Compara o ciclo atual contra o anterior."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Social",
+      "item": [
+        {
+          "name": "Search Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/social/users/search?q=test",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "social", "users", "search"],
+              "query": [{ "key": "q", "value": "test" }]
+            }
+          }
+        },
+        {
+          "name": "Send Connection",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"addresseeId\": \"{{userId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/social/connections", "host": ["{{baseUrl}}"], "path": ["api", "social", "connections"] },
+            "description": "addresseeId = UUID do usuário a conectar (pegue em Search Users)."
+          }
+        },
+        {
+          "name": "Pending Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/social/connections/pending", "host": ["{{baseUrl}}"], "path": ["api", "social", "connections", "pending"] }
+          }
+        },
+        {
+          "name": "Accept Connection",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/social/connections/{{userId}}/accept", "host": ["{{baseUrl}}"], "path": ["api", "social", "connections", "{{userId}}", "accept"] },
+            "description": "{id} = UUID de quem ENVIOU a solicitação."
+          }
+        },
+        {
+          "name": "Remove Connection",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/social/connections/{{userId}}", "host": ["{{baseUrl}}"], "path": ["api", "social", "connections", "{{userId}}"] }
+          }
+        },
+        {
+          "name": "Get Squad",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/social/squad", "host": ["{{baseUrl}}"], "path": ["api", "social", "squad"] }
+          }
+        },
+        {
+          "name": "Toggle Squad",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/social/squad/{{userId}}/toggle", "host": ["{{baseUrl}}"], "path": ["api", "social", "squad", "{{userId}}", "toggle"] }
+          }
+        },
+        {
+          "name": "Squad Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/social/squad/status", "host": ["{{baseUrl}}"], "path": ["api", "social", "squad", "status"] }
+          }
+        },
+        {
+          "name": "Get Feed",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/social/feed?page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "social", "feed"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.id) pm.collectionVariables.set('postId', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"Treino de Força\",\n  \"intensity\": \"Alta\",\n  \"durationMinutes\": 60,\n  \"calories\": 450,\n  \"caption\": \"Mais um treino concluído! 💪\",\n  \"imageUrl\": null,\n  \"badge\": null\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/social/posts", "host": ["{{baseUrl}}"], "path": ["api", "social", "posts"] },
+            "description": "Cria um post no feed. Salva o postId retornado."
+          }
+        },
+        {
+          "name": "Get Stories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/social/stories", "host": ["{{baseUrl}}"], "path": ["api", "social", "stories"] }
+          }
+        },
+        {
+          "name": "Create Story",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"imageUrl\": \"https://picsum.photos/400/700\",\n  \"caption\": \"Bora treinar!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/social/stories", "host": ["{{baseUrl}}"], "path": ["api", "social", "stories"] }
+          }
+        },
+        {
+          "name": "Like Post",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/social/posts/{{postId}}/like", "host": ["{{baseUrl}}"], "path": ["api", "social", "posts", "{{postId}}", "like"] }
+          }
+        },
+        {
+          "name": "Unlike Post",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/social/posts/{{postId}}/like", "host": ["{{baseUrl}}"], "path": ["api", "social", "posts", "{{postId}}", "like"] }
+          }
+        },
+        {
+          "name": "List Comments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/social/posts/{{postId}}/comments", "host": ["{{baseUrl}}"], "path": ["api", "social", "posts", "{{postId}}", "comments"] }
+          }
+        },
+        {
+          "name": "Add Comment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"Boa! Continue assim 🔥\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/social/posts/{{postId}}/comments", "host": ["{{baseUrl}}"], "path": ["api", "social", "posts", "{{postId}}", "comments"] }
+          }
+        }
+      ]
+    }
+  ]
+}
