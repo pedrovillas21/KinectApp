@@ -150,8 +150,134 @@ export interface HomeDashboardResponseDTO {
   weeklyActivity: WeeklyActivityPointDTO[];
 }
 
+export interface MetricDeltaDTO {
+  previous: number;
+  current: number;
+  delta: number;
+  /** True quando a direção da variação é favorável ao objetivo do usuário. */
+  good: boolean;
+}
+
+export interface PlanEvolutionResponseDTO {
+  /** False quando ainda não houve nenhuma regeneração (sem snapshot anterior). */
+  available: boolean;
+  /** False quando o ciclo atual ainda não tem sessões registradas. */
+  currentCycleStarted: boolean;
+  currentCycleStart: string | null; // ISO YYYY-MM-DD
+  goal: string | null;
+  weight: MetricDeltaDTO | null;
+  volume: MetricDeltaDTO | null;
+  adherence: MetricDeltaDTO | null;
+  previousCompletedSessions: number;
+  currentCompletedSessions: number;
+  /** Volume por grupo muscular do ciclo anterior (para detalhe). */
+  volumeByMuscle: Record<string, number> | null;
+  insight: StatsInsightDTO | null;
+}
+
 export interface UpdateWeightRequestDTO {
   newWeight: number;
+}
+
+// ── Social ─────────────────────────────────────────────────────────────────
+
+export type PresenceStatus = 'TRAINING' | 'ONLINE' | 'OFFLINE';
+export type ConnectionState = 'NONE' | 'PENDING_OUTGOING' | 'PENDING_INCOMING' | 'CONNECTED';
+export type PostIntensity = 'LEVE' | 'MODERADO' | 'ALTA';
+
+export interface SquadMember {
+  id: string;
+  nome: string;
+  avatarUrl: string;
+  status: PresenceStatus;
+  hasNewUpdate: boolean;
+}
+
+export interface FeedAuthor {
+  id: string;
+  nome: string;
+  avatarUrl: string;
+}
+
+export interface FeedPostData {
+  id: string;
+  author: FeedAuthor;
+  timestamp: string;
+  category: string;
+  imageUrl: string | null;
+  duration: string;
+  calories: string;
+  badge?: string | null;
+  likesCount: number;
+  commentsCount: number;
+  caption: string;
+  isLikedByMe: boolean;
+  createdAt: string;
+}
+
+export interface Story {
+  id: string;
+  imageUrl: string | null;
+  caption: string | null;
+  createdAt: string;
+  /** ISO — momento em que a story expira (createdAt + 24h). */
+  expiresAt: string;
+}
+
+/** Stories de um mesmo autor, agrupadas para o anel/visualizador estilo Instagram. */
+export interface StoryGroup {
+  userId: string;
+  nome: string;
+  avatarUrl: string;
+  stories: Story[];
+}
+
+export interface CreateStoryRequest {
+  imageUrl: string;
+  caption?: string;
+}
+
+export interface UserCard {
+  id: string;
+  nome: string;
+  avatarUrl: string;
+  connectionState: ConnectionState;
+}
+
+export interface PendingRequest {
+  connectionId: string;
+  /** Id de quem enviou — usado para aceitar/recusar (accept/remove operam por id de usuário). */
+  requesterId: string;
+  nome: string;
+  avatarUrl: string;
+  requestedAt: string;
+}
+
+export interface Comment {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorAvatarUrl: string;
+  body: string;
+  createdAt: string;
+}
+
+export interface CreatePostRequest {
+  category?: string;
+  intensity?: PostIntensity;
+  durationMinutes?: number;
+  calories?: number;
+  caption?: string;
+  imageUrl?: string;
+  badge?: string;
+}
+
+export interface Page<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  number: number;
+  last: boolean;
 }
 
 export interface UserProfileResponse {

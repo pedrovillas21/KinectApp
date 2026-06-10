@@ -5,6 +5,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { AuthContext } from '../contexts/AuthContext';
 import BottomTabBar from '../components/BottomTabBar';
 
+import WelcomeScreen from '../screens/Auth/WelcomeScreen';
+import RecurringUserScreen from '../screens/Auth/RecurringUserScreen';
 import LoginScreen from '../screens/Auth/LoginScreen';
 import RegisterScreen from '../screens/Auth/RegisterScreen';
 import ForgotPasswordScreen from '../screens/Auth/ForgotPasswordScreen';
@@ -19,12 +21,6 @@ import StatsScreen from '../screens/StatsScreen';
 import SocialScreen from '../screens/SocialScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ActiveSessionScreen from '../screens/ActiveSessionScreen';
-
-interface AuthContextShape {
-  isLoggedIn: boolean;
-  hasOnboarded: boolean;
-  isLoadingAuth: boolean;
-}
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -45,17 +41,32 @@ function MainTabs(): React.ReactElement {
 }
 
 export default function AppRoutes(): React.ReactElement | null {
-  const { isLoggedIn, hasOnboarded, isLoadingAuth } = useContext(
-    AuthContext,
-  ) as AuthContextShape;
+  const { isLoggedIn, hasOnboarded, isLoadingAuth, rememberedUser, justLoggedOut } =
+    useContext(AuthContext);
 
   if (isLoadingAuth) {
     return null;
   }
 
   if (!isLoggedIn) {
+    // Logout explícito → Login direto. App reaberto com sessão lembrada → card RecurringUser.
+    // Primeiro acesso (sem lembrado, sem logout) → Welcome.
+    const initialAuthRoute = justLoggedOut
+      ? 'Login'
+      : rememberedUser
+      ? 'RecurringUser'
+      : 'Welcome';
     return (
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      // key distinta dos outros navigators: garante remontagem ao alternar logado/deslogado,
+      // sem isso o React reconcilia a mesma instância de Stack.Navigator e o initialRouteName
+      // (avaliado só na 1ª montagem) nunca reflete o estado atual de auth.
+      <Stack.Navigator
+        key="auth-stack"
+        screenOptions={{ headerShown: false }}
+        initialRouteName={initialAuthRoute}
+      >
+        <Stack.Screen name="Welcome" component={WelcomeScreen} />
+        <Stack.Screen name="RecurringUser" component={RecurringUserScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
@@ -67,14 +78,14 @@ export default function AppRoutes(): React.ReactElement | null {
 
   if (!hasOnboarded) {
     return (
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator key="onboarding-stack" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Onboarding" component={OnboardingScreen} />
       </Stack.Navigator>
     );
   }
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator key="main-stack" screenOptions={{ headerShown: false }}>
       <Stack.Screen name="MainTabs" component={MainTabs} />
       <Stack.Screen name="ActiveSession" component={ActiveSessionScreen} />
     </Stack.Navigator>

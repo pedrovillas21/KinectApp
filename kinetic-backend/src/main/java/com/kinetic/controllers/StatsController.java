@@ -1,5 +1,6 @@
 package com.kinetic.controllers;
 
+import com.kinetic.dtos.PlanEvolutionResponseDTO;
 import com.kinetic.dtos.StatsSummaryResponseDTO;
 import com.kinetic.services.StatsService;
 import org.springframework.http.ResponseEntity;
@@ -26,5 +27,16 @@ public class StatsController {
             @RequestParam(name = "period", defaultValue = "month") String period) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         return ResponseEntity.ok(statsService.getSummary(userEmail, period));
+    }
+
+    /**
+     * GET /api/stats/plan-evolution
+     * Compara o ciclo atual (desde a última regeneração) contra o ciclo anterior.
+     * Independente do seletor de período — não é recalculado a cada troca de período.
+     */
+    @GetMapping("/plan-evolution")
+    public ResponseEntity<PlanEvolutionResponseDTO> getPlanEvolution() {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ResponseEntity.ok(statsService.getPlanEvolution(userEmail));
     }
 }

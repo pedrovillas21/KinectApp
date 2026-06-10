@@ -41,6 +41,15 @@ export const rankingPositionColor = (position: number): string => {
 };
 
 /**
+ * Cor do avatar de presença: TRAINING=verde, ONLINE=ciano, OFFLINE=cinza.
+ */
+export const presenceColor = (status: 'TRAINING' | 'ONLINE' | 'OFFLINE'): string => {
+  if (status === 'TRAINING') return KINETIC.success;
+  if (status === 'ONLINE') return KINETIC.primary;
+  return KINETIC.textMuted;
+};
+
+/**
  * Background tonal da chip de posição (RGBA do tom medal).
  */
 export const rankingPositionChipBg = (position: number): string => {

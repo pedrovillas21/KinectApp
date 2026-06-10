@@ -1,18 +1,24 @@
 package com.kinetic.services;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kinetic.dtos.*;
 import com.kinetic.enums.StatsPeriodParam;
+import com.kinetic.models.PlanCycleSnapshot;
 import com.kinetic.models.User;
 import com.kinetic.models.WeightHistory;
 import com.kinetic.repositories.*;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class StatsService {
 
@@ -23,6 +29,9 @@ public class StatsService {
     private final ExerciseRepository exerciseRepository;
     private final UserService userService;
     private final CommunityStatsService communityStatsService;
+    private final PlanCycleSnapshotRepository planCycleSnapshotRepository;
+    private final WorkoutPlanRepository workoutPlanRepository;
+    private final ObjectMapper objectMapper;
 
     public StatsService(WorkoutSessionRepository workoutSessionRepository,
                         UserRepository userRepository,
@@ -30,7 +39,10 @@ public class StatsService {
                         ExerciseSetLogRepository exerciseSetLogRepository,
                         ExerciseRepository exerciseRepository,
                         UserService userService,
-                        CommunityStatsService communityStatsService) {
+                        CommunityStatsService communityStatsService,
+                        PlanCycleSnapshotRepository planCycleSnapshotRepository,
+                        WorkoutPlanRepository workoutPlanRepository,
+                        ObjectMapper objectMapper) {
         this.workoutSessionRepository = workoutSessionRepository;
         this.userRepository = userRepository;
         this.weightHistoryRepository = weightHistoryRepository;
@@ -38,6 +50,9 @@ public class StatsService {
         this.exerciseRepository = exerciseRepository;
         this.userService = userService;
         this.communityStatsService = communityStatsService;
+        this.planCycleSnapshotRepository = planCycleSnapshotRepository;
+        this.workoutPlanRepository = workoutPlanRepository;
+        this.objectMapper = objectMapper;
     }
 
     @Transactional(readOnly = true)
@@ -199,5 +214,146 @@ public class StatsService {
         return new StatsInsightDTO(tag,
                 String.format("Aderência em %d%%. Continue forçando os limites — "
                         + "pequenas melhorias compostas geram grandes resultados.", adherence));
+    }
+
+    // ── Evolução de ciclo (plano anterior vs. ciclo atual) ────────────────────
+
+    @Transactional(readOnly = true)
+    public PlanEvolutionResponseDTO getPlanEvolution(String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        // Fonte da verdade: se não há snapshot anterior, não há comparação possível.
+        Optional<PlanCycleSnapshot> latestSnapshot =
+                planCycleSnapshotRepository.findFirstByUserIdOrderByCycleEndDateDesc(user.getId());
+
+        if (latestSnapshot.isEmpty()) {
+            return new PlanEvolutionResponseDTO(
+                    false, false, null, null,
+                    null, null, null,
+                    0, 0, null, null);
+        }
+
+        PlanCycleSnapshot prev = latestSnapshot.get();
+
+        // Início do ciclo atual = createdAt do plano ativo mais antigo
+        Optional<java.time.LocalDateTime> cycleStartOpt =
+                workoutPlanRepository.findEarliestActiveCreatedAt(user.getId());
+
+        LocalDate cycleStart = cycleStartOpt
+                .map(java.time.LocalDateTime::toLocalDate)
+                .orElse(LocalDate.now());
+
+        LocalDate today = LocalDate.now();
+
+        // Sessões do ciclo atual
+        long currentCompletedRaw = workoutSessionRepository
+                .countByUserIdAndSessionDateGreaterThanEqualAndSessionDateLessThan(
+                        user.getId(), cycleStart, today.plusDays(1));
+        int currentCompleted = (int) currentCompletedRaw;
+
+        boolean currentCycleStarted = currentCompleted > 0;
+
+        // Target do ciclo atual (guard de divisão por zero)
+        int frequency = (user.getFrequency() != null && user.getFrequency() > 0) ? user.getFrequency() : 1;
+        long dayCount = ChronoUnit.DAYS.between(cycleStart, today);
+        int weeks = Math.max(1, (int) Math.ceil(dayCount / 7.0));
+        int currentTarget = Math.max(frequency, frequency * weeks);
+        int currentAdherencePct = currentTarget > 0
+                ? (int) Math.min(100, Math.round(currentCompleted * 100.0 / currentTarget))
+                : 0;
+
+        // Volume atual
+        Map<String, Double> currentVolumeMap = volumeMapFromDB(user.getId(), cycleStart, today);
+        double currentTotalVolume = currentVolumeMap.values().stream().mapToDouble(Double::doubleValue).sum();
+
+        // Peso atual: último registro dentro do ciclo corrente, ou fallback para o perfil.
+        double currentWeight = weightHistoryRepository
+                .findFirstByUserAndLoggedAtBetweenOrderByLoggedAtDesc(user, cycleStart, today)
+                .map(WeightHistory::getWeight)
+                .orElse(user.getWeight() != null ? user.getWeight() : 0.0);
+
+        // Snapshots anteriores
+        double prevWeight = prev.getEndWeight() != null ? prev.getEndWeight() : 0.0;
+        double prevVolume = prev.getTotalVolume() != null ? prev.getTotalVolume() : 0.0;
+        double prevAdherence = prev.getAdherencePercentage() != null ? prev.getAdherencePercentage() : 0.0;
+
+        String goal = prev.getGoal();
+
+        // good = orientado ao objetivo
+        boolean weightGood = isWeightDeltaGood(goal, currentWeight - prevWeight);
+        MetricDeltaDTO weightDelta = new MetricDeltaDTO(prevWeight, currentWeight,
+                currentWeight - prevWeight, weightGood);
+        MetricDeltaDTO volumeDelta = new MetricDeltaDTO(prevVolume, currentTotalVolume,
+                currentTotalVolume - prevVolume, currentTotalVolume >= prevVolume);
+        MetricDeltaDTO adherenceDelta = new MetricDeltaDTO(prevAdherence, currentAdherencePct,
+                currentAdherencePct - prevAdherence, currentAdherencePct >= prevAdherence);
+
+        // volumeByMuscle do snapshot anterior deserializado
+        Map<String, Double> prevVolumeByMuscle = deserializeVolumeByMuscle(prev.getVolumeByMuscle());
+
+        StatsInsightDTO insight = buildEvolutionInsight(goal, weightDelta, volumeDelta, adherenceDelta);
+
+        return new PlanEvolutionResponseDTO(
+                true,
+                currentCycleStarted,
+                cycleStart,
+                goal,
+                weightDelta,
+                volumeDelta,
+                adherenceDelta,
+                prev.getCompletedSessions() != null ? prev.getCompletedSessions() : 0,
+                currentCompleted,
+                prevVolumeByMuscle,
+                insight
+        );
+    }
+
+    private boolean isWeightDeltaGood(String goal, double delta) {
+        if (goal == null) return delta < 0;
+        String g = goal.toLowerCase();
+        if (g.contains("hipertrofia") || g.contains("massa") || g.contains("ganho")) {
+            return delta > 0;
+        }
+        return delta < 0; // emagrecimento e afins: perda é boa
+    }
+
+    private Map<String, Double> deserializeVolumeByMuscle(String json) {
+        if (json == null || json.isBlank()) return Map.of();
+        try {
+            return objectMapper.readValue(json, new TypeReference<LinkedHashMap<String, Double>>() {});
+        } catch (Exception e) {
+            log.warn("Falha ao desserializar volumeByMuscle: {}", e.getMessage());
+            return Map.of();
+        }
+    }
+
+    private StatsInsightDTO buildEvolutionInsight(String goal,
+                                                   MetricDeltaDTO weight,
+                                                   MetricDeltaDTO volume,
+                                                   MetricDeltaDTO adherence) {
+        String tag = "Evolução do Plano";
+
+        if (weight.good() && volume.delta() > 0) {
+            return new StatsInsightDTO(tag,
+                    "Peso em direção ao objetivo e volume crescendo — progressão sólida. Continue sobrecarregando gradualmente.");
+        }
+        if (adherence.current() >= 80 && volume.delta() > 0) {
+            return new StatsInsightDTO(tag,
+                    String.format("Aderência de %.0f%% e volume +%.0f kg — ciclo consistente e produtivo.",
+                            adherence.current(), volume.delta()));
+        }
+        if (adherence.current() < 50) {
+            return new StatsInsightDTO(tag,
+                    "Aderência abaixo de 50% neste ciclo. Foque em retomar o ritmo antes de escalar a carga.");
+        }
+        if (!weight.good()) {
+            return new StatsInsightDTO(tag,
+                    "O peso foi na direção oposta ao objetivo. Revise alimentação e intensidade do treino.");
+        }
+        return new StatsInsightDTO(tag,
+                String.format("Ciclo em andamento. Aderência: %.0f%% · Volume: %s.",
+                        adherence.current(),
+                        adherence.current() >= adherence.previous() ? "mantido" : "queda"));
     }
 }

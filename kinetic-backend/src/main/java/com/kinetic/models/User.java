@@ -53,6 +53,15 @@ public class User {
     @Column(name = "workout_onboarding_completed", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private Boolean workoutOnboardingCompleted = false;
 
+    @Column(name = "avatar_url")
+    private String avatarUrl;
+
+    @Column(name = "last_active")
+    private LocalDateTime lastActive;
+
+    @Column(name = "active_session_id")
+    private UUID activeSessionId;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import PlanEvolutionCard from '../components/PlanEvolutionCard';
 import {
   ActivityIndicator,
   Dimensions,
@@ -10,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { LineChart } from 'react-native-gifted-charts';
 import Svg, { Circle, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
 import {LinearGradient} from 'expo-linear-gradient';
@@ -17,6 +19,7 @@ import EvolutionModal from '../components/EvolutionModal';
 import api from '../services/api';
 import {
   CommunityComparisonDTO,
+  PlanEvolutionResponseDTO,
   StatsInsightDTO,
   StatsPeriodId,
   StatsSummaryResponseDTO,
@@ -813,6 +816,7 @@ export default function StatsScreen() {
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [stats, setStats] = useState<StatsSummaryResponseDTO | null>(null);
+  const [planEvolution, setPlanEvolution] = useState<PlanEvolutionResponseDTO | null>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   // O modal de atualização de peso só pode aparecer uma vez por sessão.
@@ -854,15 +858,39 @@ export default function StatsScreen() {
     fetchStats(period);
   }, [fetchStats, period]);
 
-  useEffect(() => {
-    setLoading(true);
-    fetchStats(period);
-  }, [period, fetchStats]);
+  // useFocusEffect cobre o mount, a troca de período E cada retorno de foco à aba
+  // (ex.: voltar para Stats depois de finalizar um treino na aba Train). Sem isso,
+  // o StatsScreen — que fica montado no tab navigator — só atualizaria via pull-to-refresh.
+  useFocusEffect(
+    useCallback(() => {
+      fetchStats(period);
+    }, [period, fetchStats]),
+  );
+
+  // Evolução de ciclo é independente do seletor de período, então tem seu próprio fetch.
+  const fetchPlanEvolution = useCallback(async (): Promise<void> => {
+    try {
+      const res = await api.get<PlanEvolutionResponseDTO>('/stats/plan-evolution');
+      setPlanEvolution(res.data);
+    } catch (err) {
+      console.warn('plan-evolution fetch failed', err);
+    }
+  }, []);
+
+  // Re-busca a cada foco da aba (ex.: voltar para Stats após regenerar um plano). Fica num
+  // useFocusEffect separado do fetchStats justamente para NÃO depender do seletor de período —
+  // o callback é estável, então trocar de período não dispara um refetch aqui.
+  useFocusEffect(
+    useCallback(() => {
+      fetchPlanEvolution();
+    }, [fetchPlanEvolution]),
+  );
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchStats(period);
-  }, [period, fetchStats]);
+    fetchPlanEvolution();
+  }, [period, fetchStats, fetchPlanEvolution]);
 
   const kpis = useMemo<ReadonlyArray<KpiData>>(() => {
     if (!stats) return [];
@@ -983,6 +1011,7 @@ export default function StatsScreen() {
           ) : null}
           <KpiStrip kpis={kpis} />
           <InsightBlock insight={stats.insight} />
+          {planEvolution && <PlanEvolutionCard data={planEvolution} />}
           <ConsistencyCard
             completed={stats.completedSessions}
             target={stats.targetSessions}
