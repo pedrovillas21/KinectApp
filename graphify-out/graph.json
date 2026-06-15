@@ -144,7 +144,7 @@
       "source_file": "html/homeScreen/home.jsx",
       "source_location": "L1",
       "id": "html_homescreen_home_jsx",
-      "community": 25,
+      "community": 24,
       "norm_label": "home.jsx"
     },
     {
@@ -153,7 +153,7 @@
       "source_file": "html/homeScreen/home.jsx",
       "source_location": "L7",
       "id": "homescreen_home_hk",
-      "community": 25,
+      "community": 24,
       "norm_label": "hk"
     },
     {
@@ -162,7 +162,7 @@
       "source_file": "html/homeScreen/home.jsx",
       "source_location": "L21",
       "id": "homescreen_home_mock",
-      "community": 25,
+      "community": 24,
       "norm_label": "mock"
     },
     {
@@ -171,7 +171,7 @@
       "source_file": "html/homeScreen/home.jsx",
       "source_location": "L48",
       "id": "homescreen_home_poscolor",
-      "community": 25,
+      "community": 24,
       "norm_label": "poscolor()"
     },
     {
@@ -180,7 +180,7 @@
       "source_file": "html/homeScreen/home.jsx",
       "source_location": "L56",
       "id": "homescreen_home_tab_icons",
-      "community": 25,
+      "community": 24,
       "norm_label": "tab_icons"
     },
     {
@@ -189,7 +189,7 @@
       "source_file": "html/homeScreen/home.jsx",
       "source_location": "L88",
       "id": "homescreen_home_hometabbar",
-      "community": 25,
+      "community": 24,
       "norm_label": "hometabbar()"
     },
     {
@@ -198,7 +198,7 @@
       "source_file": "html/homeScreen/home.jsx",
       "source_location": "L132",
       "id": "homescreen_home_hometopbar",
-      "community": 25,
+      "community": 24,
       "norm_label": "hometopbar()"
     },
     {
@@ -207,7 +207,7 @@
       "source_file": "html/homeScreen/home.jsx",
       "source_location": "L175",
       "id": "homescreen_home_greetingsection",
-      "community": 25,
+      "community": 24,
       "norm_label": "greetingsection()"
     },
     {
@@ -216,7 +216,7 @@
       "source_file": "html/homeScreen/home.jsx",
       "source_location": "L197",
       "id": "homescreen_home_nextworkoutcard",
-      "community": 25,
+      "community": 24,
       "norm_label": "nextworkoutcard()"
     },
     {
@@ -225,7 +225,7 @@
       "source_file": "html/homeScreen/home.jsx",
       "source_location": "L265",
       "id": "homescreen_home_adherencestrip",
-      "community": 25,
+      "community": 24,
       "norm_label": "adherencestrip()"
     },
     {
@@ -234,7 +234,7 @@
       "source_file": "html/homeScreen/home.jsx",
       "source_location": "L322",
       "id": "homescreen_home_rankingsection",
-      "community": 25,
+      "community": 24,
       "norm_label": "rankingsection()"
     },
     {
@@ -243,7 +243,7 @@
       "source_file": "html/homeScreen/home.jsx",
       "source_location": "L432",
       "id": "homescreen_home_weeklychart",
-      "community": 25,
+      "community": 24,
       "norm_label": "weeklychart()"
     },
     {
@@ -252,7 +252,7 @@
       "source_file": "html/homeScreen/home.jsx",
       "source_location": "L518",
       "id": "homescreen_home_emptystate",
-      "community": 25,
+      "community": 24,
       "norm_label": "emptystate()"
     },
     {
@@ -261,7 +261,7 @@
       "source_file": "html/homeScreen/home.jsx",
       "source_location": "L621",
       "id": "homescreen_home_homescreen",
-      "community": 25,
+      "community": 24,
       "norm_label": "homescreen()"
     },
     {
@@ -666,7 +666,7 @@
       "source_file": "html/profileScreen/profile.jsx",
       "source_location": "L1",
       "id": "html_profilescreen_profile_jsx",
-      "community": 15,
+      "community": 16,
       "norm_label": "profile.jsx"
     },
     {
@@ -675,7 +675,7 @@
       "source_file": "html/profileScreen/profile.jsx",
       "source_location": "L5",
       "id": "profilescreen_profile_pf",
-      "community": 15,
+      "community": 16,
       "norm_label": "pf"
     },
     {
@@ -684,7 +684,7 @@
       "source_file": "html/profileScreen/profile.jsx",
       "source_location": "L19",
       "id": "profilescreen_profile_user",
-      "community": 15,
+      "community": 16,
       "norm_label": "user"
     },
     {
@@ -693,7 +693,7 @@
       "source_file": "html/profileScreen/profile.jsx",
       "source_location": "L37",
       "id": "profilescreen_profile_sectiontitle",
-      "community": 15,
+      "community": 16,
       "norm_label": "sectiontitle()"
     },
     {
@@ -702,7 +702,7 @@
       "source_file": "html/profileScreen/profile.jsx",
       "source_location": "L51",
       "id": "profilescreen_profile_rowgroup",
-      "community": 15,
+      "community": 16,
       "norm_label": "rowgroup()"
     },
     {
@@ -711,7 +711,7 @@
       "source_file": "html/profileScreen/profile.jsx",
       "source_location": "L68",
       "id": "profilescreen_profile_row",
-      "community": 15,
+      "community": 16,
       "norm_label": "row()"
     },
     {
@@ -720,7 +720,7 @@
       "source_file": "html/profileScreen/profile.jsx",
       "source_location": "L125",
       "id": "profilescreen_profile_ic",
-      "community": 15,
+      "community": 16,
       "norm_label": "ic"
     },
     {
@@ -729,7 +729,7 @@
       "source_file": "html/profileScreen/profile.jsx",
       "source_location": "L151",
       "id": "profilescreen_profile_pftopbar",
-      "community": 15,
+      "community": 16,
       "norm_label": "pftopbar()"
     },
     {
@@ -738,7 +738,7 @@
       "source_file": "html/profileScreen/profile.jsx",
       "source_location": "L176",
       "id": "profilescreen_profile_identityhero",
-      "community": 15,
+      "community": 16,
       "norm_label": "identityhero()"
     },
     {
@@ -747,7 +747,7 @@
       "source_file": "html/profileScreen/profile.jsx",
       "source_location": "L255",
       "id": "profilescreen_profile_protocolsection",
-      "community": 15,
+      "community": 16,
       "norm_label": "protocolsection()"
     },
     {
@@ -756,7 +756,7 @@
       "source_file": "html/profileScreen/profile.jsx",
       "source_location": "L302",
       "id": "profilescreen_profile_accountsection",
-      "community": 15,
+      "community": 16,
       "norm_label": "accountsection()"
     },
     {
@@ -765,7 +765,7 @@
       "source_file": "html/profileScreen/profile.jsx",
       "source_location": "L326",
       "id": "profilescreen_profile_preferencessection",
-      "community": 15,
+      "community": 16,
       "norm_label": "preferencessection()"
     },
     {
@@ -774,7 +774,7 @@
       "source_file": "html/profileScreen/profile.jsx",
       "source_location": "L340",
       "id": "profilescreen_profile_communitysection",
-      "community": 15,
+      "community": 16,
       "norm_label": "communitysection()"
     },
     {
@@ -783,7 +783,7 @@
       "source_file": "html/profileScreen/profile.jsx",
       "source_location": "L353",
       "id": "profilescreen_profile_datasection",
-      "community": 15,
+      "community": 16,
       "norm_label": "datasection()"
     },
     {
@@ -792,7 +792,7 @@
       "source_file": "html/profileScreen/profile.jsx",
       "source_location": "L366",
       "id": "profilescreen_profile_supportsection",
-      "community": 15,
+      "community": 16,
       "norm_label": "supportsection()"
     },
     {
@@ -801,7 +801,7 @@
       "source_file": "html/profileScreen/profile.jsx",
       "source_location": "L380",
       "id": "profilescreen_profile_logoutsection",
-      "community": 15,
+      "community": 16,
       "norm_label": "logoutsection()"
     },
     {
@@ -810,7 +810,7 @@
       "source_file": "html/profileScreen/profile.jsx",
       "source_location": "L398",
       "id": "profilescreen_profile_logoutsheet",
-      "community": 15,
+      "community": 16,
       "norm_label": "logoutsheet()"
     },
     {
@@ -819,7 +819,7 @@
       "source_file": "html/profileScreen/profile.jsx",
       "source_location": "L461",
       "id": "profilescreen_profile_pftabbar",
-      "community": 15,
+      "community": 16,
       "norm_label": "pftabbar()"
     },
     {
@@ -828,7 +828,7 @@
       "source_file": "html/profileScreen/profile.jsx",
       "source_location": "L504",
       "id": "profilescreen_profile_profilescreen",
-      "community": 15,
+      "community": 16,
       "norm_label": "profilescreen()"
     },
     {
@@ -1044,7 +1044,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L1",
       "id": "html_statsscreen_stats_jsx",
-      "community": 20,
+      "community": 19,
       "norm_label": "stats.jsx"
     },
     {
@@ -1053,7 +1053,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L7",
       "id": "statsscreen_stats_t",
-      "community": 20,
+      "community": 19,
       "norm_label": "t"
     },
     {
@@ -1062,7 +1062,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L30",
       "id": "statsscreen_stats_periods",
-      "community": 20,
+      "community": 19,
       "norm_label": "periods"
     },
     {
@@ -1080,7 +1080,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L115",
       "id": "statsscreen_stats_card",
-      "community": 20,
+      "community": 19,
       "norm_label": "card()"
     },
     {
@@ -1089,7 +1089,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L126",
       "id": "statsscreen_stats_cardheader",
-      "community": 20,
+      "community": 19,
       "norm_label": "cardheader()"
     },
     {
@@ -1098,7 +1098,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L138",
       "id": "statsscreen_stats_deltachip",
-      "community": 20,
+      "community": 19,
       "norm_label": "deltachip()"
     },
     {
@@ -1107,7 +1107,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L158",
       "id": "statsscreen_stats_iconbtn",
-      "community": 20,
+      "community": 19,
       "norm_label": "iconbtn()"
     },
     {
@@ -1116,7 +1116,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L176",
       "id": "statsscreen_stats_icons",
-      "community": 20,
+      "community": 19,
       "norm_label": "icons"
     },
     {
@@ -1125,7 +1125,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L187",
       "id": "statsscreen_stats_periodselector",
-      "community": 20,
+      "community": 19,
       "norm_label": "periodselector()"
     },
     {
@@ -1134,7 +1134,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L215",
       "id": "statsscreen_stats_kpistrip",
-      "community": 20,
+      "community": 19,
       "norm_label": "kpistrip()"
     },
     {
@@ -1143,7 +1143,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L244",
       "id": "statsscreen_stats_consistencycard",
-      "community": 20,
+      "community": 19,
       "norm_label": "consistencycard()"
     },
     {
@@ -1152,7 +1152,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L300",
       "id": "statsscreen_stats_weightcard",
-      "community": 20,
+      "community": 19,
       "norm_label": "weightcard()"
     },
     {
@@ -1161,7 +1161,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L420",
       "id": "statsscreen_stats_volumecard",
-      "community": 20,
+      "community": 19,
       "norm_label": "volumecard()"
     },
     {
@@ -1170,7 +1170,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L576",
       "id": "statsscreen_stats_insights",
-      "community": 20,
+      "community": 19,
       "norm_label": "insights"
     },
     {
@@ -1179,7 +1179,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L583",
       "id": "statsscreen_stats_insightblock",
-      "community": 20,
+      "community": 19,
       "norm_label": "insightblock()"
     },
     {
@@ -1188,7 +1188,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L608",
       "id": "statsscreen_stats_tabbar",
-      "community": 20,
+      "community": 19,
       "norm_label": "tabbar()"
     },
     {
@@ -1197,7 +1197,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L651",
       "id": "statsscreen_stats_statsscreen",
-      "community": 20,
+      "community": 19,
       "norm_label": "statsscreen()"
     },
     {
@@ -1341,7 +1341,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/config/WebMvcConfig.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_config_webmvcconfig_java",
-      "community": 53,
+      "community": 54,
       "norm_label": "webmvcconfig.java"
     },
     {
@@ -1350,7 +1350,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/config/WebMvcConfig.java",
       "source_location": "L9",
       "id": "config_webmvcconfig_webmvcconfig",
-      "community": 53,
+      "community": 54,
       "norm_label": "webmvcconfig"
     },
     {
@@ -1359,7 +1359,7 @@
       "source_file": "",
       "source_location": "",
       "id": "webmvcconfigurer",
-      "community": 53,
+      "community": 54,
       "norm_label": "webmvcconfigurer"
     },
     {
@@ -1368,7 +1368,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/config/WebMvcConfig.java",
       "source_location": "L14",
       "id": "config_webmvcconfig_webmvcconfig_webmvcconfig",
-      "community": 53,
+      "community": 54,
       "norm_label": ".webmvcconfig()"
     },
     {
@@ -1377,7 +1377,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/config/WebMvcConfig.java",
       "source_location": "L18",
       "id": "config_webmvcconfig_webmvcconfig_addinterceptors",
-      "community": 53,
+      "community": 54,
       "norm_label": ".addinterceptors()"
     },
     {
@@ -4833,7 +4833,7 @@
       "source_file": "KineticApp/App.js",
       "source_location": "L1",
       "id": "kineticapp_app_js",
-      "community": 13,
+      "community": 17,
       "norm_label": "app.js"
     },
     {
@@ -4842,7 +4842,7 @@
       "source_file": "KineticApp/App.tsx",
       "source_location": "L29",
       "id": "kineticapp_app_app",
-      "community": 18,
+      "community": 17,
       "norm_label": "app()"
     },
     {
@@ -4851,7 +4851,7 @@
       "source_file": "KineticApp/App.tsx",
       "source_location": "L1",
       "id": "kineticapp_app_tsx",
-      "community": 18,
+      "community": 17,
       "norm_label": "app.tsx"
     },
     {
@@ -4860,7 +4860,7 @@
       "source_file": "KineticApp/App.tsx",
       "source_location": "L13",
       "id": "kineticapp_app_appcontent",
-      "community": 18,
+      "community": 17,
       "norm_label": "appcontent()"
     },
     {
@@ -4869,7 +4869,7 @@
       "source_file": "KineticApp/index.js",
       "source_location": "L1",
       "id": "kineticapp_index_js",
-      "community": 13,
+      "community": 17,
       "norm_label": "index.js"
     },
     {
@@ -4941,7 +4941,7 @@
       "source_file": "KineticApp/android/app/src/main/java/com/anonymous/KineticApp/MainActivity.kt",
       "source_location": "L1",
       "id": "kineticapp_android_app_src_main_java_com_anonymous_kineticapp_mainactivity_kt",
-      "community": 47,
+      "community": 50,
       "norm_label": "mainactivity.kt"
     },
     {
@@ -4950,7 +4950,7 @@
       "source_file": "KineticApp/android/app/src/main/java/com/anonymous/KineticApp/MainActivity.kt",
       "source_location": "L14",
       "id": "kineticapp_mainactivity_mainactivity",
-      "community": 47,
+      "community": 50,
       "norm_label": "mainactivity"
     },
     {
@@ -4959,7 +4959,7 @@
       "source_file": "KineticApp/android/app/src/main/java/com/anonymous/KineticApp/MainActivity.kt",
       "source_location": "L15",
       "id": "kineticapp_mainactivity_mainactivity_oncreate",
-      "community": 47,
+      "community": 50,
       "norm_label": ".oncreate()"
     },
     {
@@ -4968,7 +4968,7 @@
       "source_file": "KineticApp/android/app/src/main/java/com/anonymous/KineticApp/MainActivity.kt",
       "source_location": "L30",
       "id": "kineticapp_mainactivity_mainactivity_getmaincomponentname",
-      "community": 47,
+      "community": 50,
       "norm_label": ".getmaincomponentname()"
     },
     {
@@ -4977,7 +4977,7 @@
       "source_file": "KineticApp/android/app/src/main/java/com/anonymous/KineticApp/MainActivity.kt",
       "source_location": "L36",
       "id": "kineticapp_mainactivity_mainactivity_createreactactivitydelegate",
-      "community": 47,
+      "community": 50,
       "norm_label": ".createreactactivitydelegate()"
     },
     {
@@ -4986,7 +4986,7 @@
       "source_file": "KineticApp/android/app/src/main/java/com/anonymous/KineticApp/MainActivity.kt",
       "source_location": "L52",
       "id": "kineticapp_mainactivity_mainactivity_invokedefaultonbackpressed",
-      "community": 47,
+      "community": 50,
       "norm_label": ".invokedefaultonbackpressed()"
     },
     {
@@ -5058,7 +5058,7 @@
       "source_file": "KineticApp/src/components/AppHeader.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_appheader_tsx",
-      "community": 14,
+      "community": 25,
       "norm_label": "appheader.tsx"
     },
     {
@@ -5067,7 +5067,7 @@
       "source_file": "KineticApp/src/components/AppHeader.tsx",
       "source_location": "L14",
       "id": "components_appheader_appheaderprops",
-      "community": 14,
+      "community": 25,
       "norm_label": "appheaderprops"
     },
     {
@@ -5076,7 +5076,7 @@
       "source_file": "KineticApp/src/components/AppHeader.tsx",
       "source_location": "L23",
       "id": "components_appheader_appheader",
-      "community": 14,
+      "community": 25,
       "norm_label": "appheader()"
     },
     {
@@ -5085,7 +5085,7 @@
       "source_file": "KineticApp/src/components/AppHeader.tsx",
       "source_location": "L74",
       "id": "components_appheader_styles",
-      "community": 14,
+      "community": 25,
       "norm_label": "styles"
     },
     {
@@ -5094,7 +5094,7 @@
       "source_file": "KineticApp/src/components/BottomTabBar.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_bottomtabbar_tsx",
-      "community": 36,
+      "community": 37,
       "norm_label": "bottomtabbar.tsx"
     },
     {
@@ -5103,7 +5103,7 @@
       "source_file": "KineticApp/src/components/BottomTabBar.tsx",
       "source_location": "L9",
       "id": "components_bottomtabbar_t",
-      "community": 36,
+      "community": 37,
       "norm_label": "t"
     },
     {
@@ -5112,7 +5112,7 @@
       "source_file": "KineticApp/src/components/BottomTabBar.tsx",
       "source_location": "L16",
       "id": "components_bottomtabbar_gradient_colors",
-      "community": 36,
+      "community": 37,
       "norm_label": "gradient_colors"
     },
     {
@@ -5121,7 +5121,7 @@
       "source_file": "KineticApp/src/components/BottomTabBar.tsx",
       "source_location": "L17",
       "id": "components_bottomtabbar_gradient_locations",
-      "community": 36,
+      "community": 37,
       "norm_label": "gradient_locations"
     },
     {
@@ -5130,7 +5130,7 @@
       "source_file": "KineticApp/src/components/BottomTabBar.tsx",
       "source_location": "L19",
       "id": "components_bottomtabbar_iconname",
-      "community": 36,
+      "community": 37,
       "norm_label": "iconname"
     },
     {
@@ -5139,7 +5139,7 @@
       "source_file": "KineticApp/src/components/BottomTabBar.tsx",
       "source_location": "L21",
       "id": "components_bottomtabbar_route_meta",
-      "community": 36,
+      "community": 37,
       "norm_label": "route_meta"
     },
     {
@@ -5148,7 +5148,7 @@
       "source_file": "KineticApp/src/components/BottomTabBar.tsx",
       "source_location": "L29",
       "id": "components_bottomtabbar_tabicon",
-      "community": 36,
+      "community": 37,
       "norm_label": "tabicon()"
     },
     {
@@ -5157,7 +5157,7 @@
       "source_file": "KineticApp/src/components/BottomTabBar.tsx",
       "source_location": "L76",
       "id": "components_bottomtabbar_bottomtabbar",
-      "community": 36,
+      "community": 37,
       "norm_label": "bottomtabbar()"
     },
     {
@@ -5166,7 +5166,7 @@
       "source_file": "KineticApp/src/components/BottomTabBar.tsx",
       "source_location": "L138",
       "id": "components_bottomtabbar_styles",
-      "community": 36,
+      "community": 37,
       "norm_label": "styles"
     },
     {
@@ -5175,7 +5175,7 @@
       "source_file": "KineticApp/src/components/CommentsSheet.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_commentssheet_tsx",
-      "community": 26,
+      "community": 47,
       "norm_label": "commentssheet.tsx"
     },
     {
@@ -5184,7 +5184,7 @@
       "source_file": "KineticApp/src/components/CommentsSheet.tsx",
       "source_location": "L22",
       "id": "components_commentssheet_props",
-      "community": 26,
+      "community": 47,
       "norm_label": "props"
     },
     {
@@ -5193,7 +5193,7 @@
       "source_file": "KineticApp/src/components/CommentsSheet.tsx",
       "source_location": "L29",
       "id": "components_commentssheet_commentssheet",
-      "community": 26,
+      "community": 47,
       "norm_label": "commentssheet()"
     },
     {
@@ -5202,7 +5202,7 @@
       "source_file": "KineticApp/src/components/CommentsSheet.tsx",
       "source_location": "L128",
       "id": "components_commentssheet_styles",
-      "community": 26,
+      "community": 47,
       "norm_label": "styles"
     },
     {
@@ -5211,7 +5211,7 @@
       "source_file": "KineticApp/src/components/ConnectionRequestsModal.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_connectionrequestsmodal_tsx",
-      "community": 54,
+      "community": 55,
       "norm_label": "connectionrequestsmodal.tsx"
     },
     {
@@ -5220,7 +5220,7 @@
       "source_file": "KineticApp/src/components/ConnectionRequestsModal.tsx",
       "source_location": "L17",
       "id": "components_connectionrequestsmodal_props",
-      "community": 54,
+      "community": 55,
       "norm_label": "props"
     },
     {
@@ -5229,7 +5229,7 @@
       "source_file": "KineticApp/src/components/ConnectionRequestsModal.tsx",
       "source_location": "L27",
       "id": "components_connectionrequestsmodal_connectionrequestsmodal",
-      "community": 54,
+      "community": 55,
       "norm_label": "connectionrequestsmodal()"
     },
     {
@@ -5238,7 +5238,7 @@
       "source_file": "KineticApp/src/components/ConnectionRequestsModal.tsx",
       "source_location": "L102",
       "id": "components_connectionrequestsmodal_styles",
-      "community": 54,
+      "community": 55,
       "norm_label": "styles"
     },
     {
@@ -5319,7 +5319,7 @@
       "source_file": "KineticApp/src/components/EvolutionModal.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_evolutionmodal_tsx",
-      "community": 48,
+      "community": 35,
       "norm_label": "evolutionmodal.tsx"
     },
     {
@@ -5328,7 +5328,7 @@
       "source_file": "KineticApp/src/components/EvolutionModal.tsx",
       "source_location": "L6",
       "id": "components_evolutionmodal_evolutionmodalprops",
-      "community": 48,
+      "community": 35,
       "norm_label": "evolutionmodalprops"
     },
     {
@@ -5337,7 +5337,7 @@
       "source_file": "KineticApp/src/components/EvolutionModal.tsx",
       "source_location": "L12",
       "id": "components_evolutionmodal_evolutionmodal",
-      "community": 48,
+      "community": 35,
       "norm_label": "evolutionmodal()"
     },
     {
@@ -5346,7 +5346,7 @@
       "source_file": "KineticApp/src/components/EvolutionModal.tsx",
       "source_location": "L88",
       "id": "components_evolutionmodal_styles",
-      "community": 48,
+      "community": 35,
       "norm_label": "styles"
     },
     {
@@ -5355,7 +5355,7 @@
       "source_file": "KineticApp/src/components/ExerciseCard.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_exercisecard_tsx",
-      "community": 52,
+      "community": 53,
       "norm_label": "exercisecard.tsx"
     },
     {
@@ -5364,7 +5364,7 @@
       "source_file": "KineticApp/src/components/ExerciseCard.tsx",
       "source_location": "L4",
       "id": "components_exercisecard_exercise",
-      "community": 52,
+      "community": 53,
       "norm_label": "exercise"
     },
     {
@@ -5373,7 +5373,7 @@
       "source_file": "KineticApp/src/components/ExerciseCard.tsx",
       "source_location": "L12",
       "id": "components_exercisecard_props",
-      "community": 52,
+      "community": 53,
       "norm_label": "props"
     },
     {
@@ -5382,7 +5382,7 @@
       "source_file": "KineticApp/src/components/ExerciseCard.tsx",
       "source_location": "L17",
       "id": "components_exercisecard_exercisecard",
-      "community": 52,
+      "community": 53,
       "norm_label": "exercisecard()"
     },
     {
@@ -5391,7 +5391,7 @@
       "source_file": "KineticApp/src/components/ExerciseCard.tsx",
       "source_location": "L56",
       "id": "components_exercisecard_styles",
-      "community": 52,
+      "community": 53,
       "norm_label": "styles"
     },
     {
@@ -5400,7 +5400,7 @@
       "source_file": "KineticApp/src/components/FeedPost.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_feedpost_tsx",
-      "community": 26,
+      "community": 48,
       "norm_label": "feedpost.tsx"
     },
     {
@@ -5409,7 +5409,7 @@
       "source_file": "KineticApp/src/components/FeedPost.tsx",
       "source_location": "L15",
       "id": "components_feedpost_props",
-      "community": 26,
+      "community": 48,
       "norm_label": "props"
     },
     {
@@ -5418,7 +5418,7 @@
       "source_file": "KineticApp/src/components/FeedPost.tsx",
       "source_location": "L21",
       "id": "components_feedpost_feedpost",
-      "community": 26,
+      "community": 48,
       "norm_label": "feedpost()"
     },
     {
@@ -5427,7 +5427,7 @@
       "source_file": "KineticApp/src/components/FeedPost.tsx",
       "source_location": "L134",
       "id": "components_feedpost_styles",
-      "community": 26,
+      "community": 48,
       "norm_label": "styles"
     },
     {
@@ -5436,7 +5436,7 @@
       "source_file": "KineticApp/src/components/HeaderLogo.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_headerlogo_tsx",
-      "community": 18,
+      "community": 12,
       "norm_label": "headerlogo.tsx"
     },
     {
@@ -5445,7 +5445,7 @@
       "source_file": "KineticApp/src/components/HeaderLogo.tsx",
       "source_location": "L8",
       "id": "components_headerlogo_props",
-      "community": 18,
+      "community": 12,
       "norm_label": "props"
     },
     {
@@ -5454,7 +5454,7 @@
       "source_file": "KineticApp/src/components/HeaderLogo.tsx",
       "source_location": "L13",
       "id": "components_headerlogo_headerlogo",
-      "community": 18,
+      "community": 12,
       "norm_label": "headerlogo()"
     },
     {
@@ -5463,7 +5463,7 @@
       "source_file": "KineticApp/src/components/HeaderLogo.tsx",
       "source_location": "L35",
       "id": "components_headerlogo_styles",
-      "community": 18,
+      "community": 12,
       "norm_label": "styles"
     },
     {
@@ -5526,7 +5526,7 @@
       "source_file": "KineticApp/src/components/PasswordRequirements.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_passwordrequirements_tsx",
-      "community": 12,
+      "community": 17,
       "norm_label": "passwordrequirements.tsx"
     },
     {
@@ -5535,7 +5535,7 @@
       "source_file": "KineticApp/src/components/PasswordRequirements.tsx",
       "source_location": "L6",
       "id": "components_passwordrequirements_props",
-      "community": 12,
+      "community": 17,
       "norm_label": "props"
     },
     {
@@ -5544,7 +5544,7 @@
       "source_file": "KineticApp/src/components/PasswordRequirements.tsx",
       "source_location": "L10",
       "id": "components_passwordrequirements_reqprops",
-      "community": 12,
+      "community": 17,
       "norm_label": "reqprops"
     },
     {
@@ -5553,7 +5553,7 @@
       "source_file": "KineticApp/src/components/PasswordRequirements.tsx",
       "source_location": "L15",
       "id": "components_passwordrequirements_req",
-      "community": 12,
+      "community": 17,
       "norm_label": "req()"
     },
     {
@@ -5562,7 +5562,7 @@
       "source_file": "KineticApp/src/components/PasswordRequirements.tsx",
       "source_location": "L24",
       "id": "components_passwordrequirements_passwordrequirements",
-      "community": 12,
+      "community": 17,
       "norm_label": "passwordrequirements()"
     },
     {
@@ -5571,7 +5571,7 @@
       "source_file": "KineticApp/src/components/PasswordRequirements.tsx",
       "source_location": "L52",
       "id": "components_passwordrequirements_styles",
-      "community": 12,
+      "community": 17,
       "norm_label": "styles"
     },
     {
@@ -5587,7 +5587,7 @@
       "label": "DeltaChip()",
       "file_type": "code",
       "source_file": "KineticApp/src/components/PlanEvolutionCard.tsx",
-      "source_location": "L13",
+      "source_location": "L12",
       "id": "components_planevolutioncard_deltachip",
       "community": 4,
       "norm_label": "deltachip()"
@@ -5596,7 +5596,7 @@
       "label": "chipS",
       "file_type": "code",
       "source_file": "KineticApp/src/components/PlanEvolutionCard.tsx",
-      "source_location": "L26",
+      "source_location": "L25",
       "id": "components_planevolutioncard_chips",
       "community": 4,
       "norm_label": "chips"
@@ -5605,7 +5605,7 @@
       "label": "MetricRow()",
       "file_type": "code",
       "source_file": "KineticApp/src/components/PlanEvolutionCard.tsx",
-      "source_location": "L32",
+      "source_location": "L31",
       "id": "components_planevolutioncard_metricrow",
       "community": 4,
       "norm_label": "metricrow()"
@@ -5614,7 +5614,7 @@
       "label": "rowS",
       "file_type": "code",
       "source_file": "KineticApp/src/components/PlanEvolutionCard.tsx",
-      "source_location": "L56",
+      "source_location": "L55",
       "id": "components_planevolutioncard_rows",
       "community": 4,
       "norm_label": "rows"
@@ -5623,7 +5623,7 @@
       "label": "EmbeddedInsight()",
       "file_type": "code",
       "source_file": "KineticApp/src/components/PlanEvolutionCard.tsx",
-      "source_location": "L67",
+      "source_location": "L66",
       "id": "components_planevolutioncard_embeddedinsight",
       "community": 4,
       "norm_label": "embeddedinsight()"
@@ -5632,7 +5632,7 @@
       "label": "insightS",
       "file_type": "code",
       "source_file": "KineticApp/src/components/PlanEvolutionCard.tsx",
-      "source_location": "L86",
+      "source_location": "L85",
       "id": "components_planevolutioncard_insights",
       "community": 4,
       "norm_label": "insights"
@@ -5641,7 +5641,7 @@
       "label": "EmptyState()",
       "file_type": "code",
       "source_file": "KineticApp/src/components/PlanEvolutionCard.tsx",
-      "source_location": "L102",
+      "source_location": "L101",
       "id": "components_planevolutioncard_emptystate",
       "community": 4,
       "norm_label": "emptystate()"
@@ -5650,7 +5650,7 @@
       "label": "emptyS",
       "file_type": "code",
       "source_file": "KineticApp/src/components/PlanEvolutionCard.tsx",
-      "source_location": "L110",
+      "source_location": "L109",
       "id": "components_planevolutioncard_emptys",
       "community": 4,
       "norm_label": "emptys"
@@ -5659,7 +5659,7 @@
       "label": "PlanEvolutionCardProps",
       "file_type": "code",
       "source_file": "KineticApp/src/components/PlanEvolutionCard.tsx",
-      "source_location": "L116",
+      "source_location": "L115",
       "id": "components_planevolutioncard_planevolutioncardprops",
       "community": 4,
       "norm_label": "planevolutioncardprops"
@@ -5668,7 +5668,7 @@
       "label": "PlanEvolutionCard()",
       "file_type": "code",
       "source_file": "KineticApp/src/components/PlanEvolutionCard.tsx",
-      "source_location": "L120",
+      "source_location": "L119",
       "id": "components_planevolutioncard_planevolutioncard",
       "community": 4,
       "norm_label": "planevolutioncard()"
@@ -5677,7 +5677,7 @@
       "label": "cardS",
       "file_type": "code",
       "source_file": "KineticApp/src/components/PlanEvolutionCard.tsx",
-      "source_location": "L177",
+      "source_location": "L176",
       "id": "components_planevolutioncard_cards",
       "community": 4,
       "norm_label": "cards"
@@ -5724,7 +5724,7 @@
       "source_file": "KineticApp/src/components/SerieCard.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_seriecard_tsx",
-      "community": 14,
+      "community": 25,
       "norm_label": "seriecard.tsx"
     },
     {
@@ -5733,7 +5733,7 @@
       "source_file": "KineticApp/src/components/SerieCard.tsx",
       "source_location": "L5",
       "id": "components_seriecard_props",
-      "community": 14,
+      "community": 25,
       "norm_label": "props"
     },
     {
@@ -5742,7 +5742,7 @@
       "source_file": "KineticApp/src/components/SerieCard.tsx",
       "source_location": "L19",
       "id": "components_seriecard_seriecard",
-      "community": 14,
+      "community": 25,
       "norm_label": "seriecard()"
     },
     {
@@ -5751,7 +5751,7 @@
       "source_file": "KineticApp/src/components/SerieCard.tsx",
       "source_location": "L98",
       "id": "components_seriecard_styles",
-      "community": 14,
+      "community": 25,
       "norm_label": "styles"
     },
     {
@@ -5805,7 +5805,7 @@
       "source_file": "KineticApp/src/components/StoryViewer.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_storyviewer_tsx",
-      "community": 49,
+      "community": 46,
       "norm_label": "storyviewer.tsx"
     },
     {
@@ -5814,7 +5814,7 @@
       "source_file": "KineticApp/src/components/StoryViewer.tsx",
       "source_location": "L17",
       "id": "components_storyviewer_width",
-      "community": 49,
+      "community": 46,
       "norm_label": "{ width }"
     },
     {
@@ -5823,7 +5823,7 @@
       "source_file": "KineticApp/src/components/StoryViewer.tsx",
       "source_location": "L19",
       "id": "components_storyviewer_props",
-      "community": 49,
+      "community": 46,
       "norm_label": "props"
     },
     {
@@ -5832,7 +5832,7 @@
       "source_file": "KineticApp/src/components/StoryViewer.tsx",
       "source_location": "L26",
       "id": "components_storyviewer_timeago",
-      "community": 49,
+      "community": 46,
       "norm_label": "timeago()"
     },
     {
@@ -5841,7 +5841,7 @@
       "source_file": "KineticApp/src/components/StoryViewer.tsx",
       "source_location": "L34",
       "id": "components_storyviewer_storyviewer",
-      "community": 49,
+      "community": 46,
       "norm_label": "storyviewer()"
     },
     {
@@ -5850,7 +5850,7 @@
       "source_file": "KineticApp/src/components/StoryViewer.tsx",
       "source_location": "L160",
       "id": "components_storyviewer_styles",
-      "community": 49,
+      "community": 46,
       "norm_label": "styles"
     },
     {
@@ -5859,7 +5859,7 @@
       "source_file": "KineticApp/src/components/ThemeToggle.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_themetoggle_tsx",
-      "community": 18,
+      "community": 17,
       "norm_label": "themetoggle.tsx"
     },
     {
@@ -5868,7 +5868,7 @@
       "source_file": "KineticApp/src/components/ThemeToggle.tsx",
       "source_location": "L5",
       "id": "components_themetoggle_themetoggle",
-      "community": 18,
+      "community": 17,
       "norm_label": "themetoggle()"
     },
     {
@@ -5877,7 +5877,7 @@
       "source_file": "KineticApp/src/components/ThemeToggle.tsx",
       "source_location": "L23",
       "id": "components_themetoggle_styles",
-      "community": 18,
+      "community": 17,
       "norm_label": "styles"
     },
     {
@@ -5886,7 +5886,7 @@
       "source_file": "KineticApp/src/components/UserSearchModal.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_usersearchmodal_tsx",
-      "community": 37,
+      "community": 30,
       "norm_label": "usersearchmodal.tsx"
     },
     {
@@ -5895,7 +5895,7 @@
       "source_file": "KineticApp/src/components/UserSearchModal.tsx",
       "source_location": "L24",
       "id": "components_usersearchmodal_props",
-      "community": 37,
+      "community": 30,
       "norm_label": "props"
     },
     {
@@ -5904,7 +5904,7 @@
       "source_file": "KineticApp/src/components/UserSearchModal.tsx",
       "source_location": "L29",
       "id": "components_usersearchmodal_action_label",
-      "community": 37,
+      "community": 30,
       "norm_label": "action_label"
     },
     {
@@ -5913,7 +5913,7 @@
       "source_file": "KineticApp/src/components/UserSearchModal.tsx",
       "source_location": "L36",
       "id": "components_usersearchmodal_usersearchmodal",
-      "community": 37,
+      "community": 30,
       "norm_label": "usersearchmodal()"
     },
     {
@@ -5922,7 +5922,7 @@
       "source_file": "KineticApp/src/components/UserSearchModal.tsx",
       "source_location": "L162",
       "id": "components_usersearchmodal_styles",
-      "community": 37,
+      "community": 30,
       "norm_label": "styles"
     },
     {
@@ -6210,7 +6210,7 @@
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L1",
       "id": "kineticapp_src_constants_protocol_ts",
-      "community": 27,
+      "community": 26,
       "norm_label": "protocol.ts"
     },
     {
@@ -6219,7 +6219,7 @@
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L5",
       "id": "constants_protocol_goaltype",
-      "community": 27,
+      "community": 26,
       "norm_label": "goaltype"
     },
     {
@@ -6228,7 +6228,7 @@
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L6",
       "id": "constants_protocol_leveltype",
-      "community": 27,
+      "community": 26,
       "norm_label": "leveltype"
     },
     {
@@ -6237,7 +6237,7 @@
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L8",
       "id": "constants_protocol_goaldef",
-      "community": 27,
+      "community": 26,
       "norm_label": "goaldef"
     },
     {
@@ -6246,7 +6246,7 @@
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L14",
       "id": "constants_protocol_leveldef",
-      "community": 27,
+      "community": 26,
       "norm_label": "leveldef"
     },
     {
@@ -6255,7 +6255,7 @@
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L20",
       "id": "constants_protocol_goals",
-      "community": 27,
+      "community": 26,
       "norm_label": "goals"
     },
     {
@@ -6264,7 +6264,7 @@
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L26",
       "id": "constants_protocol_levels",
-      "community": 27,
+      "community": 26,
       "norm_label": "levels"
     },
     {
@@ -6273,7 +6273,7 @@
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L32",
       "id": "constants_protocol_days_labels",
-      "community": 27,
+      "community": 26,
       "norm_label": "days_labels"
     },
     {
@@ -6282,7 +6282,7 @@
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L35",
       "id": "constants_protocol_goal_api_map",
-      "community": 27,
+      "community": 26,
       "norm_label": "goal_api_map"
     },
     {
@@ -6291,7 +6291,7 @@
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L41",
       "id": "constants_protocol_level_api_map",
-      "community": 27,
+      "community": 26,
       "norm_label": "level_api_map"
     },
     {
@@ -6300,7 +6300,7 @@
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L48",
       "id": "constants_protocol_protocoloption",
-      "community": 27,
+      "community": 26,
       "norm_label": "protocoloption"
     },
     {
@@ -6309,7 +6309,7 @@
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L55",
       "id": "constants_protocol_goal_options",
-      "community": 27,
+      "community": 26,
       "norm_label": "goal_options"
     },
     {
@@ -6318,7 +6318,7 @@
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L61",
       "id": "constants_protocol_level_options",
-      "community": 27,
+      "community": 26,
       "norm_label": "level_options"
     },
     {
@@ -6327,7 +6327,7 @@
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L68",
       "id": "constants_protocol_frequency_options",
-      "community": 27,
+      "community": 26,
       "norm_label": "frequency_options"
     },
     {
@@ -6336,7 +6336,7 @@
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L77",
       "id": "constants_protocol_goallabel",
-      "community": 50,
+      "community": 51,
       "norm_label": "goallabel()"
     },
     {
@@ -6345,7 +6345,7 @@
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L83",
       "id": "constants_protocol_levellabel",
-      "community": 50,
+      "community": 51,
       "norm_label": "levellabel()"
     },
     {
@@ -6354,7 +6354,7 @@
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L89",
       "id": "constants_protocol_agefrombirthdate",
-      "community": 50,
+      "community": 51,
       "norm_label": "agefrombirthdate()"
     },
     {
@@ -6363,7 +6363,7 @@
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L106",
       "id": "constants_protocol_hasmedicalinfo",
-      "community": 50,
+      "community": 51,
       "norm_label": "hasmedicalinfo()"
     },
     {
@@ -6399,7 +6399,7 @@
       "source_file": "KineticApp/src/contexts/AuthContext.tsx",
       "source_location": "L46",
       "id": "contexts_authcontext_workoutplanitem",
-      "community": 24,
+      "community": 15,
       "norm_label": "workoutplanitem"
     },
     {
@@ -6435,7 +6435,7 @@
       "source_file": "KineticApp/src/contexts/AuthContext.tsx",
       "source_location": "L104",
       "id": "contexts_authcontext_authcontext",
-      "community": 13,
+      "community": 15,
       "norm_label": "authcontext"
     },
     {
@@ -6444,7 +6444,7 @@
       "source_file": "KineticApp/src/contexts/AuthContext.tsx",
       "source_location": "L110",
       "id": "contexts_authcontext_authprovider",
-      "community": 13,
+      "community": 17,
       "norm_label": "authprovider()"
     },
     {
@@ -6453,7 +6453,7 @@
       "source_file": "KineticApp/src/contexts/ThemeContext.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_contexts_themecontext_tsx",
-      "community": 18,
+      "community": 17,
       "norm_label": "themecontext.tsx"
     },
     {
@@ -6462,7 +6462,7 @@
       "source_file": "KineticApp/src/contexts/ThemeContext.tsx",
       "source_location": "L3",
       "id": "contexts_themecontext_themecontextvalue",
-      "community": 18,
+      "community": 17,
       "norm_label": "themecontextvalue"
     },
     {
@@ -6471,7 +6471,7 @@
       "source_file": "KineticApp/src/contexts/ThemeContext.tsx",
       "source_location": "L8",
       "id": "contexts_themecontext_themecontext",
-      "community": 13,
+      "community": 14,
       "norm_label": "themecontext"
     },
     {
@@ -6480,7 +6480,7 @@
       "source_file": "KineticApp/src/contexts/ThemeContext.tsx",
       "source_location": "L14",
       "id": "contexts_themecontext_themeprovider",
-      "community": 18,
+      "community": 17,
       "norm_label": "themeprovider()"
     },
     {
@@ -6489,7 +6489,7 @@
       "source_file": "KineticApp/src/hooks/useSquadStatus.ts",
       "source_location": "L1",
       "id": "kineticapp_src_hooks_usesquadstatus_ts",
-      "community": 17,
+      "community": 13,
       "norm_label": "usesquadstatus.ts"
     },
     {
@@ -6498,7 +6498,7 @@
       "source_file": "KineticApp/src/hooks/useSquadStatus.ts",
       "source_location": "L8",
       "id": "hooks_usesquadstatus_usesquadstatus",
-      "community": 17,
+      "community": 13,
       "norm_label": "usesquadstatus()"
     },
     {
@@ -6507,7 +6507,7 @@
       "source_file": "KineticApp/src/hooks/useWorkoutPresence.ts",
       "source_location": "L1",
       "id": "kineticapp_src_hooks_useworkoutpresence_ts",
-      "community": 55,
+      "community": 13,
       "norm_label": "useworkoutpresence.ts"
     },
     {
@@ -6516,7 +6516,7 @@
       "source_file": "KineticApp/src/hooks/useWorkoutPresence.ts",
       "source_location": "L4",
       "id": "hooks_useworkoutpresence_useworkoutpresence",
-      "community": 55,
+      "community": 13,
       "norm_label": "useworkoutpresence()"
     },
     {
@@ -6525,7 +6525,7 @@
       "source_file": "KineticApp/src/routes/AppRoutes.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_routes_approutes_tsx",
-      "community": 24,
+      "community": 15,
       "norm_label": "approutes.tsx"
     },
     {
@@ -6534,7 +6534,7 @@
       "source_file": "KineticApp/src/routes/AppRoutes.tsx",
       "source_location": "L25",
       "id": "routes_approutes_stack",
-      "community": 24,
+      "community": 15,
       "norm_label": "stack"
     },
     {
@@ -6543,7 +6543,7 @@
       "source_file": "KineticApp/src/routes/AppRoutes.tsx",
       "source_location": "L26",
       "id": "routes_approutes_tab",
-      "community": 24,
+      "community": 15,
       "norm_label": "tab"
     },
     {
@@ -6552,7 +6552,7 @@
       "source_file": "KineticApp/src/routes/AppRoutes.tsx",
       "source_location": "L28",
       "id": "routes_approutes_maintabs",
-      "community": 24,
+      "community": 15,
       "norm_label": "maintabs()"
     },
     {
@@ -6561,7 +6561,7 @@
       "source_file": "KineticApp/src/routes/AppRoutes.tsx",
       "source_location": "L43",
       "id": "routes_approutes_approutes",
-      "community": 24,
+      "community": 15,
       "norm_label": "approutes()"
     },
     {
@@ -6570,7 +6570,7 @@
       "source_file": "KineticApp/src/screens/ActiveSessionScreen.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_screens_activesessionscreen_tsx",
-      "community": 14,
+      "community": 25,
       "norm_label": "activesessionscreen.tsx"
     },
     {
@@ -6579,7 +6579,7 @@
       "source_file": "KineticApp/src/screens/ActiveSessionScreen.tsx",
       "source_location": "L12",
       "id": "screens_activesessionscreen_setdata",
-      "community": 14,
+      "community": 25,
       "norm_label": "setdata"
     },
     {
@@ -6588,7 +6588,7 @@
       "source_file": "KineticApp/src/screens/ActiveSessionScreen.tsx",
       "source_location": "L22",
       "id": "screens_activesessionscreen_localdatestring",
-      "community": 14,
+      "community": 25,
       "norm_label": "localdatestring()"
     },
     {
@@ -6597,7 +6597,7 @@
       "source_file": "KineticApp/src/screens/ActiveSessionScreen.tsx",
       "source_location": "L29",
       "id": "screens_activesessionscreen_activesessionscreen",
-      "community": 55,
+      "community": 13,
       "norm_label": "activesessionscreen()"
     },
     {
@@ -6606,7 +6606,7 @@
       "source_file": "KineticApp/src/screens/ActiveSessionScreen.tsx",
       "source_location": "L325",
       "id": "screens_activesessionscreen_styles",
-      "community": 14,
+      "community": 25,
       "norm_label": "styles"
     },
     {
@@ -6822,7 +6822,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L323",
       "id": "screens_profilescreen_protocolsection",
-      "community": 50,
+      "community": 51,
       "norm_label": "protocolsection()"
     },
     {
@@ -6885,7 +6885,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L550",
       "id": "screens_profilescreen_anamnesismodal",
-      "community": 50,
+      "community": 51,
       "norm_label": "anamnesismodal()"
     },
     {
@@ -7029,7 +7029,7 @@
       "source_file": "KineticApp/src/screens/SocialScreen.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_screens_socialscreen_tsx",
-      "community": 17,
+      "community": 13,
       "norm_label": "socialscreen.tsx"
     },
     {
@@ -7038,7 +7038,7 @@
       "source_file": "KineticApp/src/screens/SocialScreen.tsx",
       "source_location": "L38",
       "id": "screens_socialscreen_socialscreen",
-      "community": 17,
+      "community": 13,
       "norm_label": "socialscreen()"
     },
     {
@@ -7047,7 +7047,7 @@
       "source_file": "KineticApp/src/screens/SocialScreen.tsx",
       "source_location": "L289",
       "id": "screens_socialscreen_styles",
-      "community": 17,
+      "community": 13,
       "norm_label": "styles"
     },
     {
@@ -7299,7 +7299,7 @@
       "source_file": "KineticApp/src/screens/WorkoutScreen.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_screens_workoutscreen_tsx",
-      "community": 24,
+      "community": 15,
       "norm_label": "workoutscreen.tsx"
     },
     {
@@ -7308,7 +7308,7 @@
       "source_file": "KineticApp/src/screens/WorkoutScreen.tsx",
       "source_location": "L12",
       "id": "screens_workoutscreen_exercise",
-      "community": 24,
+      "community": 15,
       "norm_label": "exercise"
     },
     {
@@ -7317,7 +7317,7 @@
       "source_file": "KineticApp/src/screens/WorkoutScreen.tsx",
       "source_location": "L23",
       "id": "screens_workoutscreen_props",
-      "community": 24,
+      "community": 15,
       "norm_label": "props"
     },
     {
@@ -7326,7 +7326,7 @@
       "source_file": "KineticApp/src/screens/WorkoutScreen.tsx",
       "source_location": "L27",
       "id": "screens_workoutscreen_viewmode",
-      "community": 24,
+      "community": 15,
       "norm_label": "viewmode"
     },
     {
@@ -7335,7 +7335,7 @@
       "source_file": "KineticApp/src/screens/WorkoutScreen.tsx",
       "source_location": "L29",
       "id": "screens_workoutscreen_musclestyle",
-      "community": 24,
+      "community": 15,
       "norm_label": "musclestyle"
     },
     {
@@ -7344,7 +7344,7 @@
       "source_file": "KineticApp/src/screens/WorkoutScreen.tsx",
       "source_location": "L34",
       "id": "screens_workoutscreen_workoutscreen",
-      "community": 24,
+      "community": 15,
       "norm_label": "workoutscreen()"
     },
     {
@@ -7353,7 +7353,7 @@
       "source_file": "KineticApp/src/screens/WorkoutScreen.tsx",
       "source_location": "L285",
       "id": "screens_workoutscreen_styles",
-      "community": 24,
+      "community": 15,
       "norm_label": "styles"
     },
     {
@@ -7477,7 +7477,7 @@
       "label": "LoginScreen()",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/Auth/LoginScreen.tsx",
-      "source_location": "L159",
+      "source_location": "L162",
       "id": "auth_loginscreen_loginscreen",
       "community": 32,
       "norm_label": "loginscreen()"
@@ -7486,7 +7486,7 @@
       "label": "styles",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/Auth/LoginScreen.tsx",
-      "source_location": "L317",
+      "source_location": "L320",
       "id": "auth_loginscreen_styles",
       "community": 32,
       "norm_label": "styles"
@@ -7738,7 +7738,7 @@
       "label": "ResetPasswordScreen()",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/Auth/ResetPasswordScreen.tsx",
-      "source_location": "L28",
+      "source_location": "L31",
       "id": "auth_resetpasswordscreen_resetpasswordscreen",
       "community": 12,
       "norm_label": "resetpasswordscreen()"
@@ -7747,7 +7747,7 @@
       "label": "styles",
       "file_type": "code",
       "source_file": "KineticApp/src/screens/Auth/ResetPasswordScreen.tsx",
-      "source_location": "L153",
+      "source_location": "L156",
       "id": "auth_resetpasswordscreen_styles",
       "community": 12,
       "norm_label": "styles"
@@ -7758,7 +7758,7 @@
       "source_file": "KineticApp/src/screens/Auth/VerifyCodeScreen.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_screens_auth_verifycodescreen_tsx",
-      "community": 18,
+      "community": 12,
       "norm_label": "verifycodescreen.tsx"
     },
     {
@@ -7767,7 +7767,7 @@
       "source_file": "KineticApp/src/screens/Auth/VerifyCodeScreen.tsx",
       "source_location": "L17",
       "id": "auth_verifycodescreen_props",
-      "community": 18,
+      "community": 12,
       "norm_label": "props"
     },
     {
@@ -7776,7 +7776,7 @@
       "source_file": "KineticApp/src/screens/Auth/VerifyCodeScreen.tsx",
       "source_location": "L21",
       "id": "auth_verifycodescreen_verifycodescreen",
-      "community": 18,
+      "community": 12,
       "norm_label": "verifycodescreen()"
     },
     {
@@ -7785,7 +7785,7 @@
       "source_file": "KineticApp/src/screens/Auth/VerifyCodeScreen.tsx",
       "source_location": "L71",
       "id": "auth_verifycodescreen_styles",
-      "community": 18,
+      "community": 12,
       "norm_label": "styles"
     },
     {
@@ -8172,7 +8172,7 @@
       "source_file": "KineticApp/src/services/api.ts",
       "source_location": "L36",
       "id": "services_api_setsignouthandler",
-      "community": 48,
+      "community": 35,
       "norm_label": "setsignouthandler()"
     },
     {
@@ -8226,7 +8226,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L1",
       "id": "kineticapp_src_services_socialservice_ts",
-      "community": 17,
+      "community": 13,
       "norm_label": "socialservice.ts"
     },
     {
@@ -8235,7 +8235,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L15",
       "id": "services_socialservice_avatarfallback",
-      "community": 26,
+      "community": 48,
       "norm_label": "avatarfallback()"
     },
     {
@@ -8244,7 +8244,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L18",
       "id": "services_socialservice_searchusers",
-      "community": 37,
+      "community": 30,
       "norm_label": "searchusers()"
     },
     {
@@ -8253,7 +8253,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L23",
       "id": "services_socialservice_getpendingrequests",
-      "community": 17,
+      "community": 13,
       "norm_label": "getpendingrequests()"
     },
     {
@@ -8262,7 +8262,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L28",
       "id": "services_socialservice_sendconnection",
-      "community": 37,
+      "community": 30,
       "norm_label": "sendconnection()"
     },
     {
@@ -8271,7 +8271,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L33",
       "id": "services_socialservice_acceptconnection",
-      "community": 17,
+      "community": 30,
       "norm_label": "acceptconnection()"
     },
     {
@@ -8280,7 +8280,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L37",
       "id": "services_socialservice_removeconnection",
-      "community": 17,
+      "community": 30,
       "norm_label": "removeconnection()"
     },
     {
@@ -8289,7 +8289,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L41",
       "id": "services_socialservice_toggleinsquad",
-      "community": 17,
+      "community": 13,
       "norm_label": "toggleinsquad()"
     },
     {
@@ -8298,7 +8298,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L45",
       "id": "services_socialservice_getsquad",
-      "community": 17,
+      "community": 13,
       "norm_label": "getsquad()"
     },
     {
@@ -8307,7 +8307,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L50",
       "id": "services_socialservice_getsquadstatus",
-      "community": 17,
+      "community": 13,
       "norm_label": "getsquadstatus()"
     },
     {
@@ -8316,7 +8316,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L55",
       "id": "services_socialservice_getfeed",
-      "community": 17,
+      "community": 13,
       "norm_label": "getfeed()"
     },
     {
@@ -8334,7 +8334,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L66",
       "id": "services_socialservice_getstories",
-      "community": 17,
+      "community": 13,
       "norm_label": "getstories()"
     },
     {
@@ -8343,7 +8343,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L71",
       "id": "services_socialservice_createstory",
-      "community": 17,
+      "community": 13,
       "norm_label": "createstory()"
     },
     {
@@ -8352,7 +8352,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L76",
       "id": "services_socialservice_likepost",
-      "community": 17,
+      "community": 13,
       "norm_label": "likepost()"
     },
     {
@@ -8361,7 +8361,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L81",
       "id": "services_socialservice_unlikepost",
-      "community": 17,
+      "community": 13,
       "norm_label": "unlikepost()"
     },
     {
@@ -8370,7 +8370,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L86",
       "id": "services_socialservice_getcomments",
-      "community": 26,
+      "community": 47,
       "norm_label": "getcomments()"
     },
     {
@@ -8379,7 +8379,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L91",
       "id": "services_socialservice_addcomment",
-      "community": 26,
+      "community": 47,
       "norm_label": "addcomment()"
     },
     {
@@ -8388,7 +8388,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L96",
       "id": "services_socialservice_startworkoutpresence",
-      "community": 55,
+      "community": 13,
       "norm_label": "startworkoutpresence()"
     },
     {
@@ -8397,7 +8397,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L101",
       "id": "services_socialservice_endworkoutpresence",
-      "community": 55,
+      "community": 13,
       "norm_label": "endworkoutpresence()"
     },
     {
@@ -8559,7 +8559,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L1",
       "id": "kineticapp_src_types_index_ts",
-      "community": 16,
+      "community": 20,
       "norm_label": "index.ts"
     },
     {
@@ -8568,7 +8568,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L1",
       "id": "types_index_setlogdto",
-      "community": 16,
+      "community": 20,
       "norm_label": "setlogdto"
     },
     {
@@ -8577,7 +8577,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L8",
       "id": "types_index_logsessionrequestdto",
-      "community": 16,
+      "community": 20,
       "norm_label": "logsessionrequestdto"
     },
     {
@@ -8604,7 +8604,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L22",
       "id": "types_index_volumebymusclegroupdto",
-      "community": 16,
+      "community": 20,
       "norm_label": "volumebymusclegroupdto"
     },
     {
@@ -8613,7 +8613,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L31",
       "id": "types_index_weightpointdto",
-      "community": 16,
+      "community": 20,
       "norm_label": "weightpointdto"
     },
     {
@@ -8631,7 +8631,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L46",
       "id": "types_index_volumesummarydto",
-      "community": 16,
+      "community": 20,
       "norm_label": "volumesummarydto"
     },
     {
@@ -8640,7 +8640,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L54",
       "id": "types_index_communitycomparisondto",
-      "community": 16,
+      "community": 20,
       "norm_label": "communitycomparisondto"
     },
     {
@@ -8658,7 +8658,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L66",
       "id": "types_index_statssummaryresponsedto",
-      "community": 16,
+      "community": 20,
       "norm_label": "statssummaryresponsedto"
     },
     {
@@ -8694,7 +8694,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L121",
       "id": "types_index_weeklyactivitydayapidto",
-      "community": 16,
+      "community": 20,
       "norm_label": "weeklyactivitydayapidto"
     },
     {
@@ -8703,7 +8703,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L128",
       "id": "types_index_weeklyactivityapiresponsedto",
-      "community": 16,
+      "community": 20,
       "norm_label": "weeklyactivityapiresponsedto"
     },
     {
@@ -8739,7 +8739,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L178",
       "id": "types_index_updateweightrequestdto",
-      "community": 16,
+      "community": 20,
       "norm_label": "updateweightrequestdto"
     },
     {
@@ -8748,7 +8748,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L184",
       "id": "types_index_presencestatus",
-      "community": 16,
+      "community": 20,
       "norm_label": "presencestatus"
     },
     {
@@ -8757,7 +8757,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L185",
       "id": "types_index_connectionstate",
-      "community": 37,
+      "community": 30,
       "norm_label": "connectionstate"
     },
     {
@@ -8775,7 +8775,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L188",
       "id": "types_index_squadmember",
-      "community": 17,
+      "community": 13,
       "norm_label": "squadmember"
     },
     {
@@ -8784,7 +8784,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L196",
       "id": "types_index_feedauthor",
-      "community": 16,
+      "community": 20,
       "norm_label": "feedauthor"
     },
     {
@@ -8793,7 +8793,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L202",
       "id": "types_index_feedpostdata",
-      "community": 26,
+      "community": 48,
       "norm_label": "feedpostdata"
     },
     {
@@ -8802,7 +8802,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L218",
       "id": "types_index_story",
-      "community": 16,
+      "community": 13,
       "norm_label": "story"
     },
     {
@@ -8811,7 +8811,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L228",
       "id": "types_index_storygroup",
-      "community": 17,
+      "community": 46,
       "norm_label": "storygroup"
     },
     {
@@ -8820,7 +8820,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L235",
       "id": "types_index_createstoryrequest",
-      "community": 16,
+      "community": 13,
       "norm_label": "createstoryrequest"
     },
     {
@@ -8829,7 +8829,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L240",
       "id": "types_index_usercard",
-      "community": 37,
+      "community": 30,
       "norm_label": "usercard"
     },
     {
@@ -8838,7 +8838,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L247",
       "id": "types_index_pendingrequest",
-      "community": 54,
+      "community": 55,
       "norm_label": "pendingrequest"
     },
     {
@@ -8847,7 +8847,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L256",
       "id": "types_index_comment",
-      "community": 26,
+      "community": 47,
       "norm_label": "comment"
     },
     {
@@ -8856,7 +8856,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L265",
       "id": "types_index_createpostrequest",
-      "community": 16,
+      "community": 20,
       "norm_label": "createpostrequest"
     },
     {
@@ -8865,7 +8865,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L275",
       "id": "types_index_page",
-      "community": 16,
+      "community": 13,
       "norm_label": "page"
     },
     {
@@ -8874,7 +8874,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L283",
       "id": "types_index_userprofileresponse",
-      "community": 16,
+      "community": 20,
       "norm_label": "userprofileresponse"
     },
     {
@@ -8883,7 +8883,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L307",
       "id": "types_index_generateworkoutrequest",
-      "community": 16,
+      "community": 20,
       "norm_label": "generateworkoutrequest"
     },
     {
@@ -9297,7 +9297,7 @@
       "source_file": "Plan/Altera\u00e7\u00e3oAuthScreen.md",
       "source_location": "L1",
       "id": "plan_altera_oauthscreen_md",
-      "community": 28,
+      "community": 27,
       "norm_label": "alteracaoauthscreen.md"
     },
     {
@@ -9306,7 +9306,7 @@
       "source_file": "Plan/Altera\u00e7\u00e3oAuthScreen.md",
       "source_location": "L1",
       "id": "plan_altera_oauthscreen_plano_novo_fluxo_de_login_boas_vindas_face_id_para_usu_rio_recorrente",
-      "community": 28,
+      "community": 27,
       "norm_label": "plano \u2014 novo fluxo de login (boas-vindas + face id para usuario recorrente)"
     },
     {
@@ -9315,7 +9315,7 @@
       "source_file": "Plan/Altera\u00e7\u00e3oAuthScreen.md",
       "source_location": "L3",
       "id": "plan_altera_oauthscreen_contexto",
-      "community": 28,
+      "community": 27,
       "norm_label": "contexto"
     },
     {
@@ -9324,7 +9324,7 @@
       "source_file": "Plan/Altera\u00e7\u00e3oAuthScreen.md",
       "source_location": "L27",
       "id": "plan_altera_oauthscreen_depend_ncias_novas_frontend",
-      "community": 28,
+      "community": 27,
       "norm_label": "dependencias novas (frontend)"
     },
     {
@@ -9333,7 +9333,7 @@
       "source_file": "Plan/Altera\u00e7\u00e3oAuthScreen.md",
       "source_location": "L30",
       "id": "plan_altera_oauthscreen_codeblock_1",
-      "community": 28,
+      "community": 27,
       "norm_label": "code:block1 (npx expo install expo-local-authentication expo-secure-store)"
     },
     {
@@ -9342,7 +9342,7 @@
       "source_file": "Plan/Altera\u00e7\u00e3oAuthScreen.md",
       "source_location": "L41",
       "id": "plan_altera_oauthscreen_mudan_as",
-      "community": 28,
+      "community": 27,
       "norm_label": "mudancas"
     },
     {
@@ -9351,7 +9351,7 @@
       "source_file": "Plan/Altera\u00e7\u00e3oAuthScreen.md",
       "source_location": "L43",
       "id": "plan_altera_oauthscreen_1_armazenamento_seguro_de_tokens_novo_m_dulo_tokenstorage",
-      "community": 28,
+      "community": 27,
       "norm_label": "1. armazenamento seguro de tokens \u2014 novo modulo `tokenstorage`"
     },
     {
@@ -9360,7 +9360,7 @@
       "source_file": "Plan/Altera\u00e7\u00e3oAuthScreen.md",
       "source_location": "L62",
       "id": "plan_altera_oauthscreen_2_conceito_de_usu_rio_lembrado_desbloqueio_authcontext_tsx",
-      "community": 28,
+      "community": 27,
       "norm_label": "2. conceito de \"usuario lembrado\" + desbloqueio \u2014 `authcontext.tsx`"
     },
     {
@@ -9369,7 +9369,7 @@
       "source_file": "Plan/Altera\u00e7\u00e3oAuthScreen.md",
       "source_location": "L84",
       "id": "plan_altera_oauthscreen_3_telas_novas",
-      "community": 28,
+      "community": 27,
       "norm_label": "3. telas novas"
     },
     {
@@ -9378,7 +9378,7 @@
       "source_file": "Plan/Altera\u00e7\u00e3oAuthScreen.md",
       "source_location": "L111",
       "id": "plan_altera_oauthscreen_4_roteamento_approutes_tsx",
-      "community": 28,
+      "community": 27,
       "norm_label": "4. roteamento \u2014 `approutes.tsx`"
     },
     {
@@ -9387,7 +9387,7 @@
       "source_file": "Plan/Altera\u00e7\u00e3oAuthScreen.md",
       "source_location": "L117",
       "id": "plan_altera_oauthscreen_5_ajuste_no_loginscreen_js",
-      "community": 28,
+      "community": 27,
       "norm_label": "5. ajuste no `loginscreen.js`"
     },
     {
@@ -9396,7 +9396,7 @@
       "source_file": "Plan/Altera\u00e7\u00e3oAuthScreen.md",
       "source_location": "L122",
       "id": "plan_altera_oauthscreen_6_bootstrap_sem_piscar_de_tela_splash_at_estar_pronto",
-      "community": 28,
+      "community": 27,
       "norm_label": "6. bootstrap sem \"piscar\" de tela \u2014 splash ate estar pronto"
     },
     {
@@ -9405,7 +9405,7 @@
       "source_file": "Plan/Altera\u00e7\u00e3oAuthScreen.md",
       "source_location": "L137",
       "id": "plan_altera_oauthscreen_reaproveitamento",
-      "community": 28,
+      "community": 27,
       "norm_label": "reaproveitamento"
     },
     {
@@ -9414,7 +9414,7 @@
       "source_file": "Plan/Altera\u00e7\u00e3oAuthScreen.md",
       "source_location": "L146",
       "id": "plan_altera_oauthscreen_verifica_o_end_to_end",
-      "community": 28,
+      "community": 27,
       "norm_label": "verificacao (end-to-end)"
     },
     {
@@ -9513,7 +9513,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L1",
       "id": "plan_design1_md",
-      "community": 19,
+      "community": 18,
       "norm_label": "design1.md"
     },
     {
@@ -9522,7 +9522,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L1",
       "id": "plan_design1_design_system_specification_high_performance_athleticism",
-      "community": 19,
+      "community": 18,
       "norm_label": "design system specification: high-performance athleticism"
     },
     {
@@ -9531,7 +9531,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L3",
       "id": "plan_design1_1_overview_creative_north_star_the_digital_kineticist",
-      "community": 19,
+      "community": 18,
       "norm_label": "1. overview & creative north star: \"the digital kineticist\""
     },
     {
@@ -9540,7 +9540,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L10",
       "id": "plan_design1_2_colors_tonal_depth_the_neon_pulse",
-      "community": 19,
+      "community": 18,
       "norm_label": "2. colors: tonal depth & the neon pulse"
     },
     {
@@ -9549,7 +9549,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L13",
       "id": "plan_design1_palette_highlights",
-      "community": 19,
+      "community": 18,
       "norm_label": "palette highlights"
     },
     {
@@ -9558,7 +9558,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L19",
       "id": "plan_design1_the_no_line_rule",
-      "community": 19,
+      "community": 18,
       "norm_label": "the \"no-line\" rule"
     },
     {
@@ -9567,7 +9567,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L22",
       "id": "plan_design1_surface_hierarchy_nesting",
-      "community": 19,
+      "community": 18,
       "norm_label": "surface hierarchy & nesting"
     },
     {
@@ -9576,7 +9576,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L29",
       "id": "plan_design1_the_glass_gradient_rule",
-      "community": 19,
+      "community": 18,
       "norm_label": "the \"glass & gradient\" rule"
     },
     {
@@ -9585,7 +9585,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L34",
       "id": "plan_design1_3_typography_editorial_authority",
-      "community": 19,
+      "community": 18,
       "norm_label": "3. typography: editorial authority"
     },
     {
@@ -9594,7 +9594,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L47",
       "id": "plan_design1_4_elevation_depth_tonal_layering",
-      "community": 19,
+      "community": 18,
       "norm_label": "4. elevation & depth: tonal layering"
     },
     {
@@ -9603,7 +9603,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L56",
       "id": "plan_design1_5_components_the_athletic_kit",
-      "community": 19,
+      "community": 18,
       "norm_label": "5. components: the athletic kit"
     },
     {
@@ -9612,7 +9612,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L58",
       "id": "plan_design1_buttons_the_kinetic_drivers",
-      "community": 19,
+      "community": 18,
       "norm_label": "buttons (the kinetic drivers)"
     },
     {
@@ -9621,7 +9621,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L63",
       "id": "plan_design1_cards_lists_the_performance_modules",
-      "community": 19,
+      "community": 18,
       "norm_label": "cards & lists (the performance modules)"
     },
     {
@@ -9630,7 +9630,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L67",
       "id": "plan_design1_input_fields",
-      "community": 19,
+      "community": 18,
       "norm_label": "input fields"
     },
     {
@@ -9639,7 +9639,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L71",
       "id": "plan_design1_specialized_fitness_components",
-      "community": 19,
+      "community": 18,
       "norm_label": "specialized fitness components"
     },
     {
@@ -9648,7 +9648,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L77",
       "id": "plan_design1_6_do_s_and_don_ts",
-      "community": 19,
+      "community": 18,
       "norm_label": "6. do\u2019s and don\u2019ts"
     },
     {
@@ -9657,7 +9657,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L79",
       "id": "plan_design1_do",
-      "community": 19,
+      "community": 18,
       "norm_label": "do"
     },
     {
@@ -9666,7 +9666,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L85",
       "id": "plan_design1_don_t",
-      "community": 19,
+      "community": 18,
       "norm_label": "don't"
     },
     {
@@ -9684,7 +9684,7 @@
       "source_file": "Plan/PerfilLogoffButton.md",
       "source_location": "L1",
       "id": "plan_perfillogoffbutton_md",
-      "community": 51,
+      "community": 52,
       "norm_label": "perfillogoffbutton.md"
     },
     {
@@ -9693,7 +9693,7 @@
       "source_file": "Plan/PerfilLogoffButton.md",
       "source_location": "L7",
       "id": "plan_perfillogoffbutton_1_front_end_camada_de_contexto_authcontext_tsx",
-      "community": 51,
+      "community": 52,
       "norm_label": "1. front-end: camada de contexto (`authcontext.tsx`)"
     },
     {
@@ -9702,7 +9702,7 @@
       "source_file": "Plan/PerfilLogoffButton.md",
       "source_location": "L18",
       "id": "plan_perfillogoffbutton_2_front_end_ui_do_modal_profilescreen_tsx",
-      "community": 51,
+      "community": 52,
       "norm_label": "2. front-end: ui do modal (profilescreen.tsx)"
     },
     {
@@ -9711,7 +9711,7 @@
       "source_file": "Plan/PerfilLogoffButton.md",
       "source_location": "L22",
       "id": "plan_perfillogoffbutton_2_1_tokens_de_estiliza_o_e_specs_visuais_image_reference",
-      "community": 51,
+      "community": 52,
       "norm_label": "2.1. tokens de estilizacao e specs visuais (image reference)"
     },
     {
@@ -9720,7 +9720,7 @@
       "source_file": "Plan/PerfilLogoffButton.md",
       "source_location": "L35",
       "id": "plan_perfillogoffbutton_3_l_gica_de_integra_o_e_fluxo",
-      "community": 51,
+      "community": 52,
       "norm_label": "3. logica de integracao e fluxo"
     },
     {
@@ -9729,7 +9729,7 @@
       "source_file": "Plan/PerfilLogoffButton.md",
       "source_location": "L39",
       "id": "plan_perfillogoffbutton_3_1_controle_de_estado_do_modal",
-      "community": 51,
+      "community": 52,
       "norm_label": "3.1. controle de estado do modal"
     },
     {
@@ -9792,7 +9792,7 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L1",
       "id": "plan_plan_md",
-      "community": 29,
+      "community": 28,
       "norm_label": "plan.md"
     },
     {
@@ -9801,7 +9801,7 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L1",
       "id": "plan_plan_plano_de_implementa_o_blindagem_de_dados_ux_e_dashboard_de_desempenho",
-      "community": 29,
+      "community": 28,
       "norm_label": "\ud83d\ude80 plano de implementacao: blindagem de dados, ux e dashboard de desempenho"
     },
     {
@@ -9810,7 +9810,7 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L3",
       "id": "plan_plan_1_vis_o_geral",
-      "community": 29,
+      "community": 28,
       "norm_label": "1. visao geral"
     },
     {
@@ -9819,7 +9819,7 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L6",
       "id": "plan_plan_2_refatora_o_back_end_blindagem_de_dados_java",
-      "community": 29,
+      "community": 28,
       "norm_label": "2. refatoracao back-end: blindagem de dados (java)"
     },
     {
@@ -9828,7 +9828,7 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L9",
       "id": "plan_plan_a_atualiza_o_do_setlogdto_java",
-      "community": 29,
+      "community": 28,
       "norm_label": "a. atualizacao do `setlogdto.java`"
     },
     {
@@ -9837,7 +9837,7 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L15",
       "id": "plan_plan_3_refatora_o_front_end_activesessionscreen_tsx_ux_e_valida_es",
-      "community": 29,
+      "community": 28,
       "norm_label": "3. refatoracao front-end: activesessionscreen.tsx (ux e validacoes)"
     },
     {
@@ -9846,7 +9846,7 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L18",
       "id": "plan_plan_a_valida_o_individual_de_s_rie_bot_o_check",
-      "community": 29,
+      "community": 28,
       "norm_label": "a. validacao individual de serie (botao check)"
     },
     {
@@ -9855,7 +9855,7 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L25",
       "id": "plan_plan_b_novo_bot_o_sair_da_sess_o_texto_cinzento",
-      "community": 29,
+      "community": 28,
       "norm_label": "b. novo botao: \"sair da sessao\" (texto cinzento)"
     },
     {
@@ -9864,7 +9864,7 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L34",
       "id": "plan_plan_c_bot_o_principal_finalizar_treino_ciano",
-      "community": 29,
+      "community": 28,
       "norm_label": "c. botao principal: \"finalizar treino\" (ciano)"
     },
     {
@@ -9873,7 +9873,7 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L38",
       "id": "plan_plan_4_statsscreen_e_evolu_o_mensal_typescript_gifted_charts",
-      "community": 29,
+      "community": 28,
       "norm_label": "4. statsscreen e evolucao mensal (typescript & gifted charts)"
     },
     {
@@ -9882,7 +9882,7 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L41",
       "id": "plan_plan_a_dashboards_visuais_statsscreen_tsx",
-      "community": 29,
+      "community": 28,
       "norm_label": "a. dashboards visuais (statsscreen.tsx)"
     },
     {
@@ -9891,7 +9891,7 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L46",
       "id": "plan_plan_b_evolutionmodal_tsx_gatilho_de_30_dias",
-      "community": 29,
+      "community": 28,
       "norm_label": "b. evolutionmodal.tsx (gatilho de 30 dias)"
     },
     {
@@ -9900,7 +9900,7 @@
       "source_file": "Plan/PLAN.md",
       "source_location": "L50",
       "id": "plan_plan_5_diretrizes_t_cnicas_para_o_agente_ide",
-      "community": 29,
+      "community": 28,
       "norm_label": "5. diretrizes tecnicas para o agente (ide)"
     },
     {
@@ -9909,7 +9909,7 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L1",
       "id": "plan_plano_md",
-      "community": 30,
+      "community": 29,
       "norm_label": "plano.md"
     },
     {
@@ -9918,7 +9918,7 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L1",
       "id": "plan_plano_plano_de_implementa_o_check_in_din_mico_e_tracking_mensal",
-      "community": 30,
+      "community": 29,
       "norm_label": "\u23f1\ufe0f plano de implementacao: check-in dinamico e tracking mensal"
     },
     {
@@ -9927,7 +9927,7 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L3",
       "id": "plan_plano_1_vis_o_geral",
-      "community": 30,
+      "community": 29,
       "norm_label": "1. visao geral"
     },
     {
@@ -9936,7 +9936,7 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L6",
       "id": "plan_plano_2_regras_de_neg_cio_e_l_gica_matem_tica",
-      "community": 30,
+      "community": 29,
       "norm_label": "2. regras de negocio e logica matematica"
     },
     {
@@ -9945,7 +9945,7 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L11",
       "id": "plan_plano_3_back_end_spring_boot_3_2_x_java_17",
-      "community": 30,
+      "community": 29,
       "norm_label": "3. back-end (spring boot 3.2.x - java 17)"
     },
     {
@@ -9954,7 +9954,7 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L13",
       "id": "plan_plano_a_nova_entidade_e_tabela_workoutsession",
-      "community": 30,
+      "community": 29,
       "norm_label": "a. nova entidade e tabela (`workoutsession`)"
     },
     {
@@ -9963,7 +9963,7 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L17",
       "id": "plan_plano_b_novo_endpoint_de_registro",
-      "community": 30,
+      "community": 29,
       "norm_label": "b. novo endpoint de registro"
     },
     {
@@ -9972,7 +9972,7 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L22",
       "id": "plan_plano_c_novo_endpoint_de_estat_sticas",
-      "community": 30,
+      "community": 29,
       "norm_label": "c. novo endpoint de estatisticas"
     },
     {
@@ -9981,7 +9981,7 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L29",
       "id": "plan_plano_4_front_end_react_native",
-      "community": 30,
+      "community": 29,
       "norm_label": "4. front-end (react native)"
     },
     {
@@ -9990,7 +9990,7 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L31",
       "id": "plan_plano_a_gerenciamento_de_estado_usestate",
-      "community": 30,
+      "community": 29,
       "norm_label": "a. gerenciamento de estado (usestate)"
     },
     {
@@ -9999,7 +9999,7 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L36",
       "id": "plan_plano_b_hook_do_cron_metro_useeffect",
-      "community": 30,
+      "community": 29,
       "norm_label": "b. hook do cronometro (useeffect)"
     },
     {
@@ -10008,7 +10008,7 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L40",
       "id": "plan_plano_c_atualiza_o_da_ui_design_existente",
-      "community": 30,
+      "community": 29,
       "norm_label": "c. atualizacao da ui (design existente)"
     },
     {
@@ -10017,7 +10017,7 @@
       "source_file": "Plan/PLANO.md",
       "source_location": "L45",
       "id": "plan_plano_d_integra_o_axios",
-      "community": 30,
+      "community": 29,
       "norm_label": "d. integracao (axios)"
     },
     {
@@ -10125,7 +10125,7 @@
       "source_file": "Plan/PLANOREFATORA\u00c7\u00c3O.md",
       "source_location": "L1",
       "id": "plan_planorefatora_o_md",
-      "community": 46,
+      "community": 49,
       "norm_label": "planorefatoracao.md"
     },
     {
@@ -10134,7 +10134,7 @@
       "source_file": "Plan/PLANOREFATORA\u00c7\u00c3O.md",
       "source_location": "L1",
       "id": "plan_planorefatora_o_plano_de_refatora_o_onboarding_flow_react_tsx_estrito",
-      "community": 46,
+      "community": 49,
       "norm_label": "plano de refatoracao: onboarding flow (react -> tsx estrito)"
     },
     {
@@ -10143,7 +10143,7 @@
       "source_file": "Plan/PLANOREFATORA\u00c7\u00c3O.md",
       "source_location": "L3",
       "id": "plan_planorefatora_o_objetivo",
-      "community": 46,
+      "community": 49,
       "norm_label": "objetivo"
     },
     {
@@ -10152,7 +10152,7 @@
       "source_file": "Plan/PLANOREFATORA\u00c7\u00c3O.md",
       "source_location": "L6",
       "id": "plan_planorefatora_o_diretrizes_de_tipagem_strict_typescript",
-      "community": 46,
+      "community": 49,
       "norm_label": "diretrizes de tipagem (strict typescript)"
     },
     {
@@ -10161,7 +10161,7 @@
       "source_file": "Plan/PLANOREFATORA\u00c7\u00c3O.md",
       "source_location": "L26",
       "id": "plan_planorefatora_o_tarefa_1_substitui_o_de_idade_por_data_de_nascimento",
-      "community": 46,
+      "community": 49,
       "norm_label": "tarefa 1: substituicao de \"idade\" por \"data de nascimento\""
     },
     {
@@ -10170,7 +10170,7 @@
       "source_file": "Plan/PLANOREFATORA\u00c7\u00c3O.md",
       "source_location": "L32",
       "id": "plan_planorefatora_o_tarefa_2_cria_o_da_etapa_de_anamnese",
-      "community": 46,
+      "community": 49,
       "norm_label": "tarefa 2: criacao da etapa de anamnese"
     },
     {
@@ -10179,7 +10179,7 @@
       "source_file": "Plan/PLANOREFATORA\u00c7\u00c3O.md",
       "source_location": "L38",
       "id": "plan_planorefatora_o_tarefa_3_atualiza_o_do_controlador_principal_onboardingflow",
-      "community": 46,
+      "community": 49,
       "norm_label": "tarefa 3: atualizacao do controlador principal (`onboardingflow`)"
     },
     {
@@ -10188,7 +10188,7 @@
       "source_file": "Plan/REFACTOR_HOME_PLAN.md",
       "source_location": "L1",
       "id": "plan_refactor_home_plan_md",
-      "community": 35,
+      "community": 36,
       "norm_label": "refactor_home_plan.md"
     },
     {
@@ -10197,7 +10197,7 @@
       "source_file": "Plan/REFACTOR_HOME_PLAN.md",
       "source_location": "L1",
       "id": "plan_refactor_home_plan_plano_de_refatora_o_home_screen_fluxo_de_treino_kinetic_app",
-      "community": 35,
+      "community": 36,
       "norm_label": "plano de refatoracao: home screen & fluxo de treino (kinetic app)"
     },
     {
@@ -10206,7 +10206,7 @@
       "source_file": "Plan/REFACTOR_HOME_PLAN.md",
       "source_location": "L7",
       "id": "plan_refactor_home_plan_1_back_end_intelig_ncia_e_persist_ncia_java_spring_boot",
-      "community": 35,
+      "community": 36,
       "norm_label": "1. back-end: inteligencia e persistencia (java spring boot)"
     },
     {
@@ -10215,7 +10215,7 @@
       "source_file": "Plan/REFACTOR_HOME_PLAN.md",
       "source_location": "L9",
       "id": "plan_refactor_home_plan_1_1_status_de_onboarding_do_usu_rio",
-      "community": 35,
+      "community": 36,
       "norm_label": "1.1. status de onboarding do usuario"
     },
     {
@@ -10224,7 +10224,7 @@
       "source_file": "Plan/REFACTOR_HOME_PLAN.md",
       "source_location": "L14",
       "id": "plan_refactor_home_plan_1_2_l_gica_de_pr_xima_ficha_dispon_vel",
-      "community": 35,
+      "community": 36,
       "norm_label": "1.2. logica de \"proxima ficha disponivel\""
     },
     {
@@ -10233,7 +10233,7 @@
       "source_file": "Plan/REFACTOR_HOME_PLAN.md",
       "source_location": "L26",
       "id": "plan_refactor_home_plan_2_front_end_ui_ux_e_navega_o_react_native_ts",
-      "community": 35,
+      "community": 36,
       "norm_label": "2. front-end: ui/ux e navegacao (react native + ts)"
     },
     {
@@ -10242,7 +10242,7 @@
       "source_file": "Plan/REFACTOR_HOME_PLAN.md",
       "source_location": "L28",
       "id": "plan_refactor_home_plan_2_1_reestrutura_o_da_navega_o",
-      "community": 35,
+      "community": 36,
       "norm_label": "2.1. reestruturacao da navegacao"
     },
     {
@@ -10251,7 +10251,7 @@
       "source_file": "Plan/REFACTOR_HOME_PLAN.md",
       "source_location": "L32",
       "id": "plan_refactor_home_plan_2_2_l_gica_de_redirecionamento_conditional_rendering",
-      "community": 35,
+      "community": 36,
       "norm_label": "2.2. logica de redirecionamento (conditional rendering)"
     },
     {
@@ -10260,7 +10260,7 @@
       "source_file": "Plan/REFACTOR_HOME_PLAN.md",
       "source_location": "L37",
       "id": "plan_refactor_home_plan_2_3_refatora_o_visual_do_dashboard_design_premium",
-      "community": 35,
+      "community": 36,
       "norm_label": "2.3. refatoracao visual do dashboard (design premium)"
     },
     {
@@ -10269,7 +10269,7 @@
       "source_file": "Plan/REFACTOR_HOME_PLAN.md",
       "source_location": "L49",
       "id": "plan_refactor_home_plan_3_checklist_de_implementa_o",
-      "community": 35,
+      "community": 36,
       "norm_label": "3. checklist de implementacao"
     },
     {
@@ -10754,7 +10754,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/components/FeedPost.tsx",
       "source_location": "L13",
-      "community": 26,
+      "community": 48,
       "norm_label": "author",
       "id": "components_feedpost_author"
     },
@@ -10826,7 +10826,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/components/CustomInput.js",
       "source_location": "L1",
-      "community": 13,
+      "community": 14,
       "norm_label": "custominput.js",
       "id": "kineticapp_src_components_custominput_js"
     },
@@ -10835,7 +10835,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/components/ExerciseCard.js",
       "source_location": "L1",
-      "community": 52,
+      "community": 53,
       "norm_label": "exercisecard.js",
       "id": "kineticapp_src_components_exercisecard_js"
     },
@@ -10853,7 +10853,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/components/HeaderLogo.js",
       "source_location": "L1",
-      "community": 13,
+      "community": 14,
       "norm_label": "headerlogo.js",
       "id": "kineticapp_src_components_headerlogo_js"
     },
@@ -10862,7 +10862,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/components/PasswordRequirements.js",
       "source_location": "L1",
-      "community": 12,
+      "community": 14,
       "norm_label": "passwordrequirements.js",
       "id": "kineticapp_src_components_passwordrequirements_js"
     },
@@ -10871,7 +10871,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/components/PrimaryButton.js",
       "source_location": "L1",
-      "community": 13,
+      "community": 14,
       "norm_label": "primarybutton.js",
       "id": "kineticapp_src_components_primarybutton_js"
     },
@@ -10880,7 +10880,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/components/SerieCard.js",
       "source_location": "L1",
-      "community": 14,
+      "community": 25,
       "norm_label": "seriecard.js",
       "id": "kineticapp_src_components_seriecard_js"
     },
@@ -10898,7 +10898,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/components/ThemeToggle.js",
       "source_location": "L1",
-      "community": 18,
+      "community": 17,
       "norm_label": "themetoggle.js",
       "id": "kineticapp_src_components_themetoggle_js"
     },
@@ -10907,7 +10907,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/contexts/ThemeContext.js",
       "source_location": "L1",
-      "community": 13,
+      "community": 14,
       "norm_label": "themecontext.js",
       "id": "kineticapp_src_contexts_themecontext_js"
     },
@@ -10916,7 +10916,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/routes/AppRoutes.tsx",
       "source_location": "L23",
-      "community": 24,
+      "community": 15,
       "norm_label": "authcontextshape",
       "id": "routes_approutes_authcontextshape"
     },
@@ -10934,7 +10934,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/screens/WorkoutScreen.js",
       "source_location": "L1",
-      "community": 24,
+      "community": 15,
       "norm_label": "workoutscreen.js",
       "id": "kineticapp_src_screens_workoutscreen_js"
     },
@@ -10943,7 +10943,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/screens/Auth/ForgotPasswordScreen.js",
       "source_location": "L1",
-      "community": 13,
+      "community": 14,
       "norm_label": "forgotpasswordscreen.js",
       "id": "kineticapp_src_screens_auth_forgotpasswordscreen_js"
     },
@@ -10952,7 +10952,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/screens/Auth/LoginScreen.js",
       "source_location": "L1",
-      "community": 13,
+      "community": 14,
       "norm_label": "loginscreen.js",
       "id": "kineticapp_src_screens_auth_loginscreen_js"
     },
@@ -10961,7 +10961,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/screens/Auth/RegisterScreen.js",
       "source_location": "L1",
-      "community": 13,
+      "community": 14,
       "norm_label": "registerscreen.js",
       "id": "kineticapp_src_screens_auth_registerscreen_js"
     },
@@ -10970,7 +10970,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/screens/Auth/ResetPasswordScreen.js",
       "source_location": "L1",
-      "community": 13,
+      "community": 14,
       "norm_label": "resetpasswordscreen.js",
       "id": "kineticapp_src_screens_auth_resetpasswordscreen_js"
     },
@@ -10979,7 +10979,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/screens/Auth/VerifyCodeScreen.js",
       "source_location": "L1",
-      "community": 13,
+      "community": 14,
       "norm_label": "verifycodescreen.js",
       "id": "kineticapp_src_screens_auth_verifycodescreen_js"
     },
@@ -11060,7 +11060,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/components/AppHeader.js",
       "source_location": "L1",
-      "community": 14,
+      "community": 25,
       "norm_label": "appheader.js",
       "id": "kineticapp_src_components_appheader_js"
     },
@@ -11069,7 +11069,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/components/CustomDrawerContent.js",
       "source_location": "L1",
-      "community": 13,
+      "community": 35,
       "norm_label": "customdrawercontent.js",
       "id": "kineticapp_src_components_customdrawercontent_js"
     },
@@ -11078,7 +11078,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/components/CustomDrawerContent.js",
       "source_location": "L8",
-      "community": 13,
+      "community": 35,
       "norm_label": "customdrawercontent()",
       "id": "components_customdrawercontent_customdrawercontent"
     },
@@ -11087,7 +11087,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/components/CustomDrawerContent.js",
       "source_location": "L126",
-      "community": 13,
+      "community": 35,
       "norm_label": "styles",
       "id": "components_customdrawercontent_styles"
     },
@@ -11096,7 +11096,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/contexts/AuthContext.js",
       "source_location": "L1",
-      "community": 13,
+      "community": 35,
       "norm_label": "authcontext.js",
       "id": "kineticapp_src_contexts_authcontext_js"
     },
@@ -11105,7 +11105,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/routes/AppRoutes.js",
       "source_location": "L1",
-      "community": 13,
+      "community": 15,
       "norm_label": "approutes.js",
       "id": "kineticapp_src_routes_approutes_js"
     },
@@ -11114,7 +11114,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/routes/AppRoutes.js",
       "source_location": "L30",
-      "community": 13,
+      "community": 15,
       "norm_label": "drawer",
       "id": "routes_approutes_drawer"
     },
@@ -11123,7 +11123,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/routes/AppRoutes.js",
       "source_location": "L32",
-      "community": 13,
+      "community": 15,
       "norm_label": "tabnavigator()",
       "id": "routes_approutes_tabnavigator"
     },
@@ -11132,7 +11132,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/routes/AppRoutes.js",
       "source_location": "L55",
-      "community": 13,
+      "community": 15,
       "norm_label": "drawernavigator()",
       "id": "routes_approutes_drawernavigator"
     },
@@ -11204,7 +11204,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.js",
       "source_location": "L1",
-      "community": 13,
+      "community": 14,
       "norm_label": "onboardingscreen.js",
       "id": "kineticapp_src_screens_onboarding_onboardingscreen_js"
     },
@@ -11213,7 +11213,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/services/api.js",
       "source_location": "L1",
-      "community": 48,
+      "community": 35,
       "norm_label": "api.js",
       "id": "kineticapp_src_services_api_js"
     }
@@ -12823,9 +12823,9 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/BaseController.java",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "kinetic_backend_src_main_java_com_kinetic_controllers_basecontroller_java",
-      "target": "controllers_basecontroller_basecontroller",
-      "confidence_score": 1.0
+      "target": "controllers_basecontroller_basecontroller"
     },
     {
       "relation": "method",
@@ -12833,9 +12833,9 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/BaseController.java",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "controllers_basecontroller_basecontroller",
-      "target": "controllers_basecontroller_basecontroller_currentuseremail",
-      "confidence_score": 1.0
+      "target": "controllers_basecontroller_basecontroller_currentuseremail"
     },
     {
       "relation": "calls",
@@ -13161,9 +13161,9 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/HomeController.java",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "controllers_homecontroller_homecontroller",
-      "target": "basecontroller",
-      "confidence_score": 1.0
+      "target": "basecontroller"
     },
     {
       "relation": "method",
@@ -13191,9 +13191,9 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/SocialController.java",
       "source_location": "L17",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "controllers_socialcontroller_socialcontroller",
-      "target": "basecontroller",
-      "confidence_score": 1.0
+      "target": "basecontroller"
     },
     {
       "relation": "extends",
@@ -13201,9 +13201,9 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/StatsController.java",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "controllers_statscontroller_statscontroller",
-      "target": "basecontroller",
-      "confidence_score": 1.0
+      "target": "basecontroller"
     },
     {
       "relation": "extends",
@@ -13211,9 +13211,9 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/UserController.java",
       "source_location": "L17",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "controllers_usercontroller_usercontroller",
-      "target": "basecontroller",
-      "confidence_score": 1.0
+      "target": "basecontroller"
     },
     {
       "relation": "extends",
@@ -13221,9 +13221,9 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/WorkoutController.java",
       "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "controllers_workoutcontroller_workoutcontroller",
-      "target": "basecontroller",
-      "confidence_score": 1.0
+      "target": "basecontroller"
     },
     {
       "relation": "extends",
@@ -13231,9 +13231,9 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/WorkoutSessionController.java",
       "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "controllers_workoutsessioncontroller_workoutsessioncontroller",
-      "target": "basecontroller",
-      "confidence_score": 1.0
+      "target": "basecontroller"
     },
     {
       "relation": "calls",
@@ -13498,9 +13498,9 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/SocialController.java",
       "source_location": "L101",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "controllers_socialcontroller_socialcontroller_getsquadstatus",
-      "target": "controllers_socialcontroller_socialcontroller_getsquad",
-      "confidence_score": 1.0
+      "target": "controllers_socialcontroller_socialcontroller_getsquad"
     },
     {
       "relation": "calls",
@@ -14348,9 +14348,9 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/exceptions/EmailAlreadyInUseException.java",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "kinetic_backend_src_main_java_com_kinetic_exceptions_emailalreadyinuseexception_java",
-      "target": "exceptions_emailalreadyinuseexception_emailalreadyinuseexception",
-      "confidence_score": 1.0
+      "target": "exceptions_emailalreadyinuseexception_emailalreadyinuseexception"
     },
     {
       "relation": "extends",
@@ -14358,9 +14358,9 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/exceptions/EmailAlreadyInUseException.java",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "exceptions_emailalreadyinuseexception_emailalreadyinuseexception",
-      "target": "runtimeexception",
-      "confidence_score": 1.0
+      "target": "runtimeexception"
     },
     {
       "relation": "method",
@@ -14368,9 +14368,9 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/exceptions/EmailAlreadyInUseException.java",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "exceptions_emailalreadyinuseexception_emailalreadyinuseexception",
-      "target": "exceptions_emailalreadyinuseexception_emailalreadyinuseexception_emailalreadyinuseexception",
-      "confidence_score": 1.0
+      "target": "exceptions_emailalreadyinuseexception_emailalreadyinuseexception_emailalreadyinuseexception"
     },
     {
       "relation": "extends",
@@ -14398,9 +14398,9 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/exceptions/GlobalExceptionHandler.java",
       "source_location": "L14",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "kinetic_backend_src_main_java_com_kinetic_exceptions_globalexceptionhandler_java",
-      "target": "exceptions_globalexceptionhandler_globalexceptionhandler",
-      "confidence_score": 1.0
+      "target": "exceptions_globalexceptionhandler_globalexceptionhandler"
     },
     {
       "relation": "method",
@@ -14408,9 +14408,9 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/exceptions/GlobalExceptionHandler.java",
       "source_location": "L17",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "exceptions_globalexceptionhandler_globalexceptionhandler",
-      "target": "exceptions_globalexceptionhandler_globalexceptionhandler_handleemailinuse",
-      "confidence_score": 1.0
+      "target": "exceptions_globalexceptionhandler_globalexceptionhandler_handleemailinuse"
     },
     {
       "relation": "method",
@@ -14418,9 +14418,9 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/exceptions/GlobalExceptionHandler.java",
       "source_location": "L22",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "exceptions_globalexceptionhandler_globalexceptionhandler",
-      "target": "exceptions_globalexceptionhandler_globalexceptionhandler_handlenotfound",
-      "confidence_score": 1.0
+      "target": "exceptions_globalexceptionhandler_globalexceptionhandler_handlenotfound"
     },
     {
       "relation": "contains",
@@ -15217,9 +15217,9 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/UserRepository.java",
       "source_location": "L19",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repositories_userrepository_userrepository",
-      "target": "repositories_userrepository_userrepository_getbyemailorthrow",
-      "confidence_score": 1.0
+      "target": "repositories_userrepository_userrepository_getbyemailorthrow"
     },
     {
       "relation": "method",
@@ -15268,9 +15268,9 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/UserRepository.java",
       "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repositories_userrepository_userrepository_getbyemailorthrow",
-      "target": "repositories_userrepository_userrepository_findbyemail",
-      "confidence_score": 1.0
+      "target": "repositories_userrepository_userrepository_findbyemail"
     },
     {
       "relation": "calls",
@@ -20340,17 +20340,6 @@
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "kineticapp_src_components_planevolutioncard_tsx",
-      "target": "utils_statsutils_formatsignednumberptbr"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "KineticApp/src/components/PlanEvolutionCard.tsx",
-      "source_location": "L5",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "kineticapp_src_components_planevolutioncard_tsx",
       "target": "utils_statsutils_formattotalvolume"
     },
     {
@@ -20360,9 +20349,9 @@
       "source_file": "KineticApp/src/components/PlanEvolutionCard.tsx",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "kineticapp_src_components_planevolutioncard_tsx",
-      "target": "kineticapp_src_theme_statstokens_ts",
-      "confidence_score": 1.0
+      "target": "kineticapp_src_theme_statstokens_ts"
     },
     {
       "relation": "imports",
@@ -20371,9 +20360,9 @@
       "source_file": "KineticApp/src/components/PlanEvolutionCard.tsx",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "kineticapp_src_components_planevolutioncard_tsx",
-      "target": "theme_statstokens_stats_t",
-      "confidence_score": 1.0
+      "target": "theme_statstokens_stats_t"
     },
     {
       "relation": "contains",
@@ -20495,6 +20484,17 @@
       "confidence_score": 1.0,
       "source": "kineticapp_src_screens_statsscreen_tsx",
       "target": "kineticapp_src_components_planevolutioncard_tsx"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "KineticApp/src/components/PlanEvolutionCard.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "kineticapp_src_components_planevolutioncard_tsx",
+      "target": "utils_statsutils_formatsignednumberptbr"
     },
     {
       "relation": "contains",
@@ -24924,9 +24924,9 @@
       "source_file": "KineticApp/src/screens/StatsScreen.tsx",
       "source_location": "L40",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "kineticapp_src_screens_statsscreen_tsx",
-      "target": "kineticapp_src_theme_statstokens_ts",
-      "confidence_score": 1.0
+      "target": "kineticapp_src_theme_statstokens_ts"
     },
     {
       "relation": "imports",
@@ -24935,9 +24935,9 @@
       "source_file": "KineticApp/src/screens/StatsScreen.tsx",
       "source_location": "L40",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "kineticapp_src_screens_statsscreen_tsx",
-      "target": "theme_statstokens_stats_t",
-      "confidence_score": 1.0
+      "target": "theme_statstokens_stats_t"
     },
     {
       "relation": "contains",
@@ -27384,9 +27384,9 @@
       "source_file": "KineticApp/src/theme/statsTokens.ts",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "kineticapp_src_theme_statstokens_ts",
-      "target": "theme_statstokens_stats_t",
-      "confidence_score": 1.0
+      "target": "theme_statstokens_stats_t"
     },
     {
       "relation": "contains",
@@ -30735,5 +30735,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "7f2387e168451000c152a6d3022bf40be880b74a"
+  "built_at_commit": "b293a637484539a52d110c50437dd4293db533bd"
 }
