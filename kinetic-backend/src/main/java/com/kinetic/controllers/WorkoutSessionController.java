@@ -10,7 +10,6 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/sessions")
-public class WorkoutSessionController {
+public class WorkoutSessionController extends BaseController {
 
     private final WorkoutSessionService workoutSessionService;
     private final PresenceService presenceService;
@@ -33,21 +32,21 @@ public class WorkoutSessionController {
 
     @PostMapping("/start")
     public ResponseEntity<StartSessionResponseDTO> startSession() {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userEmail = currentUserEmail();
         java.util.UUID sessionId = presenceService.startSession(userEmail);
         return ResponseEntity.status(HttpStatus.CREATED).body(new StartSessionResponseDTO(sessionId));
     }
 
     @DeleteMapping("/active")
     public ResponseEntity<?> clearActiveSession() {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userEmail = currentUserEmail();
         presenceService.endSession(userEmail);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/log")
     public ResponseEntity<?> logSession(@Valid @RequestBody LogSessionRequestDTO request) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userEmail = currentUserEmail();
 
         try {
             workoutSessionService.logSession(userEmail, request);
@@ -59,13 +58,13 @@ public class WorkoutSessionController {
 
     @GetMapping("/monthly-stats")
     public ResponseEntity<MonthlyStatsResponseDTO> getMonthlyStats() {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userEmail = currentUserEmail();
         return ResponseEntity.ok(workoutSessionService.getMonthlyStats(userEmail));
     }
 
     @GetMapping("/weekly-activity")
     public ResponseEntity<WeeklyActivityResponseDTO> getWeeklyActivity() {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userEmail = currentUserEmail();
         return ResponseEntity.ok(workoutSessionService.getWeeklyActivity(userEmail));
     }
 }

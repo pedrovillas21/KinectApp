@@ -31,24 +31,8 @@ import {
   ProtocolOption,
 } from '../constants/protocol';
 
-// ─── Mock user ────────────────────────────────────────────────
-const USER = {
-  name: 'Gabriel Souza',
-  email: 'gabriel@kinetic.app',
-  memberSince: 'Membro desde Abr 2025',
-  initial: 'G',
-  streak: 3,
-  totalWorkouts: 47,
-  goalLabel: 'Ganho de Massa',
-  age: 25,
-  weight: 78,
-  height: 175,
-  level: 'Intermediário',
-  daysPerWeek: 4,
-  anamneseQuestions: 12,
-  anamneseAnswered: 10,
-  plan: 'free' as 'free' | 'pro',
-};
+// Sem um conceito de assinatura no backend ainda, todo usuário é "free".
+const DEFAULT_PLAN: 'free' | 'pro' = 'free';
 
 // ─── Extra tokens ─────────────────────────────────────────────
 const C = {
@@ -286,9 +270,11 @@ function IdentityHero({ user }: { user: HeroUserData }) {
         <View style={s.heroInfo}>
           <Text style={s.heroName} numberOfLines={1}>{user.name}</Text>
           <Text style={s.heroEmail} numberOfLines={1}>{user.email}</Text>
-          <View style={s.memberChip}>
-            <Text style={s.memberChipText}>{user.memberSince}</Text>
-          </View>
+          {user.memberSince ? (
+            <View style={s.memberChip}>
+              <Text style={s.memberChipText}>{user.memberSince}</Text>
+            </View>
+          ) : null}
         </View>
         <TouchableOpacity style={s.editBtn} activeOpacity={0.7}>
           {Icons.pencil}
@@ -875,11 +861,10 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const [protocolForm, setProtocolForm] = useState<ProtocolForm | null>(null);
   const [activeModal, setActiveModal] = useState<ProtocolModal>(null);
   const [isRegenerating, setIsRegenerating] = useState<boolean>(false);
-  const user = USER;
 
   // Email real do usuário logado: prioriza o perfil do servidor e cai para o
   // usuário em sessão (disponível antes do fetch concluir).
-  const accountEmail = profileData?.email ?? currentUser?.email ?? user.email;
+  const accountEmail = profileData?.email ?? currentUser?.email ?? '';
 
   const handleConfirmSignOut = async () => {
     setLogoutOpen(false);
@@ -978,13 +963,16 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         goalLabel: profileData.targetGoal,
       }
     : {
-        name: user.name,
-        email: user.email,
-        memberSince: user.memberSince,
-        initial: user.initial,
-        streak: user.streak,
-        totalWorkouts: user.totalWorkouts,
-        goalLabel: user.goalLabel,
+        // Fallback enquanto o perfil do servidor não chega (ou falhou): usa os
+        // dados do usuário em sessão. Métricas agregadas (streak/treinos/membro
+        // desde) só existem no profileData, então ficam zeradas aqui.
+        name: formatProfileName(currentUser?.nome ?? ''),
+        email: currentUser?.email ?? '',
+        memberSince: '',
+        initial: (currentUser?.nome ?? '').trim().charAt(0).toUpperCase(),
+        streak: 0,
+        totalWorkouts: 0,
+        goalLabel: currentUser?.goal ?? '',
       };
 
   return (
@@ -1027,7 +1015,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         <View style={s.section}>
           <AccountSection
             email={accountEmail}
-            plan={user.plan}
+            plan={DEFAULT_PLAN}
             onChangePassword={() => setPasswordOpen(true)}
           />
         </View>

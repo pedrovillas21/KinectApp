@@ -8,7 +8,6 @@ import com.kinetic.models.PlanCycleSnapshot;
 import com.kinetic.models.User;
 import com.kinetic.models.WeightHistory;
 import com.kinetic.repositories.*;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,8 +56,7 @@ public class StatsService {
 
     @Transactional(readOnly = true)
     public StatsSummaryResponseDTO getSummary(String userEmail, String periodStr) {
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        User user = userRepository.getByEmailOrThrow(userEmail);
 
         StatsPeriodParam period = StatsPeriodParam.fromString(periodStr);
         LocalDate start     = period.startDate();
@@ -220,8 +218,7 @@ public class StatsService {
 
     @Transactional(readOnly = true)
     public PlanEvolutionResponseDTO getPlanEvolution(String userEmail) {
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        User user = userRepository.getByEmailOrThrow(userEmail);
 
         // Fonte da verdade: se não há snapshot anterior, não há comparação possível.
         Optional<PlanCycleSnapshot> latestSnapshot =

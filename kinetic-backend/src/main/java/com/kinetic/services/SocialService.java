@@ -138,11 +138,6 @@ public class SocialService {
         connectionRepository.save(conn);
     }
 
-    @Transactional(readOnly = true)
-    public List<SquadMemberDTO> getSquadStatus(String email) {
-        return getSquad(email);
-    }
-
     // ── Feed ─────────────────────────────────────────────────────────────────
 
     @Transactional(readOnly = true)
@@ -401,8 +396,7 @@ public class SocialService {
     }
 
     private User findByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new EntityNotFoundException("Usuario nao encontrado."));
+        return userRepository.getByEmailOrThrow(email);
     }
 
     private User findById(UUID id) {

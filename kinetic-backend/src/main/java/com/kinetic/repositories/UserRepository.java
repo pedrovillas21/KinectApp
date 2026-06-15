@@ -1,6 +1,7 @@
 package com.kinetic.repositories;
 
 import com.kinetic.models.User;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -13,6 +14,12 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<User, UUID> {
 
     Optional<User> findByEmail(String email);
+
+    /** Busca por e-mail ou lança {@link EntityNotFoundException} (HTTP 404). Centraliza o padrão repetido nos services. */
+    default User getByEmailOrThrow(String email) {
+        return findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));
+    }
 
     boolean existsByEmail(String email);
 

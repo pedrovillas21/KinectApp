@@ -37,25 +37,7 @@ import {
   formatVolumeKg,
   periodDescription,
 } from '../utils/statsUtils';
-
-// ─── Design tokens (espelham `T` do mock HTML/JSX) ─────────────────────────
-const T = {
-  bg: '#0a0d10',
-  card: '#15191d',
-  cardSoft: '#1b2025',
-  border: 'rgba(255,255,255,0.06)',
-  borderSoft: 'rgba(255,255,255,0.04)',
-  text: '#f5f6f7',
-  text2: 'rgba(245,246,247,0.62)',
-  text3: 'rgba(245,246,247,0.34)',
-  accent: '#1ee0ee',
-  accentDim: 'rgba(30,224,238,0.10)',
-  accentSoft: 'rgba(30,224,238,0.16)',
-  success: '#4ade80',
-  successDim: 'rgba(74,222,128,0.14)',
-  warn: '#f5b945',
-  warnDim: 'rgba(245,185,69,0.14)',
-} as const;
+import { STATS_T as T } from '../theme/statsTokens';
 
 const SCREEN_W = Dimensions.get('window').width;
 const CONTENT_PAD = 16;

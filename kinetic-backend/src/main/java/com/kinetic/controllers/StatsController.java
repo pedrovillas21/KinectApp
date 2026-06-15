@@ -4,12 +4,11 @@ import com.kinetic.dtos.PlanEvolutionResponseDTO;
 import com.kinetic.dtos.StatsSummaryResponseDTO;
 import com.kinetic.services.StatsService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/stats")
-public class StatsController {
+public class StatsController extends BaseController {
 
     private final StatsService statsService;
 
@@ -25,7 +24,7 @@ public class StatsController {
     @GetMapping("/summary")
     public ResponseEntity<StatsSummaryResponseDTO> getSummary(
             @RequestParam(name = "period", defaultValue = "month") String period) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userEmail = currentUserEmail();
         return ResponseEntity.ok(statsService.getSummary(userEmail, period));
     }
 
@@ -36,7 +35,7 @@ public class StatsController {
      */
     @GetMapping("/plan-evolution")
     public ResponseEntity<PlanEvolutionResponseDTO> getPlanEvolution() {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userEmail = currentUserEmail();
         return ResponseEntity.ok(statsService.getPlanEvolution(userEmail));
     }
 }

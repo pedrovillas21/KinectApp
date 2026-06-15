@@ -24,12 +24,8 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterDTO dto) {
-        try {
-            authService.register(dto);
-            return ResponseEntity.status(HttpStatus.CREATED).body("Usuário registrado com sucesso.");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
+        authService.register(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Usuário registrado com sucesso.");
     }
 
     @PostMapping("/login")
@@ -66,11 +62,7 @@ public class AuthController {
 
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordDTO dto) {
-        try {
-            authService.resetPassword(dto);
-            return ResponseEntity.ok("Senha redefinida com sucesso.");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
+        authService.resetPassword(dto);
+        return ResponseEntity.ok("Senha redefinida com sucesso.");
     }
 }

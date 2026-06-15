@@ -8,7 +8,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,7 +16,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/social")
-public class SocialController {
+public class SocialController extends BaseController {
 
     private final SocialService socialService;
 
@@ -30,7 +29,7 @@ public class SocialController {
     @GetMapping("/users/search")
     public ResponseEntity<List<UserCardDTO>> searchUsers(
             @RequestParam(required = false, defaultValue = "") String q) {
-        String email = email();
+        String email = currentUserEmail();
         try {
             return ResponseEntity.ok(socialService.searchUsers(email, q));
         } catch (EntityNotFoundException e) {
@@ -43,7 +42,7 @@ public class SocialController {
     @PostMapping("/connections")
     public ResponseEntity<?> sendConnection(@RequestBody Map<String, UUID> body) {
         try {
-            socialService.sendConnection(email(), body.get("addresseeId"));
+            socialService.sendConnection(currentUserEmail(), body.get("addresseeId"));
             return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -52,14 +51,14 @@ public class SocialController {
 
     @GetMapping("/connections/pending")
     public ResponseEntity<List<PendingRequestDTO>> getPendingRequests() {
-        return ResponseEntity.ok(socialService.getPendingRequests(email()));
+        return ResponseEntity.ok(socialService.getPendingRequests(currentUserEmail()));
     }
 
     // {id} = id do usuário que enviou a solicitação (não o id da conexão).
     @PostMapping("/connections/{id}/accept")
     public ResponseEntity<?> acceptConnection(@PathVariable UUID id) {
         try {
-            socialService.acceptConnection(email(), id);
+            socialService.acceptConnection(currentUserEmail(), id);
             return ResponseEntity.ok().build();
         } catch (EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -71,7 +70,7 @@ public class SocialController {
     @DeleteMapping("/connections/{id}")
     public ResponseEntity<?> removeConnection(@PathVariable UUID id) {
         try {
-            socialService.removeConnection(email(), id);
+            socialService.removeConnection(currentUserEmail(), id);
             return ResponseEntity.noContent().build();
         } catch (EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -84,13 +83,13 @@ public class SocialController {
 
     @GetMapping("/squad")
     public ResponseEntity<List<SquadMemberDTO>> getSquad() {
-        return ResponseEntity.ok(socialService.getSquad(email()));
+        return ResponseEntity.ok(socialService.getSquad(currentUserEmail()));
     }
 
     @PostMapping("/squad/{userId}/toggle")
     public ResponseEntity<?> toggleSquad(@PathVariable UUID userId) {
         try {
-            socialService.toggleSquad(email(), userId);
+            socialService.toggleSquad(currentUserEmail(), userId);
             return ResponseEntity.ok().build();
         } catch (EntityNotFoundException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -99,7 +98,7 @@ public class SocialController {
 
     @GetMapping("/squad/status")
     public ResponseEntity<List<SquadMemberDTO>> getSquadStatus() {
-        return ResponseEntity.ok(socialService.getSquadStatus(email()));
+        return ResponseEntity.ok(socialService.getSquad(currentUserEmail()));
     }
 
     // ── Feed ─────────────────────────────────────────────────────────────────
@@ -108,12 +107,12 @@ public class SocialController {
     public ResponseEntity<Page<FeedPostDTO>> getFeed(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(socialService.getFeed(email(), PageRequest.of(page, size)));
+        return ResponseEntity.ok(socialService.getFeed(currentUserEmail(), PageRequest.of(page, size)));
     }
 
     @PostMapping("/posts")
     public ResponseEntity<FeedPostDTO> createPost(@RequestBody CreatePostRequest req) {
-        FeedPostDTO dto = socialService.createPost(email(), req);
+        FeedPostDTO dto = socialService.createPost(currentUserEmail(), req);
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
@@ -121,12 +120,12 @@ public class SocialController {
 
     @GetMapping("/stories")
     public ResponseEntity<List<StoryGroupDTO>> getStories() {
-        return ResponseEntity.ok(socialService.getStories(email()));
+        return ResponseEntity.ok(socialService.getStories(currentUserEmail()));
     }
 
     @PostMapping("/stories")
     public ResponseEntity<StoryDTO> createStory(@RequestBody CreateStoryRequest req) {
-        StoryDTO dto = socialService.createStory(email(), req);
+        StoryDTO dto = socialService.createStory(currentUserEmail(), req);
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
@@ -134,13 +133,13 @@ public class SocialController {
 
     @PostMapping("/posts/{id}/like")
     public ResponseEntity<Map<String, Long>> likePost(@PathVariable UUID id) {
-        long count = socialService.likePost(email(), id);
+        long count = socialService.likePost(currentUserEmail(), id);
         return ResponseEntity.ok(Map.of("likesCount", count));
     }
 
     @DeleteMapping("/posts/{id}/like")
     public ResponseEntity<Map<String, Long>> unlikePost(@PathVariable UUID id) {
-        long count = socialService.unlikePost(email(), id);
+        long count = socialService.unlikePost(currentUserEmail(), id);
         return ResponseEntity.ok(Map.of("likesCount", count));
     }
 
@@ -154,13 +153,7 @@ public class SocialController {
     @PostMapping("/posts/{id}/comments")
     public ResponseEntity<CommentDTO> addComment(@PathVariable UUID id,
                                                   @Valid @RequestBody AddCommentRequest req) {
-        CommentDTO dto = socialService.addComment(email(), id, req);
+        CommentDTO dto = socialService.addComment(currentUserEmail(), id, req);
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
-    }
-
-    // ── Helper ───────────────────────────────────────────────────────────────
-
-    private String email() {
-        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 }

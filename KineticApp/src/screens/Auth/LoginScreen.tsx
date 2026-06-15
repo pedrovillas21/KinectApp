@@ -153,7 +153,10 @@ function EyeIcon({ size = 18, color = A.text3, closed = false }: { size?: number
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
-  route: RouteProp<{ Login: { email?: string } }, 'Login'>;
+  // Nome de rota genérico (string) em vez do literal 'Login': o navigator não é
+  // tipado, então fornece RouteProp<ParamListBase, string> — um literal aqui o
+  // tornaria incompatível com Stack.Screen.
+  route: RouteProp<Record<string, { email?: string } | undefined>, string>;
 };
 
 export default function LoginScreen({ navigation, route }: Props) {

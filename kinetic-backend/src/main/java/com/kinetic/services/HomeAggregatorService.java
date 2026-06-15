@@ -13,7 +13,6 @@ import com.kinetic.repositories.UserRepository;
 import com.kinetic.repositories.WorkoutExecutionLogRepository;
 import com.kinetic.repositories.WorkoutPlanRepository;
 import com.kinetic.repositories.WorkoutSessionRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,8 +50,7 @@ public class HomeAggregatorService {
 
     @Transactional(readOnly = true)
     public HomeDashboardResponseDTO buildDashboardData(String userEmail) {
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new EntityNotFoundException("Usuario nao encontrado."));
+        User user = userRepository.getByEmailOrThrow(userEmail);
 
         String firstName = extractFirstName(user.getNome());
         List<WorkoutPlan> plans = workoutPlanRepository.findByUserIdAndStatusOrderByCreatedAtAsc(user.getId(), "active");

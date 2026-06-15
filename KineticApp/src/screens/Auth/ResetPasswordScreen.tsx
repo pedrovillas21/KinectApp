@@ -22,7 +22,10 @@ import PasswordRequirements from '../../components/PasswordRequirements';
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
-  route: RouteProp<{ ResetPassword: { email?: string } }, 'ResetPassword'>;
+  // Nome de rota genérico (string) em vez do literal 'ResetPassword': o navigator
+  // não é tipado, então fornece RouteProp<ParamListBase, string> — um literal aqui
+  // o tornaria incompatível com Stack.Screen.
+  route: RouteProp<Record<string, { email?: string } | undefined>, string>;
 };
 
 export default function ResetPasswordScreen({ navigation, route }: Props) {

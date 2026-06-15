@@ -157,7 +157,6 @@ public class WorkoutSessionService {
     }
 
     private User findUserByEmail(String userEmail) {
-        return userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new EntityNotFoundException("Usuario nao encontrado."));
+        return userRepository.getByEmailOrThrow(userEmail);
     }
 }

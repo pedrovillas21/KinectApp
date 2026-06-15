@@ -9,7 +9,6 @@ import com.kinetic.models.User;
 import com.kinetic.models.WorkoutPlan;
 import com.kinetic.repositories.UserRepository;
 import com.kinetic.repositories.WorkoutPlanRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -160,8 +159,7 @@ public class WorkoutService {
     }
 
     private User findUserByEmail(String userEmail) {
-        return userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new EntityNotFoundException("Usuario nao encontrado."));
+        return userRepository.getByEmailOrThrow(userEmail);
     }
 
     private void validateRequest(GenerateWorkoutRequestDto request) {

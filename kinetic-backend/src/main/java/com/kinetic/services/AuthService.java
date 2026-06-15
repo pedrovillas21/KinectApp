@@ -7,7 +7,9 @@ import com.kinetic.dtos.LoginDTO;
 import com.kinetic.dtos.AuthResponseDTO;
 import com.kinetic.dtos.RefreshResponseDTO;
 import com.kinetic.dtos.ResetPasswordDTO;
+import com.kinetic.exceptions.EmailAlreadyInUseException;
 import com.kinetic.security.JwtUtil;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,7 +29,7 @@ public class AuthService {
 
     public User register(RegisterDTO dto) {
         if (userRepository.existsByEmail(dto.getEmail())) {
-            throw new RuntimeException("Email já está em uso.");
+            throw new EmailAlreadyInUseException("Email já está em uso.");
         }
 
         User user = new User();
@@ -44,7 +46,7 @@ public class AuthService {
         );
 
         User user = userRepository.findByEmail(dto.getEmail())
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));
 
         // Registro de streak é best-effort: uma falha aqui (ex.: corrida no
         // insert diário) jamais deve impedir um login com credenciais válidas.
@@ -95,7 +97,7 @@ public class AuthService {
 
     public void resetPassword(ResetPasswordDTO dto) {
         User user = userRepository.findByEmail(dto.getEmail())
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));
 
         refreshTokenService.revokeAllForUser(user);
         user.setSenha(passwordEncoder.encode(dto.getNewPassword()));

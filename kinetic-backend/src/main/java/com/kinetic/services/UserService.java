@@ -10,7 +10,6 @@ import com.kinetic.repositories.UserLoginStreakRepository;
 import com.kinetic.repositories.UserRepository;
 import com.kinetic.repositories.WeightHistoryRepository;
 import com.kinetic.repositories.WorkoutExecutionLogRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -47,8 +46,7 @@ public class UserService {
 
     @Transactional
     public void updateUserWeight(String userEmail, UpdateWeightRequestDTO dto) {
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        User user = userRepository.getByEmailOrThrow(userEmail);
 
         user.setWeight(dto.newWeight());
         userRepository.save(user);
@@ -72,8 +70,7 @@ public class UserService {
 
     @Transactional
     public void changePassword(String userEmail, ChangePasswordDTO dto) {
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        User user = userRepository.getByEmailOrThrow(userEmail);
 
         if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getSenha())) {
             throw new IllegalArgumentException("Senha atual incorreta.");
@@ -91,8 +88,7 @@ public class UserService {
     }
 
     public boolean needsWeightUpdate(String userEmail) {
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        User user = userRepository.getByEmailOrThrow(userEmail);
 
         return weightHistoryRepository.findFirstByUserOrderByLoggedAtDesc(user)
                 .map(lastHistory -> {
@@ -104,8 +100,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserProfileResponseDTO getUserProfile(String userEmail) {
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        User user = userRepository.getByEmailOrThrow(userEmail);
 
         LocalDate memberSince = user.getCreatedAt() != null ? user.getCreatedAt().toLocalDate() : null;
         int streak = calculateConsecutiveLoginStreak(user);
