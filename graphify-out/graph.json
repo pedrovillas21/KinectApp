@@ -405,7 +405,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L1",
       "id": "html_onboardingscreen_onboarding_jsx",
-      "community": 7,
+      "community": 8,
       "norm_label": "onboarding.jsx"
     },
     {
@@ -414,7 +414,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L14",
       "id": "onboardingscreen_onboarding_k",
-      "community": 7,
+      "community": 8,
       "norm_label": "k"
     },
     {
@@ -423,7 +423,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L34",
       "id": "onboardingscreen_onboarding_goals",
-      "community": 7,
+      "community": 8,
       "norm_label": "goals"
     },
     {
@@ -432,7 +432,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L43",
       "id": "onboardingscreen_onboarding_levels",
-      "community": 7,
+      "community": 8,
       "norm_label": "levels"
     },
     {
@@ -441,7 +441,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L49",
       "id": "onboardingscreen_onboarding_days",
-      "community": 7,
+      "community": 8,
       "norm_label": "days"
     },
     {
@@ -450,7 +450,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L51",
       "id": "onboardingscreen_onboarding_steps",
-      "community": 7,
+      "community": 8,
       "norm_label": "steps"
     },
     {
@@ -459,7 +459,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L56",
       "id": "onboardingscreen_onboarding_progressdots",
-      "community": 7,
+      "community": 8,
       "norm_label": "progressdots()"
     },
     {
@@ -468,7 +468,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L75",
       "id": "onboardingscreen_onboarding_topbar",
-      "community": 7,
+      "community": 8,
       "norm_label": "topbar()"
     },
     {
@@ -477,7 +477,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L106",
       "id": "onboardingscreen_onboarding_primarycta",
-      "community": 7,
+      "community": 8,
       "norm_label": "primarycta()"
     },
     {
@@ -486,7 +486,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L123",
       "id": "onboardingscreen_onboarding_stickyfooter",
-      "community": 7,
+      "community": 8,
       "norm_label": "stickyfooter()"
     },
     {
@@ -495,7 +495,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L133",
       "id": "onboardingscreen_onboarding_stepheader",
-      "community": 7,
+      "community": 8,
       "norm_label": "stepheader()"
     },
     {
@@ -504,7 +504,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L161",
       "id": "onboardingscreen_onboarding_wheelpicker",
-      "community": 7,
+      "community": 8,
       "norm_label": "wheelpicker()"
     },
     {
@@ -513,7 +513,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L255",
       "id": "onboardingscreen_onboarding_pickerrow",
-      "community": 7,
+      "community": 8,
       "norm_label": "pickerrow()"
     },
     {
@@ -522,7 +522,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L276",
       "id": "onboardingscreen_onboarding_goalcard",
-      "community": 7,
+      "community": 8,
       "norm_label": "goalcard()"
     },
     {
@@ -531,7 +531,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L316",
       "id": "onboardingscreen_onboarding_leveldots",
-      "community": 7,
+      "community": 8,
       "norm_label": "leveldots()"
     },
     {
@@ -540,7 +540,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L329",
       "id": "onboardingscreen_onboarding_levelcard",
-      "community": 7,
+      "community": 8,
       "norm_label": "levelcard()"
     },
     {
@@ -549,7 +549,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L363",
       "id": "onboardingscreen_onboarding_daychip",
-      "community": 7,
+      "community": 8,
       "norm_label": "daychip()"
     },
     {
@@ -558,7 +558,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L382",
       "id": "onboardingscreen_onboarding_stepgoal",
-      "community": 7,
+      "community": 8,
       "norm_label": "stepgoal()"
     },
     {
@@ -567,7 +567,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L399",
       "id": "onboardingscreen_onboarding_ages",
-      "community": 7,
+      "community": 8,
       "norm_label": "ages"
     },
     {
@@ -576,7 +576,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L400",
       "id": "onboardingscreen_onboarding_weights",
-      "community": 7,
+      "community": 8,
       "norm_label": "weights"
     },
     {
@@ -585,7 +585,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L401",
       "id": "onboardingscreen_onboarding_heights",
-      "community": 7,
+      "community": 8,
       "norm_label": "heights"
     },
     {
@@ -594,7 +594,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L403",
       "id": "onboardingscreen_onboarding_stepmetrics",
-      "community": 7,
+      "community": 8,
       "norm_label": "stepmetrics()"
     },
     {
@@ -603,7 +603,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L423",
       "id": "onboardingscreen_onboarding_steplevel",
-      "community": 7,
+      "community": 8,
       "norm_label": "steplevel()"
     },
     {
@@ -612,7 +612,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L440",
       "id": "onboardingscreen_onboarding_stepfreq",
-      "community": 7,
+      "community": 8,
       "norm_label": "stepfreq()"
     },
     {
@@ -621,7 +621,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L512",
       "id": "onboardingscreen_onboarding_steps_gen",
-      "community": 7,
+      "community": 8,
       "norm_label": "steps_gen"
     },
     {
@@ -630,7 +630,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L521",
       "id": "onboardingscreen_onboarding_stepgenerating",
-      "community": 7,
+      "community": 8,
       "norm_label": "stepgenerating()"
     },
     {
@@ -639,7 +639,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L623",
       "id": "onboardingscreen_onboarding_stepdone",
-      "community": 7,
+      "community": 8,
       "norm_label": "stepdone()"
     },
     {
@@ -648,7 +648,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L677",
       "id": "onboardingscreen_onboarding_default_form",
-      "community": 7,
+      "community": 8,
       "norm_label": "default_form"
     },
     {
@@ -657,7 +657,7 @@
       "source_file": "html/onboardingScreen/onboarding.jsx",
       "source_location": "L679",
       "id": "onboardingscreen_onboarding_onboardingflow",
-      "community": 7,
+      "community": 8,
       "norm_label": "onboardingflow()"
     },
     {
@@ -1044,7 +1044,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L1",
       "id": "html_statsscreen_stats_jsx",
-      "community": 18,
+      "community": 17,
       "norm_label": "stats.jsx"
     },
     {
@@ -1053,7 +1053,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L7",
       "id": "statsscreen_stats_t",
-      "community": 18,
+      "community": 17,
       "norm_label": "t"
     },
     {
@@ -1062,7 +1062,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L30",
       "id": "statsscreen_stats_periods",
-      "community": 18,
+      "community": 17,
       "norm_label": "periods"
     },
     {
@@ -1071,7 +1071,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L37",
       "id": "statsscreen_stats_data",
-      "community": 58,
+      "community": 51,
       "norm_label": "data"
     },
     {
@@ -1080,7 +1080,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L115",
       "id": "statsscreen_stats_card",
-      "community": 18,
+      "community": 17,
       "norm_label": "card()"
     },
     {
@@ -1089,7 +1089,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L126",
       "id": "statsscreen_stats_cardheader",
-      "community": 18,
+      "community": 17,
       "norm_label": "cardheader()"
     },
     {
@@ -1098,7 +1098,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L138",
       "id": "statsscreen_stats_deltachip",
-      "community": 18,
+      "community": 17,
       "norm_label": "deltachip()"
     },
     {
@@ -1107,7 +1107,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L158",
       "id": "statsscreen_stats_iconbtn",
-      "community": 18,
+      "community": 17,
       "norm_label": "iconbtn()"
     },
     {
@@ -1116,7 +1116,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L176",
       "id": "statsscreen_stats_icons",
-      "community": 18,
+      "community": 17,
       "norm_label": "icons"
     },
     {
@@ -1125,7 +1125,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L187",
       "id": "statsscreen_stats_periodselector",
-      "community": 18,
+      "community": 17,
       "norm_label": "periodselector()"
     },
     {
@@ -1134,7 +1134,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L215",
       "id": "statsscreen_stats_kpistrip",
-      "community": 18,
+      "community": 17,
       "norm_label": "kpistrip()"
     },
     {
@@ -1143,7 +1143,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L244",
       "id": "statsscreen_stats_consistencycard",
-      "community": 18,
+      "community": 17,
       "norm_label": "consistencycard()"
     },
     {
@@ -1152,7 +1152,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L300",
       "id": "statsscreen_stats_weightcard",
-      "community": 18,
+      "community": 17,
       "norm_label": "weightcard()"
     },
     {
@@ -1161,7 +1161,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L420",
       "id": "statsscreen_stats_volumecard",
-      "community": 18,
+      "community": 17,
       "norm_label": "volumecard()"
     },
     {
@@ -1170,7 +1170,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L576",
       "id": "statsscreen_stats_insights",
-      "community": 18,
+      "community": 17,
       "norm_label": "insights"
     },
     {
@@ -1179,7 +1179,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L583",
       "id": "statsscreen_stats_insightblock",
-      "community": 18,
+      "community": 17,
       "norm_label": "insightblock()"
     },
     {
@@ -1188,7 +1188,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L608",
       "id": "statsscreen_stats_tabbar",
-      "community": 18,
+      "community": 17,
       "norm_label": "tabbar()"
     },
     {
@@ -1197,7 +1197,7 @@
       "source_file": "html/StatsScreen/stats.jsx",
       "source_location": "L651",
       "id": "statsscreen_stats_statsscreen",
-      "community": 18,
+      "community": 17,
       "norm_label": "statsscreen()"
     },
     {
@@ -1206,7 +1206,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/KineticApplication.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_kineticapplication_java",
-      "community": 73,
+      "community": 72,
       "norm_label": "kineticapplication.java"
     },
     {
@@ -1215,7 +1215,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/KineticApplication.java",
       "source_location": "L7",
       "id": "kinetic_kineticapplication_kineticapplication",
-      "community": 73,
+      "community": 72,
       "norm_label": "kineticapplication"
     },
     {
@@ -1224,7 +1224,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/KineticApplication.java",
       "source_location": "L11",
       "id": "kinetic_kineticapplication_kineticapplication_main",
-      "community": 73,
+      "community": 72,
       "norm_label": ".main()"
     },
     {
@@ -1233,7 +1233,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/config/LastActiveInterceptor.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_config_lastactiveinterceptor_java",
-      "community": 42,
+      "community": 43,
       "norm_label": "lastactiveinterceptor.java"
     },
     {
@@ -1242,7 +1242,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/config/LastActiveInterceptor.java",
       "source_location": "L11",
       "id": "config_lastactiveinterceptor_lastactiveinterceptor",
-      "community": 42,
+      "community": 43,
       "norm_label": "lastactiveinterceptor"
     },
     {
@@ -1251,7 +1251,7 @@
       "source_file": "",
       "source_location": "",
       "id": "handlerinterceptor",
-      "community": 42,
+      "community": 43,
       "norm_label": "handlerinterceptor"
     },
     {
@@ -1260,7 +1260,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/config/LastActiveInterceptor.java",
       "source_location": "L15",
       "id": "config_lastactiveinterceptor_lastactiveinterceptor_lastactiveinterceptor",
-      "community": 42,
+      "community": 43,
       "norm_label": ".lastactiveinterceptor()"
     },
     {
@@ -1269,7 +1269,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/config/LastActiveInterceptor.java",
       "source_location": "L19",
       "id": "config_lastactiveinterceptor_lastactiveinterceptor_prehandle",
-      "community": 42,
+      "community": 43,
       "norm_label": ".prehandle()"
     },
     {
@@ -1278,7 +1278,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/config/SecurityConfig.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_config_securityconfig_java",
-      "community": 57,
+      "community": 56,
       "norm_label": "securityconfig.java"
     },
     {
@@ -1287,7 +1287,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/config/SecurityConfig.java",
       "source_location": "L28",
       "id": "config_securityconfig_securityconfig",
-      "community": 57,
+      "community": 56,
       "norm_label": "securityconfig"
     },
     {
@@ -1296,7 +1296,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/config/SecurityConfig.java",
       "source_location": "L39",
       "id": "config_securityconfig_securityconfig_securityfilterchain",
-      "community": 57,
+      "community": 56,
       "norm_label": ".securityfilterchain()"
     },
     {
@@ -1305,7 +1305,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/config/SecurityConfig.java",
       "source_location": "L57",
       "id": "config_securityconfig_securityconfig_corsconfigurationsource",
-      "community": 57,
+      "community": 56,
       "norm_label": ".corsconfigurationsource()"
     },
     {
@@ -1314,7 +1314,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/config/SecurityConfig.java",
       "source_location": "L72",
       "id": "config_securityconfig_securityconfig_authenticationprovider",
-      "community": 57,
+      "community": 56,
       "norm_label": ".authenticationprovider()"
     },
     {
@@ -1323,7 +1323,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/config/SecurityConfig.java",
       "source_location": "L79",
       "id": "config_securityconfig_securityconfig_authenticationmanager",
-      "community": 57,
+      "community": 56,
       "norm_label": ".authenticationmanager()"
     },
     {
@@ -1332,7 +1332,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/config/SecurityConfig.java",
       "source_location": "L84",
       "id": "config_securityconfig_securityconfig_passwordencoder",
-      "community": 57,
+      "community": 56,
       "norm_label": ".passwordencoder()"
     },
     {
@@ -1341,7 +1341,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/config/WebMvcConfig.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_config_webmvcconfig_java",
-      "community": 68,
+      "community": 66,
       "norm_label": "webmvcconfig.java"
     },
     {
@@ -1350,7 +1350,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/config/WebMvcConfig.java",
       "source_location": "L9",
       "id": "config_webmvcconfig_webmvcconfig",
-      "community": 68,
+      "community": 66,
       "norm_label": "webmvcconfig"
     },
     {
@@ -1359,7 +1359,7 @@
       "source_file": "",
       "source_location": "",
       "id": "webmvcconfigurer",
-      "community": 68,
+      "community": 66,
       "norm_label": "webmvcconfigurer"
     },
     {
@@ -1368,7 +1368,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/config/WebMvcConfig.java",
       "source_location": "L14",
       "id": "config_webmvcconfig_webmvcconfig_webmvcconfig",
-      "community": 68,
+      "community": 66,
       "norm_label": ".webmvcconfig()"
     },
     {
@@ -1377,7 +1377,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/config/WebMvcConfig.java",
       "source_location": "L18",
       "id": "config_webmvcconfig_webmvcconfig_addinterceptors",
-      "community": 68,
+      "community": 66,
       "norm_label": ".addinterceptors()"
     },
     {
@@ -1926,7 +1926,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/AddCommentRequest.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_addcommentrequest_java",
-      "community": 101,
+      "community": 100,
       "norm_label": "addcommentrequest.java"
     },
     {
@@ -1935,7 +1935,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/AuthResponseDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_authresponsedto_java",
-      "community": 102,
+      "community": 101,
       "norm_label": "authresponsedto.java"
     },
     {
@@ -1944,7 +1944,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/ChangePasswordDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_changepassworddto_java",
-      "community": 78,
+      "community": 77,
       "norm_label": "changepassworddto.java"
     },
     {
@@ -1953,7 +1953,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/ChangePasswordDTO.java",
       "source_location": "L7",
       "id": "dtos_changepassworddto_changepassworddto",
-      "community": 78,
+      "community": 77,
       "norm_label": "changepassworddto"
     },
     {
@@ -1962,7 +1962,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/CommentDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_commentdto_java",
-      "community": 103,
+      "community": 102,
       "norm_label": "commentdto.java"
     },
     {
@@ -1971,7 +1971,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/CommunityComparisonDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_communitycomparisondto_java",
-      "community": 104,
+      "community": 103,
       "norm_label": "communitycomparisondto.java"
     },
     {
@@ -1980,7 +1980,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/CreatePostRequest.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_createpostrequest_java",
-      "community": 105,
+      "community": 104,
       "norm_label": "createpostrequest.java"
     },
     {
@@ -1989,7 +1989,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/CreateStoryRequest.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_createstoryrequest_java",
-      "community": 106,
+      "community": 105,
       "norm_label": "createstoryrequest.java"
     },
     {
@@ -1998,7 +1998,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/ExerciseResponseDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_exerciseresponsedto_java",
-      "community": 79,
+      "community": 78,
       "norm_label": "exerciseresponsedto.java"
     },
     {
@@ -2007,7 +2007,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/ExerciseResponseDTO.java",
       "source_location": "L17",
       "id": "dtos_exerciseresponsedto_fromentity",
-      "community": 79,
+      "community": 78,
       "norm_label": "fromentity()"
     },
     {
@@ -2016,7 +2016,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/FeedAuthorDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_feedauthordto_java",
-      "community": 107,
+      "community": 106,
       "norm_label": "feedauthordto.java"
     },
     {
@@ -2025,7 +2025,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/FeedPostDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_feedpostdto_java",
-      "community": 108,
+      "community": 107,
       "norm_label": "feedpostdto.java"
     },
     {
@@ -2043,7 +2043,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/GeminiRequestDto.java",
       "source_location": "L8",
       "id": "dtos_geminirequestdto_of",
-      "community": 22,
+      "community": 15,
       "norm_label": "of()"
     },
     {
@@ -2079,7 +2079,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/GeneratedExerciseDto.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_generatedexercisedto_java",
-      "community": 109,
+      "community": 108,
       "norm_label": "generatedexercisedto.java"
     },
     {
@@ -2088,7 +2088,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/GeneratedWorkoutPlanDto.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_generatedworkoutplandto_java",
-      "community": 110,
+      "community": 109,
       "norm_label": "generatedworkoutplandto.java"
     },
     {
@@ -2097,7 +2097,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/GenerateWorkoutRequestDto.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_generateworkoutrequestdto_java",
-      "community": 111,
+      "community": 110,
       "norm_label": "generateworkoutrequestdto.java"
     },
     {
@@ -2106,7 +2106,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/HomeDashboardResponseDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_homedashboardresponsedto_java",
-      "community": 112,
+      "community": 111,
       "norm_label": "homedashboardresponsedto.java"
     },
     {
@@ -2115,7 +2115,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/LoginDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_logindto_java",
-      "community": 80,
+      "community": 79,
       "norm_label": "logindto.java"
     },
     {
@@ -2124,7 +2124,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/LoginDTO.java",
       "source_location": "L7",
       "id": "dtos_logindto_logindto",
-      "community": 80,
+      "community": 79,
       "norm_label": "logindto"
     },
     {
@@ -2133,7 +2133,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/LogSessionRequestDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_logsessionrequestdto_java",
-      "community": 113,
+      "community": 112,
       "norm_label": "logsessionrequestdto.java"
     },
     {
@@ -2142,7 +2142,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/MediaUploadResponse.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_mediauploadresponse_java",
-      "community": 114,
+      "community": 113,
       "norm_label": "mediauploadresponse.java"
     },
     {
@@ -2151,7 +2151,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/MetricDeltaDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_metricdeltadto_java",
-      "community": 115,
+      "community": 114,
       "norm_label": "metricdeltadto.java"
     },
     {
@@ -2160,7 +2160,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/MonthlyStatsResponseDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_monthlystatsresponsedto_java",
-      "community": 116,
+      "community": 115,
       "norm_label": "monthlystatsresponsedto.java"
     },
     {
@@ -2169,7 +2169,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/NextWorkoutResponseDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_nextworkoutresponsedto_java",
-      "community": 117,
+      "community": 116,
       "norm_label": "nextworkoutresponsedto.java"
     },
     {
@@ -2178,7 +2178,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/PendingRequestDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_pendingrequestdto_java",
-      "community": 118,
+      "community": 117,
       "norm_label": "pendingrequestdto.java"
     },
     {
@@ -2187,7 +2187,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/PlanEvolutionResponseDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_planevolutionresponsedto_java",
-      "community": 119,
+      "community": 118,
       "norm_label": "planevolutionresponsedto.java"
     },
     {
@@ -2196,7 +2196,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/RankingEntryDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_rankingentrydto_java",
-      "community": 120,
+      "community": 119,
       "norm_label": "rankingentrydto.java"
     },
     {
@@ -2205,7 +2205,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/RefreshResponseDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_refreshresponsedto_java",
-      "community": 121,
+      "community": 120,
       "norm_label": "refreshresponsedto.java"
     },
     {
@@ -2214,7 +2214,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/RefreshTokenDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_refreshtokendto_java",
-      "community": 81,
+      "community": 80,
       "norm_label": "refreshtokendto.java"
     },
     {
@@ -2223,7 +2223,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/RefreshTokenDTO.java",
       "source_location": "L6",
       "id": "dtos_refreshtokendto_refreshtokendto",
-      "community": 81,
+      "community": 80,
       "norm_label": "refreshtokendto"
     },
     {
@@ -2232,7 +2232,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/RegisterDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_registerdto_java",
-      "community": 82,
+      "community": 81,
       "norm_label": "registerdto.java"
     },
     {
@@ -2241,7 +2241,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/RegisterDTO.java",
       "source_location": "L8",
       "id": "dtos_registerdto_registerdto",
-      "community": 82,
+      "community": 81,
       "norm_label": "registerdto"
     },
     {
@@ -2250,7 +2250,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/ResetPasswordDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_resetpassworddto_java",
-      "community": 83,
+      "community": 82,
       "norm_label": "resetpassworddto.java"
     },
     {
@@ -2259,7 +2259,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/ResetPasswordDTO.java",
       "source_location": "L8",
       "id": "dtos_resetpassworddto_resetpassworddto",
-      "community": 83,
+      "community": 82,
       "norm_label": "resetpassworddto"
     },
     {
@@ -2268,7 +2268,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/SetLogDto.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_setlogdto_java",
-      "community": 122,
+      "community": 121,
       "norm_label": "setlogdto.java"
     },
     {
@@ -2277,7 +2277,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/SquadMemberDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_squadmemberdto_java",
-      "community": 123,
+      "community": 122,
       "norm_label": "squadmemberdto.java"
     },
     {
@@ -2286,7 +2286,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/StartSessionResponseDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_startsessionresponsedto_java",
-      "community": 124,
+      "community": 123,
       "norm_label": "startsessionresponsedto.java"
     },
     {
@@ -2295,7 +2295,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/StatsInsightDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_statsinsightdto_java",
-      "community": 125,
+      "community": 124,
       "norm_label": "statsinsightdto.java"
     },
     {
@@ -2304,7 +2304,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/StatsSummaryResponseDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_statssummaryresponsedto_java",
-      "community": 126,
+      "community": 125,
       "norm_label": "statssummaryresponsedto.java"
     },
     {
@@ -2313,7 +2313,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/StoryDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_storydto_java",
-      "community": 127,
+      "community": 126,
       "norm_label": "storydto.java"
     },
     {
@@ -2322,7 +2322,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/StoryGroupDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_storygroupdto_java",
-      "community": 128,
+      "community": 127,
       "norm_label": "storygroupdto.java"
     },
     {
@@ -2331,7 +2331,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/UpdateWeightRequestDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_updateweightrequestdto_java",
-      "community": 129,
+      "community": 128,
       "norm_label": "updateweightrequestdto.java"
     },
     {
@@ -2340,7 +2340,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/UserCardDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_usercarddto_java",
-      "community": 130,
+      "community": 129,
       "norm_label": "usercarddto.java"
     },
     {
@@ -2349,7 +2349,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/UserProfileResponseDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_userprofileresponsedto_java",
-      "community": 131,
+      "community": 130,
       "norm_label": "userprofileresponsedto.java"
     },
     {
@@ -2358,7 +2358,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/VerifyEmailDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_verifyemaildto_java",
-      "community": 84,
+      "community": 83,
       "norm_label": "verifyemaildto.java"
     },
     {
@@ -2367,7 +2367,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/VerifyEmailDTO.java",
       "source_location": "L7",
       "id": "dtos_verifyemaildto_verifyemaildto",
-      "community": 84,
+      "community": 83,
       "norm_label": "verifyemaildto"
     },
     {
@@ -2376,7 +2376,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/VolumeByMuscleGroupDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_volumebymusclegroupdto_java",
-      "community": 132,
+      "community": 131,
       "norm_label": "volumebymusclegroupdto.java"
     },
     {
@@ -2385,7 +2385,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/VolumeSummaryDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_volumesummarydto_java",
-      "community": 133,
+      "community": 132,
       "norm_label": "volumesummarydto.java"
     },
     {
@@ -2394,7 +2394,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/WeeklyActivityDayDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_weeklyactivitydaydto_java",
-      "community": 134,
+      "community": 133,
       "norm_label": "weeklyactivitydaydto.java"
     },
     {
@@ -2403,7 +2403,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/WeeklyActivityPointDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_weeklyactivitypointdto_java",
-      "community": 135,
+      "community": 134,
       "norm_label": "weeklyactivitypointdto.java"
     },
     {
@@ -2412,7 +2412,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/WeeklyActivityResponseDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_weeklyactivityresponsedto_java",
-      "community": 136,
+      "community": 135,
       "norm_label": "weeklyactivityresponsedto.java"
     },
     {
@@ -2421,7 +2421,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/WeightPointDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_weightpointdto_java",
-      "community": 137,
+      "community": 136,
       "norm_label": "weightpointdto.java"
     },
     {
@@ -2430,7 +2430,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/WeightSummaryDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_weightsummarydto_java",
-      "community": 138,
+      "community": 137,
       "norm_label": "weightsummarydto.java"
     },
     {
@@ -2439,7 +2439,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/WorkoutPlanResponseDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_workoutplanresponsedto_java",
-      "community": 85,
+      "community": 84,
       "norm_label": "workoutplanresponsedto.java"
     },
     {
@@ -2448,7 +2448,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/WorkoutPlanResponseDTO.java",
       "source_location": "L18",
       "id": "dtos_workoutplanresponsedto_fromentity",
-      "community": 85,
+      "community": 84,
       "norm_label": "fromentity()"
     },
     {
@@ -2457,7 +2457,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/dtos/WorkoutSessionLogRequestDTO.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_dtos_workoutsessionlogrequestdto_java",
-      "community": 139,
+      "community": 138,
       "norm_label": "workoutsessionlogrequestdto.java"
     },
     {
@@ -2466,7 +2466,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/enums/ConnectionStatus.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_enums_connectionstatus_java",
-      "community": 140,
+      "community": 139,
       "norm_label": "connectionstatus.java"
     },
     {
@@ -2475,7 +2475,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/enums/PostIntensity.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_enums_postintensity_java",
-      "community": 141,
+      "community": 140,
       "norm_label": "postintensity.java"
     },
     {
@@ -2484,7 +2484,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/enums/PresenceStatus.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_enums_presencestatus_java",
-      "community": 142,
+      "community": 141,
       "norm_label": "presencestatus.java"
     },
     {
@@ -2583,7 +2583,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/exceptions/EmailAlreadyInUseException.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_exceptions_emailalreadyinuseexception_java",
-      "community": 41,
+      "community": 42,
       "norm_label": "emailalreadyinuseexception.java"
     },
     {
@@ -2592,7 +2592,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/exceptions/EmailAlreadyInUseException.java",
       "source_location": "L4",
       "id": "exceptions_emailalreadyinuseexception_emailalreadyinuseexception",
-      "community": 41,
+      "community": 42,
       "norm_label": "emailalreadyinuseexception"
     },
     {
@@ -2601,7 +2601,7 @@
       "source_file": "",
       "source_location": "",
       "id": "runtimeexception",
-      "community": 41,
+      "community": 42,
       "norm_label": "runtimeexception"
     },
     {
@@ -2610,7 +2610,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/exceptions/EmailAlreadyInUseException.java",
       "source_location": "L5",
       "id": "exceptions_emailalreadyinuseexception_emailalreadyinuseexception_emailalreadyinuseexception",
-      "community": 41,
+      "community": 42,
       "norm_label": ".emailalreadyinuseexception()"
     },
     {
@@ -2619,7 +2619,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/exceptions/GlobalExceptionHandler.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_exceptions_globalexceptionhandler_java",
-      "community": 69,
+      "community": 67,
       "norm_label": "globalexceptionhandler.java"
     },
     {
@@ -2628,7 +2628,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/exceptions/GlobalExceptionHandler.java",
       "source_location": "L14",
       "id": "exceptions_globalexceptionhandler_globalexceptionhandler",
-      "community": 69,
+      "community": 67,
       "norm_label": "globalexceptionhandler"
     },
     {
@@ -2637,7 +2637,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/exceptions/GlobalExceptionHandler.java",
       "source_location": "L17",
       "id": "exceptions_globalexceptionhandler_globalexceptionhandler_handleemailinuse",
-      "community": 69,
+      "community": 67,
       "norm_label": ".handleemailinuse()"
     },
     {
@@ -2646,7 +2646,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/exceptions/GlobalExceptionHandler.java",
       "source_location": "L22",
       "id": "exceptions_globalexceptionhandler_globalexceptionhandler_handlenotfound",
-      "community": 69,
+      "community": 67,
       "norm_label": ".handlenotfound()"
     },
     {
@@ -2655,7 +2655,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/exceptions/GlobalExceptionHandler.java",
       "source_location": "L27",
       "id": "exceptions_globalexceptionhandler_globalexceptionhandler_handlebadrequest",
-      "community": 69,
+      "community": 67,
       "norm_label": ".handlebadrequest()"
     },
     {
@@ -2664,7 +2664,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/Exercise.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_models_exercise_java",
-      "community": 86,
+      "community": 85,
       "norm_label": "exercise.java"
     },
     {
@@ -2673,7 +2673,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/Exercise.java",
       "source_location": "L14",
       "id": "models_exercise_exercise",
-      "community": 86,
+      "community": 85,
       "norm_label": "exercise"
     },
     {
@@ -2682,7 +2682,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/ExerciseSetLog.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_models_exercisesetlog_java",
-      "community": 87,
+      "community": 86,
       "norm_label": "exercisesetlog.java"
     },
     {
@@ -2691,7 +2691,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/ExerciseSetLog.java",
       "source_location": "L13",
       "id": "models_exercisesetlog_exercisesetlog",
-      "community": 87,
+      "community": 86,
       "norm_label": "exercisesetlog"
     },
     {
@@ -2700,7 +2700,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/PlanCycleSnapshot.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_models_plancyclesnapshot_java",
-      "community": 88,
+      "community": 87,
       "norm_label": "plancyclesnapshot.java"
     },
     {
@@ -2709,7 +2709,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/PlanCycleSnapshot.java",
       "source_location": "L11",
       "id": "models_plancyclesnapshot_plancyclesnapshot",
-      "community": 88,
+      "community": 87,
       "norm_label": "plancyclesnapshot"
     },
     {
@@ -2718,7 +2718,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/PostComment.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_models_postcomment_java",
-      "community": 89,
+      "community": 88,
       "norm_label": "postcomment.java"
     },
     {
@@ -2727,7 +2727,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/PostComment.java",
       "source_location": "L12",
       "id": "models_postcomment_postcomment",
-      "community": 89,
+      "community": 88,
       "norm_label": "postcomment"
     },
     {
@@ -2736,7 +2736,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/PostLike.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_models_postlike_java",
-      "community": 90,
+      "community": 89,
       "norm_label": "postlike.java"
     },
     {
@@ -2745,7 +2745,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/PostLike.java",
       "source_location": "L12",
       "id": "models_postlike_postlike",
-      "community": 90,
+      "community": 89,
       "norm_label": "postlike"
     },
     {
@@ -2772,7 +2772,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/SocialPost.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_models_socialpost_java",
-      "community": 91,
+      "community": 90,
       "norm_label": "socialpost.java"
     },
     {
@@ -2781,7 +2781,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/SocialPost.java",
       "source_location": "L12",
       "id": "models_socialpost_socialpost",
-      "community": 91,
+      "community": 90,
       "norm_label": "socialpost"
     },
     {
@@ -2790,7 +2790,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/User.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_models_user_java",
-      "community": 92,
+      "community": 91,
       "norm_label": "user.java"
     },
     {
@@ -2799,7 +2799,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/User.java",
       "source_location": "L14",
       "id": "models_user_user",
-      "community": 92,
+      "community": 91,
       "norm_label": "user"
     },
     {
@@ -2808,7 +2808,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/UserConnection.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_models_userconnection_java",
-      "community": 93,
+      "community": 92,
       "norm_label": "userconnection.java"
     },
     {
@@ -2817,7 +2817,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/UserConnection.java",
       "source_location": "L12",
       "id": "models_userconnection_userconnection",
-      "community": 93,
+      "community": 92,
       "norm_label": "userconnection"
     },
     {
@@ -2826,7 +2826,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/UserLoginStreak.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_models_userloginstreak_java",
-      "community": 94,
+      "community": 93,
       "norm_label": "userloginstreak.java"
     },
     {
@@ -2835,7 +2835,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/UserLoginStreak.java",
       "source_location": "L13",
       "id": "models_userloginstreak_userloginstreak",
-      "community": 94,
+      "community": 93,
       "norm_label": "userloginstreak"
     },
     {
@@ -2844,7 +2844,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/WeightHistory.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_models_weighthistory_java",
-      "community": 95,
+      "community": 94,
       "norm_label": "weighthistory.java"
     },
     {
@@ -2853,7 +2853,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/WeightHistory.java",
       "source_location": "L20",
       "id": "models_weighthistory_weighthistory",
-      "community": 95,
+      "community": 94,
       "norm_label": "weighthistory"
     },
     {
@@ -2862,7 +2862,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/WorkoutExecutionLog.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_models_workoutexecutionlog_java",
-      "community": 96,
+      "community": 95,
       "norm_label": "workoutexecutionlog.java"
     },
     {
@@ -2871,7 +2871,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/WorkoutExecutionLog.java",
       "source_location": "L13",
       "id": "models_workoutexecutionlog_workoutexecutionlog",
-      "community": 96,
+      "community": 95,
       "norm_label": "workoutexecutionlog"
     },
     {
@@ -2880,7 +2880,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/WorkoutPlan.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_models_workoutplan_java",
-      "community": 97,
+      "community": 96,
       "norm_label": "workoutplan.java"
     },
     {
@@ -2889,7 +2889,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/WorkoutPlan.java",
       "source_location": "L14",
       "id": "models_workoutplan_workoutplan",
-      "community": 97,
+      "community": 96,
       "norm_label": "workoutplan"
     },
     {
@@ -2898,7 +2898,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/WorkoutSession.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_models_workoutsession_java",
-      "community": 98,
+      "community": 97,
       "norm_label": "workoutsession.java"
     },
     {
@@ -2907,7 +2907,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/models/WorkoutSession.java",
       "source_location": "L25",
       "id": "models_workoutsession_workoutsession",
-      "community": 98,
+      "community": 97,
       "norm_label": "workoutsession"
     },
     {
@@ -2943,7 +2943,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/ExerciseSetLogRepository.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_repositories_exercisesetlogrepository_java",
-      "community": 44,
+      "community": 22,
       "norm_label": "exercisesetlogrepository.java"
     },
     {
@@ -2952,7 +2952,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/ExerciseSetLogRepository.java",
       "source_location": "L13",
       "id": "repositories_exercisesetlogrepository_exercisesetlogrepository",
-      "community": 44,
+      "community": 22,
       "norm_label": "exercisesetlogrepository"
     },
     {
@@ -2961,7 +2961,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/ExerciseSetLogRepository.java",
       "source_location": "L21",
       "id": "repositories_exercisesetlogrepository_exercisesetlogrepository_findvolumebymusclegroupbetween",
-      "community": 44,
+      "community": 22,
       "norm_label": ".findvolumebymusclegroupbetween()"
     },
     {
@@ -3096,7 +3096,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/RefreshTokenRepository.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_repositories_refreshtokenrepository_java",
-      "community": 21,
+      "community": 23,
       "norm_label": "refreshtokenrepository.java"
     },
     {
@@ -3105,7 +3105,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/RefreshTokenRepository.java",
       "source_location": "L15",
       "id": "repositories_refreshtokenrepository_refreshtokenrepository",
-      "community": 21,
+      "community": 23,
       "norm_label": "refreshtokenrepository"
     },
     {
@@ -3114,7 +3114,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/RefreshTokenRepository.java",
       "source_location": "L17",
       "id": "repositories_refreshtokenrepository_refreshtokenrepository_findbytokenhash",
-      "community": 21,
+      "community": 23,
       "norm_label": ".findbytokenhash()"
     },
     {
@@ -3123,7 +3123,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/RefreshTokenRepository.java",
       "source_location": "L19",
       "id": "repositories_refreshtokenrepository_refreshtokenrepository_deletebytokenhash",
-      "community": 21,
+      "community": 23,
       "norm_label": ".deletebytokenhash()"
     },
     {
@@ -3132,7 +3132,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/RefreshTokenRepository.java",
       "source_location": "L23",
       "id": "repositories_refreshtokenrepository_refreshtokenrepository_deletebyuser",
-      "community": 21,
+      "community": 23,
       "norm_label": ".deletebyuser()"
     },
     {
@@ -3141,7 +3141,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/RefreshTokenRepository.java",
       "source_location": "L29",
       "id": "repositories_refreshtokenrepository_refreshtokenrepository_deleteallexpired",
-      "community": 21,
+      "community": 23,
       "norm_label": ".deleteallexpired()"
     },
     {
@@ -3231,7 +3231,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/UserLoginStreakRepository.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_repositories_userloginstreakrepository_java",
-      "community": 23,
+      "community": 21,
       "norm_label": "userloginstreakrepository.java"
     },
     {
@@ -3240,7 +3240,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/UserLoginStreakRepository.java",
       "source_location": "L14",
       "id": "repositories_userloginstreakrepository_userloginstreakrepository",
-      "community": 23,
+      "community": 21,
       "norm_label": "userloginstreakrepository"
     },
     {
@@ -3249,7 +3249,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/UserLoginStreakRepository.java",
       "source_location": "L17",
       "id": "repositories_userloginstreakrepository_userloginstreakrepository_existsbyuserandlogindate",
-      "community": 23,
+      "community": 21,
       "norm_label": ".existsbyuserandlogindate()"
     },
     {
@@ -3258,7 +3258,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/UserLoginStreakRepository.java",
       "source_location": "L19",
       "id": "repositories_userloginstreakrepository_userloginstreakrepository_findlogindatesbyusersince",
-      "community": 23,
+      "community": 21,
       "norm_label": ".findlogindatesbyusersince()"
     },
     {
@@ -3267,7 +3267,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/UserLoginStreakRepository.java",
       "source_location": "L22",
       "id": "repositories_userloginstreakrepository_userloginstreakrepository_findalllogindatesbyuser",
-      "community": 23,
+      "community": 21,
       "norm_label": ".findalllogindatesbyuser()"
     },
     {
@@ -3294,7 +3294,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/UserRepository.java",
       "source_location": "L16",
       "id": "repositories_userrepository_userrepository_findbyemail",
-      "community": 23,
+      "community": 21,
       "norm_label": ".findbyemail()"
     },
     {
@@ -3303,7 +3303,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/UserRepository.java",
       "source_location": "L19",
       "id": "repositories_userrepository_userrepository_getbyemailorthrow",
-      "community": 23,
+      "community": 21,
       "norm_label": ".getbyemailorthrow()"
     },
     {
@@ -3348,7 +3348,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WeightHistoryRepository.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_repositories_weighthistoryrepository_java",
-      "community": 51,
+      "community": 22,
       "norm_label": "weighthistoryrepository.java"
     },
     {
@@ -3357,7 +3357,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WeightHistoryRepository.java",
       "source_location": "L12",
       "id": "repositories_weighthistoryrepository_weighthistoryrepository",
-      "community": 51,
+      "community": 22,
       "norm_label": "weighthistoryrepository"
     },
     {
@@ -3366,7 +3366,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WeightHistoryRepository.java",
       "source_location": "L15",
       "id": "repositories_weighthistoryrepository_weighthistoryrepository_findbyuserandloggedat",
-      "community": 51,
+      "community": 22,
       "norm_label": ".findbyuserandloggedat()"
     },
     {
@@ -3375,7 +3375,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WeightHistoryRepository.java",
       "source_location": "L17",
       "id": "repositories_weighthistoryrepository_weighthistoryrepository_findfirstbyuserorderbyloggedatdesc",
-      "community": 51,
+      "community": 22,
       "norm_label": ".findfirstbyuserorderbyloggedatdesc()"
     },
     {
@@ -3384,7 +3384,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WeightHistoryRepository.java",
       "source_location": "L19",
       "id": "repositories_weighthistoryrepository_weighthistoryrepository_findfirstbyuserandloggedatbetweenorderbyloggedatdesc",
-      "community": 51,
+      "community": 22,
       "norm_label": ".findfirstbyuserandloggedatbetweenorderbyloggedatdesc()"
     },
     {
@@ -3393,7 +3393,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WeightHistoryRepository.java",
       "source_location": "L22",
       "id": "repositories_weighthistoryrepository_weighthistoryrepository_findallbyuserorderbyloggedatasc",
-      "community": 51,
+      "community": 22,
       "norm_label": ".findallbyuserorderbyloggedatasc()"
     },
     {
@@ -3402,7 +3402,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WeightHistoryRepository.java",
       "source_location": "L25",
       "id": "repositories_weighthistoryrepository_weighthistoryrepository_findbyuserandloggedatbetweenorderbyloggedatasc",
-      "community": 51,
+      "community": 22,
       "norm_label": ".findbyuserandloggedatbetweenorderbyloggedatasc()"
     },
     {
@@ -3411,7 +3411,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutExecutionLogRepository.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_repositories_workoutexecutionlogrepository_java",
-      "community": 22,
+      "community": 69,
       "norm_label": "workoutexecutionlogrepository.java"
     },
     {
@@ -3420,7 +3420,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutExecutionLogRepository.java",
       "source_location": "L11",
       "id": "repositories_workoutexecutionlogrepository_workoutexecutionlogrepository",
-      "community": 22,
+      "community": 69,
       "norm_label": "workoutexecutionlogrepository"
     },
     {
@@ -3429,7 +3429,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutExecutionLogRepository.java",
       "source_location": "L14",
       "id": "repositories_workoutexecutionlogrepository_workoutexecutionlogrepository_findfirstbyuseridorderbycompletiondatedesc",
-      "community": 22,
+      "community": 69,
       "norm_label": ".findfirstbyuseridorderbycompletiondatedesc()"
     },
     {
@@ -3438,7 +3438,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutExecutionLogRepository.java",
       "source_location": "L16",
       "id": "repositories_workoutexecutionlogrepository_workoutexecutionlogrepository_countbyuser",
-      "community": 22,
+      "community": 69,
       "norm_label": ".countbyuser()"
     },
     {
@@ -3447,7 +3447,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutPlanRepository.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_repositories_workoutplanrepository_java",
-      "community": 52,
+      "community": 58,
       "norm_label": "workoutplanrepository.java"
     },
     {
@@ -3456,7 +3456,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutPlanRepository.java",
       "source_location": "L16",
       "id": "repositories_workoutplanrepository_workoutplanrepository",
-      "community": 52,
+      "community": 58,
       "norm_label": "workoutplanrepository"
     },
     {
@@ -3465,7 +3465,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutPlanRepository.java",
       "source_location": "L19",
       "id": "repositories_workoutplanrepository_workoutplanrepository_findbyuserid",
-      "community": 52,
+      "community": 58,
       "norm_label": ".findbyuserid()"
     },
     {
@@ -3474,7 +3474,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutPlanRepository.java",
       "source_location": "L22",
       "id": "repositories_workoutplanrepository_workoutplanrepository_findbyuseridorderbycreatedatasc",
-      "community": 52,
+      "community": 58,
       "norm_label": ".findbyuseridorderbycreatedatasc()"
     },
     {
@@ -3483,7 +3483,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutPlanRepository.java",
       "source_location": "L25",
       "id": "repositories_workoutplanrepository_workoutplanrepository_findbyuseridandstatus",
-      "community": 52,
+      "community": 58,
       "norm_label": ".findbyuseridandstatus()"
     },
     {
@@ -3492,7 +3492,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutPlanRepository.java",
       "source_location": "L28",
       "id": "repositories_workoutplanrepository_workoutplanrepository_findbyuseridandstatusorderbycreatedatasc",
-      "community": 52,
+      "community": 58,
       "norm_label": ".findbyuseridandstatusorderbycreatedatasc()"
     },
     {
@@ -3501,7 +3501,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutPlanRepository.java",
       "source_location": "L32",
       "id": "repositories_workoutplanrepository_workoutplanrepository_archiveactiveplans",
-      "community": 52,
+      "community": 51,
       "norm_label": ".archiveactiveplans()"
     },
     {
@@ -3510,7 +3510,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutPlanRepository.java",
       "source_location": "L37",
       "id": "repositories_workoutplanrepository_workoutplanrepository_findearliestactivecreatedat",
-      "community": 58,
+      "community": 51,
       "norm_label": ".findearliestactivecreatedat()"
     },
     {
@@ -3519,7 +3519,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutSessionRepository.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_repositories_workoutsessionrepository_java",
-      "community": 33,
+      "community": 15,
       "norm_label": "workoutsessionrepository.java"
     },
     {
@@ -3528,7 +3528,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutSessionRepository.java",
       "source_location": "L13",
       "id": "repositories_workoutsessionrepository_workoutsessionrepository",
-      "community": 33,
+      "community": 15,
       "norm_label": "workoutsessionrepository"
     },
     {
@@ -3537,7 +3537,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutSessionRepository.java",
       "source_location": "L16",
       "id": "repositories_workoutsessionrepository_workoutsessionrepository_countbyuseridandsessiondategreaterthanequalandsessiondatelessthan",
-      "community": 44,
+      "community": 15,
       "norm_label": ".countbyuseridandsessiondategreaterthanequalandsessiondatelessthan()"
     },
     {
@@ -3546,7 +3546,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutSessionRepository.java",
       "source_location": "L22",
       "id": "repositories_workoutsessionrepository_workoutsessionrepository_existsbyuseridandsessiondate",
-      "community": 33,
+      "community": 15,
       "norm_label": ".existsbyuseridandsessiondate()"
     },
     {
@@ -3555,7 +3555,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutSessionRepository.java",
       "source_location": "L24",
       "id": "repositories_workoutsessionrepository_workoutsessionrepository_findbyuseridandsessiondatebetween",
-      "community": 33,
+      "community": 15,
       "norm_label": ".findbyuseridandsessiondatebetween()"
     },
     {
@@ -3564,7 +3564,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutSessionRepository.java",
       "source_location": "L30",
       "id": "repositories_workoutsessionrepository_workoutsessionrepository_findsessiondatesbyuseridbetween",
-      "community": 33,
+      "community": 15,
       "norm_label": ".findsessiondatesbyuseridbetween()"
     },
     {
@@ -3573,7 +3573,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutSessionRepository.java",
       "source_location": "L38",
       "id": "repositories_workoutsessionrepository_workoutsessionrepository_countsessionsperuserbetween",
-      "community": 33,
+      "community": 15,
       "norm_label": ".countsessionsperuserbetween()"
     },
     {
@@ -3798,7 +3798,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/AuthService.java",
       "source_location": "L90",
       "id": "services_authservice_authservice_logout",
-      "community": 21,
+      "community": 23,
       "norm_label": ".logout()"
     },
     {
@@ -3816,7 +3816,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/AuthService.java",
       "source_location": "L98",
       "id": "services_authservice_authservice_resetpassword",
-      "community": 21,
+      "community": 23,
       "norm_label": ".resetpassword()"
     },
     {
@@ -3879,7 +3879,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/GeminiService.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_services_geminiservice_java",
-      "community": 41,
+      "community": 42,
       "norm_label": "geminiservice.java"
     },
     {
@@ -3915,7 +3915,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/GeminiService.java",
       "source_location": "L117",
       "id": "services_geminiservice_invalidgeminiresponseexception",
-      "community": 41,
+      "community": 42,
       "norm_label": "invalidgeminiresponseexception"
     },
     {
@@ -3924,7 +3924,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/GeminiService.java",
       "source_location": "L118",
       "id": "services_geminiservice_invalidgeminiresponseexception_invalidgeminiresponseexception",
-      "community": 41,
+      "community": 42,
       "norm_label": ".invalidgeminiresponseexception()"
     },
     {
@@ -3942,7 +3942,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/HomeAggregatorService.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_services_homeaggregatorservice_java",
-      "community": 22,
+      "community": 15,
       "norm_label": "homeaggregatorservice.java"
     },
     {
@@ -3951,7 +3951,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/HomeAggregatorService.java",
       "source_location": "L31",
       "id": "services_homeaggregatorservice_homeaggregatorservice",
-      "community": 22,
+      "community": 15,
       "norm_label": "homeaggregatorservice"
     },
     {
@@ -3960,7 +3960,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/HomeAggregatorService.java",
       "source_location": "L41",
       "id": "services_homeaggregatorservice_homeaggregatorservice_homeaggregatorservice",
-      "community": 22,
+      "community": 15,
       "norm_label": ".homeaggregatorservice()"
     },
     {
@@ -3969,7 +3969,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/HomeAggregatorService.java",
       "source_location": "L51",
       "id": "services_homeaggregatorservice_homeaggregatorservice_builddashboarddata",
-      "community": 22,
+      "community": 15,
       "norm_label": ".builddashboarddata()"
     },
     {
@@ -3978,7 +3978,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/HomeAggregatorService.java",
       "source_location": "L82",
       "id": "services_homeaggregatorservice_homeaggregatorservice_buildnextworkout",
-      "community": 22,
+      "community": 15,
       "norm_label": ".buildnextworkout()"
     },
     {
@@ -3987,7 +3987,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/HomeAggregatorService.java",
       "source_location": "L104",
       "id": "services_homeaggregatorservice_homeaggregatorservice_mapplantodto",
-      "community": 22,
+      "community": 15,
       "norm_label": ".mapplantodto()"
     },
     {
@@ -3996,7 +3996,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/HomeAggregatorService.java",
       "source_location": "L132",
       "id": "services_homeaggregatorservice_homeaggregatorservice_calculatestreak",
-      "community": 22,
+      "community": 15,
       "norm_label": ".calculatestreak()"
     },
     {
@@ -4005,7 +4005,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/HomeAggregatorService.java",
       "source_location": "L150",
       "id": "services_homeaggregatorservice_homeaggregatorservice_calculateadherence",
-      "community": 22,
+      "community": 15,
       "norm_label": ".calculateadherence()"
     },
     {
@@ -4014,7 +4014,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/HomeAggregatorService.java",
       "source_location": "L164",
       "id": "services_homeaggregatorservice_homeaggregatorservice_buildweeklyactivity",
-      "community": 22,
+      "community": 15,
       "norm_label": ".buildweeklyactivity()"
     },
     {
@@ -4023,7 +4023,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/HomeAggregatorService.java",
       "source_location": "L191",
       "id": "services_homeaggregatorservice_homeaggregatorservice_buildmockranking",
-      "community": 22,
+      "community": 15,
       "norm_label": ".buildmockranking()"
     },
     {
@@ -4032,7 +4032,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/HomeAggregatorService.java",
       "source_location": "L200",
       "id": "services_homeaggregatorservice_homeaggregatorservice_extractfirstname",
-      "community": 22,
+      "community": 15,
       "norm_label": ".extractfirstname()"
     },
     {
@@ -4041,7 +4041,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/InvalidRefreshTokenException.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_services_invalidrefreshtokenexception_java",
-      "community": 41,
+      "community": 42,
       "norm_label": "invalidrefreshtokenexception.java"
     },
     {
@@ -4050,7 +4050,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/InvalidRefreshTokenException.java",
       "source_location": "L3",
       "id": "services_invalidrefreshtokenexception_invalidrefreshtokenexception",
-      "community": 41,
+      "community": 42,
       "norm_label": "invalidrefreshtokenexception"
     },
     {
@@ -4059,7 +4059,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/InvalidRefreshTokenException.java",
       "source_location": "L4",
       "id": "services_invalidrefreshtokenexception_invalidrefreshtokenexception_invalidrefreshtokenexception",
-      "community": 41,
+      "community": 42,
       "norm_label": ".invalidrefreshtokenexception()"
     },
     {
@@ -4068,7 +4068,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/PlanCycleSnapshotService.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_services_plancyclesnapshotservice_java",
-      "community": 44,
+      "community": 22,
       "norm_label": "plancyclesnapshotservice.java"
     },
     {
@@ -4077,7 +4077,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/PlanCycleSnapshotService.java",
       "source_location": "L22",
       "id": "services_plancyclesnapshotservice_plancyclesnapshotservice",
-      "community": 44,
+      "community": 22,
       "norm_label": "plancyclesnapshotservice"
     },
     {
@@ -4086,7 +4086,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/PlanCycleSnapshotService.java",
       "source_location": "L32",
       "id": "services_plancyclesnapshotservice_plancyclesnapshotservice_plancyclesnapshotservice",
-      "community": 44,
+      "community": 22,
       "norm_label": ".plancyclesnapshotservice()"
     },
     {
@@ -4095,7 +4095,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/PlanCycleSnapshotService.java",
       "source_location": "L53",
       "id": "services_plancyclesnapshotservice_plancyclesnapshotservice_capturesnapshot",
-      "community": 44,
+      "community": 22,
       "norm_label": ".capturesnapshot()"
     },
     {
@@ -4104,7 +4104,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/PlanCycleSnapshotService.java",
       "source_location": "L108",
       "id": "services_plancyclesnapshotservice_plancyclesnapshotservice_volumemapfromdb",
-      "community": 44,
+      "community": 22,
       "norm_label": ".volumemapfromdb()"
     },
     {
@@ -4113,7 +4113,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/PresenceService.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_services_presenceservice_java",
-      "community": 42,
+      "community": 43,
       "norm_label": "presenceservice.java"
     },
     {
@@ -4122,7 +4122,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/PresenceService.java",
       "source_location": "L12",
       "id": "services_presenceservice_presenceservice",
-      "community": 42,
+      "community": 43,
       "norm_label": "presenceservice"
     },
     {
@@ -4131,7 +4131,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/PresenceService.java",
       "source_location": "L17",
       "id": "services_presenceservice_presenceservice_presenceservice",
-      "community": 42,
+      "community": 43,
       "norm_label": ".presenceservice()"
     },
     {
@@ -4140,7 +4140,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/PresenceService.java",
       "source_location": "L22",
       "id": "services_presenceservice_presenceservice_touch",
-      "community": 42,
+      "community": 43,
       "norm_label": ".touch()"
     },
     {
@@ -4149,7 +4149,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/PresenceService.java",
       "source_location": "L33",
       "id": "services_presenceservice_presenceservice_startsession",
-      "community": 42,
+      "community": 43,
       "norm_label": ".startsession()"
     },
     {
@@ -4167,7 +4167,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/RefreshTokenService.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_services_refreshtokenservice_java",
-      "community": 21,
+      "community": 23,
       "norm_label": "refreshtokenservice.java"
     },
     {
@@ -4176,7 +4176,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/RefreshTokenService.java",
       "source_location": "L22",
       "id": "services_refreshtokenservice_refreshtokenservice",
-      "community": 21,
+      "community": 23,
       "norm_label": "refreshtokenservice"
     },
     {
@@ -4185,7 +4185,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/RefreshTokenService.java",
       "source_location": "L36",
       "id": "services_refreshtokenservice_refreshtokenservice_createforuser",
-      "community": 21,
+      "community": 23,
       "norm_label": ".createforuser()"
     },
     {
@@ -4194,7 +4194,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/RefreshTokenService.java",
       "source_location": "L53",
       "id": "services_refreshtokenservice_refreshtokenservice_rotate",
-      "community": 21,
+      "community": 23,
       "norm_label": ".rotate()"
     },
     {
@@ -4203,7 +4203,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/RefreshTokenService.java",
       "source_location": "L74",
       "id": "services_refreshtokenservice_refreshtokenservice_revoke",
-      "community": 21,
+      "community": 23,
       "norm_label": ".revoke()"
     },
     {
@@ -4212,7 +4212,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/RefreshTokenService.java",
       "source_location": "L79",
       "id": "services_refreshtokenservice_refreshtokenservice_revokeallforuser",
-      "community": 21,
+      "community": 23,
       "norm_label": ".revokeallforuser()"
     },
     {
@@ -4221,7 +4221,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/RefreshTokenService.java",
       "source_location": "L89",
       "id": "services_refreshtokenservice_refreshtokenservice_purgeexpiredtokens",
-      "community": 21,
+      "community": 23,
       "norm_label": ".purgeexpiredtokens()"
     },
     {
@@ -4230,7 +4230,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/RefreshTokenService.java",
       "source_location": "L98",
       "id": "services_refreshtokenservice_refreshtokenservice_sha256hex",
-      "community": 21,
+      "community": 23,
       "norm_label": ".sha256hex()"
     },
     {
@@ -4572,7 +4572,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/StatsService.java",
       "source_location": "L112",
       "id": "services_statsservice_statsservice_buildweightsummary",
-      "community": 51,
+      "community": 22,
       "norm_label": ".buildweightsummary()"
     },
     {
@@ -4698,7 +4698,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/UserService.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_services_userservice_java",
-      "community": 23,
+      "community": 21,
       "norm_label": "userservice.java"
     },
     {
@@ -4707,7 +4707,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/UserService.java",
       "source_location": "L23",
       "id": "services_userservice_userservice",
-      "community": 23,
+      "community": 21,
       "norm_label": "userservice"
     },
     {
@@ -4716,7 +4716,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/UserService.java",
       "source_location": "L33",
       "id": "services_userservice_userservice_userservice",
-      "community": 23,
+      "community": 21,
       "norm_label": ".userservice()"
     },
     {
@@ -4725,7 +4725,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/UserService.java",
       "source_location": "L47",
       "id": "services_userservice_userservice_updateuserweight",
-      "community": 23,
+      "community": 21,
       "norm_label": ".updateuserweight()"
     },
     {
@@ -4734,7 +4734,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/UserService.java",
       "source_location": "L71",
       "id": "services_userservice_userservice_changepassword",
-      "community": 23,
+      "community": 21,
       "norm_label": ".changepassword()"
     },
     {
@@ -4743,7 +4743,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/UserService.java",
       "source_location": "L90",
       "id": "services_userservice_userservice_needsweightupdate",
-      "community": 23,
+      "community": 21,
       "norm_label": ".needsweightupdate()"
     },
     {
@@ -4752,7 +4752,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/UserService.java",
       "source_location": "L101",
       "id": "services_userservice_userservice_getuserprofile",
-      "community": 23,
+      "community": 21,
       "norm_label": ".getuserprofile()"
     },
     {
@@ -4770,7 +4770,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/UserService.java",
       "source_location": "L151",
       "id": "services_userservice_userservice_calculateconsecutiveloginstreak",
-      "community": 23,
+      "community": 21,
       "norm_label": ".calculateconsecutiveloginstreak()"
     },
     {
@@ -4779,7 +4779,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutService.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_services_workoutservice_java",
-      "community": 58,
+      "community": 51,
       "norm_label": "workoutservice.java"
     },
     {
@@ -4788,7 +4788,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutService.java",
       "source_location": "L22",
       "id": "services_workoutservice_workoutservice",
-      "community": 58,
+      "community": 51,
       "norm_label": "workoutservice"
     },
     {
@@ -4797,7 +4797,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutService.java",
       "source_location": "L31",
       "id": "services_workoutservice_workoutservice_workoutservice",
-      "community": 58,
+      "community": 51,
       "norm_label": ".workoutservice()"
     },
     {
@@ -4806,7 +4806,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutService.java",
       "source_location": "L41",
       "id": "services_workoutservice_workoutservice_generateworkoutforuser",
-      "community": 58,
+      "community": 51,
       "norm_label": ".generateworkoutforuser()"
     },
     {
@@ -4815,7 +4815,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutService.java",
       "source_location": "L152",
       "id": "services_workoutservice_workoutservice_getmyplans",
-      "community": 52,
+      "community": 58,
       "norm_label": ".getmyplans()"
     },
     {
@@ -4824,7 +4824,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutService.java",
       "source_location": "L161",
       "id": "services_workoutservice_workoutservice_finduserbyemail",
-      "community": 23,
+      "community": 21,
       "norm_label": ".finduserbyemail()"
     },
     {
@@ -4833,7 +4833,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutService.java",
       "source_location": "L165",
       "id": "services_workoutservice_workoutservice_validaterequest",
-      "community": 58,
+      "community": 51,
       "norm_label": ".validaterequest()"
     },
     {
@@ -4842,7 +4842,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutSessionService.java",
       "source_location": "L1",
       "id": "kinetic_backend_src_main_java_com_kinetic_services_workoutsessionservice_java",
-      "community": 33,
+      "community": 57,
       "norm_label": "workoutsessionservice.java"
     },
     {
@@ -4851,7 +4851,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutSessionService.java",
       "source_location": "L32",
       "id": "services_workoutsessionservice_workoutsessionservice",
-      "community": 33,
+      "community": 57,
       "norm_label": "workoutsessionservice"
     },
     {
@@ -4860,7 +4860,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutSessionService.java",
       "source_location": "L42",
       "id": "services_workoutsessionservice_workoutsessionservice_workoutsessionservice",
-      "community": 33,
+      "community": 57,
       "norm_label": ".workoutsessionservice()"
     },
     {
@@ -4869,7 +4869,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutSessionService.java",
       "source_location": "L56",
       "id": "services_workoutsessionservice_workoutsessionservice_logsession",
-      "community": 33,
+      "community": 57,
       "norm_label": ".logsession()"
     },
     {
@@ -4878,7 +4878,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutSessionService.java",
       "source_location": "L97",
       "id": "services_workoutsessionservice_workoutsessionservice_getmonthlystats",
-      "community": 33,
+      "community": 57,
       "norm_label": ".getmonthlystats()"
     },
     {
@@ -4887,7 +4887,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutSessionService.java",
       "source_location": "L125",
       "id": "services_workoutsessionservice_workoutsessionservice_getweeklyactivity",
-      "community": 33,
+      "community": 57,
       "norm_label": ".getweeklyactivity()"
     },
     {
@@ -4896,7 +4896,7 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/WorkoutSessionService.java",
       "source_location": "L159",
       "id": "services_workoutsessionservice_workoutsessionservice_finduserbyemail",
-      "community": 33,
+      "community": 57,
       "norm_label": ".finduserbyemail()"
     },
     {
@@ -4905,7 +4905,7 @@
       "source_file": "KineticApp/App.js",
       "source_location": "L1",
       "id": "kineticapp_app_js",
-      "community": 19,
+      "community": 18,
       "norm_label": "app.js"
     },
     {
@@ -4914,7 +4914,7 @@
       "source_file": "KineticApp/App.tsx",
       "source_location": "L29",
       "id": "kineticapp_app_app",
-      "community": 19,
+      "community": 18,
       "norm_label": "app()"
     },
     {
@@ -4923,7 +4923,7 @@
       "source_file": "KineticApp/App.tsx",
       "source_location": "L1",
       "id": "kineticapp_app_tsx",
-      "community": 19,
+      "community": 18,
       "norm_label": "app.tsx"
     },
     {
@@ -4932,7 +4932,7 @@
       "source_file": "KineticApp/App.tsx",
       "source_location": "L13",
       "id": "kineticapp_app_appcontent",
-      "community": 19,
+      "community": 18,
       "norm_label": "appcontent()"
     },
     {
@@ -4941,7 +4941,7 @@
       "source_file": "KineticApp/index.js",
       "source_location": "L1",
       "id": "kineticapp_index_js",
-      "community": 19,
+      "community": 18,
       "norm_label": "index.js"
     },
     {
@@ -4950,7 +4950,7 @@
       "source_file": "KineticApp/metro.config.js",
       "source_location": "L1",
       "id": "kineticapp_metro_config_js",
-      "community": 71,
+      "community": 70,
       "norm_label": "metro.config.js"
     },
     {
@@ -4959,7 +4959,7 @@
       "source_file": "KineticApp/metro.config.js",
       "source_location": "L1",
       "id": "kineticapp_metro_config_getdefaultconfig",
-      "community": 71,
+      "community": 70,
       "norm_label": "{ getdefaultconfig }"
     },
     {
@@ -4968,7 +4968,7 @@
       "source_file": "KineticApp/metro.config.js",
       "source_location": "L2",
       "id": "kineticapp_metro_config_path",
-      "community": 71,
+      "community": 70,
       "norm_label": "path"
     },
     {
@@ -4977,7 +4977,7 @@
       "source_file": "KineticApp/metro.config.js",
       "source_location": "L4",
       "id": "kineticapp_metro_config_config",
-      "community": 71,
+      "community": 70,
       "norm_label": "config"
     },
     {
@@ -4986,7 +4986,7 @@
       "source_file": "KineticApp/android/build.gradle",
       "source_location": "L1",
       "id": "kineticapp_android_build_gradle",
-      "community": 143,
+      "community": 142,
       "norm_label": "build.gradle"
     },
     {
@@ -4995,7 +4995,7 @@
       "source_file": "KineticApp/android/settings.gradle",
       "source_location": "L1",
       "id": "kineticapp_android_settings_gradle",
-      "community": 144,
+      "community": 143,
       "norm_label": "settings.gradle"
     },
     {
@@ -5004,7 +5004,7 @@
       "source_file": "KineticApp/android/app/build.gradle",
       "source_location": "L1",
       "id": "kineticapp_android_app_build_gradle",
-      "community": 145,
+      "community": 144,
       "norm_label": "build.gradle"
     },
     {
@@ -5013,7 +5013,7 @@
       "source_file": "KineticApp/android/app/src/main/java/com/anonymous/KineticApp/MainActivity.kt",
       "source_location": "L1",
       "id": "kineticapp_android_app_src_main_java_com_anonymous_kineticapp_mainactivity_kt",
-      "community": 63,
+      "community": 62,
       "norm_label": "mainactivity.kt"
     },
     {
@@ -5022,7 +5022,7 @@
       "source_file": "KineticApp/android/app/src/main/java/com/anonymous/KineticApp/MainActivity.kt",
       "source_location": "L14",
       "id": "kineticapp_mainactivity_mainactivity",
-      "community": 63,
+      "community": 62,
       "norm_label": "mainactivity"
     },
     {
@@ -5031,7 +5031,7 @@
       "source_file": "KineticApp/android/app/src/main/java/com/anonymous/KineticApp/MainActivity.kt",
       "source_location": "L15",
       "id": "kineticapp_mainactivity_mainactivity_oncreate",
-      "community": 63,
+      "community": 62,
       "norm_label": ".oncreate()"
     },
     {
@@ -5040,7 +5040,7 @@
       "source_file": "KineticApp/android/app/src/main/java/com/anonymous/KineticApp/MainActivity.kt",
       "source_location": "L30",
       "id": "kineticapp_mainactivity_mainactivity_getmaincomponentname",
-      "community": 63,
+      "community": 62,
       "norm_label": ".getmaincomponentname()"
     },
     {
@@ -5049,7 +5049,7 @@
       "source_file": "KineticApp/android/app/src/main/java/com/anonymous/KineticApp/MainActivity.kt",
       "source_location": "L36",
       "id": "kineticapp_mainactivity_mainactivity_createreactactivitydelegate",
-      "community": 63,
+      "community": 62,
       "norm_label": ".createreactactivitydelegate()"
     },
     {
@@ -5058,7 +5058,7 @@
       "source_file": "KineticApp/android/app/src/main/java/com/anonymous/KineticApp/MainActivity.kt",
       "source_location": "L52",
       "id": "kineticapp_mainactivity_mainactivity_invokedefaultonbackpressed",
-      "community": 63,
+      "community": 62,
       "norm_label": ".invokedefaultonbackpressed()"
     },
     {
@@ -5247,7 +5247,7 @@
       "source_file": "KineticApp/src/components/CommentsSheet.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_commentssheet_tsx",
-      "community": 16,
+      "community": 33,
       "norm_label": "commentssheet.tsx"
     },
     {
@@ -5256,7 +5256,7 @@
       "source_file": "KineticApp/src/components/CommentsSheet.tsx",
       "source_location": "L22",
       "id": "components_commentssheet_props",
-      "community": 16,
+      "community": 33,
       "norm_label": "props"
     },
     {
@@ -5265,7 +5265,7 @@
       "source_file": "KineticApp/src/components/CommentsSheet.tsx",
       "source_location": "L29",
       "id": "components_commentssheet_commentssheet",
-      "community": 16,
+      "community": 33,
       "norm_label": "commentssheet()"
     },
     {
@@ -5274,7 +5274,7 @@
       "source_file": "KineticApp/src/components/CommentsSheet.tsx",
       "source_location": "L128",
       "id": "components_commentssheet_styles",
-      "community": 16,
+      "community": 33,
       "norm_label": "styles"
     },
     {
@@ -5283,7 +5283,7 @@
       "source_file": "KineticApp/src/components/ConnectionRequestsModal.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_connectionrequestsmodal_tsx",
-      "community": 16,
+      "community": 39,
       "norm_label": "connectionrequestsmodal.tsx"
     },
     {
@@ -5292,7 +5292,7 @@
       "source_file": "KineticApp/src/components/ConnectionRequestsModal.tsx",
       "source_location": "L17",
       "id": "components_connectionrequestsmodal_props",
-      "community": 16,
+      "community": 39,
       "norm_label": "props"
     },
     {
@@ -5301,7 +5301,7 @@
       "source_file": "KineticApp/src/components/ConnectionRequestsModal.tsx",
       "source_location": "L27",
       "id": "components_connectionrequestsmodal_connectionrequestsmodal",
-      "community": 16,
+      "community": 39,
       "norm_label": "connectionrequestsmodal()"
     },
     {
@@ -5310,7 +5310,7 @@
       "source_file": "KineticApp/src/components/ConnectionRequestsModal.tsx",
       "source_location": "L102",
       "id": "components_connectionrequestsmodal_styles",
-      "community": 16,
+      "community": 39,
       "norm_label": "styles"
     },
     {
@@ -5319,7 +5319,7 @@
       "source_file": "KineticApp/src/components/CustomButton.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_custombutton_tsx",
-      "community": 70,
+      "community": 68,
       "norm_label": "custombutton.tsx"
     },
     {
@@ -5328,7 +5328,7 @@
       "source_file": "KineticApp/src/components/CustomButton.tsx",
       "source_location": "L9",
       "id": "components_custombutton_props",
-      "community": 70,
+      "community": 68,
       "norm_label": "props"
     },
     {
@@ -5337,7 +5337,7 @@
       "source_file": "KineticApp/src/components/CustomButton.tsx",
       "source_location": "L16",
       "id": "components_custombutton_custombutton",
-      "community": 70,
+      "community": 68,
       "norm_label": "custombutton()"
     },
     {
@@ -5346,7 +5346,7 @@
       "source_file": "KineticApp/src/components/CustomButton.tsx",
       "source_location": "L34",
       "id": "components_custombutton_styles",
-      "community": 70,
+      "community": 68,
       "norm_label": "styles"
     },
     {
@@ -5427,7 +5427,7 @@
       "source_file": "KineticApp/src/components/ExerciseCard.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_exercisecard_tsx",
-      "community": 67,
+      "community": 65,
       "norm_label": "exercisecard.tsx"
     },
     {
@@ -5436,7 +5436,7 @@
       "source_file": "KineticApp/src/components/ExerciseCard.tsx",
       "source_location": "L4",
       "id": "components_exercisecard_exercise",
-      "community": 67,
+      "community": 65,
       "norm_label": "exercise"
     },
     {
@@ -5445,7 +5445,7 @@
       "source_file": "KineticApp/src/components/ExerciseCard.tsx",
       "source_location": "L12",
       "id": "components_exercisecard_props",
-      "community": 67,
+      "community": 65,
       "norm_label": "props"
     },
     {
@@ -5454,7 +5454,7 @@
       "source_file": "KineticApp/src/components/ExerciseCard.tsx",
       "source_location": "L17",
       "id": "components_exercisecard_exercisecard",
-      "community": 67,
+      "community": 65,
       "norm_label": "exercisecard()"
     },
     {
@@ -5463,7 +5463,7 @@
       "source_file": "KineticApp/src/components/ExerciseCard.tsx",
       "source_location": "L56",
       "id": "components_exercisecard_styles",
-      "community": 67,
+      "community": 65,
       "norm_label": "styles"
     },
     {
@@ -5472,7 +5472,7 @@
       "source_file": "KineticApp/src/components/FeedPost.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_feedpost_tsx",
-      "community": 16,
+      "community": 33,
       "norm_label": "feedpost.tsx"
     },
     {
@@ -5481,7 +5481,7 @@
       "source_file": "KineticApp/src/components/FeedPost.tsx",
       "source_location": "L15",
       "id": "components_feedpost_props",
-      "community": 16,
+      "community": 33,
       "norm_label": "props"
     },
     {
@@ -5490,7 +5490,7 @@
       "source_file": "KineticApp/src/components/FeedPost.tsx",
       "source_location": "L21",
       "id": "components_feedpost_feedpost",
-      "community": 16,
+      "community": 33,
       "norm_label": "feedpost()"
     },
     {
@@ -5499,7 +5499,7 @@
       "source_file": "KineticApp/src/components/FeedPost.tsx",
       "source_location": "L134",
       "id": "components_feedpost_styles",
-      "community": 16,
+      "community": 33,
       "norm_label": "styles"
     },
     {
@@ -5508,7 +5508,7 @@
       "source_file": "KineticApp/src/components/HeaderLogo.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_headerlogo_tsx",
-      "community": 19,
+      "community": 18,
       "norm_label": "headerlogo.tsx"
     },
     {
@@ -5517,7 +5517,7 @@
       "source_file": "KineticApp/src/components/HeaderLogo.tsx",
       "source_location": "L8",
       "id": "components_headerlogo_props",
-      "community": 19,
+      "community": 18,
       "norm_label": "props"
     },
     {
@@ -5526,7 +5526,7 @@
       "source_file": "KineticApp/src/components/HeaderLogo.tsx",
       "source_location": "L13",
       "id": "components_headerlogo_headerlogo",
-      "community": 19,
+      "community": 18,
       "norm_label": "headerlogo()"
     },
     {
@@ -5535,7 +5535,7 @@
       "source_file": "KineticApp/src/components/HeaderLogo.tsx",
       "source_location": "L35",
       "id": "components_headerlogo_styles",
-      "community": 19,
+      "community": 18,
       "norm_label": "styles"
     },
     {
@@ -5544,7 +5544,7 @@
       "source_file": "KineticApp/src/components/NewPostModal.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_newpostmodal_tsx",
-      "community": 53,
+      "community": 52,
       "norm_label": "newpostmodal.tsx"
     },
     {
@@ -5553,7 +5553,7 @@
       "source_file": "KineticApp/src/components/NewPostModal.tsx",
       "source_location": "L21",
       "id": "components_newpostmodal_props",
-      "community": 53,
+      "community": 52,
       "norm_label": "props"
     },
     {
@@ -5562,7 +5562,7 @@
       "source_file": "KineticApp/src/components/NewPostModal.tsx",
       "source_location": "L27",
       "id": "components_newpostmodal_intensity_options",
-      "community": 53,
+      "community": 52,
       "norm_label": "intensity_options"
     },
     {
@@ -5571,7 +5571,7 @@
       "source_file": "KineticApp/src/components/NewPostModal.tsx",
       "source_location": "L28",
       "id": "components_newpostmodal_intensity_labels",
-      "community": 53,
+      "community": 52,
       "norm_label": "intensity_labels"
     },
     {
@@ -5580,7 +5580,7 @@
       "source_file": "KineticApp/src/components/NewPostModal.tsx",
       "source_location": "L34",
       "id": "components_newpostmodal_newpostmodal",
-      "community": 53,
+      "community": 52,
       "norm_label": "newpostmodal()"
     },
     {
@@ -5589,7 +5589,7 @@
       "source_file": "KineticApp/src/components/NewPostModal.tsx",
       "source_location": "L156",
       "id": "components_newpostmodal_styles",
-      "community": 53,
+      "community": 52,
       "norm_label": "styles"
     },
     {
@@ -5832,7 +5832,7 @@
       "source_file": "KineticApp/src/components/SquadBar.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_squadbar_tsx",
-      "community": 61,
+      "community": 19,
       "norm_label": "squadbar.tsx"
     },
     {
@@ -5841,7 +5841,7 @@
       "source_file": "KineticApp/src/components/SquadBar.tsx",
       "source_location": "L16",
       "id": "components_squadbar_props",
-      "community": 61,
+      "community": 19,
       "norm_label": "props"
     },
     {
@@ -5850,7 +5850,7 @@
       "source_file": "KineticApp/src/components/SquadBar.tsx",
       "source_location": "L26",
       "id": "components_squadbar_pulsingring",
-      "community": 61,
+      "community": 19,
       "norm_label": "pulsingring()"
     },
     {
@@ -5859,7 +5859,7 @@
       "source_file": "KineticApp/src/components/SquadBar.tsx",
       "source_location": "L47",
       "id": "components_squadbar_squadbar",
-      "community": 61,
+      "community": 19,
       "norm_label": "squadbar()"
     },
     {
@@ -5868,7 +5868,7 @@
       "source_file": "KineticApp/src/components/SquadBar.tsx",
       "source_location": "L115",
       "id": "components_squadbar_styles",
-      "community": 61,
+      "community": 19,
       "norm_label": "styles"
     },
     {
@@ -5877,7 +5877,7 @@
       "source_file": "KineticApp/src/components/StoryViewer.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_storyviewer_tsx",
-      "community": 64,
+      "community": 39,
       "norm_label": "storyviewer.tsx"
     },
     {
@@ -5886,7 +5886,7 @@
       "source_file": "KineticApp/src/components/StoryViewer.tsx",
       "source_location": "L17",
       "id": "components_storyviewer_width",
-      "community": 64,
+      "community": 39,
       "norm_label": "{ width }"
     },
     {
@@ -5895,7 +5895,7 @@
       "source_file": "KineticApp/src/components/StoryViewer.tsx",
       "source_location": "L19",
       "id": "components_storyviewer_props",
-      "community": 64,
+      "community": 39,
       "norm_label": "props"
     },
     {
@@ -5904,7 +5904,7 @@
       "source_file": "KineticApp/src/components/StoryViewer.tsx",
       "source_location": "L26",
       "id": "components_storyviewer_timeago",
-      "community": 64,
+      "community": 39,
       "norm_label": "timeago()"
     },
     {
@@ -5913,7 +5913,7 @@
       "source_file": "KineticApp/src/components/StoryViewer.tsx",
       "source_location": "L34",
       "id": "components_storyviewer_storyviewer",
-      "community": 64,
+      "community": 39,
       "norm_label": "storyviewer()"
     },
     {
@@ -5922,7 +5922,7 @@
       "source_file": "KineticApp/src/components/StoryViewer.tsx",
       "source_location": "L160",
       "id": "components_storyviewer_styles",
-      "community": 64,
+      "community": 39,
       "norm_label": "styles"
     },
     {
@@ -5931,7 +5931,7 @@
       "source_file": "KineticApp/src/components/ThemeToggle.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_themetoggle_tsx",
-      "community": 19,
+      "community": 18,
       "norm_label": "themetoggle.tsx"
     },
     {
@@ -5940,7 +5940,7 @@
       "source_file": "KineticApp/src/components/ThemeToggle.tsx",
       "source_location": "L5",
       "id": "components_themetoggle_themetoggle",
-      "community": 19,
+      "community": 18,
       "norm_label": "themetoggle()"
     },
     {
@@ -5949,7 +5949,7 @@
       "source_file": "KineticApp/src/components/ThemeToggle.tsx",
       "source_location": "L23",
       "id": "components_themetoggle_styles",
-      "community": 19,
+      "community": 18,
       "norm_label": "styles"
     },
     {
@@ -6003,7 +6003,7 @@
       "source_file": "KineticApp/src/components/home/AdherenceCard.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_home_adherencecard_tsx",
-      "community": 9,
+      "community": 5,
       "norm_label": "adherencecard.tsx"
     },
     {
@@ -6012,7 +6012,7 @@
       "source_file": "KineticApp/src/components/home/AdherenceCard.tsx",
       "source_location": "L7",
       "id": "home_adherencecard_adherencecardprops",
-      "community": 9,
+      "community": 5,
       "norm_label": "adherencecardprops"
     },
     {
@@ -6021,7 +6021,7 @@
       "source_file": "KineticApp/src/components/home/AdherenceCard.tsx",
       "source_location": "L17",
       "id": "home_adherencecard_adherencecard",
-      "community": 9,
+      "community": 5,
       "norm_label": "adherencecard()"
     },
     {
@@ -6030,7 +6030,7 @@
       "source_file": "KineticApp/src/components/home/AdherenceCard.tsx",
       "source_location": "L87",
       "id": "home_adherencecard_styles",
-      "community": 9,
+      "community": 5,
       "norm_label": "styles"
     },
     {
@@ -6039,7 +6039,7 @@
       "source_file": "KineticApp/src/components/home/HomeGreeting.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_home_homegreeting_tsx",
-      "community": 9,
+      "community": 5,
       "norm_label": "homegreeting.tsx"
     },
     {
@@ -6048,7 +6048,7 @@
       "source_file": "KineticApp/src/components/home/HomeGreeting.tsx",
       "source_location": "L5",
       "id": "home_homegreeting_homegreetingprops",
-      "community": 9,
+      "community": 5,
       "norm_label": "homegreetingprops"
     },
     {
@@ -6057,7 +6057,7 @@
       "source_file": "KineticApp/src/components/home/HomeGreeting.tsx",
       "source_location": "L10",
       "id": "home_homegreeting_getgreeting",
-      "community": 9,
+      "community": 5,
       "norm_label": "getgreeting()"
     },
     {
@@ -6066,7 +6066,7 @@
       "source_file": "KineticApp/src/components/home/HomeGreeting.tsx",
       "source_location": "L17",
       "id": "home_homegreeting_homegreeting",
-      "community": 9,
+      "community": 5,
       "norm_label": "homegreeting()"
     },
     {
@@ -6075,7 +6075,7 @@
       "source_file": "KineticApp/src/components/home/HomeGreeting.tsx",
       "source_location": "L49",
       "id": "home_homegreeting_styles",
-      "community": 9,
+      "community": 5,
       "norm_label": "styles"
     },
     {
@@ -6084,7 +6084,7 @@
       "source_file": "KineticApp/src/components/home/NextWorkoutCard.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_home_nextworkoutcard_tsx",
-      "community": 15,
+      "community": 5,
       "norm_label": "nextworkoutcard.tsx"
     },
     {
@@ -6093,7 +6093,7 @@
       "source_file": "KineticApp/src/components/home/NextWorkoutCard.tsx",
       "source_location": "L8",
       "id": "home_nextworkoutcard_nextworkoutcardprops",
-      "community": 15,
+      "community": 5,
       "norm_label": "nextworkoutcardprops"
     },
     {
@@ -6102,7 +6102,7 @@
       "source_file": "KineticApp/src/components/home/NextWorkoutCard.tsx",
       "source_location": "L13",
       "id": "home_nextworkoutcard_nextworkoutcard",
-      "community": 15,
+      "community": 5,
       "norm_label": "nextworkoutcard()"
     },
     {
@@ -6111,7 +6111,7 @@
       "source_file": "KineticApp/src/components/home/NextWorkoutCard.tsx",
       "source_location": "L102",
       "id": "home_nextworkoutcard_styles",
-      "community": 15,
+      "community": 5,
       "norm_label": "styles"
     },
     {
@@ -6120,7 +6120,7 @@
       "source_file": "KineticApp/src/components/home/OnboardingPrompt.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_home_onboardingprompt_tsx",
-      "community": 9,
+      "community": 5,
       "norm_label": "onboardingprompt.tsx"
     },
     {
@@ -6129,7 +6129,7 @@
       "source_file": "KineticApp/src/components/home/OnboardingPrompt.tsx",
       "source_location": "L7",
       "id": "home_onboardingprompt_onboardingpromptprops",
-      "community": 9,
+      "community": 5,
       "norm_label": "onboardingpromptprops"
     },
     {
@@ -6138,7 +6138,7 @@
       "source_file": "KineticApp/src/components/home/OnboardingPrompt.tsx",
       "source_location": "L14",
       "id": "home_onboardingprompt_steprowprops",
-      "community": 9,
+      "community": 5,
       "norm_label": "steprowprops"
     },
     {
@@ -6147,7 +6147,7 @@
       "source_file": "KineticApp/src/components/home/OnboardingPrompt.tsx",
       "source_location": "L20",
       "id": "home_onboardingprompt_steprow",
-      "community": 9,
+      "community": 5,
       "norm_label": "steprow()"
     },
     {
@@ -6156,7 +6156,7 @@
       "source_file": "KineticApp/src/components/home/OnboardingPrompt.tsx",
       "source_location": "L43",
       "id": "home_onboardingprompt_onboardingprompt",
-      "community": 9,
+      "community": 5,
       "norm_label": "onboardingprompt()"
     },
     {
@@ -6165,7 +6165,7 @@
       "source_file": "KineticApp/src/components/home/OnboardingPrompt.tsx",
       "source_location": "L139",
       "id": "home_onboardingprompt_styles",
-      "community": 9,
+      "community": 5,
       "norm_label": "styles"
     },
     {
@@ -6174,7 +6174,7 @@
       "source_file": "KineticApp/src/components/home/RankingCard.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_components_home_rankingcard_tsx",
-      "community": 9,
+      "community": 19,
       "norm_label": "rankingcard.tsx"
     },
     {
@@ -6183,7 +6183,7 @@
       "source_file": "KineticApp/src/components/home/RankingCard.tsx",
       "source_location": "L6",
       "id": "home_rankingcard_rankingcardprops",
-      "community": 9,
+      "community": 19,
       "norm_label": "rankingcardprops"
     },
     {
@@ -6192,7 +6192,7 @@
       "source_file": "KineticApp/src/components/home/RankingCard.tsx",
       "source_location": "L11",
       "id": "home_rankingcard_rankingrowprops",
-      "community": 9,
+      "community": 19,
       "norm_label": "rankingrowprops"
     },
     {
@@ -6201,7 +6201,7 @@
       "source_file": "KineticApp/src/components/home/RankingCard.tsx",
       "source_location": "L16",
       "id": "home_rankingcard_rankingrow",
-      "community": 9,
+      "community": 19,
       "norm_label": "rankingrow()"
     },
     {
@@ -6210,7 +6210,7 @@
       "source_file": "KineticApp/src/components/home/RankingCard.tsx",
       "source_location": "L88",
       "id": "home_rankingcard_rankingcard",
-      "community": 9,
+      "community": 19,
       "norm_label": "rankingcard()"
     },
     {
@@ -6219,7 +6219,7 @@
       "source_file": "KineticApp/src/components/home/RankingCard.tsx",
       "source_location": "L117",
       "id": "home_rankingcard_styles",
-      "community": 9,
+      "community": 19,
       "norm_label": "styles"
     },
     {
@@ -6408,7 +6408,7 @@
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L77",
       "id": "constants_protocol_goallabel",
-      "community": 65,
+      "community": 63,
       "norm_label": "goallabel()"
     },
     {
@@ -6417,7 +6417,7 @@
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L83",
       "id": "constants_protocol_levellabel",
-      "community": 65,
+      "community": 63,
       "norm_label": "levellabel()"
     },
     {
@@ -6426,7 +6426,7 @@
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L89",
       "id": "constants_protocol_agefrombirthdate",
-      "community": 65,
+      "community": 63,
       "norm_label": "agefrombirthdate()"
     },
     {
@@ -6435,7 +6435,7 @@
       "source_file": "KineticApp/src/constants/protocol.ts",
       "source_location": "L106",
       "id": "constants_protocol_hasmedicalinfo",
-      "community": 65,
+      "community": 63,
       "norm_label": "hasmedicalinfo()"
     },
     {
@@ -6516,7 +6516,7 @@
       "source_file": "KineticApp/src/contexts/AuthContext.tsx",
       "source_location": "L110",
       "id": "contexts_authcontext_authprovider",
-      "community": 19,
+      "community": 18,
       "norm_label": "authprovider()"
     },
     {
@@ -6525,7 +6525,7 @@
       "source_file": "KineticApp/src/contexts/ThemeContext.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_contexts_themecontext_tsx",
-      "community": 19,
+      "community": 18,
       "norm_label": "themecontext.tsx"
     },
     {
@@ -6534,7 +6534,7 @@
       "source_file": "KineticApp/src/contexts/ThemeContext.tsx",
       "source_location": "L3",
       "id": "contexts_themecontext_themecontextvalue",
-      "community": 19,
+      "community": 18,
       "norm_label": "themecontextvalue"
     },
     {
@@ -6552,7 +6552,7 @@
       "source_file": "KineticApp/src/contexts/ThemeContext.tsx",
       "source_location": "L14",
       "id": "contexts_themecontext_themeprovider",
-      "community": 19,
+      "community": 18,
       "norm_label": "themeprovider()"
     },
     {
@@ -6561,7 +6561,7 @@
       "source_file": "KineticApp/src/hooks/useSquadStatus.ts",
       "source_location": "L1",
       "id": "kineticapp_src_hooks_usesquadstatus_ts",
-      "community": 8,
+      "community": 9,
       "norm_label": "usesquadstatus.ts"
     },
     {
@@ -6570,7 +6570,7 @@
       "source_file": "KineticApp/src/hooks/useSquadStatus.ts",
       "source_location": "L8",
       "id": "hooks_usesquadstatus_usesquadstatus",
-      "community": 8,
+      "community": 9,
       "norm_label": "usesquadstatus()"
     },
     {
@@ -6579,7 +6579,7 @@
       "source_file": "KineticApp/src/hooks/useWorkoutPresence.ts",
       "source_location": "L1",
       "id": "kineticapp_src_hooks_useworkoutpresence_ts",
-      "community": 8,
+      "community": 9,
       "norm_label": "useworkoutpresence.ts"
     },
     {
@@ -6588,7 +6588,7 @@
       "source_file": "KineticApp/src/hooks/useWorkoutPresence.ts",
       "source_location": "L4",
       "id": "hooks_useworkoutpresence_useworkoutpresence",
-      "community": 8,
+      "community": 9,
       "norm_label": "useworkoutpresence()"
     },
     {
@@ -6669,7 +6669,7 @@
       "source_file": "KineticApp/src/screens/ActiveSessionScreen.tsx",
       "source_location": "L29",
       "id": "screens_activesessionscreen_activesessionscreen",
-      "community": 8,
+      "community": 9,
       "norm_label": "activesessionscreen()"
     },
     {
@@ -6687,7 +6687,7 @@
       "source_file": "KineticApp/src/screens/HomeScreen.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_screens_homescreen_tsx",
-      "community": 15,
+      "community": 5,
       "norm_label": "homescreen.tsx"
     },
     {
@@ -6696,7 +6696,7 @@
       "source_file": "KineticApp/src/screens/HomeScreen.tsx",
       "source_location": "L29",
       "id": "screens_homescreen_exerciseapi",
-      "community": 15,
+      "community": 5,
       "norm_label": "exerciseapi"
     },
     {
@@ -6705,7 +6705,7 @@
       "source_file": "KineticApp/src/screens/HomeScreen.tsx",
       "source_location": "L40",
       "id": "screens_homescreen_workoutplanapi",
-      "community": 15,
+      "community": 5,
       "norm_label": "workoutplanapi"
     },
     {
@@ -6714,7 +6714,7 @@
       "source_file": "KineticApp/src/screens/HomeScreen.tsx",
       "source_location": "L52",
       "id": "screens_homescreen_homenavigationprop",
-      "community": 15,
+      "community": 5,
       "norm_label": "homenavigationprop"
     },
     {
@@ -6723,7 +6723,7 @@
       "source_file": "KineticApp/src/screens/HomeScreen.tsx",
       "source_location": "L56",
       "id": "screens_homescreen_homescreenprops",
-      "community": 15,
+      "community": 5,
       "norm_label": "homescreenprops"
     },
     {
@@ -6732,7 +6732,7 @@
       "source_file": "KineticApp/src/screens/HomeScreen.tsx",
       "source_location": "L62",
       "id": "screens_homescreen_extractfirstname",
-      "community": 15,
+      "community": 5,
       "norm_label": "extractfirstname()"
     },
     {
@@ -6741,7 +6741,7 @@
       "source_file": "KineticApp/src/screens/HomeScreen.tsx",
       "source_location": "L70",
       "id": "screens_homescreen_homescreen",
-      "community": 15,
+      "community": 5,
       "norm_label": "homescreen()"
     },
     {
@@ -6750,7 +6750,7 @@
       "source_file": "KineticApp/src/screens/HomeScreen.tsx",
       "source_location": "L188",
       "id": "screens_homescreen_styles",
-      "community": 15,
+      "community": 5,
       "norm_label": "styles"
     },
     {
@@ -6759,7 +6759,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_screens_profilescreen_tsx",
-      "community": 5,
+      "community": 6,
       "norm_label": "profilescreen.tsx"
     },
     {
@@ -6768,7 +6768,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L38",
       "id": "screens_profilescreen_c",
-      "community": 5,
+      "community": 6,
       "norm_label": "c"
     },
     {
@@ -6777,7 +6777,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L47",
       "id": "screens_profilescreen_stroke",
-      "community": 5,
+      "community": 6,
       "norm_label": "stroke"
     },
     {
@@ -6786,7 +6786,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L48",
       "id": "screens_profilescreen_stroke2",
-      "community": 5,
+      "community": 6,
       "norm_label": "stroke2"
     },
     {
@@ -6795,7 +6795,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L49",
       "id": "screens_profilescreen_strokedanger",
-      "community": 5,
+      "community": 6,
       "norm_label": "strokedanger"
     },
     {
@@ -6804,7 +6804,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L51",
       "id": "screens_profilescreen_icons",
-      "community": 5,
+      "community": 6,
       "norm_label": "icons"
     },
     {
@@ -6813,7 +6813,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L189",
       "id": "screens_profilescreen_sectiontitle",
-      "community": 5,
+      "community": 6,
       "norm_label": "sectiontitle()"
     },
     {
@@ -6822,7 +6822,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L198",
       "id": "screens_profilescreen_rowgroup",
-      "community": 5,
+      "community": 6,
       "norm_label": "rowgroup()"
     },
     {
@@ -6831,7 +6831,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L212",
       "id": "screens_profilescreen_badge",
-      "community": 5,
+      "community": 6,
       "norm_label": "badge"
     },
     {
@@ -6840,7 +6840,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L213",
       "id": "screens_profilescreen_rowprops",
-      "community": 5,
+      "community": 6,
       "norm_label": "rowprops"
     },
     {
@@ -6849,7 +6849,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L224",
       "id": "screens_profilescreen_row",
-      "community": 5,
+      "community": 6,
       "norm_label": "row()"
     },
     {
@@ -6858,7 +6858,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L249",
       "id": "screens_profilescreen_herouserdata",
-      "community": 5,
+      "community": 6,
       "norm_label": "herouserdata"
     },
     {
@@ -6867,7 +6867,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L259",
       "id": "screens_profilescreen_identityhero",
-      "community": 5,
+      "community": 6,
       "norm_label": "identityhero()"
     },
     {
@@ -6876,7 +6876,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L302",
       "id": "screens_profilescreen_protocolform",
-      "community": 5,
+      "community": 6,
       "norm_label": "protocolform"
     },
     {
@@ -6885,7 +6885,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L312",
       "id": "screens_profilescreen_protocolsectionprops",
-      "community": 5,
+      "community": 6,
       "norm_label": "protocolsectionprops"
     },
     {
@@ -6894,7 +6894,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L323",
       "id": "screens_profilescreen_protocolsection",
-      "community": 65,
+      "community": 63,
       "norm_label": "protocolsection()"
     },
     {
@@ -6903,7 +6903,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L380",
       "id": "screens_profilescreen_optionpickermodalprops",
-      "community": 5,
+      "community": 6,
       "norm_label": "optionpickermodalprops"
     },
     {
@@ -6912,7 +6912,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L389",
       "id": "screens_profilescreen_optionpickermodal",
-      "community": 5,
+      "community": 6,
       "norm_label": "optionpickermodal()"
     },
     {
@@ -6921,7 +6921,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L425",
       "id": "screens_profilescreen_metricsmodalprops",
-      "community": 5,
+      "community": 6,
       "norm_label": "metricsmodalprops"
     },
     {
@@ -6930,7 +6930,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L433",
       "id": "screens_profilescreen_isotodisplay",
-      "community": 99,
+      "community": 98,
       "norm_label": "isotodisplay()"
     },
     {
@@ -6939,7 +6939,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L438",
       "id": "screens_profilescreen_metricsmodal",
-      "community": 99,
+      "community": 98,
       "norm_label": "metricsmodal()"
     },
     {
@@ -6948,7 +6948,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L543",
       "id": "screens_profilescreen_anamnesismodalprops",
-      "community": 5,
+      "community": 6,
       "norm_label": "anamnesismodalprops"
     },
     {
@@ -6957,7 +6957,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L550",
       "id": "screens_profilescreen_anamnesismodal",
-      "community": 65,
+      "community": 63,
       "norm_label": "anamnesismodal()"
     },
     {
@@ -6966,7 +6966,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L601",
       "id": "screens_profilescreen_accountsectionprops",
-      "community": 5,
+      "community": 6,
       "norm_label": "accountsectionprops"
     },
     {
@@ -6975,7 +6975,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L607",
       "id": "screens_profilescreen_accountsection",
-      "community": 5,
+      "community": 6,
       "norm_label": "accountsection()"
     },
     {
@@ -6984,7 +6984,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L632",
       "id": "screens_profilescreen_preferencessection",
-      "community": 5,
+      "community": 6,
       "norm_label": "preferencessection()"
     },
     {
@@ -6993,7 +6993,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L646",
       "id": "screens_profilescreen_communitysection",
-      "community": 5,
+      "community": 6,
       "norm_label": "communitysection()"
     },
     {
@@ -7002,7 +7002,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L659",
       "id": "screens_profilescreen_datasection",
-      "community": 5,
+      "community": 6,
       "norm_label": "datasection()"
     },
     {
@@ -7011,7 +7011,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L672",
       "id": "screens_profilescreen_supportsection",
-      "community": 5,
+      "community": 6,
       "norm_label": "supportsection()"
     },
     {
@@ -7020,7 +7020,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L686",
       "id": "screens_profilescreen_logoutsection",
-      "community": 5,
+      "community": 6,
       "norm_label": "logoutsection()"
     },
     {
@@ -7029,7 +7029,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L700",
       "id": "screens_profilescreen_logoutsheet",
-      "community": 5,
+      "community": 6,
       "norm_label": "logoutsheet()"
     },
     {
@@ -7038,7 +7038,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L729",
       "id": "screens_profilescreen_changepasswordmodalprops",
-      "community": 5,
+      "community": 6,
       "norm_label": "changepasswordmodalprops"
     },
     {
@@ -7047,7 +7047,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L736",
       "id": "screens_profilescreen_changepasswordmodal",
-      "community": 5,
+      "community": 6,
       "norm_label": "changepasswordmodal()"
     },
     {
@@ -7056,7 +7056,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L845",
       "id": "screens_profilescreen_profilenavigationprop",
-      "community": 5,
+      "community": 6,
       "norm_label": "profilenavigationprop"
     },
     {
@@ -7065,7 +7065,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L849",
       "id": "screens_profilescreen_profilescreenprops",
-      "community": 5,
+      "community": 6,
       "norm_label": "profilescreenprops"
     },
     {
@@ -7074,7 +7074,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L853",
       "id": "screens_profilescreen_protocolmodal",
-      "community": 5,
+      "community": 6,
       "norm_label": "protocolmodal"
     },
     {
@@ -7083,7 +7083,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L855",
       "id": "screens_profilescreen_profilescreen",
-      "community": 72,
+      "community": 71,
       "norm_label": "profilescreen()"
     },
     {
@@ -7092,7 +7092,7 @@
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L1087",
       "id": "screens_profilescreen_s",
-      "community": 5,
+      "community": 6,
       "norm_label": "s"
     },
     {
@@ -7101,7 +7101,7 @@
       "source_file": "KineticApp/src/screens/SocialScreen.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_screens_socialscreen_tsx",
-      "community": 8,
+      "community": 9,
       "norm_label": "socialscreen.tsx"
     },
     {
@@ -7110,7 +7110,7 @@
       "source_file": "KineticApp/src/screens/SocialScreen.tsx",
       "source_location": "L39",
       "id": "screens_socialscreen_socialscreen",
-      "community": 8,
+      "community": 9,
       "norm_label": "socialscreen()"
     },
     {
@@ -7119,7 +7119,7 @@
       "source_file": "KineticApp/src/screens/SocialScreen.tsx",
       "source_location": "L293",
       "id": "screens_socialscreen_styles",
-      "community": 8,
+      "community": 9,
       "norm_label": "styles"
     },
     {
@@ -7866,7 +7866,7 @@
       "source_file": "KineticApp/src/screens/Auth/WelcomeScreen.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_screens_auth_welcomescreen_tsx",
-      "community": 54,
+      "community": 53,
       "norm_label": "welcomescreen.tsx"
     },
     {
@@ -7875,7 +7875,7 @@
       "source_file": "KineticApp/src/screens/Auth/WelcomeScreen.tsx",
       "source_location": "L14",
       "id": "auth_welcomescreen_a",
-      "community": 54,
+      "community": 53,
       "norm_label": "a"
     },
     {
@@ -7884,7 +7884,7 @@
       "source_file": "KineticApp/src/screens/Auth/WelcomeScreen.tsx",
       "source_location": "L28",
       "id": "auth_welcomescreen_features",
-      "community": 54,
+      "community": 53,
       "norm_label": "features"
     },
     {
@@ -7893,7 +7893,7 @@
       "source_file": "KineticApp/src/screens/Auth/WelcomeScreen.tsx",
       "source_location": "L34",
       "id": "auth_welcomescreen_props",
-      "community": 54,
+      "community": 53,
       "norm_label": "props"
     },
     {
@@ -7902,7 +7902,7 @@
       "source_file": "KineticApp/src/screens/Auth/WelcomeScreen.tsx",
       "source_location": "L39",
       "id": "auth_welcomescreen_bolticon",
-      "community": 54,
+      "community": 53,
       "norm_label": "bolticon()"
     },
     {
@@ -7911,7 +7911,7 @@
       "source_file": "KineticApp/src/screens/Auth/WelcomeScreen.tsx",
       "source_location": "L53",
       "id": "auth_welcomescreen_checkicon",
-      "community": 54,
+      "community": 53,
       "norm_label": "checkicon()"
     },
     {
@@ -7920,7 +7920,7 @@
       "source_file": "KineticApp/src/screens/Auth/WelcomeScreen.tsx",
       "source_location": "L67",
       "id": "auth_welcomescreen_welcomescreen",
-      "community": 54,
+      "community": 53,
       "norm_label": "welcomescreen()"
     },
     {
@@ -7929,7 +7929,7 @@
       "source_file": "KineticApp/src/screens/Auth/WelcomeScreen.tsx",
       "source_location": "L131",
       "id": "auth_welcomescreen_styles",
-      "community": 54,
+      "community": 53,
       "norm_label": "styles"
     },
     {
@@ -7938,7 +7938,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L1",
       "id": "kineticapp_src_screens_onboarding_onboardingscreen_tsx",
-      "community": 6,
+      "community": 7,
       "norm_label": "onboardingscreen.tsx"
     },
     {
@@ -7947,7 +7947,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L23",
       "id": "onboarding_onboardingscreen_authcontextvalue",
-      "community": 6,
+      "community": 7,
       "norm_label": "authcontextvalue"
     },
     {
@@ -7956,7 +7956,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L28",
       "id": "onboarding_onboardingscreen_goaltype",
-      "community": 6,
+      "community": 7,
       "norm_label": "goaltype"
     },
     {
@@ -7965,7 +7965,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L29",
       "id": "onboarding_onboardingscreen_leveltype",
-      "community": 6,
+      "community": 7,
       "norm_label": "leveltype"
     },
     {
@@ -7974,7 +7974,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L31",
       "id": "onboarding_onboardingscreen_onboardingform",
-      "community": 6,
+      "community": 7,
       "norm_label": "onboardingform"
     },
     {
@@ -7983,7 +7983,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L41",
       "id": "onboarding_onboardingscreen_goaldef",
-      "community": 6,
+      "community": 7,
       "norm_label": "goaldef"
     },
     {
@@ -7992,7 +7992,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L47",
       "id": "onboarding_onboardingscreen_leveldef",
-      "community": 6,
+      "community": 7,
       "norm_label": "leveldef"
     },
     {
@@ -8001,7 +8001,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L53",
       "id": "onboarding_onboardingscreen_progressdotsprops",
-      "community": 6,
+      "community": 7,
       "norm_label": "progressdotsprops"
     },
     {
@@ -8010,7 +8010,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L58",
       "id": "onboarding_onboardingscreen_stepgoalprops",
-      "community": 6,
+      "community": 7,
       "norm_label": "stepgoalprops"
     },
     {
@@ -8019,7 +8019,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L64",
       "id": "onboarding_onboardingscreen_stepmetricsprops",
-      "community": 6,
+      "community": 7,
       "norm_label": "stepmetricsprops"
     },
     {
@@ -8028,7 +8028,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L70",
       "id": "onboarding_onboardingscreen_steplevelprops",
-      "community": 6,
+      "community": 7,
       "norm_label": "steplevelprops"
     },
     {
@@ -8037,7 +8037,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L76",
       "id": "onboarding_onboardingscreen_stepfreqprops",
-      "community": 6,
+      "community": 7,
       "norm_label": "stepfreqprops"
     },
     {
@@ -8046,7 +8046,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L82",
       "id": "onboarding_onboardingscreen_stepanamnesisprops",
-      "community": 6,
+      "community": 7,
       "norm_label": "stepanamnesisprops"
     },
     {
@@ -8055,7 +8055,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L88",
       "id": "onboarding_onboardingscreen_stepgeneratingprops",
-      "community": 6,
+      "community": 7,
       "norm_label": "stepgeneratingprops"
     },
     {
@@ -8064,7 +8064,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L94",
       "id": "onboarding_onboardingscreen_goals",
-      "community": 6,
+      "community": 7,
       "norm_label": "goals"
     },
     {
@@ -8073,7 +8073,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L100",
       "id": "onboarding_onboardingscreen_levels",
-      "community": 6,
+      "community": 7,
       "norm_label": "levels"
     },
     {
@@ -8082,7 +8082,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L106",
       "id": "onboarding_onboardingscreen_days_labels",
-      "community": 6,
+      "community": 7,
       "norm_label": "days_labels"
     },
     {
@@ -8091,7 +8091,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L108",
       "id": "onboarding_onboardingscreen_gen_steps",
-      "community": 6,
+      "community": 7,
       "norm_label": "gen_steps"
     },
     {
@@ -8100,7 +8100,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L118",
       "id": "onboarding_onboardingscreen_goal_api_map",
-      "community": 6,
+      "community": 7,
       "norm_label": "goal_api_map"
     },
     {
@@ -8109,7 +8109,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L124",
       "id": "onboarding_onboardingscreen_level_api_map",
-      "community": 6,
+      "community": 7,
       "norm_label": "level_api_map"
     },
     {
@@ -8118,7 +8118,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L131",
       "id": "onboarding_onboardingscreen_progressdots",
-      "community": 6,
+      "community": 7,
       "norm_label": "progressdots()"
     },
     {
@@ -8127,7 +8127,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L153",
       "id": "onboarding_onboardingscreen_stepgoal",
-      "community": 6,
+      "community": 7,
       "norm_label": "stepgoal()"
     },
     {
@@ -8136,7 +8136,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L186",
       "id": "onboarding_onboardingscreen_stepmetrics",
-      "community": 6,
+      "community": 7,
       "norm_label": "stepmetrics()"
     },
     {
@@ -8145,7 +8145,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L284",
       "id": "onboarding_onboardingscreen_steplevel",
-      "community": 6,
+      "community": 7,
       "norm_label": "steplevel()"
     },
     {
@@ -8154,7 +8154,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L317",
       "id": "onboarding_onboardingscreen_stepfreq",
-      "community": 6,
+      "community": 7,
       "norm_label": "stepfreq()"
     },
     {
@@ -8163,7 +8163,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L381",
       "id": "onboarding_onboardingscreen_medical_chips",
-      "community": 6,
+      "community": 7,
       "norm_label": "medical_chips"
     },
     {
@@ -8172,7 +8172,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L384",
       "id": "onboarding_onboardingscreen_buildmedicalvalue",
-      "community": 6,
+      "community": 7,
       "norm_label": "buildmedicalvalue()"
     },
     {
@@ -8181,7 +8181,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L390",
       "id": "onboarding_onboardingscreen_stepanamnesis",
-      "community": 6,
+      "community": 7,
       "norm_label": "stepanamnesis()"
     },
     {
@@ -8190,7 +8190,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L494",
       "id": "onboarding_onboardingscreen_stepgenerating",
-      "community": 6,
+      "community": 7,
       "norm_label": "stepgenerating()"
     },
     {
@@ -8199,7 +8199,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L544",
       "id": "onboarding_onboardingscreen_onboardingscreen",
-      "community": 6,
+      "community": 7,
       "norm_label": "onboardingscreen()"
     },
     {
@@ -8208,7 +8208,7 @@
       "source_file": "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx",
       "source_location": "L707",
       "id": "onboarding_onboardingscreen_styles",
-      "community": 6,
+      "community": 7,
       "norm_label": "styles"
     },
     {
@@ -8298,7 +8298,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L1",
       "id": "kineticapp_src_services_socialservice_ts",
-      "community": 8,
+      "community": 9,
       "norm_label": "socialservice.ts"
     },
     {
@@ -8307,7 +8307,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L15",
       "id": "services_socialservice_avatarfallback",
-      "community": 16,
+      "community": 33,
       "norm_label": "avatarfallback()"
     },
     {
@@ -8316,7 +8316,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L22",
       "id": "services_socialservice_uploadmedia",
-      "community": 8,
+      "community": 9,
       "norm_label": "uploadmedia()"
     },
     {
@@ -8334,7 +8334,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L44",
       "id": "services_socialservice_getpendingrequests",
-      "community": 8,
+      "community": 9,
       "norm_label": "getpendingrequests()"
     },
     {
@@ -8352,7 +8352,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L54",
       "id": "services_socialservice_acceptconnection",
-      "community": 8,
+      "community": 9,
       "norm_label": "acceptconnection()"
     },
     {
@@ -8361,7 +8361,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L58",
       "id": "services_socialservice_removeconnection",
-      "community": 8,
+      "community": 9,
       "norm_label": "removeconnection()"
     },
     {
@@ -8370,7 +8370,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L62",
       "id": "services_socialservice_toggleinsquad",
-      "community": 8,
+      "community": 9,
       "norm_label": "toggleinsquad()"
     },
     {
@@ -8379,7 +8379,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L66",
       "id": "services_socialservice_getsquad",
-      "community": 8,
+      "community": 9,
       "norm_label": "getsquad()"
     },
     {
@@ -8388,7 +8388,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L71",
       "id": "services_socialservice_getsquadstatus",
-      "community": 8,
+      "community": 9,
       "norm_label": "getsquadstatus()"
     },
     {
@@ -8397,7 +8397,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L76",
       "id": "services_socialservice_getfeed",
-      "community": 8,
+      "community": 9,
       "norm_label": "getfeed()"
     },
     {
@@ -8406,7 +8406,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L81",
       "id": "services_socialservice_createpost",
-      "community": 53,
+      "community": 52,
       "norm_label": "createpost()"
     },
     {
@@ -8415,7 +8415,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L87",
       "id": "services_socialservice_getstories",
-      "community": 8,
+      "community": 9,
       "norm_label": "getstories()"
     },
     {
@@ -8424,7 +8424,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L92",
       "id": "services_socialservice_createstory",
-      "community": 8,
+      "community": 9,
       "norm_label": "createstory()"
     },
     {
@@ -8433,7 +8433,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L97",
       "id": "services_socialservice_likepost",
-      "community": 8,
+      "community": 9,
       "norm_label": "likepost()"
     },
     {
@@ -8442,7 +8442,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L102",
       "id": "services_socialservice_unlikepost",
-      "community": 8,
+      "community": 9,
       "norm_label": "unlikepost()"
     },
     {
@@ -8451,7 +8451,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L107",
       "id": "services_socialservice_getcomments",
-      "community": 16,
+      "community": 33,
       "norm_label": "getcomments()"
     },
     {
@@ -8460,7 +8460,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L112",
       "id": "services_socialservice_addcomment",
-      "community": 16,
+      "community": 33,
       "norm_label": "addcomment()"
     },
     {
@@ -8469,7 +8469,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L117",
       "id": "services_socialservice_startworkoutpresence",
-      "community": 8,
+      "community": 9,
       "norm_label": "startworkoutpresence()"
     },
     {
@@ -8478,7 +8478,7 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L122",
       "id": "services_socialservice_endworkoutpresence",
-      "community": 8,
+      "community": 9,
       "norm_label": "endworkoutpresence()"
     },
     {
@@ -8559,7 +8559,7 @@
       "source_file": "KineticApp/src/theme/colors.ts",
       "source_location": "L1",
       "id": "kineticapp_src_theme_colors_ts",
-      "community": 16,
+      "community": 39,
       "norm_label": "colors.ts"
     },
     {
@@ -8577,7 +8577,7 @@
       "source_file": "KineticApp/src/theme/kinetic.ts",
       "source_location": "L1",
       "id": "kineticapp_src_theme_kinetic_ts",
-      "community": 9,
+      "community": 19,
       "norm_label": "kinetic.ts"
     },
     {
@@ -8586,7 +8586,7 @@
       "source_file": "KineticApp/src/theme/kinetic.ts",
       "source_location": "L7",
       "id": "theme_kinetic_kinetic",
-      "community": 9,
+      "community": 5,
       "norm_label": "kinetic"
     },
     {
@@ -8595,7 +8595,7 @@
       "source_file": "KineticApp/src/theme/kinetic.ts",
       "source_location": "L36",
       "id": "theme_kinetic_rankingpositioncolor",
-      "community": 9,
+      "community": 19,
       "norm_label": "rankingpositioncolor()"
     },
     {
@@ -8604,7 +8604,7 @@
       "source_file": "KineticApp/src/theme/kinetic.ts",
       "source_location": "L46",
       "id": "theme_kinetic_presencecolor",
-      "community": 61,
+      "community": 19,
       "norm_label": "presencecolor()"
     },
     {
@@ -8613,7 +8613,7 @@
       "source_file": "KineticApp/src/theme/kinetic.ts",
       "source_location": "L55",
       "id": "theme_kinetic_rankingpositionchipbg",
-      "community": 9,
+      "community": 19,
       "norm_label": "rankingpositionchipbg()"
     },
     {
@@ -8748,7 +8748,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L81",
       "id": "types_index_nextworkoutdto",
-      "community": 15,
+      "community": 5,
       "norm_label": "nextworkoutdto"
     },
     {
@@ -8757,7 +8757,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L96",
       "id": "types_index_rankingentrydto",
-      "community": 9,
+      "community": 19,
       "norm_label": "rankingentrydto"
     },
     {
@@ -8793,7 +8793,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L135",
       "id": "types_index_homedashboardresponsedto",
-      "community": 15,
+      "community": 5,
       "norm_label": "homedashboardresponsedto"
     },
     {
@@ -8847,7 +8847,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L186",
       "id": "types_index_postintensity",
-      "community": 53,
+      "community": 52,
       "norm_label": "postintensity"
     },
     {
@@ -8856,7 +8856,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L188",
       "id": "types_index_squadmember",
-      "community": 8,
+      "community": 9,
       "norm_label": "squadmember"
     },
     {
@@ -8874,7 +8874,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L202",
       "id": "types_index_feedpostdata",
-      "community": 8,
+      "community": 9,
       "norm_label": "feedpostdata"
     },
     {
@@ -8892,7 +8892,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L228",
       "id": "types_index_storygroup",
-      "community": 8,
+      "community": 9,
       "norm_label": "storygroup"
     },
     {
@@ -8919,7 +8919,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L247",
       "id": "types_index_pendingrequest",
-      "community": 8,
+      "community": 9,
       "norm_label": "pendingrequest"
     },
     {
@@ -8928,7 +8928,7 @@
       "source_file": "KineticApp/src/types/index.ts",
       "source_location": "L256",
       "id": "types_index_comment",
-      "community": 16,
+      "community": 33,
       "norm_label": "comment"
     },
     {
@@ -8973,7 +8973,7 @@
       "source_file": "KineticApp/src/utils/formatters.ts",
       "source_location": "L1",
       "id": "kineticapp_src_utils_formatters_ts",
-      "community": 72,
+      "community": 71,
       "norm_label": "formatters.ts"
     },
     {
@@ -8982,7 +8982,7 @@
       "source_file": "KineticApp/src/utils/formatters.ts",
       "source_location": "L1",
       "id": "utils_formatters_formatprofilename",
-      "community": 72,
+      "community": 71,
       "norm_label": "formatprofilename()"
     },
     {
@@ -8991,7 +8991,7 @@
       "source_file": "KineticApp/src/utils/formatters.ts",
       "source_location": "L7",
       "id": "utils_formatters_formatmembersince",
-      "community": 72,
+      "community": 71,
       "norm_label": "formatmembersince()"
     },
     {
@@ -9135,7 +9135,7 @@
       "source_file": "CLAUDE.md",
       "source_location": "L1",
       "id": "claude_md",
-      "community": 74,
+      "community": 73,
       "norm_label": "claude.md"
     },
     {
@@ -9144,7 +9144,7 @@
       "source_file": "CLAUDE.md",
       "source_location": "L1",
       "id": "kinectapp_claude_graphify",
-      "community": 74,
+      "community": 73,
       "norm_label": "graphify"
     },
     {
@@ -9153,7 +9153,7 @@
       "source_file": "GEMINI.md",
       "source_location": "L1",
       "id": "gemini_md",
-      "community": 75,
+      "community": 74,
       "norm_label": "gemini.md"
     },
     {
@@ -9162,7 +9162,7 @@
       "source_file": "GEMINI.md",
       "source_location": "L1",
       "id": "kinectapp_gemini_graphify",
-      "community": 75,
+      "community": 74,
       "norm_label": "graphify"
     },
     {
@@ -9369,7 +9369,7 @@
       "source_file": "kinetic-backend/todo.md",
       "source_location": "L1",
       "id": "kinetic_backend_todo_md",
-      "community": 146,
+      "community": 145,
       "norm_label": "todo.md"
     },
     {
@@ -9585,7 +9585,7 @@
       "source_file": "Plan/design.md",
       "source_location": "L1",
       "id": "plan_design_md",
-      "community": 147,
+      "community": 146,
       "norm_label": "design.md"
     },
     {
@@ -9594,7 +9594,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L1",
       "id": "plan_design1_md",
-      "community": 17,
+      "community": 16,
       "norm_label": "design1.md"
     },
     {
@@ -9603,7 +9603,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L1",
       "id": "plan_design1_design_system_specification_high_performance_athleticism",
-      "community": 17,
+      "community": 16,
       "norm_label": "design system specification: high-performance athleticism"
     },
     {
@@ -9612,7 +9612,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L3",
       "id": "plan_design1_1_overview_creative_north_star_the_digital_kineticist",
-      "community": 17,
+      "community": 16,
       "norm_label": "1. overview & creative north star: \"the digital kineticist\""
     },
     {
@@ -9621,7 +9621,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L10",
       "id": "plan_design1_2_colors_tonal_depth_the_neon_pulse",
-      "community": 17,
+      "community": 16,
       "norm_label": "2. colors: tonal depth & the neon pulse"
     },
     {
@@ -9630,7 +9630,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L13",
       "id": "plan_design1_palette_highlights",
-      "community": 17,
+      "community": 16,
       "norm_label": "palette highlights"
     },
     {
@@ -9639,7 +9639,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L19",
       "id": "plan_design1_the_no_line_rule",
-      "community": 17,
+      "community": 16,
       "norm_label": "the \"no-line\" rule"
     },
     {
@@ -9648,7 +9648,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L22",
       "id": "plan_design1_surface_hierarchy_nesting",
-      "community": 17,
+      "community": 16,
       "norm_label": "surface hierarchy & nesting"
     },
     {
@@ -9657,7 +9657,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L29",
       "id": "plan_design1_the_glass_gradient_rule",
-      "community": 17,
+      "community": 16,
       "norm_label": "the \"glass & gradient\" rule"
     },
     {
@@ -9666,7 +9666,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L34",
       "id": "plan_design1_3_typography_editorial_authority",
-      "community": 17,
+      "community": 16,
       "norm_label": "3. typography: editorial authority"
     },
     {
@@ -9675,7 +9675,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L47",
       "id": "plan_design1_4_elevation_depth_tonal_layering",
-      "community": 17,
+      "community": 16,
       "norm_label": "4. elevation & depth: tonal layering"
     },
     {
@@ -9684,7 +9684,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L56",
       "id": "plan_design1_5_components_the_athletic_kit",
-      "community": 17,
+      "community": 16,
       "norm_label": "5. components: the athletic kit"
     },
     {
@@ -9693,7 +9693,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L58",
       "id": "plan_design1_buttons_the_kinetic_drivers",
-      "community": 17,
+      "community": 16,
       "norm_label": "buttons (the kinetic drivers)"
     },
     {
@@ -9702,7 +9702,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L63",
       "id": "plan_design1_cards_lists_the_performance_modules",
-      "community": 17,
+      "community": 16,
       "norm_label": "cards & lists (the performance modules)"
     },
     {
@@ -9711,7 +9711,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L67",
       "id": "plan_design1_input_fields",
-      "community": 17,
+      "community": 16,
       "norm_label": "input fields"
     },
     {
@@ -9720,7 +9720,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L71",
       "id": "plan_design1_specialized_fitness_components",
-      "community": 17,
+      "community": 16,
       "norm_label": "specialized fitness components"
     },
     {
@@ -9729,7 +9729,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L77",
       "id": "plan_design1_6_do_s_and_don_ts",
-      "community": 17,
+      "community": 16,
       "norm_label": "6. do\u2019s and don\u2019ts"
     },
     {
@@ -9738,7 +9738,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L79",
       "id": "plan_design1_do",
-      "community": 17,
+      "community": 16,
       "norm_label": "do"
     },
     {
@@ -9747,7 +9747,7 @@
       "source_file": "Plan/DESIGN1.md",
       "source_location": "L85",
       "id": "plan_design1_don_t",
-      "community": 17,
+      "community": 16,
       "norm_label": "don't"
     },
     {
@@ -9756,7 +9756,7 @@
       "source_file": "Plan/FotoSave.md",
       "source_location": "L1",
       "id": "plan_fotosave_md",
-      "community": 148,
+      "community": 147,
       "norm_label": "fotosave.md"
     },
     {
@@ -9765,7 +9765,7 @@
       "source_file": "Plan/IMPLEMENTA\u00c7\u00c3O_PERFIL.md",
       "source_location": "L1",
       "id": "plan_implementa_o_perfil_md",
-      "community": 149,
+      "community": 148,
       "norm_label": "implementacao_perfil.md"
     },
     {
@@ -9774,7 +9774,7 @@
       "source_file": "Plan/PerfilLogoffButton.md",
       "source_location": "L1",
       "id": "plan_perfillogoffbutton_md",
-      "community": 66,
+      "community": 64,
       "norm_label": "perfillogoffbutton.md"
     },
     {
@@ -9783,7 +9783,7 @@
       "source_file": "Plan/PerfilLogoffButton.md",
       "source_location": "L7",
       "id": "plan_perfillogoffbutton_1_front_end_camada_de_contexto_authcontext_tsx",
-      "community": 66,
+      "community": 64,
       "norm_label": "1. front-end: camada de contexto (`authcontext.tsx`)"
     },
     {
@@ -9792,7 +9792,7 @@
       "source_file": "Plan/PerfilLogoffButton.md",
       "source_location": "L18",
       "id": "plan_perfillogoffbutton_2_front_end_ui_do_modal_profilescreen_tsx",
-      "community": 66,
+      "community": 64,
       "norm_label": "2. front-end: ui do modal (profilescreen.tsx)"
     },
     {
@@ -9801,7 +9801,7 @@
       "source_file": "Plan/PerfilLogoffButton.md",
       "source_location": "L22",
       "id": "plan_perfillogoffbutton_2_1_tokens_de_estiliza_o_e_specs_visuais_image_reference",
-      "community": 66,
+      "community": 64,
       "norm_label": "2.1. tokens de estilizacao e specs visuais (image reference)"
     },
     {
@@ -9810,7 +9810,7 @@
       "source_file": "Plan/PerfilLogoffButton.md",
       "source_location": "L35",
       "id": "plan_perfillogoffbutton_3_l_gica_de_integra_o_e_fluxo",
-      "community": 66,
+      "community": 64,
       "norm_label": "3. logica de integracao e fluxo"
     },
     {
@@ -9819,7 +9819,7 @@
       "source_file": "Plan/PerfilLogoffButton.md",
       "source_location": "L39",
       "id": "plan_perfillogoffbutton_3_1_controle_de_estado_do_modal",
-      "community": 66,
+      "community": 64,
       "norm_label": "3.1. controle de estado do modal"
     },
     {
@@ -9828,7 +9828,7 @@
       "source_file": "Plan/perfilScreen.md",
       "source_location": "L1",
       "id": "plan_perfilscreen_md",
-      "community": 76,
+      "community": 75,
       "norm_label": "perfilscreen.md"
     },
     {
@@ -9837,7 +9837,7 @@
       "source_file": "Plan/perfilScreen.md",
       "source_location": "L16",
       "id": "plan_perfilscreen_1_banco_de_dados_flyway_postgresql",
-      "community": 76,
+      "community": 75,
       "norm_label": "1. banco de dados (flyway / postgresql)"
     },
     {
@@ -9846,7 +9846,7 @@
       "source_file": "Plan/perfilScreen.md",
       "source_location": "L18",
       "id": "plan_perfilscreen_1_1_auditoria_de_contas_created_at",
-      "community": 76,
+      "community": 75,
       "norm_label": "1.1. auditoria de contas (`created_at`)"
     },
     {
@@ -9855,7 +9855,7 @@
       "source_file": "Plan/perfilScreenFront.md",
       "source_location": "L1",
       "id": "plan_perfilscreenfront_md",
-      "community": 77,
+      "community": 76,
       "norm_label": "perfilscreenfront.md"
     },
     {
@@ -9864,7 +9864,7 @@
       "source_file": "Plan/perfilScreenFront.md",
       "source_location": "L1",
       "id": "plan_perfilscreenfront_plano_de_implementa_o_integra_o_do_perfil_din_mico_profilescreen",
-      "community": 77,
+      "community": 76,
       "norm_label": "plano de implementacao: integracao do perfil dinamico (profilescreen)"
     },
     {
@@ -9873,7 +9873,7 @@
       "source_file": "Plan/perfilScreenFront.md",
       "source_location": "L7",
       "id": "plan_perfilscreenfront_1_tipagem_estrita_typescript",
-      "community": 77,
+      "community": 76,
       "norm_label": "1. tipagem estrita (typescript)"
     },
     {
@@ -10116,7 +10116,7 @@
       "source_file": "Plan/PLANONBOARDING.md",
       "source_location": "L1",
       "id": "plan_planonboarding_md",
-      "community": 40,
+      "community": 41,
       "norm_label": "planonboarding.md"
     },
     {
@@ -10125,7 +10125,7 @@
       "source_file": "Plan/PLANONBOARDING.md",
       "source_location": "L1",
       "id": "plan_planonboarding_plano_de_refatora_o_onboarding_cl_nico_e_blindagem_do_prompt_ia",
-      "community": 40,
+      "community": 41,
       "norm_label": "\ud83d\udee1\ufe0f plano de refatoracao: onboarding clinico e blindagem do prompt (ia)"
     },
     {
@@ -10134,7 +10134,7 @@
       "source_file": "Plan/PLANONBOARDING.md",
       "source_location": "L3",
       "id": "plan_planonboarding_1_vis_o_geral",
-      "community": 40,
+      "community": 41,
       "norm_label": "1. visao geral"
     },
     {
@@ -10143,7 +10143,7 @@
       "source_file": "Plan/PLANONBOARDING.md",
       "source_location": "L6",
       "id": "plan_planonboarding_2_refatora_o_back_end_java_spring_boot",
-      "community": 40,
+      "community": 41,
       "norm_label": "2. refatoracao back-end (java spring boot)"
     },
     {
@@ -10152,7 +10152,7 @@
       "source_file": "Plan/PLANONBOARDING.md",
       "source_location": "L8",
       "id": "plan_planonboarding_a_atualiza_o_de_entidades_e_dtos",
-      "community": 40,
+      "community": 41,
       "norm_label": "a. atualizacao de entidades e dtos"
     },
     {
@@ -10161,7 +10161,7 @@
       "source_file": "Plan/PLANONBOARDING.md",
       "source_location": "L13",
       "id": "plan_planonboarding_b_refatora_o_do_buildprompt_servi_o_de_ia",
-      "community": 40,
+      "community": 41,
       "norm_label": "b. refatoracao do `buildprompt` (servico de ia)"
     },
     {
@@ -10170,7 +10170,7 @@
       "source_file": "Plan/PLANONBOARDING.md",
       "source_location": "L27",
       "id": "plan_planonboarding_3_refatora_o_front_end_react_native_typescript",
-      "community": 40,
+      "community": 41,
       "norm_label": "3. refatoracao front-end (react native / typescript)"
     },
     {
@@ -10179,7 +10179,7 @@
       "source_file": "Plan/PLANONBOARDING.md",
       "source_location": "L29",
       "id": "plan_planonboarding_a_nova_tela_etapa_no_onboarding_medicalhistoryscreen_tsx_ou_step_equivalente",
-      "community": 40,
+      "community": 41,
       "norm_label": "a. nova tela/etapa no onboarding (`medicalhistoryscreen.tsx` ou step equivalente)"
     },
     {
@@ -10188,7 +10188,7 @@
       "source_file": "Plan/PLANONBOARDING.md",
       "source_location": "L38",
       "id": "plan_planonboarding_4_diretrizes",
-      "community": 40,
+      "community": 41,
       "norm_label": "4. diretrizes"
     },
     {
@@ -10197,7 +10197,7 @@
       "source_file": "Plan/PLANONBOARDING.md",
       "source_location": "L42",
       "id": "plan_planonboarding_adendo_ao_plano_persist_ncia_e_tratamento_de_exce_o_da_ia",
-      "community": 40,
+      "community": 41,
       "norm_label": "\ud83d\udee0\ufe0f adendo ao plano: persistencia e tratamento de excecao da ia"
     },
     {
@@ -10206,7 +10206,7 @@
       "source_file": "Plan/PLANONBOARDING.md",
       "source_location": "L46",
       "id": "plan_planonboarding_1_back_end_ajuste_na_entidade_user_jpa_hibernate",
-      "community": 40,
+      "community": 41,
       "norm_label": "1. back-end: ajuste na entidade `user` (jpa/hibernate)"
     },
     {
@@ -10215,7 +10215,7 @@
       "source_file": "Plan/PLANOREFATORA\u00c7\u00c3O.md",
       "source_location": "L1",
       "id": "plan_planorefatora_o_md",
-      "community": 62,
+      "community": 61,
       "norm_label": "planorefatoracao.md"
     },
     {
@@ -10224,7 +10224,7 @@
       "source_file": "Plan/PLANOREFATORA\u00c7\u00c3O.md",
       "source_location": "L1",
       "id": "plan_planorefatora_o_plano_de_refatora_o_onboarding_flow_react_tsx_estrito",
-      "community": 62,
+      "community": 61,
       "norm_label": "plano de refatoracao: onboarding flow (react -> tsx estrito)"
     },
     {
@@ -10233,7 +10233,7 @@
       "source_file": "Plan/PLANOREFATORA\u00c7\u00c3O.md",
       "source_location": "L3",
       "id": "plan_planorefatora_o_objetivo",
-      "community": 62,
+      "community": 61,
       "norm_label": "objetivo"
     },
     {
@@ -10242,7 +10242,7 @@
       "source_file": "Plan/PLANOREFATORA\u00c7\u00c3O.md",
       "source_location": "L6",
       "id": "plan_planorefatora_o_diretrizes_de_tipagem_strict_typescript",
-      "community": 62,
+      "community": 61,
       "norm_label": "diretrizes de tipagem (strict typescript)"
     },
     {
@@ -10251,7 +10251,7 @@
       "source_file": "Plan/PLANOREFATORA\u00c7\u00c3O.md",
       "source_location": "L26",
       "id": "plan_planorefatora_o_tarefa_1_substitui_o_de_idade_por_data_de_nascimento",
-      "community": 62,
+      "community": 61,
       "norm_label": "tarefa 1: substituicao de \"idade\" por \"data de nascimento\""
     },
     {
@@ -10260,7 +10260,7 @@
       "source_file": "Plan/PLANOREFATORA\u00c7\u00c3O.md",
       "source_location": "L32",
       "id": "plan_planorefatora_o_tarefa_2_cria_o_da_etapa_de_anamnese",
-      "community": 62,
+      "community": 61,
       "norm_label": "tarefa 2: criacao da etapa de anamnese"
     },
     {
@@ -10269,7 +10269,7 @@
       "source_file": "Plan/PLANOREFATORA\u00c7\u00c3O.md",
       "source_location": "L38",
       "id": "plan_planorefatora_o_tarefa_3_atualiza_o_do_controlador_principal_onboardingflow",
-      "community": 62,
+      "community": 61,
       "norm_label": "tarefa 3: atualizacao do controlador principal (`onboardingflow`)"
     },
     {
@@ -10278,7 +10278,7 @@
       "source_file": "Plan/REFACTOR_HOME_PLAN.md",
       "source_location": "L1",
       "id": "plan_refactor_home_plan_md",
-      "community": 43,
+      "community": 44,
       "norm_label": "refactor_home_plan.md"
     },
     {
@@ -10287,7 +10287,7 @@
       "source_file": "Plan/REFACTOR_HOME_PLAN.md",
       "source_location": "L1",
       "id": "plan_refactor_home_plan_plano_de_refatora_o_home_screen_fluxo_de_treino_kinetic_app",
-      "community": 43,
+      "community": 44,
       "norm_label": "plano de refatoracao: home screen & fluxo de treino (kinetic app)"
     },
     {
@@ -10296,7 +10296,7 @@
       "source_file": "Plan/REFACTOR_HOME_PLAN.md",
       "source_location": "L7",
       "id": "plan_refactor_home_plan_1_back_end_intelig_ncia_e_persist_ncia_java_spring_boot",
-      "community": 43,
+      "community": 44,
       "norm_label": "1. back-end: inteligencia e persistencia (java spring boot)"
     },
     {
@@ -10305,7 +10305,7 @@
       "source_file": "Plan/REFACTOR_HOME_PLAN.md",
       "source_location": "L9",
       "id": "plan_refactor_home_plan_1_1_status_de_onboarding_do_usu_rio",
-      "community": 43,
+      "community": 44,
       "norm_label": "1.1. status de onboarding do usuario"
     },
     {
@@ -10314,7 +10314,7 @@
       "source_file": "Plan/REFACTOR_HOME_PLAN.md",
       "source_location": "L14",
       "id": "plan_refactor_home_plan_1_2_l_gica_de_pr_xima_ficha_dispon_vel",
-      "community": 43,
+      "community": 44,
       "norm_label": "1.2. logica de \"proxima ficha disponivel\""
     },
     {
@@ -10323,7 +10323,7 @@
       "source_file": "Plan/REFACTOR_HOME_PLAN.md",
       "source_location": "L26",
       "id": "plan_refactor_home_plan_2_front_end_ui_ux_e_navega_o_react_native_ts",
-      "community": 43,
+      "community": 44,
       "norm_label": "2. front-end: ui/ux e navegacao (react native + ts)"
     },
     {
@@ -10332,7 +10332,7 @@
       "source_file": "Plan/REFACTOR_HOME_PLAN.md",
       "source_location": "L28",
       "id": "plan_refactor_home_plan_2_1_reestrutura_o_da_navega_o",
-      "community": 43,
+      "community": 44,
       "norm_label": "2.1. reestruturacao da navegacao"
     },
     {
@@ -10341,7 +10341,7 @@
       "source_file": "Plan/REFACTOR_HOME_PLAN.md",
       "source_location": "L32",
       "id": "plan_refactor_home_plan_2_2_l_gica_de_redirecionamento_conditional_rendering",
-      "community": 43,
+      "community": 44,
       "norm_label": "2.2. logica de redirecionamento (conditional rendering)"
     },
     {
@@ -10350,7 +10350,7 @@
       "source_file": "Plan/REFACTOR_HOME_PLAN.md",
       "source_location": "L37",
       "id": "plan_refactor_home_plan_2_3_refatora_o_visual_do_dashboard_design_premium",
-      "community": 43,
+      "community": 44,
       "norm_label": "2.3. refatoracao visual do dashboard (design premium)"
     },
     {
@@ -10359,7 +10359,7 @@
       "source_file": "Plan/REFACTOR_HOME_PLAN.md",
       "source_location": "L49",
       "id": "plan_refactor_home_plan_3_checklist_de_implementa_o",
-      "community": 43,
+      "community": 44,
       "norm_label": "3. checklist de implementacao"
     },
     {
@@ -10368,7 +10368,7 @@
       "source_file": "Plan/SocialRepaginate.md",
       "source_location": "L1",
       "id": "plan_socialrepaginate_md",
-      "community": 150,
+      "community": 149,
       "norm_label": "socialrepaginate.md"
     },
     {
@@ -10377,7 +10377,7 @@
       "source_file": "Plan/SOLUCAO.md",
       "source_location": "L1",
       "id": "plan_solucao_md",
-      "community": 55,
+      "community": 54,
       "norm_label": "solucao.md"
     },
     {
@@ -10386,7 +10386,7 @@
       "source_file": "Plan/SOLUCAO.md",
       "source_location": "L1",
       "id": "plan_solucao_plano_de_debug_resolu_o_da_quebra_silenciosa_na_gera_o_de_treino",
-      "community": 55,
+      "community": 54,
       "norm_label": "\ud83d\udc1b plano de debug: resolucao da quebra silenciosa na geracao de treino"
     },
     {
@@ -10395,7 +10395,7 @@
       "source_file": "Plan/SOLUCAO.md",
       "source_location": "L3",
       "id": "plan_solucao_1_contexto_do_problema",
-      "community": 55,
+      "community": 54,
       "norm_label": "1. contexto do problema"
     },
     {
@@ -10404,7 +10404,7 @@
       "source_file": "Plan/SOLUCAO.md",
       "source_location": "L7",
       "id": "plan_solucao_2_suspeitos_principais",
-      "community": 55,
+      "community": 54,
       "norm_label": "2. suspeitos principais"
     },
     {
@@ -10413,7 +10413,7 @@
       "source_file": "Plan/SOLUCAO.md",
       "source_location": "L12",
       "id": "plan_solucao_3_a_es_exigidas_para_a_ia_passo_a_passo_do_debug",
-      "community": 55,
+      "community": 54,
       "norm_label": "3. acoes exigidas para a ia (passo a passo do debug)"
     },
     {
@@ -10422,7 +10422,7 @@
       "source_file": "Plan/SOLUCAO.md",
       "source_location": "L14",
       "id": "plan_solucao_a_adicionar_logs_de_rastreamento_tracing",
-      "community": 55,
+      "community": 54,
       "norm_label": "a. adicionar logs de rastreamento (tracing)"
     },
     {
@@ -10431,7 +10431,7 @@
       "source_file": "Plan/SOLUCAO.md",
       "source_location": "L22",
       "id": "plan_solucao_b_blindar_o_recebimento_da_data",
-      "community": 55,
+      "community": 54,
       "norm_label": "b. blindar o recebimento da data"
     },
     {
@@ -10440,7 +10440,7 @@
       "source_file": "Plan/SOLUCAO.md",
       "source_location": "L26",
       "id": "plan_solucao_c_expor_a_exce_o_raiz",
-      "community": 55,
+      "community": 54,
       "norm_label": "c. expor a excecao raiz"
     },
     {
@@ -10449,7 +10449,7 @@
       "source_file": "Plan/STATEFULLPLAN.md",
       "source_location": "L1",
       "id": "plan_statefullplan_md",
-      "community": 151,
+      "community": 150,
       "norm_label": "statefullplan.md"
     },
     {
@@ -10458,7 +10458,7 @@
       "source_file": "Plan/StatsReformula\u00e7\u00e3o.md",
       "source_location": "L1",
       "id": "plan_statsreformula_o_md",
-      "community": 152,
+      "community": 151,
       "norm_label": "statsreformulacao.md"
     },
     {
@@ -10467,7 +10467,7 @@
       "source_file": "Plan/TREINOS.md",
       "source_location": "L1",
       "id": "plan_treinos_md",
-      "community": 56,
+      "community": 55,
       "norm_label": "treinos.md"
     },
     {
@@ -10476,7 +10476,7 @@
       "source_file": "Plan/TREINOS.md",
       "source_location": "L1",
       "id": "plan_treinos_plano_de_implementa_o_back_end_da_home_l_gica_de_fichas_din_micas_kinetic_app",
-      "community": 56,
+      "community": 55,
       "norm_label": "plano de implementacao: back-end da home & logica de fichas dinamicas (kinetic app)"
     },
     {
@@ -10485,7 +10485,7 @@
       "source_file": "Plan/TREINOS.md",
       "source_location": "L9",
       "id": "plan_treinos_1_persist_ncia_de_dados_jpa_hibernate",
-      "community": 56,
+      "community": 55,
       "norm_label": "1. persistencia de dados (jpa/hibernate)"
     },
     {
@@ -10494,7 +10494,7 @@
       "source_file": "Plan/TREINOS.md",
       "source_location": "L11",
       "id": "plan_treinos_1_1_altera_es_na_entidade_user",
-      "community": 56,
+      "community": 55,
       "norm_label": "1.1. alteracoes na entidade `user`"
     },
     {
@@ -10503,7 +10503,7 @@
       "source_file": "Plan/TREINOS.md",
       "source_location": "L16",
       "id": "plan_treinos_1_2_entidade_de_log_workoutexecutionlog",
-      "community": 56,
+      "community": 55,
       "norm_label": "1.2. entidade de log: `workoutexecutionlog`"
     },
     {
@@ -10512,7 +10512,7 @@
       "source_file": "Plan/TREINOS.md",
       "source_location": "L27",
       "id": "plan_treinos_2_motor_de_busca_de_treinos_workoutservice",
-      "community": 56,
+      "community": 55,
       "norm_label": "2. motor de busca de treinos (`workoutservice`)"
     },
     {
@@ -10521,7 +10521,7 @@
       "source_file": "Plan/TREINOS.md",
       "source_location": "L29",
       "id": "plan_treinos_2_1_l_gica_do_algoritmo_pr_xima_ficha_pendente",
-      "community": 56,
+      "community": 55,
       "norm_label": "2.1. logica do algoritmo \"proxima ficha pendente\""
     },
     {
@@ -10530,7 +10530,7 @@
       "source_file": "Plan/TREINOS.md",
       "source_location": "L47",
       "id": "plan_treinos_3_arquitetura_do_contrato_bff_homedashboardresponsedto",
-      "community": 56,
+      "community": 55,
       "norm_label": "3. arquitetura do contrato bff (`homedashboardresponsedto`)"
     },
     {
@@ -10565,7 +10565,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/screens/ProfileScreen.tsx",
       "source_location": "L35",
-      "community": 5,
+      "community": 6,
       "norm_label": "user",
       "id": "screens_profilescreen_user"
     },
@@ -10583,7 +10583,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/utils/mockData.ts",
       "source_location": "L1",
-      "community": 39,
+      "community": 40,
       "norm_label": "mockdata.ts",
       "id": "kineticapp_src_utils_mockdata_ts"
     },
@@ -10592,7 +10592,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/utils/mockData.ts",
       "source_location": "L1",
-      "community": 39,
+      "community": 40,
       "norm_label": "exerciseitem",
       "id": "utils_mockdata_exerciseitem"
     },
@@ -10601,7 +10601,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/utils/mockData.ts",
       "source_location": "L13",
-      "community": 39,
+      "community": 40,
       "norm_label": "day_a",
       "id": "utils_mockdata_day_a"
     },
@@ -10610,7 +10610,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/utils/mockData.ts",
       "source_location": "L25",
-      "community": 39,
+      "community": 40,
       "norm_label": "day_b",
       "id": "utils_mockdata_day_b"
     },
@@ -10619,7 +10619,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/utils/mockData.ts",
       "source_location": "L37",
-      "community": 39,
+      "community": 40,
       "norm_label": "day_c",
       "id": "utils_mockdata_day_c"
     },
@@ -10628,7 +10628,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/utils/mockData.ts",
       "source_location": "L48",
-      "community": 39,
+      "community": 40,
       "norm_label": "workout_map",
       "id": "utils_mockdata_workout_map"
     },
@@ -10637,7 +10637,7 @@
       "file_type": "document",
       "source_file": "CLAUDE.md",
       "source_location": "L1",
-      "community": 74,
+      "community": 73,
       "norm_label": "graphify",
       "id": "kinect_claude_graphify"
     },
@@ -10646,7 +10646,7 @@
       "file_type": "document",
       "source_file": "GEMINI.md",
       "source_location": "L1",
-      "community": 75,
+      "community": 74,
       "norm_label": "graphify",
       "id": "kinect_gemini_graphify"
     },
@@ -10844,7 +10844,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/components/FeedPost.tsx",
       "source_location": "L13",
-      "community": 16,
+      "community": 33,
       "norm_label": "author",
       "id": "components_feedpost_author"
     },
@@ -10862,7 +10862,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/components/SquadBar.tsx",
       "source_location": "L5",
-      "community": 61,
+      "community": 19,
       "norm_label": "squaditem",
       "id": "components_squadbar_squaditem"
     },
@@ -10871,7 +10871,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/utils/mockData.ts",
       "source_location": "L12",
-      "community": 39,
+      "community": 40,
       "norm_label": "squadmember",
       "id": "utils_mockdata_squadmember"
     },
@@ -10880,7 +10880,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/utils/mockData.ts",
       "source_location": "L19",
-      "community": 39,
+      "community": 40,
       "norm_label": "feedpostdata",
       "id": "utils_mockdata_feedpostdata"
     },
@@ -10889,7 +10889,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/utils/mockData.ts",
       "source_location": "L78",
-      "community": 39,
+      "community": 40,
       "norm_label": "mocksquad",
       "id": "utils_mockdata_mocksquad"
     },
@@ -10898,7 +10898,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/utils/mockData.ts",
       "source_location": "L85",
-      "community": 39,
+      "community": 40,
       "norm_label": "mockfeed",
       "id": "utils_mockdata_mockfeed"
     },
@@ -10907,7 +10907,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/components/CustomButton.js",
       "source_location": "L1",
-      "community": 70,
+      "community": 68,
       "norm_label": "custombutton.js",
       "id": "kineticapp_src_components_custombutton_js"
     },
@@ -10925,7 +10925,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/components/ExerciseCard.js",
       "source_location": "L1",
-      "community": 67,
+      "community": 65,
       "norm_label": "exercisecard.js",
       "id": "kineticapp_src_components_exercisecard_js"
     },
@@ -10988,7 +10988,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/components/ThemeToggle.js",
       "source_location": "L1",
-      "community": 19,
+      "community": 18,
       "norm_label": "themetoggle.js",
       "id": "kineticapp_src_components_themetoggle_js"
     },
@@ -11087,7 +11087,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/utils/mockData.js",
       "source_location": "L1",
-      "community": 39,
+      "community": 40,
       "norm_label": "mockdata.js",
       "id": "kineticapp_src_utils_mockdata_js"
     },
@@ -11096,7 +11096,7 @@
       "file_type": "document",
       "source_file": "Plan/CLAUDE.md",
       "source_location": "L1",
-      "community": 100,
+      "community": 99,
       "norm_label": "claude.md",
       "id": "plan_claude_md"
     },
@@ -11105,7 +11105,7 @@
       "file_type": "document",
       "source_file": "Plan/CLAUDE.md",
       "source_location": "L1",
-      "community": 100,
+      "community": 99,
       "norm_label": "plano de implementacao back-end: api de estatisticas (`get /stats/summary`)",
       "id": "plan_claude_plano_de_implementa_o_back_end_api_de_estat_sticas_get_stats_summary"
     },
@@ -11258,7 +11258,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/screens/HomeScreen.tsx",
       "source_location": "L20",
-      "community": 15,
+      "community": 5,
       "norm_label": "leaderboardentry",
       "id": "screens_homescreen_leaderboardentry"
     },
@@ -11267,7 +11267,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/screens/HomeScreen.tsx",
       "source_location": "L30",
-      "community": 15,
+      "community": 5,
       "norm_label": "leaders",
       "id": "screens_homescreen_leaders"
     },
@@ -11276,7 +11276,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/screens/HomeScreen.tsx",
       "source_location": "L37",
-      "community": 15,
+      "community": 5,
       "norm_label": "week_days",
       "id": "screens_homescreen_week_days"
     },
@@ -11285,7 +11285,7 @@
       "file_type": "code",
       "source_file": "KineticApp/src/screens/HomeScreen.tsx",
       "source_location": "L39",
-      "community": 15,
+      "community": 5,
       "norm_label": "empty_dashboard",
       "id": "screens_homescreen_empty_dashboard"
     },
@@ -13362,9 +13362,9 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/controllers/SocialController.java",
       "source_location": "L37",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "controllers_socialcontroller_socialcontroller",
-      "target": "controllers_socialcontroller_socialcontroller_uploadmedia",
-      "confidence_score": 1.0
+      "target": "controllers_socialcontroller_socialcontroller_uploadmedia"
     },
     {
       "relation": "method",
@@ -14539,9 +14539,9 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/exceptions/GlobalExceptionHandler.java",
       "source_location": "L27",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "exceptions_globalexceptionhandler_globalexceptionhandler",
-      "target": "exceptions_globalexceptionhandler_globalexceptionhandler_handlebadrequest",
-      "confidence_score": 1.0
+      "target": "exceptions_globalexceptionhandler_globalexceptionhandler_handlebadrequest"
     },
     {
       "relation": "contains",
@@ -18412,9 +18412,9 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/StorageService.java",
       "source_location": "L19",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "kinetic_backend_src_main_java_com_kinetic_services_storageservice_java",
-      "target": "services_storageservice_storageservice",
-      "confidence_score": 1.0
+      "target": "services_storageservice_storageservice"
     },
     {
       "relation": "method",
@@ -18422,9 +18422,9 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/StorageService.java",
       "source_location": "L38",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_storageservice_storageservice",
-      "target": "services_storageservice_storageservice_storageservice",
-      "confidence_score": 1.0
+      "target": "services_storageservice_storageservice_storageservice"
     },
     {
       "relation": "method",
@@ -18432,9 +18432,9 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/StorageService.java",
       "source_location": "L47",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_storageservice_storageservice",
-      "target": "services_storageservice_storageservice_upload",
-      "confidence_score": 1.0
+      "target": "services_storageservice_storageservice_upload"
     },
     {
       "relation": "method",
@@ -18442,9 +18442,9 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/StorageService.java",
       "source_location": "L87",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_storageservice_storageservice",
-      "target": "services_storageservice_storageservice_extensionfor",
-      "confidence_score": 1.0
+      "target": "services_storageservice_storageservice_extensionfor"
     },
     {
       "relation": "calls",
@@ -18453,9 +18453,9 @@
       "source_file": "kinetic-backend/src/main/java/com/kinetic/services/StorageService.java",
       "source_location": "L60",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_storageservice_storageservice_upload",
-      "target": "services_storageservice_storageservice_extensionfor",
-      "confidence_score": 1.0
+      "target": "services_storageservice_storageservice_extensionfor"
     },
     {
       "relation": "contains",
@@ -20225,9 +20225,9 @@
       "source_file": "KineticApp/src/components/NewPostModal.tsx",
       "source_location": "L18",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "kineticapp_src_components_newpostmodal_tsx",
-      "target": "services_socialservice_uploadmedia",
-      "confidence_score": 1.0
+      "target": "services_socialservice_uploadmedia"
     },
     {
       "relation": "imports_from",
@@ -24759,9 +24759,9 @@
       "source_file": "KineticApp/src/screens/SocialScreen.tsx",
       "source_location": "L25",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "kineticapp_src_screens_socialscreen_tsx",
-      "target": "services_socialservice_uploadmedia",
-      "confidence_score": 1.0
+      "target": "services_socialservice_uploadmedia"
     },
     {
       "relation": "imports_from",
@@ -27026,9 +27026,9 @@
       "source_file": "KineticApp/src/services/socialService.ts",
       "source_location": "L22",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "kineticapp_src_services_socialservice_ts",
-      "target": "services_socialservice_uploadmedia",
-      "confidence_score": 1.0
+      "target": "services_socialservice_uploadmedia"
     },
     {
       "relation": "contains",
@@ -30939,5 +30939,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "b8e7410400612b907904393dd0cac7aca5b733b4"
+  "built_at_commit": "3c81c005f770621b5aa3b70a45aa6688b5cf5827"
 }
