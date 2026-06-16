@@ -32,6 +32,7 @@ import {
   removeConnection,
   getStories,
   createStory,
+  uploadMedia,
 } from '../services/socialService';
 import type { FeedPostData, SquadMember, PendingRequest, StoryGroup } from '../types';
 
@@ -169,7 +170,10 @@ export default function SocialScreen() {
     });
     if (result.canceled) return;
     try {
-      await createStory({ imageUrl: result.assets[0].uri });
+      // Sobe ao Storage antes: grava a URL pública (visível p/ o squad em
+      // qualquer aparelho) em vez do caminho local do dispositivo.
+      const url = await uploadMedia(result.assets[0].uri, 'stories');
+      await createStory({ imageUrl: url });
       await loadStories();
     } catch {
       // silent — usuário pode tentar de novo

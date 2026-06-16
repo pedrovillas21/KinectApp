@@ -9,12 +9,13 @@ import {
   ActivityIndicator,
   ScrollView,
   Image,
+  Alert,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import * as ImagePicker from 'expo-image-picker';
 import { KINETIC } from '../theme/kinetic';
 import { COLORS } from '../theme/colors';
-import { createPost } from '../services/socialService';
+import { createPost, uploadMedia } from '../services/socialService';
 import type { FeedPostData, PostIntensity } from '../types';
 
 interface Props {
@@ -63,10 +64,13 @@ export default function NewPostModal({ visible, onClose, onPostCreated }: Props)
     if (posting) return;
     setPosting(true);
     try {
+      // Sobe a foto ao Storage primeiro: assim grava a URL pública (visível em
+      // qualquer aparelho) em vez do caminho local do dispositivo.
+      const imageUrl = imageUri ? await uploadMedia(imageUri, 'posts') : undefined;
       const post = await createPost({
         intensity,
         caption: caption.trim() || undefined,
-        imageUrl: imageUri ?? undefined,
+        imageUrl,
       });
       onPostCreated(post);
       setCaption('');
@@ -74,7 +78,8 @@ export default function NewPostModal({ visible, onClose, onPostCreated }: Props)
       setIntensity('MODERADO');
       onClose();
     } catch {
-      // silent — user can retry
+      // Mantém o modal aberto para o usuário tentar de novo (upload pode falhar por rede).
+      Alert.alert('Não foi possível publicar', 'Verifique sua conexão e tente novamente.');
     } finally {
       setPosting(false);
     }
