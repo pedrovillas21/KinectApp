@@ -16,7 +16,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { KINETIC } from '../theme/kinetic';
 import { COLORS } from '../theme/colors';
 import Icon from './Icon';
-import { createPost, uploadMedia } from '../services/socialService';
+import { createPost, uploadMedia, deleteMedia } from '../services/socialService';
 import type { FeedPostData, PostIntensity } from '../types';
 
 interface Props {
@@ -42,7 +42,10 @@ export default function NewPostModal({ visible, onClose, onPostCreated }: Props)
     const perm = await ImagePicker.requestCameraPermissionsAsync();
     if (!perm.granted) {
       const galleryPerm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!galleryPerm.granted) return;
+      if (!galleryPerm.granted) {
+        Alert.alert('Permissão necessária', 'Conceda acesso à câmera ou à galeria para adicionar uma foto.');
+        return;
+      }
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
         allowsEditing: true,
@@ -64,14 +67,15 @@ export default function NewPostModal({ visible, onClose, onPostCreated }: Props)
   const handlePost = async () => {
     if (posting) return;
     setPosting(true);
+    let uploadedUrl: string | undefined;
     try {
       // Sobe a foto ao Storage primeiro: assim grava a URL pública (visível em
       // qualquer aparelho) em vez do caminho local do dispositivo.
-      const imageUrl = imageUri ? await uploadMedia(imageUri, 'posts') : undefined;
+      uploadedUrl = imageUri ? await uploadMedia(imageUri, 'posts') : undefined;
       const post = await createPost({
         intensity,
         caption: caption.trim() || undefined,
-        imageUrl,
+        imageUrl: uploadedUrl,
       });
       onPostCreated(post);
       setCaption('');
@@ -79,6 +83,9 @@ export default function NewPostModal({ visible, onClose, onPostCreated }: Props)
       setIntensity('MODERADO');
       onClose();
     } catch {
+      // Se a foto já subiu mas a criação do post falhou, remove a mídia órfã
+      // (best-effort) para não acumular lixo no bucket.
+      if (uploadedUrl) deleteMedia(uploadedUrl).catch(() => {});
       // Mantém o modal aberto para o usuário tentar de novo (upload pode falhar por rede).
       Alert.alert('Não foi possível publicar', 'Verifique sua conexão e tente novamente.');
     } finally {

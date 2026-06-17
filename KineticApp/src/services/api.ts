@@ -16,7 +16,7 @@ const API_URL = `${process.env.EXPO_PUBLIC_API_URL}/api`;
 
 const api: AxiosInstance = axios.create({
   baseURL: API_URL,
-  timeout: 15000,
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -25,7 +25,7 @@ const api: AxiosInstance = axios.create({
 // Raw client for refresh/logout — bypasses interceptors to avoid recursion.
 const refreshClient: AxiosInstance = axios.create({
   baseURL: API_URL,
-  timeout: 15000,
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
   },

@@ -103,7 +103,8 @@ $RECYCLE.BIN/
 # ─── Pastas de contexto interno / AI ─────────
 .gemini/
 **/target/
-.vscode/
+.vscode/*
+!.vscode/settings.json
 .github/
 .agents/
 

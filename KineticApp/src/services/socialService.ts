@@ -36,6 +36,12 @@ export const uploadMedia = async (
   return res.data.url;
 };
 
+// Remove uma mídia já enviada ao Storage. Usado como limpeza compensatória quando
+// o upload deu certo mas a criação do post/story falhou (evita mídia órfã no bucket).
+export const deleteMedia = async (url: string): Promise<void> => {
+  await api.delete('/social/media', { params: { url } });
+};
+
 export const searchUsers = async (q: string): Promise<UserCard[]> => {
   const res = await api.get<UserCard[]>('/social/users/search', { params: { q } });
   return res.data;

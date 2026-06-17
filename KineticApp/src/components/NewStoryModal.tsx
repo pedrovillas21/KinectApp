@@ -16,7 +16,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { KINETIC } from '../theme/kinetic';
 import { COLORS } from '../theme/colors';
 import Icon from './Icon';
-import { createStory, uploadMedia } from '../services/socialService';
+import { createStory, uploadMedia, deleteMedia } from '../services/socialService';
 
 interface Props {
   visible: boolean;
@@ -39,7 +39,10 @@ export default function NewStoryModal({ visible, onClose, onStoryCreated }: Prop
 
   const pickFromCamera = async () => {
     const perm = await ImagePicker.requestCameraPermissionsAsync();
-    if (!perm.granted) return;
+    if (!perm.granted) {
+      Alert.alert('Permissão necessária', 'Conceda acesso à câmera para tirar uma foto.');
+      return;
+    }
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
@@ -51,7 +54,10 @@ export default function NewStoryModal({ visible, onClose, onStoryCreated }: Prop
 
   const pickFromGallery = async () => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) return;
+    if (!perm.granted) {
+      Alert.alert('Permissão necessária', 'Conceda acesso à galeria para escolher uma foto.');
+      return;
+    }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
@@ -64,14 +70,18 @@ export default function NewStoryModal({ visible, onClose, onStoryCreated }: Prop
   const handlePublish = async () => {
     if (posting || !imageUri) return;
     setPosting(true);
+    let uploadedUrl: string | null = null;
     try {
       // Sobe a foto ao Storage primeiro: grava a URL pública (visível p/ o squad
       // em qualquer aparelho) em vez do caminho local do dispositivo.
-      const url = await uploadMedia(imageUri, 'stories');
-      await createStory({ imageUrl: url, caption: caption.trim() || undefined });
+      uploadedUrl = await uploadMedia(imageUri, 'stories');
+      await createStory({ imageUrl: uploadedUrl, caption: caption.trim() || undefined });
       onStoryCreated();
       handleClose();
     } catch {
+      // Se a foto já subiu mas a criação do story falhou, remove a mídia órfã
+      // (best-effort) para não acumular lixo no bucket.
+      if (uploadedUrl) deleteMedia(uploadedUrl).catch(() => {});
       // Mantém o modal aberto para o usuário tentar de novo (upload pode falhar por rede).
       Alert.alert('Não foi possível publicar', 'Verifique sua conexão e tente novamente.');
     } finally {

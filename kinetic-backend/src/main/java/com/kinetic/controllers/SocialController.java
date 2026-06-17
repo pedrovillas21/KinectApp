@@ -42,6 +42,15 @@ public class SocialController extends BaseController {
         return ResponseEntity.status(HttpStatus.CREATED).body(new MediaUploadResponse(url));
     }
 
+    // Remove uma mídia recém-enviada. O app chama este endpoint como limpeza
+    // compensatória quando o upload funcionou mas a criação do post/story falhou,
+    // evitando objetos órfãos no Storage.
+    @DeleteMapping("/media")
+    public ResponseEntity<Void> deleteMedia(@RequestParam String url) {
+        storageService.delete(url);
+        return ResponseEntity.noContent().build();
+    }
+
     // ── Search ──────────────────────────────────────────────────────────────
 
     @GetMapping("/users/search")
