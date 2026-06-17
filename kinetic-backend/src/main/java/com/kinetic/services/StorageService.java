@@ -69,6 +69,7 @@ public class StorageService {
         try {
             restClient.post()
                     .uri(supabaseUrl + "/storage/v1/object/" + bucket + "/" + key)
+                    .header("apikey", serviceRoleKey)
                     .header("Authorization", "Bearer " + serviceRoleKey)
                     .header("x-upsert", "true")
                     .header("Content-Type", contentType)
