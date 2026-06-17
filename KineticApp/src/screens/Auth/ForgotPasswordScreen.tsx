@@ -17,6 +17,7 @@ import { COLORS } from '../../theme/colors';
 import HeaderLogo from '../../components/HeaderLogo';
 import CustomInput from '../../components/CustomInput';
 import PrimaryButton from '../../components/PrimaryButton';
+import Icon from '../../components/Icon';
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
@@ -87,23 +88,34 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
               placeholder="seu-email@exemplo.com"
               value={email}
               onChangeText={setEmail}
-              icon={<Text style={{ color: '#888' }}>✉</Text>}
+              icon={<Icon name="mail" size={18} color="#888" />}
             />
 
-            <PrimaryButton title="CONTINUAR ⚡" onPress={handleSend} isLoading={loading} />
+            <PrimaryButton
+              title="CONTINUAR"
+              icon={<Icon name="bolt" size={18} color={COLORS.darkBackground} />}
+              onPress={handleSend}
+              isLoading={loading}
+            />
           </View>
 
           <TouchableOpacity
-            style={styles.footerButton}
+            style={[styles.footerButton, styles.footerButtonRow]}
             onPress={() => navigation.navigate('Login')}
           >
+            <Icon
+              name="arrow-left"
+              size={15}
+              color={isDarkMode ? COLORS.textSecondaryDark : COLORS.textSecondaryLight}
+              strokeWidth={2.2}
+            />
             <Text
               style={[
                 styles.footerText,
                 { color: isDarkMode ? COLORS.textSecondaryDark : COLORS.textSecondaryLight },
               ]}
             >
-              ← VOLTAR PARA O LOGIN
+              VOLTAR PARA O LOGIN
             </Text>
           </TouchableOpacity>
         </ScrollView>
@@ -122,5 +134,6 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 16, lineHeight: 24, marginBottom: 40 },
   formContainer: { paddingVertical: 16 },
   footerButton: { alignItems: 'center', marginTop: 'auto', paddingTop: 40 },
+  footerButtonRow: { flexDirection: 'row', justifyContent: 'center', gap: 8 },
   footerText: { fontSize: 14, fontWeight: 'bold', letterSpacing: 0.5 },
 });

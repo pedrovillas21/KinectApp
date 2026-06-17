@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { COLORS } from '../theme/colors';
+import Icon from './Icon';
 
 interface Props {
   setNumber: number;
@@ -44,11 +45,12 @@ export default function SerieCard({
               onPress={onToggleComplete}
               disabled={!isActive && !isCompleted}
             >
-              {isCompleted ? (
-                <Text style={styles.checkTextCompleted}>✓</Text>
-              ) : (
-                <Text style={styles.checkTextActive}>✓</Text>
-              )}
+              <Icon
+                name="check"
+                size={16}
+                color={isCompleted ? COLORS.neonBlue : '#666'}
+                strokeWidth={2.6}
+              />
             </TouchableOpacity>
           )}
         </View>

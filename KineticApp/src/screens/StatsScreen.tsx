@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import PlanEvolutionCard from '../components/PlanEvolutionCard';
+import Icon from '../components/Icon';
 import {
   ActivityIndicator,
   Dimensions,
@@ -67,8 +68,9 @@ function DeltaChip({ value, good, suffix }: DeltaChipProps) {
   const bg = good ? T.successDim : T.warnDim;
   return (
     <View style={[chipStyles.chip, { backgroundColor: bg }]}>
+      <Icon name={positive ? 'arrow-up' : 'arrow-down'} size={12} color={color} strokeWidth={2.6} />
       <Text style={[chipStyles.text, { color }]}>
-        {positive ? '↑' : '↓'} {formatNumberPtBR(Math.abs(value), 1)}
+        {formatNumberPtBR(Math.abs(value), 1)}
         {suffix ?? ''}
       </Text>
     </View>
@@ -77,6 +79,9 @@ function DeltaChip({ value, good, suffix }: DeltaChipProps) {
 
 const chipStyles = StyleSheet.create({
   chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 999,
@@ -238,7 +243,7 @@ function InsightBlock({ insight }: InsightBlockProps) {
       style={insightStyles.box}
     >
       <View style={insightStyles.iconBadge}>
-        <Text style={insightStyles.iconText}>✦</Text>
+        <Icon name="sparkle" size={16} color="#06181b" />
       </View>
       <View style={insightStyles.body}>
         <Text style={insightStyles.tag}>{insight.tag.toUpperCase()}</Text>
@@ -922,7 +927,9 @@ export default function StatsScreen() {
           }
         >
           <View style={styles.zeroCard}>
-            <Text style={styles.zeroIcon}>📊</Text>
+            <View style={styles.zeroIcon}>
+              <Icon name="bar-chart" size={52} color={T.accent} strokeWidth={1.5} />
+            </View>
             <Text style={styles.zeroTitle}>Sua Evolução</Text>
             <Text style={styles.zeroDesc}>
               Não foi possível carregar suas estatísticas. Puxe para baixo para tentar novamente.
@@ -951,7 +958,9 @@ export default function StatsScreen() {
           }
         >
           <View style={styles.zeroCard}>
-            <Text style={styles.zeroIcon}>📊</Text>
+            <View style={styles.zeroIcon}>
+              <Icon name="bar-chart" size={52} color={T.accent} strokeWidth={1.5} />
+            </View>
             <Text style={styles.zeroTitle}>Sua Evolução</Text>
             <Text style={styles.zeroDesc}>
               Seu primeiro insight aparecerá logo após seu primeiro treino finalizado!

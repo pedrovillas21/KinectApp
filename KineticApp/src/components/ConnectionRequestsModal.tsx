@@ -12,6 +12,7 @@ import {
 import { BlurView } from 'expo-blur';
 import { COLORS } from '../theme/colors';
 import { KINETIC } from '../theme/kinetic';
+import Icon from './Icon';
 import type { PendingRequest } from '../types';
 
 interface Props {
@@ -81,7 +82,7 @@ export default function ConnectionRequestsModal({
           <View style={styles.sheetHeader}>
             <Text style={styles.sheetTitle}>Solicitações</Text>
             <TouchableOpacity onPress={onClose}>
-              <Text style={styles.closeBtn}>✕</Text>
+              <Icon name="close" size={20} color={KINETIC.textMuted} />
             </TouchableOpacity>
           </View>
 

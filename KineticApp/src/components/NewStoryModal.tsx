@@ -15,6 +15,7 @@ import { BlurView } from 'expo-blur';
 import * as ImagePicker from 'expo-image-picker';
 import { KINETIC } from '../theme/kinetic';
 import { COLORS } from '../theme/colors';
+import Icon from './Icon';
 import { createStory, uploadMedia } from '../services/socialService';
 
 interface Props {
@@ -86,18 +87,22 @@ export default function NewStoryModal({ visible, onClose, onStoryCreated }: Prop
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>Novo Story</Text>
               <TouchableOpacity onPress={handleClose}>
-                <Text style={styles.closeBtn}>✕</Text>
+                <Icon name="close" size={20} color={KINETIC.textMuted} />
               </TouchableOpacity>
             </View>
 
             {!imageUri ? (
               <View style={styles.pickerRow}>
                 <TouchableOpacity style={styles.pickerBtn} onPress={pickFromCamera}>
-                  <Text style={styles.pickerIcon}>📷</Text>
+                  <View style={styles.pickerIcon}>
+                    <Icon name="camera" size={32} color={KINETIC.primary} />
+                  </View>
                   <Text style={styles.pickerLabel}>Câmera</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.pickerBtn} onPress={pickFromGallery}>
-                  <Text style={styles.pickerIcon}>🖼️</Text>
+                  <View style={styles.pickerIcon}>
+                    <Icon name="image" size={32} color={KINETIC.primary} />
+                  </View>
                   <Text style={styles.pickerLabel}>Galeria</Text>
                 </TouchableOpacity>
               </View>

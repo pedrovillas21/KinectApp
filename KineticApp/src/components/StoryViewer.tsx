@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../theme/colors';
+import Icon from './Icon';
 import type { StoryGroup } from '../types';
 
 const STORY_DURATION = 5000; // ms por story, estilo Instagram
@@ -125,7 +126,7 @@ export default function StoryViewer({ visible, groups, initialGroupIndex, onClos
               <Text style={styles.time}>{timeAgo(story.createdAt)}</Text>
               <View style={{ flex: 1 }} />
               <Pressable hitSlop={12} onPress={onClose}>
-                <Text style={styles.close}>✕</Text>
+                <Icon name="close" size={22} color="#FFF" />
               </Pressable>
             </View>
 

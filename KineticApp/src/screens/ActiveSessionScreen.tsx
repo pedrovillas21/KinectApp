@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemeContext } from '../contexts/ThemeContext';
 import { COLORS } from '../theme/colors';
+import Icon from '../components/Icon';
 import SerieCard from '../components/SerieCard';
 import AppHeader from '../components/AppHeader';
 import { SetLogDto, LogSessionRequestDTO } from '../types';
@@ -309,9 +310,12 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
           style={[styles.primaryCta, isLastExercise && { backgroundColor: COLORS.neonBlue }]}
           onPress={handleNextAction}
         >
-          <Text style={styles.primaryCtaText}>
-            {isLastExercise ? 'FINALIZAR TREINO' : 'PRÓXIMO EXERCÍCIO →'}
-          </Text>
+          <View style={styles.primaryCtaContent}>
+            <Text style={styles.primaryCtaText}>
+              {isLastExercise ? 'FINALIZAR TREINO' : 'PRÓXIMO EXERCÍCIO'}
+            </Text>
+            {!isLastExercise && <Icon name="arrow-right" size={18} color="#000" strokeWidth={2.4} />}
+          </View>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.secondaryCta} onPress={handleExitSession}>
@@ -384,6 +388,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
+  },
+  primaryCtaContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   primaryCtaText: {
     color: '#000',

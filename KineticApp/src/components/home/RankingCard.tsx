@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { KINETIC, rankingPositionChipBg, rankingPositionColor } from '../../theme/kinetic';
+import Icon from '../Icon';
 import type { RankingEntryDTO } from '../../types';
 
 interface RankingCardProps {
@@ -57,15 +58,22 @@ function RankingRow({ item, isFirst }: RankingRowProps) {
         </Text>
         <View style={styles.subRow}>
           <Text style={styles.minutes}>{item.minutes} min</Text>
-          <Text
-            style={[
-              styles.delta,
-              { color: deltaPositive ? KINETIC.success : deltaNeutral ? KINETIC.textDim : KINETIC.warn },
-            ]}
-          >
-            {deltaPositive ? '↑' : deltaNeutral ? '→' : '↓'}
-            {Math.abs(item.delta)} vs semana passada
-          </Text>
+          <View style={styles.deltaRow}>
+            <Icon
+              name={deltaPositive ? 'arrow-up' : deltaNeutral ? 'arrow-right' : 'arrow-down'}
+              size={11}
+              color={deltaPositive ? KINETIC.success : deltaNeutral ? KINETIC.textDim : KINETIC.warn}
+              strokeWidth={2.6}
+            />
+            <Text
+              style={[
+                styles.delta,
+                { color: deltaPositive ? KINETIC.success : deltaNeutral ? KINETIC.textDim : KINETIC.warn },
+              ]}
+            >
+              {Math.abs(item.delta)} vs semana passada
+            </Text>
+          </View>
         </View>
       </View>
 
@@ -221,6 +229,11 @@ const styles = StyleSheet.create({
   minutes: {
     fontSize: 11,
     color: KINETIC.textDim,
+  },
+  deltaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 1,
   },
   delta: {
     fontSize: 10,

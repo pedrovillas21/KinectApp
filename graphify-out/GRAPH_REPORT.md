@@ -1,16 +1,16 @@
 # Graph Report - Kinect  (2026-06-17)
 
 ## Corpus Check
-- 214 files · ~98,973 words
+- 215 files · ~100,047 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1266 nodes · 1903 edges · 148 communities (115 shown, 33 thin omitted)
+- 1270 nodes · 1926 edges · 142 communities (111 shown, 31 thin omitted)
 - Extraction: 91% EXTRACTED · 9% INFERRED · 0% AMBIGUOUS · INFERRED: 165 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `6730d432`
+- Built from commit: `582bcfa2`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -51,9 +51,9 @@
 - [[_COMMUNITY_Community 35|Community 35]]
 - [[_COMMUNITY_Community 36|Community 36]]
 - [[_COMMUNITY_Community 37|Community 37]]
-- [[_COMMUNITY_Community 38|Community 38]]
 - [[_COMMUNITY_Community 39|Community 39]]
 - [[_COMMUNITY_Community 40|Community 40]]
+- [[_COMMUNITY_Community 41|Community 41]]
 - [[_COMMUNITY_Community 42|Community 42]]
 - [[_COMMUNITY_Community 43|Community 43]]
 - [[_COMMUNITY_Community 44|Community 44]]
@@ -79,7 +79,6 @@
 - [[_COMMUNITY_Community 64|Community 64]]
 - [[_COMMUNITY_Community 65|Community 65]]
 - [[_COMMUNITY_Community 66|Community 66]]
-- [[_COMMUNITY_Community 67|Community 67]]
 - [[_COMMUNITY_Community 68|Community 68]]
 - [[_COMMUNITY_Community 69|Community 69]]
 - [[_COMMUNITY_Community 70|Community 70]]
@@ -90,6 +89,7 @@
 - [[_COMMUNITY_Community 76|Community 76]]
 - [[_COMMUNITY_Community 77|Community 77]]
 - [[_COMMUNITY_Community 78|Community 78]]
+- [[_COMMUNITY_Community 79|Community 79]]
 - [[_COMMUNITY_Community 80|Community 80]]
 - [[_COMMUNITY_Community 81|Community 81]]
 - [[_COMMUNITY_Community 82|Community 82]]
@@ -99,12 +99,6 @@
 - [[_COMMUNITY_Community 86|Community 86]]
 - [[_COMMUNITY_Community 87|Community 87]]
 - [[_COMMUNITY_Community 88|Community 88]]
-- [[_COMMUNITY_Community 89|Community 89]]
-- [[_COMMUNITY_Community 90|Community 90]]
-- [[_COMMUNITY_Community 91|Community 91]]
-- [[_COMMUNITY_Community 92|Community 92]]
-- [[_COMMUNITY_Community 93|Community 93]]
-- [[_COMMUNITY_Community 94|Community 94]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `COLORS` - 43 edges
@@ -130,7 +124,7 @@
 - `RankingRow()` --calls--> `rankingPositionChipBg()`  [EXTRACTED]
   KineticApp/src/components/home/RankingCard.tsx → KineticApp/src/theme/kinetic.ts
 
-## Communities (148 total, 33 thin omitted)
+## Communities (142 total, 31 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.05
@@ -138,7 +132,7 @@ Nodes (12): RefreshToken, OncePerRequestFilter, RefreshTokenRepository, UserLogi
 
 ### Community 1 - "Community 1"
 Cohesion: 0.05
-Nodes (34): A, LoginScreen(), Props, styles, A, Props, RegisterScreen(), reqStyles (+26 more)
+Nodes (35): A, LoginScreen(), Props, styles, A, Props, RegisterScreen(), reqStyles (+27 more)
 
 ### Community 2 - "Community 2"
 Cohesion: 0.06
@@ -146,99 +140,99 @@ Nodes (9): BaseController, BaseController, HomeController, SocialController, Sta
 
 ### Community 3 - "Community 3"
 Cohesion: 0.05
-Nodes (41): Props, SquadBar(), SquadItem, styles, AdherenceCardProps, styles, getGreeting(), HomeGreeting() (+33 more)
+Nodes (44): cardS, chipS, DeltaChip(), emptyS, insightS, PlanEvolutionCardProps, rowS, T (+36 more)
 
 ### Community 4 - "Community 4"
 Cohesion: 0.05
-Nodes (43): cardS, chipS, DeltaChip(), emptyS, insightS, PlanEvolutionCardProps, rowS, T (+35 more)
+Nodes (14): Post, json(), of(), getText(), EmailAlreadyInUseException, WorkoutExecutionLogRepository, WorkoutSessionRepository, RuntimeException (+6 more)
 
 ### Community 5 - "Community 5"
 Cohesion: 0.07
 Nodes (5): PostCommentRepository, PostLikeRepository, SocialPostRepository, UserConnectionRepository, SocialService
 
 ### Community 6 - "Community 6"
-Cohesion: 0.06
-Nodes (16): endDate(), fromString(), id(), insightTag(), previousEndDate(), previousStartDate(), startDate(), targetSessions() (+8 more)
+Cohesion: 0.05
+Nodes (36): AdherenceCardProps, styles, getGreeting(), HomeGreeting(), HomeGreetingProps, styles, NextWorkoutCardProps, styles (+28 more)
 
 ### Community 7 - "Community 7"
 Cohesion: 0.05
 Nodes (47): 1.1. Configurar variáveis de ambiente, 1.2. Rodar a aplicação, 1.3. Rodar o backend com Docker, 1. Subindo o backend (`kinetic-backend`), 2.1. Instalar dependências, 2.2. Configurar a URL da API, 2.3. Rodar o app, 2. Subindo o app mobile (`KineticApp`) (+39 more)
 
 ### Community 8 - "Community 8"
-Cohesion: 0.06
-Nodes (20): AccountSectionProps, AnamnesisModalProps, Badge, C, ChangePasswordModalProps, HeroUserData, Icons, MetricsModalProps (+12 more)
+Cohesion: 0.07
+Nodes (15): endDate(), fromString(), id(), insightTag(), previousEndDate(), previousStartDate(), startDate(), targetSessions() (+7 more)
 
 ### Community 9 - "Community 9"
 Cohesion: 0.06
-Nodes (22): AuthContextValue, DAYS_LABELS, GEN_STEPS, GOAL_API_MAP, GoalDef, GOALS, GoalType, LEVEL_API_MAP (+14 more)
+Nodes (20): AccountSectionProps, AnamnesisModalProps, Badge, C, ChangePasswordModalProps, HeroUserData, Icons, MetricsModalProps (+12 more)
 
 ### Community 10 - "Community 10"
 Cohesion: 0.07
-Nodes (10): AGES, DAYS, DEFAULT_FORM, GOALS, HEIGHTS, K, LEVELS, STEPS (+2 more)
+Nodes (7): WorkoutPlanRepository, WorkoutService, DATA, Icons, INSIGHTS, PERIODS, T
 
 ### Community 11 - "Community 11"
-Cohesion: 0.11
-Nodes (18): ForgotPasswordScreen(), Props, styles, Props, ResetPasswordScreen(), styles, Props, styles (+10 more)
+Cohesion: 0.06
+Nodes (22): AuthContextValue, DAYS_LABELS, GEN_STEPS, GOAL_API_MAP, GoalDef, GOALS, GoalType, LEVEL_API_MAP (+14 more)
 
 ### Community 12 - "Community 12"
-Cohesion: 0.16
-Nodes (12): AppHeader(), AppHeaderProps, styles, Props, SerieCard(), styles, SetData, styles (+4 more)
+Cohesion: 0.07
+Nodes (10): AGES, DAYS, DEFAULT_FORM, GOALS, HEIGHTS, K, LEVELS, STEPS (+2 more)
 
 ### Community 13 - "Community 13"
-Cohesion: 0.16
-Nodes (16): Props, styles, useSquadStatus(), SocialScreen(), styles, createStory(), getFeed(), getPendingRequests() (+8 more)
+Cohesion: 0.13
+Nodes (14): AppHeader(), AppHeaderProps, styles, EvolutionModalProps, styles, Props, SerieCard(), styles (+6 more)
 
 ### Community 14 - "Community 14"
-Cohesion: 0.35
-Nodes (4): styles, AuthContext, ThemeContext, Drawer
+Cohesion: 0.21
+Nodes (8): styles, AuthContext, AppRoutes(), AuthContextShape, Drawer, Stack, Tab, setSignOutHandler()
 
 ### Community 15 - "Community 15"
+Cohesion: 0.14
+Nodes (16): Props, ResetPasswordScreen(), styles, Props, styles, VerifyCodeScreen(), CustomInput(), Props (+8 more)
+
+### Community 16 - "Community 16"
 Cohesion: 0.11
 Nodes (3): Ic, PF, USER
 
-### Community 16 - "Community 16"
-Cohesion: 0.18
-Nodes (3): of(), WorkoutSessionRepository, HomeAggregatorService
-
 ### Community 17 - "Community 17"
-Cohesion: 0.11
-Nodes (17): 1. Overview & Creative North Star: "The Digital Kineticist", 2. Colors: Tonal Depth & The Neon Pulse, 3. Typography: Editorial Authority, 4. Elevation & Depth: Tonal Layering, 5. Components: The Athletic Kit, 6. Do’s and Don’ts, Buttons (The Kinetic Drivers), Cards & Lists (The Performance Modules) (+9 more)
+Cohesion: 0.15
+Nodes (14): ACTION_LABEL, Props, styles, useWorkoutPresence(), ActiveSessionScreen(), acceptConnection(), endWorkoutPresence(), removeConnection() (+6 more)
 
 ### Community 18 - "Community 18"
 Cohesion: 0.12
-Nodes (4): Icons, INSIGHTS, PERIODS, T
+Nodes (12): IconName, IconProps, INTENSITY_LABELS, INTENSITY_OPTIONS, Props, styles, Props, styles (+4 more)
 
 ### Community 19 - "Community 19"
-Cohesion: 0.12
-Nodes (16): CommunityComparisonDTO, CreatePostRequest, FeedAuthor, GenerateWorkoutRequest, Page, PresenceStatus, StatsSummaryResponseDTO, Story (+8 more)
+Cohesion: 0.11
+Nodes (17): 1. Overview & Creative North Star: "The Digital Kineticist", 2. Colors: Tonal Depth & The Neon Pulse, 3. Typography: Editorial Authority, 4. Elevation & Depth: Tonal Layering, 5. Components: The Athletic Kit, 6. Do’s and Don’ts, Buttons (The Kinetic Drivers), Cards & Lists (The Performance Modules) (+9 more)
 
 ### Community 20 - "Community 20"
-Cohesion: 0.17
-Nodes (3): WorkoutPlanRepository, WorkoutService, DATA
+Cohesion: 0.12
+Nodes (15): CommunityComparisonDTO, CreatePostRequest, CreateStoryRequest, FeedAuthor, GenerateWorkoutRequest, Page, PresenceStatus, UpdateWeightRequestDTO (+7 more)
 
 ### Community 21 - "Community 21"
 Cohesion: 0.13
 Nodes (3): A, FAKE_USER, Ic
 
 ### Community 24 - "Community 24"
-Cohesion: 0.15
-Nodes (11): WorkoutPlanItem, AppRoutes(), AuthContextShape, Stack, Tab, Exercise, MuscleStyle, Props (+3 more)
-
-### Community 25 - "Community 25"
 Cohesion: 0.14
 Nodes (3): HK, MOCK, TAB_ICONS
 
-### Community 26 - "Community 26"
+### Community 25 - "Community 25"
 Cohesion: 0.14
 Nodes (13): DAYS_LABELS, FREQUENCY_OPTIONS, GOAL_API_MAP, GOAL_OPTIONS, GoalDef, GOALS, GoalType, LEVEL_API_MAP (+5 more)
 
-### Community 27 - "Community 27"
+### Community 26 - "Community 26"
 Cohesion: 0.14
 Nodes (13): 1. Armazenamento seguro de tokens — novo módulo `tokenStorage`, 2. Conceito de "usuário lembrado" + desbloqueio — `AuthContext.tsx`, 3. Telas novas, 4. Roteamento — `AppRoutes.tsx`, 5. Ajuste no `LoginScreen.js`, 6. Bootstrap sem "piscar" de tela — Splash até estar pronto, code:block1 (npx expo install expo-local-authentication expo-secure-store), Contexto (+5 more)
 
+### Community 27 - "Community 27"
+Cohesion: 0.18
+Nodes (11): useSquadStatus(), SocialScreen(), styles, getFeed(), getPendingRequests(), getSquad(), getSquadStatus(), getStories() (+3 more)
+
 ### Community 28 - "Community 28"
-Cohesion: 0.21
-Nodes (6): styles, ThemeToggle(), AuthProvider(), ThemeContextValue, ThemeProvider(), App()
+Cohesion: 0.15
+Nodes (8): Props, styles, Props, SquadBar(), SquadItem, styles, presenceColor(), PendingRequest
 
 ### Community 29 - "Community 29"
 Cohesion: 0.15
@@ -253,129 +247,113 @@ Cohesion: 0.18
 Nodes (5): A, BiometricState, Props, SecurityState, styles
 
 ### Community 32 - "Community 32"
-Cohesion: 0.18
-Nodes (9): ACTION_LABEL, Props, styles, acceptConnection(), removeConnection(), searchUsers(), sendConnection(), ConnectionState (+1 more)
-
-### Community 33 - "Community 33"
 Cohesion: 0.27
 Nodes (9): DAY_A, DAY_B, DAY_C, ExerciseItem, FeedPostData, mockFeed, mockSquad, SquadMember (+1 more)
 
-### Community 34 - "Community 34"
+### Community 33 - "Community 33"
 Cohesion: 0.18
 Nodes (10): 1. Back-end: Ajuste na Entidade `User` (JPA/Hibernate), 1. Visão Geral, 2. Refatoração Back-end (Java Spring Boot), 3. Refatoração Front-end (React Native / TypeScript), 4. Diretrizes, A. Atualização de Entidades e DTOs, A. Nova Tela/Etapa no Onboarding (`MedicalHistoryScreen.tsx` ou Step equivalente), 🛠️ Adendo ao Plano: Persistência e Tratamento de Exceção da IA (+2 more)
 
-### Community 35 - "Community 35"
-Cohesion: 0.2
-Nodes (4): EmailAlreadyInUseException, RuntimeException, InvalidGeminiResponseException, InvalidRefreshTokenException
-
-### Community 36 - "Community 36"
+### Community 34 - "Community 34"
 Cohesion: 0.22
 Nodes (3): LastActiveInterceptor, HandlerInterceptor, PresenceService
 
-### Community 37 - "Community 37"
+### Community 35 - "Community 35"
 Cohesion: 0.2
 Nodes (9): 1.1. Status de Onboarding do Usuário, 1.2. Lógica de "Próxima Ficha Disponível", 1. Back-end: Inteligência e Persistência (Java Spring Boot), 2.1. Reestruturação da Navegação, 2.2. Lógica de Redirecionamento (Conditional Rendering), 2.3. Refatoração Visual do Dashboard (Design Premium), 2. Front-end: UI/UX e Navegação (React Native + TS), 3. Checklist de Implementação (+1 more)
 
-### Community 38 - "Community 38"
-Cohesion: 0.25
-Nodes (4): Post, json(), getText(), GeminiService
-
-### Community 39 - "Community 39"
+### Community 36 - "Community 36"
 Cohesion: 0.22
 Nodes (6): GRADIENT_COLORS, GRADIENT_LOCATIONS, IconName, ROUTE_META, styles, T
 
-### Community 40 - "Community 40"
+### Community 37 - "Community 37"
 Cohesion: 0.22
 Nodes (8): 📌 Contexto e Arquitetura, Fase 1: Fundação e Conexão com Supabase, Fase 2: Entidade de Autenticação (Traditional Login), Fase 3: Controllers de Entrada, 🤖 Instruções de Sistema - Arquiteto Back-end Java (Kinetic App), 📐 Padrões de Código e Clean Architecture, 🗺️ Roadmap de Execução (Modo Agêntico), 🛠️ Stack Tecnológico Obrigatório
 
-### Community 42 - "Community 42"
+### Community 39 - "Community 39"
 Cohesion: 0.25
-Nodes (6): INTENSITY_LABELS, INTENSITY_OPTIONS, Props, styles, createPost(), PostIntensity
+Nodes (7): WorkoutPlanItem, Exercise, MuscleStyle, Props, styles, ViewMode, WorkoutScreen()
 
-### Community 43 - "Community 43"
+### Community 40 - "Community 40"
+Cohesion: 0.25
+Nodes (6): ForgotPasswordScreen(), Props, styles, PrimaryButton(), Props, styles
+
+### Community 41 - "Community 41"
+Cohesion: 0.25
+Nodes (4): A, FEATURES, Props, styles
+
+### Community 42 - "Community 42"
 Cohesion: 0.25
 Nodes (7): 1. Contexto do Problema, 2. Suspeitos Principais, 3. Ações Exigidas para a IA (Passo a Passo do Debug), A. Adicionar Logs de Rastreamento (Tracing), B. Blindar o Recebimento da Data, C. Expor a Exceção Raiz, 🐛 Plano de Debug: Resolução da Quebra Silenciosa na Geração de Treino
 
-### Community 44 - "Community 44"
+### Community 43 - "Community 43"
 Cohesion: 0.25
 Nodes (7): 1.1. Alterações na Entidade `User`, 1.2. Entidade de Log: `WorkoutExecutionLog`, 1. Persistência de Dados (JPA/Hibernate), 2.1. Lógica do Algoritmo "Próxima Ficha Pendente", 2. Motor de Busca de Treinos (`WorkoutService`), 3. Arquitetura do Contrato BFF (`HomeDashboardResponseDTO`), Plano de Implementação: Back-end da Home & Lógica de Fichas Dinâmicas (Kinetic App)
 
 ### Community 45 - "Community 45"
-Cohesion: 0.25
-Nodes (4): A, FEATURES, Props, styles
+Cohesion: 0.38
+Nodes (3): AuthProvider(), ThemeProvider(), App()
 
-### Community 48 - "Community 48"
-Cohesion: 0.29
-Nodes (4): EvolutionModalProps, styles, api, setSignOutHandler()
-
-### Community 49 - "Community 49"
+### Community 46 - "Community 46"
 Cohesion: 0.33
 Nodes (4): PasswordRequirements(), Props, ReqProps, styles
 
-### Community 50 - "Community 50"
-Cohesion: 0.29
-Nodes (5): Props, styles, addComment(), getComments(), Comment
-
-### Community 51 - "Community 51"
-Cohesion: 0.33
-Nodes (6): Props, StoryViewer(), styles, timeAgo(), { width }, StoryGroup
-
-### Community 52 - "Community 52"
+### Community 47 - "Community 47"
 Cohesion: 0.33
 Nodes (6): Author, FeedPost(), Props, styles, avatarFallback(), FeedPostData
 
-### Community 53 - "Community 53"
+### Community 48 - "Community 48"
+Cohesion: 0.33
+Nodes (6): Props, StoryViewer(), styles, timeAgo(), { width }, StoryGroup
+
+### Community 49 - "Community 49"
+Cohesion: 0.29
+Nodes (5): Props, styles, addComment(), getComments(), Comment
+
+### Community 50 - "Community 50"
 Cohesion: 0.29
 Nodes (6): Diretrizes de Tipagem (Strict TypeScript), Objetivo, Plano de Refatoração: Onboarding Flow (React -> TSX Estrito), Tarefa 1: Substituição de "Idade" por "Data de Nascimento", Tarefa 2: Criação da Etapa de Anamnese, Tarefa 3: Atualização do Controlador Principal (`OnboardingFlow`)
+
+### Community 52 - "Community 52"
+Cohesion: 0.33
+Nodes (6): ageFromBirthDate(), goalLabel(), hasMedicalInfo(), levelLabel(), AnamnesisModal(), ProtocolSection()
+
+### Community 53 - "Community 53"
+Cohesion: 0.33
+Nodes (5): 1. Front-end: Camada de Contexto (`AuthContext.tsx`), 2.1. Tokens de Estilização e Specs Visuais (Image Reference), 2. Front-end: UI do Modal (ProfileScreen.tsx), 3.1. Controle de Estado do Modal, 3. Lógica de Integração e Fluxo
 
 ### Community 55 - "Community 55"
 Cohesion: 0.4
 Nodes (4): Exercise, ExerciseCard(), Props, styles
 
-### Community 56 - "Community 56"
-Cohesion: 0.33
-Nodes (6): ageFromBirthDate(), goalLabel(), hasMedicalInfo(), levelLabel(), AnamnesisModal(), ProtocolSection()
-
-### Community 57 - "Community 57"
-Cohesion: 0.33
-Nodes (5): 1. Front-end: Camada de Contexto (`AuthContext.tsx`), 2.1. Tokens de Estilização e Specs Visuais (Image Reference), 2. Front-end: UI do Modal (ProfileScreen.tsx), 3.1. Controle de Estado do Modal, 3. Lógica de Integração e Fluxo
-
-### Community 61 - "Community 61"
+### Community 58 - "Community 58"
 Cohesion: 0.5
 Nodes (3): CustomButton(), Props, styles
 
-### Community 62 - "Community 62"
-Cohesion: 0.4
-Nodes (4): useWorkoutPresence(), ActiveSessionScreen(), endWorkoutPresence(), startWorkoutPresence()
-
-### Community 63 - "Community 63"
-Cohesion: 0.4
-Nodes (3): Props, styles, PendingRequest
-
-### Community 65 - "Community 65"
+### Community 59 - "Community 59"
 Cohesion: 0.5
 Nodes (3): config, { getDefaultConfig }, path
 
-### Community 66 - "Community 66"
+### Community 60 - "Community 60"
 Cohesion: 0.67
 Nodes (3): ProfileScreen(), formatMemberSince(), formatProfileName()
 
 ## Knowledge Gaps
-- **330 isolated node(s):** `A`, `Ic`, `FAKE_USER`, `HK`, `MOCK` (+325 more)
+- **332 isolated node(s):** `A`, `Ic`, `FAKE_USER`, `HK`, `MOCK` (+327 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **33 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **31 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Badge` connect `Community 8` to `Community 5`?**
-  _High betweenness centrality (0.139) - this node is a cross-community bridge._
-- **Why does `of()` connect `Community 16` to `Community 0`, `Community 2`, `Community 5`, `Community 38`, `Community 6`?**
-  _High betweenness centrality (0.122) - this node is a cross-community bridge._
-- **Why does `Post` connect `Community 38` to `Community 52`?**
-  _High betweenness centrality (0.085) - this node is a cross-community bridge._
+- **Why does `Badge` connect `Community 9` to `Community 5`?**
+  _High betweenness centrality (0.141) - this node is a cross-community bridge._
+- **Why does `of()` connect `Community 4` to `Community 0`, `Community 8`, `Community 2`, `Community 5`?**
+  _High betweenness centrality (0.118) - this node is a cross-community bridge._
+- **Why does `Post` connect `Community 4` to `Community 47`?**
+  _High betweenness centrality (0.080) - this node is a cross-community bridge._
 - **What connects `A`, `Ic`, `FAKE_USER` to the rest of the system?**
-  _330 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _332 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.05 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
