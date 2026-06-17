@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
-import * as ImagePicker from 'expo-image-picker';
 import { ThemeContext } from '../contexts/ThemeContext';
 import { COLORS } from '../theme/colors';
 import AppHeader from '../components/AppHeader';
@@ -20,6 +19,7 @@ import UserSearchModal from '../components/UserSearchModal';
 import ConnectionRequestsModal from '../components/ConnectionRequestsModal';
 import CommentsSheet from '../components/CommentsSheet';
 import NewPostModal from '../components/NewPostModal';
+import NewStoryModal from '../components/NewStoryModal';
 import StoryViewer from '../components/StoryViewer';
 import useSquadStatus from '../hooks/useSquadStatus';
 import {
@@ -31,7 +31,6 @@ import {
   acceptConnection,
   removeConnection,
   getStories,
-  createStory,
 } from '../services/socialService';
 import type { FeedPostData, SquadMember, PendingRequest, StoryGroup } from '../types';
 
@@ -48,6 +47,7 @@ export default function SocialScreen() {
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showRequests, setShowRequests] = useState(false);
   const [showNewPost, setShowNewPost] = useState(false);
+  const [showNewStory, setShowNewStory] = useState(false);
   const [squadMembers, setSquadMembers] = useState<SquadMember[]>([]);
   const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>([]);
   const [storyGroups, setStoryGroups] = useState<StoryGroup[]>([]);
@@ -156,26 +156,6 @@ export default function SocialScreen() {
     setFeed((prev) => [post, ...prev]);
   };
 
-  // Bolha "Seu story": abre a câmera direto e publica uma story efêmera (24h),
-  // separada do feed de posts.
-  const handleAddStory = async () => {
-    const perm = await ImagePicker.requestCameraPermissionsAsync();
-    if (!perm.granted) return;
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [9, 16],
-      quality: 0.8,
-    });
-    if (result.canceled) return;
-    try {
-      await createStory({ imageUrl: result.assets[0].uri });
-      await loadStories();
-    } catch {
-      // silent — usuário pode tentar de novo
-    }
-  };
-
   const openStory = (userId: string) => {
     const index = storyGroups.findIndex((g) => g.userId === userId);
     if (index >= 0) setStoryViewerIndex(index);
@@ -209,7 +189,7 @@ export default function SocialScreen() {
             items={squadMembers}
             storyUserIds={storyGroups.map((g) => g.userId)}
             onAddPress={() => setShowSearchModal(true)}
-            onAddStory={handleAddStory}
+            onAddStory={() => setShowNewStory(true)}
             onOpenStory={openStory}
           />
         }
@@ -274,6 +254,12 @@ export default function SocialScreen() {
         visible={showNewPost}
         onClose={() => setShowNewPost(false)}
         onPostCreated={handleNewPost}
+      />
+
+      <NewStoryModal
+        visible={showNewStory}
+        onClose={() => setShowNewStory(false)}
+        onStoryCreated={loadStories}
       />
 
       <StoryViewer

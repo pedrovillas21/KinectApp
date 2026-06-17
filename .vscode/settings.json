@@ -1,0 +1,12 @@
+{
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "java.import.gradle.enabled": false,
+    "java.import.exclusions": [
+        "**/node_modules/**",
+        "**/KineticApp/android/**",
+        "**/.expo/**",
+        "**/android/.gradle/**",
+        "**/build/**"
+    ]
+}

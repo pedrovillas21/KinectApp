@@ -19,6 +19,7 @@ import HeaderLogo from '../../components/HeaderLogo';
 import CustomInput from '../../components/CustomInput';
 import PrimaryButton from '../../components/PrimaryButton';
 import PasswordRequirements from '../../components/PasswordRequirements';
+import Icon from '../../components/Icon';
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
@@ -71,7 +72,7 @@ export default function ResetPasswordScreen({ navigation, route }: Props) {
     }
 
     Alert.alert(
-      'Senha atualizada! ✅',
+      'Senha atualizada!',
       'Sua senha foi redefinida com sucesso. Faça login com a nova senha.',
       [{ text: 'Fazer Login', onPress: () => navigation.navigate('Login') }],
     );
@@ -113,7 +114,7 @@ export default function ResetPasswordScreen({ navigation, route }: Props) {
               isPassword
               value={newPassword}
               onChangeText={setNewPassword}
-              icon={<Text style={{ color: '#888' }}>🔒</Text>}
+              icon={<Icon name="lock" size={18} color="#888" />}
             />
             <CustomInput
               label="CONFIRMAR NOVA SENHA"
@@ -121,13 +122,14 @@ export default function ResetPasswordScreen({ navigation, route }: Props) {
               isPassword
               value={confirmPassword}
               onChangeText={setConfirmPassword}
-              icon={<Text style={{ color: '#888' }}>🔒</Text>}
+              icon={<Icon name="lock" size={18} color="#888" />}
             />
 
             <PasswordRequirements passwordValue={newPassword} />
 
             <PrimaryButton
-              title="ATUALIZAR SENHA ⚷"
+              title="ATUALIZAR SENHA"
+              icon={<Icon name="key" size={18} color={COLORS.darkBackground} />}
               onPress={handleReset}
               isLoading={loading}
               disabled={!isPasswordValid || !doPasswordsMatch}
@@ -135,16 +137,22 @@ export default function ResetPasswordScreen({ navigation, route }: Props) {
           </View>
 
           <TouchableOpacity
-            style={styles.footerButton}
+            style={[styles.footerButton, styles.footerButtonRow]}
             onPress={() => navigation.navigate('Login')}
           >
+            <Icon
+              name="arrow-left"
+              size={15}
+              color={isDarkMode ? COLORS.textSecondaryDark : COLORS.textSecondaryLight}
+              strokeWidth={2.2}
+            />
             <Text
               style={[
                 styles.footerText,
                 { color: isDarkMode ? COLORS.textSecondaryDark : COLORS.textSecondaryLight },
               ]}
             >
-              ◂ Voltar para o login
+              Voltar para o login
             </Text>
           </TouchableOpacity>
         </ScrollView>
@@ -160,5 +168,6 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 14, marginBottom: 32, color: '#888' },
   formContainer: { paddingVertical: 16 },
   footerButton: { alignItems: 'center', marginTop: 'auto', paddingTop: 40 },
+  footerButtonRow: { flexDirection: 'row', justifyContent: 'center', gap: 8 },
   footerText: { fontSize: 14 },
 });

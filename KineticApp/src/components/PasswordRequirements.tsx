@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { ThemeContext } from '../contexts/ThemeContext';
 import { COLORS } from '../theme/colors';
+import Icon from './Icon';
 
 interface Props {
   passwordValue: string;
@@ -14,10 +15,15 @@ interface ReqProps {
 
 function Req({ met, label }: ReqProps) {
   return (
-    <Text style={styles.reqItem}>
-      <Text style={met ? styles.checkIcon : styles.uncheckIcon}>{met ? '✓' : '●'}</Text>
-      {' '}{label}
-    </Text>
+    <View style={styles.reqItem}>
+      <Icon
+        name={met ? 'check' : 'dot'}
+        size={13}
+        color={met ? COLORS.neonBlue : '#444'}
+        strokeWidth={2.6}
+      />
+      <Text style={styles.reqLabel}>{label}</Text>
+    </View>
   );
 }
 
@@ -53,7 +59,6 @@ const styles = StyleSheet.create({
   requirementsCard: { padding: 16, borderRadius: 8, marginBottom: 24 },
   reqTitle: { fontSize: 12, fontWeight: 'bold', color: '#888', marginBottom: 12, letterSpacing: 1 },
   reqGrid: { flexDirection: 'row', flexWrap: 'wrap' },
-  reqItem: { width: '50%', color: '#A0A0A0', fontSize: 13, marginBottom: 8 },
-  checkIcon: { color: COLORS.neonBlue, fontWeight: 'bold' },
-  uncheckIcon: { color: '#444' },
+  reqItem: { width: '50%', flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
+  reqLabel: { color: '#A0A0A0', fontSize: 13 },
 });

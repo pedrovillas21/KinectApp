@@ -7,23 +7,27 @@ import {
   formatTotalVolume,
 } from '../utils/statsUtils';
 import { STATS_T as T } from '../theme/statsTokens';
+import Icon from './Icon';
 
 // ─── Delta chip ───────────────────────────────────────────────────────────────
 function DeltaChip({ delta, good, suffix = '' }: { delta: number; good: boolean; suffix?: string }) {
   const color = good ? T.success : T.warn;
   const bg = good ? T.successDim : T.warnDim;
-  const arrow = delta >= 0 ? '↑' : '↓';
   return (
     <View style={[chipS.chip, { backgroundColor: bg }]}>
+      <Icon name={delta >= 0 ? 'arrow-up' : 'arrow-down'} size={12} color={color} strokeWidth={2.6} />
       <Text style={[chipS.text, { color }]}>
-        {arrow} {formatNumberPtBR(Math.abs(delta), 1)}{suffix}
+        {formatNumberPtBR(Math.abs(delta), 1)}{suffix}
       </Text>
     </View>
   );
 }
 
 const chipS = StyleSheet.create({
-  chip: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999, alignSelf: 'flex-start' },
+  chip: {
+    flexDirection: 'row', alignItems: 'center', gap: 2,
+    paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999, alignSelf: 'flex-start',
+  },
   text: { fontSize: 12, fontWeight: '600' },
 });
 
@@ -72,7 +76,7 @@ function EmbeddedInsight({ insight }: { insight: StatsInsightDTO }) {
       style={insightS.box}
     >
       <View style={insightS.iconBadge}>
-        <Text style={insightS.iconText}>✦</Text>
+        <Icon name="sparkle" size={14} color="#06181b" />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={insightS.tag}>{insight.tag.toUpperCase()}</Text>

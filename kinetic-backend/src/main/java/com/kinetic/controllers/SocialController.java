@@ -2,13 +2,16 @@ package com.kinetic.controllers;
 
 import com.kinetic.dtos.*;
 import com.kinetic.services.SocialService;
+import com.kinetic.services.StorageService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -19,9 +22,33 @@ import java.util.UUID;
 public class SocialController extends BaseController {
 
     private final SocialService socialService;
+    private final StorageService storageService;
 
-    public SocialController(SocialService socialService) {
+    public SocialController(SocialService socialService, StorageService storageService) {
         this.socialService = socialService;
+        this.storageService = storageService;
+    }
+
+    // ── Media ─────────────────────────────────────────────────────────────────
+
+    // Sobe a imagem ao Supabase Storage e devolve a URL pública. O app chama
+    // este endpoint antes de criar post/story, gravando a URL retornada em
+    // imageUrl (em vez do caminho local do dispositivo).
+    @PostMapping(value = "/media", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<MediaUploadResponse> uploadMedia(
+            @RequestParam(defaultValue = "posts") String folder,
+            @RequestPart("file") MultipartFile file) {
+        String url = storageService.upload(file, folder);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new MediaUploadResponse(url));
+    }
+
+    // Remove uma mídia recém-enviada. O app chama este endpoint como limpeza
+    // compensatória quando o upload funcionou mas a criação do post/story falhou,
+    // evitando objetos órfãos no Storage.
+    @DeleteMapping("/media")
+    public ResponseEntity<Void> deleteMedia(@RequestParam String url) {
+        storageService.delete(url);
+        return ResponseEntity.noContent().build();
     }
 
     // ── Search ──────────────────────────────────────────────────────────────

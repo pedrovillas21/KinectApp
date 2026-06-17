@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KINETIC } from '../theme/kinetic';
+import Icon from '../components/Icon';
 import Svg, { Circle, Path, Polygon, Polyline, Rect } from 'react-native-svg';
 import api from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
@@ -411,7 +412,7 @@ function OptionPickerModal({ visible, title, options, selected, onSelect, onClos
                   <Text style={s.optionSub}>{opt.sub}</Text>
                 </View>
                 <View style={[s.optionRadio, active && s.optionRadioActive]}>
-                  {active && <Text style={s.optionRadioCheck}>✓</Text>}
+                  {active && <Icon name="check" size={13} color="#001a1f" strokeWidth={3} />}
                 </View>
               </TouchableOpacity>
             );

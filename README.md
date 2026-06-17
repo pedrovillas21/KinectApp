@@ -38,8 +38,10 @@ Base: `http://<host>:8080/api`
 
 ## Pré-requisitos
 
-- **Java 17** (JDK)
+- **Java 17** (JDK) — apenas se for rodar o backend sem Docker
 - **Maven** — opcional; o projeto inclui o wrapper `mvnw`/`mvnw.cmd`
+- **Docker** + **Docker Compose** — opcional, para subir o backend em container
+  (não exige Java/Maven instalados na máquina)
 - **Node.js 18+** e **npm**
 - **Expo Go** no celular (ou um emulador Android/iOS) para rodar o app
 - Acesso a um banco **PostgreSQL** (ex.: projeto no [Supabase](https://supabase.com))
@@ -98,6 +100,63 @@ Para gerar um JAR executável:
 java -jar target/kinetic-backend-0.0.1-SNAPSHOT.jar
 ```
 
+### 1.3. Rodar o backend com Docker
+
+Esta é a forma mais portátil de subir o backend em **outro PC**, pois **não exige
+Java nem Maven instalados** — só **Docker** e **Docker Compose**. O build é feito em
+multi-stage dentro do próprio container (compila com Maven e roda só com o JRE).
+
+A partir da pasta `kinetic-backend/`:
+
+```bash
+# 1. Garanta que o .env existe (mesma config da seção 1.1)
+cp .env.example .env   # Windows (PowerShell): Copy-Item .env.example .env
+# preencha DB_URL, DB_USERNAME, DB_PASSWORD, JWT_SECRET, GOOGLE_AI_API_KEY, etc.
+
+# 2. Build + sobe o container (lê as variáveis do .env automaticamente)
+docker compose up --build
+```
+
+A API fica disponível em **http://localhost:8080**.
+
+Comandos úteis:
+
+```bash
+docker compose up -d --build   # sobe em background (detached)
+docker compose logs -f          # acompanha os logs
+docker compose down             # para e remove o container
+docker compose up --build       # reconstrói após mudanças no código
+```
+
+> 💡 **Sem usar o Compose** (build/run manual da imagem):
+>
+> ```bash
+> docker build -t kinetic-backend .
+> docker run --rm -p 8080:8080 --env-file .env kinetic-backend
+> ```
+
+#### Buildando em outro PC (passo a passo)
+
+1. Instale o **Docker Desktop** (Windows/macOS) ou **Docker Engine + Compose** (Linux)
+   e confirme com `docker --version` e `docker compose version`.
+2. Clone o repositório e entre na pasta do backend:
+   ```bash
+   git clone <url-do-repo>
+   cd KinectApp/kinetic-backend
+   ```
+3. Crie o `.env` a partir do `.env.example` e preencha as variáveis
+   (banco PostgreSQL, `JWT_SECRET`, `GOOGLE_AI_API_KEY` — veja a seção 1.1).
+4. Rode `docker compose up --build`. A primeira execução baixa as imagens base e as
+   dependências Maven (pode demorar); as próximas usam o cache e são bem mais rápidas.
+5. Acesse **http://localhost:8080/api** a partir da própria máquina. Para acessar de
+   **outro dispositivo na rede** (ex.: celular com Expo Go), use o **IP da máquina**
+   que está rodando o Docker e adicione esse IP/origem ao `CORS_ALLOWED_ORIGINS`.
+
+> ⚠️ O container precisa alcançar o PostgreSQL definido no `.env`. Bancos em nuvem
+> (ex.: Supabase) funcionam sem configuração extra. Já um Postgres rodando **no host**
+> não é acessível via `localhost` de dentro do container — use
+> `host.docker.internal` (Windows/macOS) no lugar de `localhost` na `DB_URL`.
+
 ---
 
 ## 2. Subindo o app mobile (`KineticApp`)
@@ -142,7 +201,8 @@ npm run web        # abre no navegador
 ## Fluxo rápido para testar localmente
 
 1. Configure `kinetic-backend/.env` com o banco, JWT e a chave do Gemini.
-2. Suba o backend: `cd kinetic-backend && .\mvnw.cmd spring-boot:run`.
+2. Suba o backend: `cd kinetic-backend && .\mvnw.cmd spring-boot:run`
+   (ou, via Docker: `docker compose up --build`).
 3. Configure `KineticApp/.env` com `EXPO_PUBLIC_API_URL`.
 4. Instale e rode o app: `cd KineticApp && npm install && npm start`.
 5. Abra no Expo Go (celular) ou em um emulador, registre um usuário e teste o fluxo.
@@ -154,6 +214,8 @@ npm run web        # abre no navegador
 ```
 KinectApp/
 ├── kinetic-backend/        # API Spring Boot (Java 17)
+│   ├── Dockerfile          # Build multi-stage (Maven → JRE)
+│   ├── docker-compose.yml  # Sobe o backend em container
 │   └── src/main/java/com/kinetic/
 │       ├── controllers/    # Endpoints REST
 │       ├── services/       # Regras de negócio (Auth, Stats, Gemini, Workout...)

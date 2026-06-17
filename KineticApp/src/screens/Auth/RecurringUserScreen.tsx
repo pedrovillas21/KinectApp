@@ -17,6 +17,7 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { AuthContext } from '../../contexts/AuthContext';
+import Icon from '../../components/Icon';
 
 // ─── Design tokens ───────────────────────────────────────────────────────────
 const A = {
@@ -283,7 +284,7 @@ export default function RecurringUserScreen({ navigation }: Props) {
             </View>
             {rememberedUser?.streak != null && (
               <View style={styles.streakBadge}>
-                <Text style={styles.streakEmoji}>🔥</Text>
+                <Icon name="flame" size={14} color={A.gold} />
                 <Text style={styles.streakCount}>{rememberedUser.streak}</Text>
               </View>
             )}

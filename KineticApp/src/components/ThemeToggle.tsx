@@ -1,15 +1,16 @@
 import React, { useContext } from 'react';
-import { View, Text, Switch, StyleSheet } from 'react-native';
+import { View, Switch, StyleSheet } from 'react-native';
 import { ThemeContext } from '../contexts/ThemeContext';
+import Icon from './Icon';
 
 export default function ThemeToggle() {
   const { isDarkMode, toggleTheme } = useContext(ThemeContext);
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.label, { color: isDarkMode ? '#FFF' : '#333' }]}>
-        {isDarkMode ? '🌙' : '☀️'}
-      </Text>
+      <View style={styles.label}>
+        <Icon name={isDarkMode ? 'moon' : 'sun'} size={18} color={isDarkMode ? '#FFF' : '#333'} />
+      </View>
       <Switch
         value={isDarkMode}
         onValueChange={toggleTheme}

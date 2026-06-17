@@ -13,6 +13,7 @@ import {
 import { BlurView } from 'expo-blur';
 import { COLORS } from '../theme/colors';
 import { KINETIC } from '../theme/kinetic';
+import Icon from './Icon';
 import {
   searchUsers,
   sendConnection,
@@ -119,7 +120,7 @@ export default function UserSearchModal({ visible, onClose }: Props) {
           <View style={styles.sheetHeader}>
             <Text style={styles.sheetTitle}>Encontrar pessoas</Text>
             <TouchableOpacity onPress={onClose}>
-              <Text style={styles.closeBtn}>✕</Text>
+              <Icon name="close" size={20} color={KINETIC.textMuted} />
             </TouchableOpacity>
           </View>
 

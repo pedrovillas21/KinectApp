@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { ThemeContext } from '../contexts/ThemeContext';
 import { COLORS } from '../theme/colors';
+import Icon from './Icon';
 
 interface Props {
   label?: string;
@@ -65,7 +66,7 @@ export default function CustomInput({
             onPress={() => setIsPasswordHidden(!isPasswordHidden)}
             style={styles.eyeIconContainer}
           >
-            <Text style={styles.eyeIconText}>{isPasswordHidden ? '👁️' : '👁️‍🗨️'}</Text>
+            <Icon name={isPasswordHidden ? 'eye' : 'eye-off'} size={20} color="#888" />
           </TouchableOpacity>
         )}
       </View>

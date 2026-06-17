@@ -16,6 +16,7 @@ import {
 import { BlurView } from 'expo-blur';
 import { KINETIC } from '../theme/kinetic';
 import { COLORS } from '../theme/colors';
+import Icon from './Icon';
 import { getComments, addComment, avatarFallback } from '../services/socialService';
 import type { Comment } from '../types';
 
@@ -80,7 +81,7 @@ export default function CommentsSheet({ postId, visible, onClose, onCommentsCoun
           <View style={styles.sheetHeader}>
             <Text style={styles.sheetTitle}>Comentários</Text>
             <TouchableOpacity onPress={onClose}>
-              <Text style={styles.closeBtn}>✕</Text>
+              <Icon name="close" size={20} color={KINETIC.textMuted} />
             </TouchableOpacity>
           </View>
 
@@ -115,7 +116,7 @@ export default function CommentsSheet({ postId, visible, onClose, onCommentsCoun
               {sending ? (
                 <ActivityIndicator color="#000" size="small" />
               ) : (
-                <Text style={styles.sendBtnText}>➤</Text>
+                <Icon name="send" size={18} color="#000" />
               )}
             </TouchableOpacity>
           </View>

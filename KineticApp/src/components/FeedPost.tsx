@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { COLORS } from '../theme/colors';
+import Icon from './Icon';
 import type { FeedPostData } from '../types';
 import { avatarFallback } from '../services/socialService';
 
@@ -107,14 +108,16 @@ export default function FeedPost({ post, onToggleLike, onOpenComments }: Props) 
 
       <View style={styles.footerActions}>
         <TouchableOpacity style={styles.actionItem} onPress={handleLike}>
-          <Text style={[styles.actionIcon, isLiked && { color: COLORS.neonBlue }]}>
-            {isLiked ? '♥' : '♡'}
-          </Text>
+          <Icon
+            name={isLiked ? 'heart-filled' : 'heart'}
+            size={20}
+            color={isLiked ? COLORS.neonBlue : '#CCC'}
+          />
           <Text style={styles.actionText}>{likesCount}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionItem} onPress={() => onOpenComments?.(post.id)}>
-          <Text style={styles.actionIcon}>💬</Text>
+          <Icon name="comment" size={20} color="#CCC" />
           <Text style={styles.actionText}>{post.commentsCount}</Text>
         </TouchableOpacity>
       </View>

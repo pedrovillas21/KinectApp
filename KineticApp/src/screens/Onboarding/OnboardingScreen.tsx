@@ -15,6 +15,7 @@ import { AuthContext } from '../../contexts/AuthContext';
 import { COLORS } from '../../theme/colors';
 import CustomInput from '../../components/CustomInput';
 import PrimaryButton from '../../components/PrimaryButton';
+import Icon from '../../components/Icon';
 import api from '../../services/api';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -174,7 +175,7 @@ function StepGoal({ value, onChange, isDark }: StepGoalProps) {
             <Text style={[styles.cardSub, { color: textSecondary }]}>{g.sub}</Text>
           </View>
           <View style={[styles.radioCircle, value === g.id && styles.radioCircleSelected]}>
-            {value === g.id && <Text style={styles.radioCheck}>✓</Text>}
+            {value === g.id && <Icon name="check" size={13} color={COLORS.darkBackground} strokeWidth={3} />}
           </View>
         </TouchableOpacity>
       ))}
@@ -305,7 +306,7 @@ function StepLevel({ value, onChange, isDark }: StepLevelProps) {
             <Text style={[styles.cardSub, { color: textSecondary }]}>{l.sub}</Text>
           </View>
           <View style={[styles.radioCircle, value === l.id && styles.radioCircleSelected]}>
-            {value === l.id && <Text style={styles.radioCheck}>✓</Text>}
+            {value === l.id && <Icon name="check" size={13} color={COLORS.darkBackground} strokeWidth={3} />}
           </View>
         </TouchableOpacity>
       ))}
@@ -694,7 +695,8 @@ export default function OnboardingScreen() {
               onPress={() => completeOnboarding({ level: 'INT' })}
               style={styles.footerSkip}
             >
-              <Text style={styles.footerSkipText}>NÃO, JÁ POSSUO TREINO  ✕</Text>
+              <Text style={styles.footerSkipText}>NÃO, JÁ POSSUO TREINO</Text>
+              <Icon name="close" size={13} color={COLORS.textSecondaryDark} strokeWidth={2.4} />
             </TouchableOpacity>
           )}
         </View>
@@ -820,11 +822,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.neonBlue,
     borderColor: COLORS.neonBlue,
   },
-  radioCheck: {
-    fontSize: 12,
-    color: COLORS.darkBackground,
-    fontWeight: '900',
-  },
 
   // StepFreq
   countCard: {
@@ -948,7 +945,10 @@ const styles = StyleSheet.create({
   footerSkip: {
     marginTop: 20,
     padding: 10,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
   },
   footerSkipText: {
     color: COLORS.textSecondaryDark,

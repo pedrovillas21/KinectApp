@@ -15,6 +15,33 @@ import type {
 export const avatarFallback = (id: string, url?: string | null): string =>
   url ?? `https://i.pravatar.cc/150?u=${id}`;
 
+// Sobe um arquivo local (file://) para o Storage via backend e devolve a URL
+// pública. Sobrescreve o Content-Type para multipart por requisição: o axios
+// usa application/json por padrão (api.ts), e o React Native só monta o
+// boundary correto quando o header é multipart/form-data.
+export const uploadMedia = async (
+  uri: string,
+  folder: 'posts' | 'stories' = 'posts',
+): Promise<string> => {
+  const name = uri.split('/').pop() ?? `${Date.now()}.jpg`;
+  const match = /\.(\w+)$/.exec(name);
+  const ext = (match?.[1] ?? 'jpg').toLowerCase();
+  const type = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
+  const form = new FormData();
+  form.append('file', { uri, name, type } as any);
+  const res = await api.post<{ url: string }>('/social/media', form, {
+    params: { folder },
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return res.data.url;
+};
+
+// Remove uma mídia já enviada ao Storage. Usado como limpeza compensatória quando
+// o upload deu certo mas a criação do post/story falhou (evita mídia órfã no bucket).
+export const deleteMedia = async (url: string): Promise<void> => {
+  await api.delete('/social/media', { params: { url } });
+};
+
 export const searchUsers = async (q: string): Promise<UserCard[]> => {
   const res = await api.get<UserCard[]>('/social/users/search', { params: { q } });
   return res.data;

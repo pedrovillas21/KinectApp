@@ -9,12 +9,14 @@ import {
   ActivityIndicator,
   ScrollView,
   Image,
+  Alert,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import * as ImagePicker from 'expo-image-picker';
 import { KINETIC } from '../theme/kinetic';
 import { COLORS } from '../theme/colors';
-import { createPost } from '../services/socialService';
+import Icon from './Icon';
+import { createPost, uploadMedia, deleteMedia } from '../services/socialService';
 import type { FeedPostData, PostIntensity } from '../types';
 
 interface Props {
@@ -40,7 +42,10 @@ export default function NewPostModal({ visible, onClose, onPostCreated }: Props)
     const perm = await ImagePicker.requestCameraPermissionsAsync();
     if (!perm.granted) {
       const galleryPerm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!galleryPerm.granted) return;
+      if (!galleryPerm.granted) {
+        Alert.alert('Permissão necessária', 'Conceda acesso à câmera ou à galeria para adicionar uma foto.');
+        return;
+      }
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
         allowsEditing: true,
@@ -62,11 +67,15 @@ export default function NewPostModal({ visible, onClose, onPostCreated }: Props)
   const handlePost = async () => {
     if (posting) return;
     setPosting(true);
+    let uploadedUrl: string | undefined;
     try {
+      // Sobe a foto ao Storage primeiro: assim grava a URL pública (visível em
+      // qualquer aparelho) em vez do caminho local do dispositivo.
+      uploadedUrl = imageUri ? await uploadMedia(imageUri, 'posts') : undefined;
       const post = await createPost({
         intensity,
         caption: caption.trim() || undefined,
-        imageUrl: imageUri ?? undefined,
+        imageUrl: uploadedUrl,
       });
       onPostCreated(post);
       setCaption('');
@@ -74,7 +83,11 @@ export default function NewPostModal({ visible, onClose, onPostCreated }: Props)
       setIntensity('MODERADO');
       onClose();
     } catch {
-      // silent — user can retry
+      // Se a foto já subiu mas a criação do post falhou, remove a mídia órfã
+      // (best-effort) para não acumular lixo no bucket.
+      if (uploadedUrl) deleteMedia(uploadedUrl).catch(() => {});
+      // Mantém o modal aberto para o usuário tentar de novo (upload pode falhar por rede).
+      Alert.alert('Não foi possível publicar', 'Verifique sua conexão e tente novamente.');
     } finally {
       setPosting(false);
     }
@@ -88,7 +101,7 @@ export default function NewPostModal({ visible, onClose, onPostCreated }: Props)
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>Novo Post</Text>
               <TouchableOpacity onPress={onClose}>
-                <Text style={styles.closeBtn}>✕</Text>
+                <Icon name="close" size={20} color={KINETIC.textMuted} />
               </TouchableOpacity>
             </View>
 
@@ -111,7 +124,10 @@ export default function NewPostModal({ visible, onClose, onPostCreated }: Props)
               {imageUri ? (
                 <Image source={{ uri: imageUri }} style={styles.photoPreview} />
               ) : (
-                <Text style={styles.photoBtnText}>📷 Adicionar foto</Text>
+                <View style={styles.photoBtnInner}>
+                  <Icon name="camera" size={20} color={KINETIC.textDim} />
+                  <Text style={styles.photoBtnText}>Adicionar foto</Text>
+                </View>
               )}
             </TouchableOpacity>
 
@@ -126,7 +142,10 @@ export default function NewPostModal({ visible, onClose, onPostCreated }: Props)
             />
 
             <View style={styles.trainingCard}>
-              <Text style={styles.trainingCardText}>🏋️ Treino detectado automaticamente</Text>
+              <View style={styles.trainingCardHeader}>
+                <Icon name="dumbbell" size={16} color={KINETIC.primary} strokeWidth={2} />
+                <Text style={styles.trainingCardText}>Treino detectado automaticamente</Text>
+              </View>
               <Text style={styles.trainingCardSub}>Os dados do último treino serão incluídos no post.</Text>
             </View>
 
@@ -188,6 +207,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   photoPreview: { width: '100%', height: '100%' },
+  photoBtnInner: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   photoBtnText: { color: KINETIC.textDim, fontSize: 15 },
   captionInput: {
     backgroundColor: KINETIC.surface2,
@@ -207,7 +227,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: KINETIC.primarySoft,
   },
-  trainingCardText: { color: KINETIC.primary, fontSize: 13, fontWeight: 'bold', marginBottom: 4 },
+  trainingCardHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
+  trainingCardText: { color: KINETIC.primary, fontSize: 13, fontWeight: 'bold' },
   trainingCardSub: { color: KINETIC.textDim, fontSize: 12 },
   postBtn: {
     backgroundColor: COLORS.neonBlue,

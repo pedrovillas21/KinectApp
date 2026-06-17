@@ -1,0 +1,8 @@
+Para o que isso é — órfãos são lixo de storage barato, não corrupção de dados nem nada visível pro usuário — o ROI da reescrita é baixo agora. O que eu faria, em ordem de esforço:
+
+Ficar com o que está (limpeza compensatória no cliente). Cobre 90% dos casos. ✅ já feito.
+Se/quando isso incomodar: um job de limpeza no backend — varre o bucket e apaga objetos com mais de X horas que não têm linha correspondente no banco. ~30 linhas, resolve todos os órfãos (inclusive os de app morto) sem tocar no fluxo de criação. É o melhor custo-benefício.
+Endpoint atômico: só vale se mídia órfã virar um problema real de custo/conformidade, ou se você for adicionar mais tipos de conteúdo com mídia.
+Resumindo: a mudança é robusta, mas resolve um problema de baixa gravidade a um custo alto. Eu deixaria como dívida técnica anotada e, se for mexer, iria de job de varredura antes do endpoint atômico.
+
+Quer que eu deixe isso registrado como um comentário/TODO no código ou abra uma issue, em vez de implementar agora?
