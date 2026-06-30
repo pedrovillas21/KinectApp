@@ -139,8 +139,8 @@ public class StatsService {
         Map<String, Double> currentVolume  = volumeMapFromDB(user.getId(), start, end);
         Map<String, Double> previousVolume = volumeMapFromDB(user.getId(), prevStart, prevEnd);
 
-        double totalCurrent  = currentVolume.values().stream().mapToDouble(Double::doubleValue).sum();
-        double totalPrevious = previousVolume.values().stream().mapToDouble(Double::doubleValue).sum();
+        double totalCurrent  = currentVolume.values().stream().mapToDouble(d -> d != null ? d : 0.0).sum();
+        double totalPrevious = previousVolume.values().stream().mapToDouble(d -> d != null ? d : 0.0).sum();
         int totalDeltaPct    = deltaPct(totalCurrent, totalPrevious);
 
         // Garante que grupos planejados mas não treinados apareçam como isRest
@@ -238,7 +238,7 @@ public class StatsService {
                 workoutPlanRepository.findEarliestActiveCreatedAt(user.getId());
 
         LocalDate cycleStart = cycleStartOpt
-                .map(java.time.LocalDateTime::toLocalDate)
+                .map(dt -> dt.toLocalDate())
                 .orElse(LocalDate.now());
 
         LocalDate today = LocalDate.now();
@@ -262,12 +262,12 @@ public class StatsService {
 
         // Volume atual
         Map<String, Double> currentVolumeMap = volumeMapFromDB(user.getId(), cycleStart, today);
-        double currentTotalVolume = currentVolumeMap.values().stream().mapToDouble(Double::doubleValue).sum();
+        double currentTotalVolume = currentVolumeMap.values().stream().mapToDouble(d -> d != null ? d : 0.0).sum();
 
         // Peso atual: último registro dentro do ciclo corrente, ou fallback para o perfil.
         double currentWeight = weightHistoryRepository
                 .findFirstByUserAndLoggedAtBetweenOrderByLoggedAtDesc(user, cycleStart, today)
-                .map(WeightHistory::getWeight)
+                .map(wh -> wh.getWeight())
                 .orElse(user.getWeight() != null ? user.getWeight() : 0.0);
 
         // Snapshots anteriores

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kinetic.models.PlanCycleSnapshot;
 import com.kinetic.models.User;
-import com.kinetic.models.WeightHistory;
 import com.kinetic.repositories.ExerciseSetLogRepository;
 import com.kinetic.repositories.PlanCycleSnapshotRepository;
 import com.kinetic.repositories.WeightHistoryRepository;
@@ -72,7 +71,7 @@ public class PlanCycleSnapshotService {
 
         // Volume por grupo muscular
         Map<String, Double> volumeMap = volumeMapFromDB(user.getId(), cycleStart, cycleEnd);
-        double totalVolume = volumeMap.values().stream().mapToDouble(Double::doubleValue).sum();
+        double totalVolume = volumeMap.values().stream().mapToDouble(d -> d != null ? d : 0.0).sum();
 
         String volumeJson = null;
         try {
@@ -86,7 +85,7 @@ public class PlanCycleSnapshotService {
         // ciclos anteriores quando o usuário tem histórico manual de longa data.
         double endWeight = weightHistoryRepository
                 .findFirstByUserAndLoggedAtBetweenOrderByLoggedAtDesc(user, cycleStart, cycleEnd)
-                .map(WeightHistory::getWeight)
+                .map(wh -> wh.getWeight())
                 .orElse(oldWeight);
 
         PlanCycleSnapshot snapshot = new PlanCycleSnapshot();
