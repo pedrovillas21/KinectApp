@@ -4,6 +4,7 @@ import com.kinetic.dtos.HomeDashboardResponseDTO;
 import com.kinetic.dtos.NextWorkoutResponseDTO;
 import com.kinetic.dtos.RankingEntryDTO;
 import com.kinetic.dtos.WeeklyActivityPointDTO;
+import com.kinetic.dtos.WorkoutPlanResponseDTO;
 import com.kinetic.models.Exercise;
 import com.kinetic.models.User;
 import com.kinetic.models.WorkoutExecutionLog;
@@ -107,7 +108,10 @@ public class HomeAggregatorService {
         int totalSets = exercises.stream()
                 .mapToInt(e -> e.getSets() != null ? e.getSets() : 0)
                 .sum();
-        int durationInMinutes = Math.max(20, (int) Math.round(totalSets * 1.2));
+        // Prioriza a estimativa da IA; cai no heuristico (fonte unica compartilhada) quando nula.
+        int durationInMinutes = plan.getEstimatedDurationMinutes() != null
+                ? plan.getEstimatedDurationMinutes()
+                : WorkoutPlanResponseDTO.heuristicDurationMinutes(totalSets);
 
         LinkedHashSet<String> muscleSet = new LinkedHashSet<>();
         for (Exercise ex : exercises) {

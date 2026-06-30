@@ -49,6 +49,8 @@ export interface WorkoutPlanItem {
   subtitle?: string | null;
   tag?: string | null;
   level?: string | null;
+  estimatedDurationMinutes?: number | null;
+  lastCompletedAt?: string | null;
   createdAt?: string | null;
   data: unknown[];
 }

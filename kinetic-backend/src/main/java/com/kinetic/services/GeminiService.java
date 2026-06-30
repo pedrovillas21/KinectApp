@@ -205,6 +205,8 @@ public class GeminiService {
 
             REGRA DE DESCANSO: Para hipertrofia, sugira descanso entre 90-180s. Para perda de gordura, sugira descanso entre 60-90s. Para performance/força, sugira descanso entre 2-5 minutos. Adapte de acordo com o objetivo principal.
 
+            REGRA DE DURAÇÃO ESTIMADA: Para CADA treino, calcule a duração total média em minutos para concluir a sessão, considerando o número de séries, repetições e os tempos de descanso de TODOS os exercícios (incluindo o aquecimento). Retorne esse valor inteiro no campo 'estimatedDurationMinutes' de cada objeto de treino. O valor deve ficar entre 30 e 90 minutos, coerente com 6 a 8 exercícios por sessão.
+
             NOTA ÉTICA OBRIGATÓRIA: No campo 'subtitle' de CADA treino, adicione ao final dos músculos trabalhados o aviso: ' · Sugestão IA — consulte um profissional.' Exemplo: 'PEITO / OMBRO / TRÍCEPS · Sugestão IA — consulte um profissional.'
 
             O resultado deve ser ESTRITAMENTE um ARRAY JSON contendo exatamente %d objetos, sem nenhum texto adicional, sem saudações e sem blocos de código Markdown (como ```json ou ```).
@@ -215,6 +217,7 @@ public class GeminiService {
                 "title": "NOME DO TREINO (ex: PUSH DAY)",
                 "subtitle": "MÚSCULOS TRABALHADOS · Sugestão IA — consulte um profissional.",
                 "tag": "DIA A",
+                "estimatedDurationMinutes": 50,
                 "data": [
                 {
                     "name": "Nome do Exercício, ex: Rotação de Manguito Rotador (Aquecimento)",

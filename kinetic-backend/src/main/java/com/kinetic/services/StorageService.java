@@ -1,10 +1,14 @@
 package com.kinetic.services;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
 import org.springframework.boot.http.client.ClientHttpRequestFactorySettings;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -13,6 +17,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -119,13 +127,15 @@ public class StorageService {
         if (publicUrl == null || publicUrl.isBlank()) {
             return;
         }
-        String marker = "/storage/v1/object/public/" + bucket + "/";
-        int idx = publicUrl.indexOf(marker);
-        if (idx < 0) {
-            return; // URL não pertence a este bucket — ignora
+        String key = keyFromPublicUrl(publicUrl);
+        if (key == null) {
+            return;
         }
-        String key = publicUrl.substring(idx + marker.length());
+        deleteByKey(key);
+    }
 
+    /** Remove o objeto identificado por {@code key} (ex: "posts/uuid.jpg"). Best-effort. */
+    public void deleteByKey(String key) {
         try {
             restClient.delete()
                     .uri(supabaseUrl + "/storage/v1/object/" + bucket + "/" + key)
@@ -134,10 +144,74 @@ public class StorageService {
                     .retrieve()
                     .toBodilessEntity();
         } catch (RestClientResponseException e) {
-            log.warn("Falha ao remover mídia órfã do Storage ({}): {}",
-                    e.getStatusCode(), e.getResponseBodyAsString());
+            log.warn("Falha ao remover objeto '{}' do Storage ({}): {}",
+                    key, e.getStatusCode(), e.getResponseBodyAsString());
         }
     }
+
+    /**
+     * Lista todos os objetos de {@code folder} no bucket, paginando automaticamente.
+     * Restrito à whitelist {@code ALLOWED_FOLDERS}. Best-effort: erro de API retorna
+     * o que foi coletado até o momento.
+     */
+    public List<RemoteObject> list(String folder) {
+        if (!ALLOWED_FOLDERS.contains(folder)) {
+            throw new IllegalArgumentException("Pasta inválida: " + folder);
+        }
+        List<RemoteObject> result = new ArrayList<>();
+        int offset = 0;
+        while (true) {
+            Map<String, Object> body = Map.of(
+                    "prefix", folder + "/",
+                    "limit", LIST_PAGE_SIZE,
+                    "offset", offset,
+                    "sortBy", Map.of("column", "name", "order", "asc")
+            );
+            List<SupabaseListItem> page;
+            try {
+                page = restClient.post()
+                        .uri(supabaseUrl + "/storage/v1/object/list/" + bucket)
+                        .header("apikey", serviceRoleKey)
+                        .header("Authorization", "Bearer " + serviceRoleKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(body)
+                        .retrieve()
+                        .body(new ParameterizedTypeReference<>() {});
+            } catch (RestClientResponseException e) {
+                log.warn("Falha ao listar '{}'  (offset={}): {}", folder, offset,
+                        e.getResponseBodyAsString());
+                break;
+            }
+            if (page == null || page.isEmpty()) break;
+            for (SupabaseListItem item : page) {
+                if (item.createdAt() == null) continue;
+                result.add(new RemoteObject(folder + "/" + item.name(), item.createdAt()));
+            }
+            if (page.size() < LIST_PAGE_SIZE) break;
+            offset += LIST_PAGE_SIZE;
+        }
+        return result;
+    }
+
+    /** Extrai a storage key a partir de uma URL pública deste bucket. Retorna null se não pertencer. */
+    String keyFromPublicUrl(String publicUrl) {
+        if (publicUrl == null || publicUrl.isBlank()) return null;
+        String marker = "/storage/v1/object/public/" + bucket + "/";
+        int idx = publicUrl.indexOf(marker);
+        if (idx < 0) return null;
+        return publicUrl.substring(idx + marker.length());
+    }
+
+    /** Objeto listado no bucket com sua key completa e data de criação. */
+    public record RemoteObject(String key, Instant createdAt) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record SupabaseListItem(
+            String name,
+            @JsonProperty("created_at") Instant createdAt
+    ) {}
+
+    private static final int LIST_PAGE_SIZE = 1000;
 
     private static String extensionFor(String contentType) {
         return switch (contentType) {

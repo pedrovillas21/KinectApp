@@ -6,5 +6,6 @@ public record GeneratedWorkoutPlanDto(
         String title,
         String subtitle,
         String tag,
+        Integer estimatedDurationMinutes,
         List<GeneratedExerciseDto> data
 ) {}

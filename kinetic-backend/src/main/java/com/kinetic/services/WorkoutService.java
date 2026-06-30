@@ -8,16 +8,21 @@ import com.kinetic.models.Exercise;
 import com.kinetic.models.User;
 import com.kinetic.models.WorkoutPlan;
 import com.kinetic.repositories.UserRepository;
+import com.kinetic.repositories.WorkoutExecutionLogRepository;
 import com.kinetic.repositories.WorkoutPlanRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -27,15 +32,18 @@ public class WorkoutService {
     private final WorkoutPlanRepository workoutPlanRepository;
     private final UserRepository userRepository;
     private final PlanCycleSnapshotService planCycleSnapshotService;
+    private final WorkoutExecutionLogRepository workoutExecutionLogRepository;
 
     public WorkoutService(GeminiService geminiService,
                           WorkoutPlanRepository workoutPlanRepository,
                           UserRepository userRepository,
-                          PlanCycleSnapshotService planCycleSnapshotService) {
+                          PlanCycleSnapshotService planCycleSnapshotService,
+                          WorkoutExecutionLogRepository workoutExecutionLogRepository) {
         this.geminiService = geminiService;
         this.workoutPlanRepository = workoutPlanRepository;
         this.userRepository = userRepository;
         this.planCycleSnapshotService = planCycleSnapshotService;
+        this.workoutExecutionLogRepository = workoutExecutionLogRepository;
     }
 
     @Transactional
@@ -92,6 +100,7 @@ public class WorkoutService {
             workoutPlan.setSubtitle(generatedDto.subtitle());
             workoutPlan.setTag(generatedDto.tag());
             workoutPlan.setLevel(request.level());
+            workoutPlan.setEstimatedDurationMinutes(generatedDto.estimatedDurationMinutes());
             workoutPlan.setUser(user);
 
             for (GeneratedExerciseDto exDto : generatedDto.data()) {
@@ -153,9 +162,31 @@ public class WorkoutService {
     public List<WorkoutPlanResponseDTO> getMyPlans(String userEmail) {
         User user = findUserByEmail(userEmail);
 
+        // Uma unica query agregada (sem N+1): ultima conclusao por plano do usuario.
+        Map<UUID, LocalDateTime> lastCompletionByPlan = buildLastCompletionMap(user.getId());
+
         return workoutPlanRepository.findByUserIdAndStatus(user.getId(), "active").stream()
-                .map(WorkoutPlanResponseDTO::fromEntity)
+                .map(plan -> WorkoutPlanResponseDTO.fromEntity(plan, lastCompletionByPlan.get(plan.getId())))
                 .toList();
+    }
+
+    /**
+     * Monta o mapa plano -> ultima data de conclusao a partir da query agregada.
+     * Cast defensivo: MAX(completionDate) pode voltar como java.sql.Timestamp ou
+     * LocalDateTime dependendo da versao do driver do PostgreSQL.
+     */
+    private Map<UUID, LocalDateTime> buildLastCompletionMap(UUID userId) {
+        Map<UUID, LocalDateTime> map = new HashMap<>();
+        for (Object[] row : workoutExecutionLogRepository.findLatestCompletionPerPlan(userId)) {
+            UUID planId = (UUID) row[0];
+            Object raw = row[1];
+            if (raw == null) continue;
+            LocalDateTime last = (raw instanceof java.sql.Timestamp ts)
+                    ? ts.toLocalDateTime()
+                    : (LocalDateTime) raw;
+            map.put(planId, last);
+        }
+        return map;
     }
 
     private User findUserByEmail(String userEmail) {

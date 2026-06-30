@@ -1,11 +1,23 @@
 import React, { useCallback, useContext, useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, ListRenderItemInfo, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  ListRenderItemInfo,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ThemeContext } from '../contexts/ThemeContext';
+import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Circle, Path, Polyline } from 'react-native-svg';
 import { AuthContext, WorkoutPlanItem } from '../contexts/AuthContext';
+import { KINETIC } from '../theme/kinetic';
 import { COLORS } from '../theme/colors';
+import { formatRelativeDays } from '../utils/dateRelative';
 import AppHeader from '../components/AppHeader';
 import api from '../services/api';
 
@@ -31,22 +43,121 @@ interface MuscleStyle {
   text: string;
 }
 
+interface Accent {
+  color: string;
+  grad: [string, string];
+  dim: string;
+  soft: string;
+  fg: string;
+}
+
+// Paleta de acento por dia (A/B/C ciclando), espelhando os ACCENTS do mock e
+// reaproveitando os tokens KINETIC (ciano primary, dourado warn, verde success).
+const ACCENTS: Accent[] = [
+  { color: KINETIC.primary, grad: [KINETIC.primary, '#00bcd4'], dim: KINETIC.primaryDim, soft: KINETIC.primarySoft, fg: '#001f24' },
+  { color: KINETIC.warn, grad: ['#f5b945', '#e09820'], dim: 'rgba(245,185,69,0.10)', soft: 'rgba(245,185,69,0.22)', fg: '#241700' },
+  { color: KINETIC.success, grad: ['#4ade80', '#22c55e'], dim: 'rgba(74,222,128,0.10)', soft: 'rgba(74,222,128,0.22)', fg: '#001f0c' },
+];
+
+const DAY_LETTERS = ['A', 'B', 'C'];
+
+// ─── Ícones SVG ────────────────────────────────────────────────
+function IcDumbbell({ color }: { color: string }) {
+  return (
+    <Svg width={11} height={11} viewBox="0 0 24 24">
+      <Path
+        d="M6 4v16M18 4v16M3 8h3M18 8h3M3 16h3M18 16h3M6 12h12"
+        fill="none"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function IcClock({ color }: { color: string }) {
+  return (
+    <Svg width={11} height={11} viewBox="0 0 24 24">
+      <Circle cx="12" cy="12" r="10" fill="none" stroke={color} strokeWidth={2} />
+      <Polyline
+        points="12 6 12 12 16 14"
+        fill="none"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function IcHistory({ color }: { color: string }) {
+  return (
+    <Svg width={11} height={11} viewBox="0 0 24 24">
+      <Polyline
+        points="1 4 1 10 7 10"
+        fill="none"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M3.51 15a9 9 0 1 0 .49-3.5"
+        fill="none"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function IcArrow({ color }: { color: string }) {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 24 24">
+      <Path
+        d="M5 12h14M12 5l7 7-7 7"
+        fill="none"
+        stroke={color}
+        strokeWidth={2.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function IcSparkle({ color }: { color: string }) {
+  return (
+    <Svg width={11} height={11} viewBox="0 0 24 24">
+      <Path
+        d="M12 2l1.9 6.4 6.4 1.9-6.4 1.9L12 22l-1.9-6.4L3.7 13.7l6.4-1.9z"
+        fill={color}
+      />
+    </Svg>
+  );
+}
+
+function MetricItem({ icon, label, muted }: { icon: React.ReactNode; label: string; muted?: boolean }) {
+  return (
+    <View style={styles.metricItem}>
+      {icon}
+      <Text style={[styles.metricText, { color: muted ? KINETIC.textMuted : KINETIC.textDim }]}>{label}</Text>
+    </View>
+  );
+}
+
 export default function WorkoutScreen({ navigation }: Props) {
-  const { isDarkMode } = useContext(ThemeContext);
   const { workoutPlans, setWorkoutPlans } = useContext(AuthContext);
-  const isDark = isDarkMode;
 
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('LIST');
   const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(null);
-
-  const THEME = {
-    bg: isDark ? COLORS.darkBackground : COLORS.lightBackground,
-    text: isDark ? COLORS.textPrimaryDark : COLORS.textPrimaryLight,
-    muted: isDark ? COLORS.textSecondaryDark : COLORS.textSecondaryLight,
-    card: isDark ? COLORS.darkCard : COLORS.lightCard,
-  };
 
   const fetchWorkoutPlans = useCallback(async () => {
     if (!Array.isArray(workoutPlans) || workoutPlans.length === 0) {
@@ -86,6 +197,10 @@ export default function WorkoutScreen({ navigation }: Props) {
     setSelectedRoutineId(null);
   };
 
+  const startSession = (item: WorkoutPlanItem) => {
+    navigation.navigate('ActiveSession', { workoutData: item });
+  };
+
   const MUSCLE_COLORS: Record<string, MuscleStyle> = {
     PEITO: { bg: '#1a0a2e', text: '#A78BFA' },
     OMBRO: { bg: '#0a1a2e', text: '#60A5FA' },
@@ -107,56 +222,97 @@ export default function WorkoutScreen({ navigation }: Props) {
       .toUpperCase();
   };
 
+  const tagLabel = (item: WorkoutPlanItem, letter: string): string => {
+    const raw = item.tag?.trim();
+    if (!raw) return `DIA ${letter}`;
+    const upper = raw.toUpperCase();
+    return upper.startsWith('DIA') ? upper : `DIA ${upper}`;
+  };
+
   const renderEmptyState = () => (
     <View style={styles.centerState}>
-      <Text style={[styles.emptyTitle, { color: THEME.text }]}>Nenhum treino encontrado</Text>
-      <Text style={[styles.emptyText, { color: THEME.muted }]}>
-        Gere uma ficha no onboarding ou tente atualizar a lista.
-      </Text>
+      <Text style={styles.emptyTitle}>Nenhum treino encontrado</Text>
+      <Text style={styles.emptyText}>Gere uma ficha no onboarding ou tente atualizar a lista.</Text>
       <TouchableOpacity style={styles.retryButton} onPress={fetchWorkoutPlans}>
         <Text style={styles.retryButtonText}>TENTAR NOVAMENTE</Text>
       </TouchableOpacity>
     </View>
   );
 
-  const renderWorkoutCard = ({ item }: ListRenderItemInfo<WorkoutPlanItem>) => {
-    const exercises = item.data ?? [];
+  const renderWorkoutCard = ({ item, index }: ListRenderItemInfo<WorkoutPlanItem>) => {
+    const exercises = (item.data ?? []) as Exercise[];
+    const accent = ACCENTS[index % ACCENTS.length];
+    const letter = DAY_LETTERS[index % DAY_LETTERS.length];
+
+    const muscles = Array.from(
+      new Set(exercises.map((e) => (e.muscles ?? '').trim()).filter(Boolean))
+    );
+    const chips = muscles.length ? muscles : ['Corpo inteiro'];
+
+    const neverDone = !item.lastCompletedAt;
+    const durationLabel = item.estimatedDurationMinutes != null ? `${item.estimatedDurationMinutes} min` : '— min';
 
     return (
-      <TouchableOpacity
-        style={styles.programCard}
-        onPress={() => openRoutineDetail(item.id)}
-      >
-        <View style={[styles.programImageMock, { backgroundColor: THEME.card }]}>
-          <View style={styles.tagBadgeSmall}>
-            <Text style={styles.tagTextSmall}>{item.tag}</Text>
+      <TouchableOpacity activeOpacity={0.85} style={styles.card} onPress={() => openRoutineDetail(item.id)}>
+        <LinearGradient colors={accent.grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.cardStripe} />
+
+        <View style={styles.cardBody}>
+          <View style={styles.cardTopRow}>
+            <View style={[styles.dayBadge, { backgroundColor: accent.dim, borderColor: accent.soft }]}>
+              <Text style={[styles.dayBadgeText, { color: accent.color }]}>{tagLabel(item, letter)}</Text>
+            </View>
+            <View style={styles.iaBadge}>
+              <IcSparkle color={KINETIC.textMuted} />
+              <Text style={styles.iaBadgeText}>Sugestão IA</Text>
+            </View>
           </View>
-        </View>
-        <View style={[styles.programInfo, { backgroundColor: THEME.card }]}>
-          <View style={styles.programCopy}>
-            <Text style={[styles.progTitle, { color: THEME.text }]}>{item.title}</Text>
-            <Text style={styles.progBodyProps}>{item.subtitle}</Text>
-            <Text style={[styles.progExCount, { color: THEME.text }]}>
-              <Text style={{ color: COLORS.neonBlue }}>{exercises.length}</Text> Exercicios
-            </Text>
-            <Text style={styles.progVol}>VOLUME</Text>
+
+          <Text style={styles.cardTitle}>{item.title}</Text>
+
+          <View style={styles.chipsRow}>
+            {chips.map((g) => (
+              <View key={g} style={styles.muscleChip}>
+                <Text style={styles.muscleChipText}>{g}</Text>
+              </View>
+            ))}
           </View>
-          <View style={styles.playIconContainer}>
-            <Text style={styles.playIcon}>{'>'}</Text>
+
+          <View style={styles.metricsRow}>
+            <MetricItem icon={<IcDumbbell color={KINETIC.textDim} />} label={`${exercises.length} exercícios`} />
+            <Text style={styles.metricDot}>·</Text>
+            <MetricItem icon={<IcClock color={KINETIC.textDim} />} label={durationLabel} />
+            <Text style={styles.metricDot}>·</Text>
+            <MetricItem
+              icon={<IcHistory color={neverDone ? KINETIC.textMuted : KINETIC.textDim} />}
+              label={formatRelativeDays(item.lastCompletedAt)}
+              muted={neverDone}
+            />
           </View>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Iniciar treino"
+            onPress={() => startSession(item)}
+            style={({ pressed }) => [styles.ctaWrap, pressed && styles.ctaPressed]}
+          >
+            <LinearGradient colors={accent.grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.cta}>
+              <Text style={[styles.ctaText, { color: accent.fg }]}>Iniciar treino</Text>
+              <IcArrow color={accent.fg} />
+            </LinearGradient>
+          </Pressable>
         </View>
       </TouchableOpacity>
     );
   };
 
-  const renderExerciseCard = ({ item, index }: ListRenderItemInfo<Exercise>) => {
-    const muscleColor = MUSCLE_COLORS[normalizeMuscle(item.muscles)] ?? { bg: '#1a1a1a', text: COLORS.neonBlue };
+  const renderExerciseCard = ({ item }: ListRenderItemInfo<Exercise>) => {
+    const muscleColor = MUSCLE_COLORS[normalizeMuscle(item.muscles)] ?? { bg: KINETIC.surface2, text: KINETIC.primary };
 
     return (
-      <View style={[styles.card, { backgroundColor: THEME.card }]}>
+      <View style={styles.exerciseCard}>
         <View style={styles.cardHeader}>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.exerciseName, { color: THEME.text }]}>{item.name}</Text>
+            <Text style={styles.exerciseName}>{item.name}</Text>
             <View style={styles.badgesRow}>
               <View style={[styles.badge, { backgroundColor: muscleColor.bg }]}>
                 <Text style={[styles.badgeText, { color: muscleColor.text }]}>{item.muscles}</Text>
@@ -166,40 +322,33 @@ export default function WorkoutScreen({ navigation }: Props) {
               </View>
             </View>
           </View>
-          <TouchableOpacity>
-            <Text style={styles.dotsIcon}>...</Text>
-          </TouchableOpacity>
         </View>
 
         <View style={styles.gridRow}>
           <View style={styles.gridCol}>
             <Text style={styles.gridLabel}>SERIES x REPS</Text>
-            <Text style={[styles.gridValue, { color: THEME.text }]}>{item.sets} x {item.reps}</Text>
+            <Text style={styles.gridValue}>{item.sets} x {item.reps}</Text>
           </View>
           <View style={styles.gridCol}>
             <Text style={styles.gridLabel}>PESO SUGERIDO</Text>
-            <Text style={[styles.gridValue, { color: COLORS.neonBlue }]}>{item.weight}</Text>
+            <Text style={[styles.gridValue, { color: KINETIC.primary }]}>{item.weight}</Text>
           </View>
           <View style={styles.gridCol}>
             <Text style={styles.gridLabel}>DESCANSO</Text>
-            <Text style={[styles.gridValue, { color: THEME.text }]}>{item.restTime}</Text>
+            <Text style={styles.gridValue}>{item.restTime}</Text>
           </View>
         </View>
-
-        <TouchableOpacity style={styles.executionBtn}>
-          <Text style={styles.executionText}>VER EXECUCAO</Text>
-        </TouchableOpacity>
       </View>
     );
   };
 
   if (isLoading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: THEME.bg }]}>
+      <SafeAreaView style={styles.container}>
         <AppHeader />
         <View style={styles.centerState}>
-          <ActivityIndicator color={COLORS.neonBlue} size="large" />
-          <Text style={[styles.loadingText, { color: THEME.muted }]}>Carregando seus treinos...</Text>
+          <ActivityIndicator color={KINETIC.primary} size="large" />
+          <Text style={styles.loadingText}>Carregando seus treinos...</Text>
         </View>
       </SafeAreaView>
     );
@@ -207,7 +356,7 @@ export default function WorkoutScreen({ navigation }: Props) {
 
   if (viewMode === 'LIST') {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: THEME.bg }]}>
+      <SafeAreaView style={styles.container}>
         <AppHeader />
         <FlatList<WorkoutPlanItem>
           data={workoutPlans}
@@ -216,14 +365,26 @@ export default function WorkoutScreen({ navigation }: Props) {
           ListEmptyComponent={renderEmptyState}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
+          ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
           ListHeaderComponent={() => (
             <View style={styles.routineHeader}>
-              <Text style={[styles.routineTitle, { color: THEME.text }]}>SUAS FICHAS</Text>
+              <Text style={styles.routineTitle}>SUAS FICHAS</Text>
               <Text style={styles.routineSub}>
                 {errorMessage || 'Escolha um treino da sua grade personalizada.'}
               </Text>
             </View>
           )}
+          ListFooterComponent={() =>
+            workoutPlans.length > 0 ? (
+              <View style={styles.disclaimer}>
+                <IcSparkle color={KINETIC.textMuted} />
+                <Text style={styles.disclaimerText}>
+                  Fichas geradas por IA com base no seu perfil. Consulte um profissional de educação física antes
+                  de iniciar qualquer programa de treinos.
+                </Text>
+              </View>
+            ) : null
+          }
         />
       </SafeAreaView>
     );
@@ -233,7 +394,7 @@ export default function WorkoutScreen({ navigation }: Props) {
   const exercises = (workout?.data ?? []) as Exercise[];
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: THEME.bg }]}>
+    <SafeAreaView style={styles.container}>
       <AppHeader />
 
       <View style={styles.backNav}>
@@ -252,7 +413,7 @@ export default function WorkoutScreen({ navigation }: Props) {
             <View style={styles.tagBadge}>
               <Text style={styles.tagBadgeText}>{workout?.tag}</Text>
             </View>
-            <Text style={[styles.pageTitle, { color: THEME.text }]}>{workout?.title}</Text>
+            <Text style={styles.pageTitle}>{workout?.title}</Text>
             <Text style={styles.pageSubtitle}>{workout?.subtitle}</Text>
             <Text style={styles.exerciseCount}>{exercises.length} exercicios - Volume total calculado</Text>
           </View>
@@ -260,21 +421,22 @@ export default function WorkoutScreen({ navigation }: Props) {
         renderItem={renderExerciseCard}
         ListFooterComponent={() => (
           <View style={styles.footerActions}>
-            <TouchableOpacity
-              style={styles.actionBtnPrimary}
-              onPress={() => navigation.navigate('ActiveSession', { workoutData: workout })}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Iniciar treino"
+              onPress={() => workout && startSession(workout)}
+              style={({ pressed }) => [styles.ctaWrap, pressed && styles.ctaPressed]}
             >
-              <Text style={styles.actionBtnText}>INICIAR TREINO</Text>
-            </TouchableOpacity>
-
-            <View style={styles.secondaryActions}>
-              <TouchableOpacity style={styles.editBtn}>
-                <Text style={styles.editText}>EDITAR LISTA</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.addBtn}>
-                <Text style={styles.addIcon}>+</Text>
-              </TouchableOpacity>
-            </View>
+              <LinearGradient
+                colors={[KINETIC.primary, KINETIC.primaryDeep]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.cta}
+              >
+                <Text style={[styles.ctaText, { color: '#001a1f' }]}>INICIAR TREINO</Text>
+                <IcArrow color="#001a1f" />
+              </LinearGradient>
+            </Pressable>
           </View>
         )}
       />
@@ -283,9 +445,9 @@ export default function WorkoutScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: KINETIC.bg },
   listContent: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
     paddingBottom: 40,
   },
   centerState: {
@@ -293,111 +455,172 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 32,
+    paddingVertical: 48,
   },
   loadingText: {
     marginTop: 16,
     fontSize: 13,
     fontWeight: 'bold',
+    color: KINETIC.textDim,
   },
   emptyTitle: {
     fontSize: 20,
     fontWeight: '900',
     marginBottom: 8,
     textAlign: 'center',
+    color: KINETIC.text,
   },
   emptyText: {
     fontSize: 13,
     lineHeight: 20,
     textAlign: 'center',
     marginBottom: 20,
+    color: KINETIC.textDim,
   },
   retryButton: {
-    backgroundColor: COLORS.neonBlue,
+    backgroundColor: KINETIC.primary,
     borderRadius: 10,
     paddingHorizontal: 18,
     paddingVertical: 12,
   },
   retryButtonText: {
-    color: COLORS.darkBackground,
+    color: '#001a1f',
     fontSize: 12,
     fontWeight: '900',
   },
+
+  // ─── Header da seção ───
   routineHeader: {
     marginBottom: 20,
-    marginTop: 12,
+    marginTop: 8,
+    paddingHorizontal: 4,
   },
-  routineTitle: { fontSize: 22, fontStyle: 'italic', fontWeight: '900', letterSpacing: 1 },
-  routineSub: { color: '#888', fontSize: 13, marginTop: 4 },
-  programCard: {
-    marginBottom: 20,
+  routineTitle: {
+    fontSize: 30,
+    fontStyle: 'italic',
+    fontWeight: '900',
+    letterSpacing: -1,
+    color: KINETIC.text,
   },
-  programImageMock: {
-    height: 100,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
+  routineSub: { color: KINETIC.textDim, fontSize: 13, marginTop: 6, lineHeight: 18 },
+
+  // ─── Card de ficha (LIST) ───
+  card: {
+    backgroundColor: KINETIC.surface1,
+    borderRadius: 20,
+    overflow: 'hidden',
   },
-  tagBadgeSmall: {
-    backgroundColor: COLORS.neonBlue,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderBottomRightRadius: 8,
-    borderTopLeftRadius: 12,
-  },
-  tagTextSmall: { color: COLORS.darkBackground, fontSize: 10, fontWeight: 'bold' },
-  programInfo: {
-    padding: 16,
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
+  cardStripe: { height: 3, width: '100%' },
+  cardBody: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 16 },
+  cardTopRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    marginBottom: 10,
   },
-  programCopy: { flex: 1, paddingRight: 16 },
-  progTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
-  progBodyProps: { color: '#888', fontSize: 10, marginBottom: 12, letterSpacing: 1 },
-  progExCount: { fontSize: 12, fontWeight: 'bold' },
-  progVol: { color: '#666', fontSize: 10, letterSpacing: 1, marginTop: 2 },
-  playIconContainer: {
-    backgroundColor: '#333',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  dayBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  dayBadgeText: { fontSize: 10, fontWeight: '700', letterSpacing: 1 },
+  iaBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: 999,
+    backgroundColor: KINETIC.ghost,
+  },
+  iaBadgeText: { fontSize: 10, fontWeight: '600', color: KINETIC.textMuted },
+  cardTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    letterSpacing: -0.6,
+    color: KINETIC.text,
+    lineHeight: 26,
+    marginBottom: 10,
+  },
+  chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginBottom: 14 },
+  muscleChip: {
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: 999,
+    backgroundColor: KINETIC.ghost,
+  },
+  muscleChipText: { fontSize: 10, fontWeight: '600', color: KINETIC.textDim },
+  metricsRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
+  metricItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  metricText: { fontSize: 11, fontWeight: '500' },
+  metricDot: { color: KINETIC.textMuted, fontSize: 10 },
+
+  // ─── CTA gradiente ───
+  ctaWrap: {
+    borderRadius: 13,
+    overflow: 'hidden',
+    shadowColor: KINETIC.primary,
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  ctaPressed: { opacity: 0.85 },
+  cta: {
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 13,
   },
-  playIcon: { color: COLORS.neonBlue, fontSize: 16, fontWeight: '900' },
+  ctaText: { fontWeight: '800', fontSize: 14, letterSpacing: 0.2 },
+
+  // ─── Disclaimer rodapé ───
+  disclaimer: {
+    marginTop: 16,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 14,
+    backgroundColor: KINETIC.ghost,
+  },
+  disclaimerText: { flex: 1, fontSize: 11, color: KINETIC.textMuted, lineHeight: 17 },
+
+  // ─── DETAIL ───
   backNav: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
     paddingVertical: 12,
   },
   backActionText: {
-    color: COLORS.neonBlue,
+    color: KINETIC.primary,
     fontSize: 14,
     fontWeight: 'bold',
   },
-  pageHeader: { marginBottom: 28, marginTop: 8 },
+  pageHeader: { marginBottom: 24, marginTop: 4, paddingHorizontal: 4 },
   tagBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#113a40',
+    backgroundColor: KINETIC.primaryDim,
     borderWidth: 1,
-    borderColor: COLORS.neonBlue,
+    borderColor: KINETIC.primarySoft,
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 20,
     marginBottom: 12,
   },
-  tagBadgeText: { color: COLORS.neonBlue, fontSize: 11, fontWeight: 'bold', letterSpacing: 1.5 },
-  pageTitle: { fontSize: 40, fontStyle: 'italic', fontWeight: '900', lineHeight: 44, marginBottom: 4 },
-  pageSubtitle: { color: '#888', fontSize: 13, fontWeight: 'bold', letterSpacing: 1, marginBottom: 8 },
-  exerciseCount: { color: '#555', fontSize: 12 },
-  card: {
+  tagBadgeText: { color: KINETIC.primary, fontSize: 11, fontWeight: 'bold', letterSpacing: 1.5 },
+  pageTitle: { fontSize: 34, fontStyle: 'italic', fontWeight: '900', lineHeight: 38, marginBottom: 4, color: KINETIC.text },
+  pageSubtitle: { color: KINETIC.textDim, fontSize: 13, fontWeight: 'bold', letterSpacing: 1, marginBottom: 8 },
+  exerciseCount: { color: KINETIC.textMuted, fontSize: 12 },
+  exerciseCard: {
     marginBottom: 14,
-    borderRadius: 12,
-    padding: 20,
+    borderRadius: 16,
+    padding: 18,
+    backgroundColor: KINETIC.surface1,
     borderLeftWidth: 2,
-    borderLeftColor: COLORS.neonBlue,
+    borderLeftColor: KINETIC.primary,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -409,47 +632,16 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: 'bold',
     marginBottom: 8,
+    color: KINETIC.text,
   },
   badgesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   badgeText: { fontSize: 10, fontWeight: 'bold' },
-  badgeGhost: { backgroundColor: '#2A2A2A' },
-  badgeTextGhost: { color: '#888', fontSize: 10, fontWeight: 'bold' },
-  dotsIcon: { color: COLORS.neonBlue, fontSize: 18, fontWeight: 'bold' },
-  gridRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
+  badgeGhost: { backgroundColor: KINETIC.surface2 },
+  badgeTextGhost: { color: KINETIC.textDim, fontSize: 10, fontWeight: 'bold' },
+  gridRow: { flexDirection: 'row', justifyContent: 'space-between' },
   gridCol: { alignItems: 'flex-start', flex: 1 },
-  gridLabel: { color: '#555', fontSize: 9, fontWeight: 'bold', marginBottom: 6, letterSpacing: 0.5 },
-  gridValue: { fontSize: 15, fontWeight: 'bold' },
-  executionBtn: { alignSelf: 'flex-end' },
-  executionText: { color: COLORS.neonBlue, fontSize: 11, fontWeight: 'bold', letterSpacing: 1 },
+  gridLabel: { color: KINETIC.textMuted, fontSize: 9, fontWeight: 'bold', marginBottom: 6, letterSpacing: 0.5 },
+  gridValue: { fontSize: 15, fontWeight: 'bold', color: KINETIC.text },
   footerActions: { marginTop: 24 },
-  actionBtnPrimary: {
-    backgroundColor: COLORS.neonBlue,
-    borderRadius: 12,
-    height: 56,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  actionBtnText: { color: COLORS.darkBackground, fontWeight: '900', fontSize: 16, letterSpacing: 1 },
-  secondaryActions: { flexDirection: 'row', justifyContent: 'space-between' },
-  editBtn: {
-    flex: 1,
-    backgroundColor: '#2A2A2A',
-    borderRadius: 12,
-    height: 56,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  editText: { color: '#FFF', fontWeight: 'bold', fontSize: 14, letterSpacing: 1 },
-  addBtn: {
-    backgroundColor: COLORS.neonBlue,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  addIcon: { color: COLORS.darkBackground, fontSize: 24, fontWeight: 'bold' },
 });

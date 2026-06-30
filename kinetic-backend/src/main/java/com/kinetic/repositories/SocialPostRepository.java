@@ -26,4 +26,9 @@ public interface SocialPostRepository extends JpaRepository<SocialPost, UUID> {
             + "AND p.expiresAt > :now ORDER BY p.createdAt ASC")
     List<SocialPost> findActiveStories(@Param("authorIds") List<UUID> authorIds,
                                        @Param("now") LocalDateTime now);
+
+    // Projeção só da coluna image_url — usado pelo job de limpeza de mídia órfã
+    // para construir o conjunto de keys conhecidas sem carregar entidades inteiras.
+    @Query("SELECT p.imageUrl FROM SocialPost p WHERE p.imageUrl IS NOT NULL")
+    List<String> findAllImageUrls();
 }
