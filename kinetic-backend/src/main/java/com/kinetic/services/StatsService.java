@@ -133,6 +133,45 @@ public class StatsService {
 
     // ── Volume ────────────────────────────────────────────────────────────────
 
+    private static final Map<String, String> MUSCLE_TO_CATEGORY;
+    private static final List<String> CATEGORY_ORDER = List.of("PUSH", "PULL", "PERNAS", "CORE");
+
+    static {
+        Map<String, String> m = new HashMap<>();
+        // Push: empurrar (peitoral, ombro, tríceps)
+        m.put("PEITO",      "PUSH");
+        m.put("PEITORAL",   "PUSH");
+        m.put("OMBRO",      "PUSH");
+        m.put("OMBROS",     "PUSH");
+        m.put("TRICEPS",    "PUSH");
+        m.put("TRÍCEPS",    "PUSH");
+        // Pull: puxar (costas, bíceps, antebraço)
+        m.put("COSTAS",     "PULL");
+        m.put("DORSAL",     "PULL");
+        m.put("TRAPEZIO",   "PULL");
+        m.put("TRAPÉZIO",   "PULL");
+        m.put("BICEPS",     "PULL");
+        m.put("BÍCEPS",     "PULL");
+        m.put("ANTEBRACO",  "PULL");
+        m.put("ANTEBRAÇO",  "PULL");
+        // Pernas: inferior
+        m.put("QUADRICEPS", "PERNAS");
+        m.put("QUADRÍCEPS", "PERNAS");
+        m.put("POSTERIOR",  "PERNAS");
+        m.put("GLUTEO",     "PERNAS");
+        m.put("GLÚTEO",     "PERNAS");
+        m.put("GLUTEOS",    "PERNAS");
+        m.put("GLÚTEOS",    "PERNAS");
+        m.put("PANTURRILHA","PERNAS");
+        m.put("ISQUIOTIBIAIS", "PERNAS");
+        MUSCLE_TO_CATEGORY = Collections.unmodifiableMap(m);
+    }
+
+    private String muscleCategory(String muscle) {
+        if (muscle == null) return "CORE";
+        return MUSCLE_TO_CATEGORY.getOrDefault(muscle.trim().toUpperCase(), "CORE");
+    }
+
     private VolumeSummaryDTO buildVolumeSummary(User user,
                                                 LocalDate start,     LocalDate end,
                                                 LocalDate prevStart, LocalDate prevEnd) {
@@ -143,24 +182,39 @@ public class StatsService {
         double totalPrevious = previousVolume.values().stream().mapToDouble(d -> d != null ? d : 0.0).sum();
         int totalDeltaPct    = deltaPct(totalCurrent, totalPrevious);
 
-        // Garante que grupos planejados mas não treinados apareçam como isRest
-        // e que grupos treinados apenas no período anterior continuem visíveis
-        // para preservar regressões (-100%) ao invés de sumirem silenciosamente.
-        Set<String> allMuscles = new LinkedHashSet<>(
-                exerciseRepository.findDistinctMusclesByUserId(user.getId()));
-        allMuscles.addAll(currentVolume.keySet());
-        allMuscles.addAll(previousVolume.keySet());
+        // Agrega volume por categoria (PUSH/PULL/PERNAS/CORE)
+        Map<String, Double> currentByCategory  = aggregateByCategory(currentVolume);
+        Map<String, Double> previousByCategory = aggregateByCategory(previousVolume);
 
-        List<VolumeByMuscleGroupDTO> byGroup = allMuscles.stream()
-                .map(muscle -> {
-                    double vol     = currentVolume.getOrDefault(muscle, 0.0);
-                    double prevVol = previousVolume.getOrDefault(muscle, 0.0);
+        // Determina quais categorias estão presentes no plano atual (para isRest)
+        Set<String> plannedCategories = exerciseRepository
+                .findDistinctMusclesByUserId(user.getId())
+                .stream()
+                .map(this::muscleCategory)
+                .collect(Collectors.toSet());
+        plannedCategories.addAll(currentByCategory.keySet());
+        plannedCategories.addAll(previousByCategory.keySet());
+
+        List<VolumeByMuscleGroupDTO> byGroup = CATEGORY_ORDER.stream()
+                .filter(plannedCategories::contains)
+                .map(cat -> {
+                    double vol     = currentByCategory.getOrDefault(cat, 0.0);
+                    double prevVol = previousByCategory.getOrDefault(cat, 0.0);
                     boolean isRest = vol == 0.0;
-                    return new VolumeByMuscleGroupDTO(muscle, vol, deltaPct(vol, prevVol), isRest);
+                    return new VolumeByMuscleGroupDTO(cat, vol, deltaPct(vol, prevVol), isRest);
                 })
                 .collect(Collectors.toList());
 
         return new VolumeSummaryDTO(byGroup, totalCurrent, totalDeltaPct);
+    }
+
+    private Map<String, Double> aggregateByCategory(Map<String, Double> volumeByMuscle) {
+        Map<String, Double> result = new LinkedHashMap<>();
+        volumeByMuscle.forEach((muscle, vol) -> {
+            String cat = muscleCategory(muscle);
+            result.merge(cat, vol != null ? vol : 0.0, Double::sum);
+        });
+        return result;
     }
 
     private Map<String, Double> volumeMapFromDB(UUID userId, LocalDate start, LocalDate end) {

@@ -526,6 +526,13 @@ const weightStyles = StyleSheet.create({
 });
 
 // ─── Volume card (custom bars + drill-down) ───────────────────────────────
+const CATEGORY_LABEL: Record<string, string> = {
+  PUSH:   'Empurrar',
+  PULL:   'Puxar',
+  PERNAS: 'Pernas',
+  CORE:   'Core',
+};
+
 interface VolumeCardProps {
   volume: VolumeSummaryDTO;
 }
@@ -543,7 +550,7 @@ function VolumeCard({ volume }: VolumeCardProps) {
   return (
     <View style={styles.card}>
       <CardHeader
-        title="Volume por grupo muscular"
+        title="Volume por categoria"
         subtitle={`Total ${formatTotalVolume(volume.total)} · ${totalDeltaSign}${volume.deltaPercentage}% vs período anterior`}
       />
 
@@ -605,7 +612,7 @@ function VolumeCard({ volume }: VolumeCardProps) {
                   ]}
                   numberOfLines={1}
                 >
-                  {g.muscleGroup.toUpperCase()}
+                  {(CATEGORY_LABEL[g.muscleGroup] ?? g.muscleGroup).toUpperCase()}
                 </Text>
               </TouchableOpacity>
             );
@@ -640,7 +647,7 @@ function VolumeCard({ volume }: VolumeCardProps) {
       {activeItem && !activeItem.isRest ? (
         <View style={volumeStyles.drilldown}>
           <View style={{ flex: 1 }}>
-            <Text style={volumeStyles.drillLabel}>{activeItem.muscleGroup}</Text>
+            <Text style={volumeStyles.drillLabel}>{CATEGORY_LABEL[activeItem.muscleGroup] ?? activeItem.muscleGroup}</Text>
             <Text style={volumeStyles.drillValue}>
               {formatVolumeKg(activeItem.volume)}{' '}
               <Text style={volumeStyles.drillValueDim}>volume total</Text>

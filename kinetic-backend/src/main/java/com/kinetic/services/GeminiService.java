@@ -193,7 +193,11 @@ public class GeminiService {
 
             REGRA DE ESTRUTURA OBRIGATÓRIA: O PRIMEIRO exercício da lista 'data' de CADA treino deve ser obrigatoriamente um exercício de MOBILIDADE ou AQUECIMENTO DINÂMICO focado na articulação principal do grupo muscular do dia (Ex: Rotação de manguito rotador para treino de Peito/Ombro; Mobilização de quadril para LEG DAY; Dislocação de ombro com bastão para PULL DAY). NUNCA inicie um treino diretamente com carga pesada. Este exercício de mobilidade conta como um dos 6-8 obrigatórios.
 
-            REGRA DE CARGA E INTENSIDADE: Ao sugerir peso no campo 'weight', priorize a indicação através de RPE (Percepção de Esforço, ex: RPE 7-8) ou RIR (Repetições na Reserva, ex: 2 RIR). Se sugerir um peso absoluto (kg), deixe claro que é apenas um 'Exemplo Ilustrativo', pois a força absoluta varia. Ex: "Halteres de 12kg (Exemplo — RPE 8)", "20kg de cada lado (2 RIR)". Evite usar apenas "Corpo" a menos que estritamente necessário (ex: Barra Fixa).
+            REGRA DE CARGA E INTENSIDADE: O campo 'weight' é OBRIGATÓRIO para TODOS os exercícios — nunca retorne null, vazio ou omita o campo. Siga as diretrizes abaixo para cada tipo:
+            - Exercícios compostos ou isolados com carga: indique um exemplo de peso absoluto seguido de RPE ou RIR. Ex: "Halteres de 14kg (RPE 8)", "Barra 60kg (2 RIR)", "40kg cada lado (RPE 7-8)".
+            - Exercícios de peso corporal: indique "Peso corporal (RPE X)" ou adicione variação de carga se aplicável. Ex: "Peso corporal (RPE 8)", "Colete 10kg (RPE 7)".
+            - Mobilidade e aquecimento sem carga: use "Sem carga (RPE 3-4)".
+            O valor de RPE deve ser coerente com o objetivo: hipertrofia (RPE 7-9), perda de gordura (RPE 6-8), performance (RPE 8-10). Nunca retorne apenas "Corpo" ou deixe o campo sem valor.
 
             REGRA DE MÚCULOS TRABALHADOS: Ao gerar o músculo correspondente ao exercício proposto, siga apenas com estes grupos definidos -> PEITO,OMBRO,TRICEPS,BICEPS,COSTAS,ANTEBRACO,QUADRICEPS,POSTERIOR,GLUTEOS,PANTURRILHA. Evite termos genéricos como "perna" ou "braço".
 
