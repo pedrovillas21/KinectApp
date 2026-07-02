@@ -115,6 +115,7 @@ public class WorkoutService {
                 exercise.setReps(exDto.reps());
                 exercise.setWeight(exDto.weight());
                 exercise.setRestTime(exDto.restTime());
+                exercise.setSection(exDto.section());
                 exercise.setWorkoutPlan(workoutPlan);
                 workoutPlan.getExercises().add(exercise);
             }

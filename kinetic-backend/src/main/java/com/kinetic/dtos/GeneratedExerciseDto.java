@@ -7,5 +7,6 @@ public record GeneratedExerciseDto(
         Integer sets,
         String reps,
         String weight,
-        String restTime
+        String restTime,
+        String section
 ) {}

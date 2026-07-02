@@ -4,6 +4,7 @@ import {
   FlatList,
   ListRenderItemInfo,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -11,12 +12,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Path, Polyline } from 'react-native-svg';
 import { AuthContext, WorkoutPlanItem } from '../contexts/AuthContext';
 import { KINETIC } from '../theme/kinetic';
-import { COLORS } from '../theme/colors';
 import { formatRelativeDays } from '../utils/dateRelative';
 import AppHeader from '../components/AppHeader';
 import api from '../services/api';
@@ -30,6 +31,7 @@ interface Exercise {
   reps: number | string;
   weight: string;
   restTime: string;
+  section?: string | null;
 }
 
 interface Props {
@@ -37,11 +39,6 @@ interface Props {
 }
 
 type ViewMode = 'LIST' | 'DETAIL';
-
-interface MuscleStyle {
-  bg: string;
-  text: string;
-}
 
 interface Accent {
   color: string;
@@ -151,6 +148,104 @@ function MetricItem({ icon, label, muted }: { icon: React.ReactNode; label: stri
   );
 }
 
+function IcChevronLeft({ color }: { color: string }) {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 24 24">
+      <Path d="M15 6l-7 6 7 6" fill="none" stroke={color} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+function IcInfo({ color }: { color: string }) {
+  return (
+    <Svg width={11} height={11} viewBox="0 0 24 24">
+      <Circle cx="12" cy="12" r="10" fill="none" stroke={color} strokeWidth={2} />
+      <Path d="M12 16v-5M12 8h.01" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+// Formata inteiro com separador de milhar pt-BR (4084 -> "4.084").
+const formatVolumeKg = (n: number): string =>
+  String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+// ─── Agrupamento por seção (classificada pela IA no back-end) ──────
+type SectionKey = 'AQUECIMENTO' | 'PRINCIPAL' | 'FINALIZACAO';
+
+const SECTION_ORDER: SectionKey[] = ['AQUECIMENTO', 'PRINCIPAL', 'FINALIZACAO'];
+
+const SECTION_LABELS: Record<SectionKey, string> = {
+  AQUECIMENTO: 'Aquecimento',
+  PRINCIPAL: 'Treino principal',
+  FINALIZACAO: 'Finalização',
+};
+
+function sectionKeyOf(ex: Exercise): SectionKey {
+  const s = (ex.section ?? '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toUpperCase();
+  if (s.startsWith('AQUEC')) return 'AQUECIMENTO';
+  if (s.startsWith('FINAL')) return 'FINALIZACAO';
+  return 'PRINCIPAL';
+}
+
+interface RenderSection {
+  id: SectionKey;
+  label: string | null;
+  items: Exercise[];
+}
+
+function groupSections(exercises: Exercise[]): RenderSection[] {
+  const buckets: Record<SectionKey, Exercise[]> = { AQUECIMENTO: [], PRINCIPAL: [], FINALIZACAO: [] };
+  exercises.forEach((ex) => buckets[sectionKeyOf(ex)].push(ex));
+
+  const nonEmpty = SECTION_ORDER.filter((k) => buckets[k].length > 0);
+  // Uma única seção (ex.: fichas antigas sem classificação) vira lista sem cabeçalho.
+  const showLabels = nonEmpty.length > 1;
+  return nonEmpty.map((k) => ({ id: k, label: showLabels ? SECTION_LABELS[k] : null, items: buckets[k] }));
+}
+
+// ─── Card de exercício (DETAIL) ────────────────────────────────────
+function DetailExerciseCard({ ex, accent }: { ex: Exercise; accent: Accent }) {
+  return (
+    <View style={styles.exCard}>
+      <LinearGradient colors={accent.grad} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.exStripe} />
+      <View style={styles.exBody}>
+        <Text style={styles.exName}>{ex.name}</Text>
+
+        <View style={styles.exChipsRow}>
+          {!!ex.muscles && (
+            <View style={[styles.exMuscleChip, { backgroundColor: accent.dim, borderColor: accent.soft }]}>
+              <Text style={[styles.exMuscleChipText, { color: accent.color }]}>{ex.muscles}</Text>
+            </View>
+          )}
+          {!!ex.type && (
+            <View style={styles.exTypeChip}>
+              <Text style={styles.exTypeChipText}>{ex.type}</Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.exGrid}>
+          <View style={styles.exGridCol}>
+            <Text style={styles.exGridLabel}>SÉRIES × REPS</Text>
+            <Text style={styles.exGridValue}>{ex.sets} × {ex.reps}</Text>
+          </View>
+          <View style={styles.exGridCol}>
+            <Text style={styles.exGridLabel}>SUGESTÃO</Text>
+            <Text style={[styles.exGridValue, { color: accent.color }]}>{ex.weight}</Text>
+          </View>
+          <View style={styles.exGridCol}>
+            <Text style={styles.exGridLabel}>DESCANSO</Text>
+            <Text style={styles.exGridValue}>{ex.restTime}</Text>
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+}
+
 export default function WorkoutScreen({ navigation }: Props) {
   const { workoutPlans, setWorkoutPlans } = useContext(AuthContext);
 
@@ -187,6 +282,10 @@ export default function WorkoutScreen({ navigation }: Props) {
     [selectedRoutineId, workoutPlans]
   );
 
+  // A BottomTabBar é flutuante (position: absolute); reserva espaço para o CTA
+  // fixo não ficar escondido atrás dela.
+  const tabBarHeight = useBottomTabBarHeight();
+
   const openRoutineDetail = (id: string) => {
     setSelectedRoutineId(id);
     setViewMode('DETAIL');
@@ -199,27 +298,6 @@ export default function WorkoutScreen({ navigation }: Props) {
 
   const startSession = (item: WorkoutPlanItem) => {
     navigation.navigate('ActiveSession', { workoutData: item });
-  };
-
-  const MUSCLE_COLORS: Record<string, MuscleStyle> = {
-    PEITO: { bg: '#1a0a2e', text: '#A78BFA' },
-    OMBRO: { bg: '#0a1a2e', text: '#60A5FA' },
-    TRICEPS: { bg: '#0a2e1a', text: '#34D399' },
-    BICEPS: { bg: '#2e1a0a', text: '#FBBF24' },
-    COSTAS: { bg: '#2e0a0a', text: '#F87171' },
-    ANTEBRACO: { bg: '#1a2e0a', text: '#A3E635' },
-    QUADRICEPS: { bg: '#0a2e2e', text: COLORS.neonBlue },
-    POSTERIOR: { bg: '#2e2e0a', text: '#FCD34D' },
-    GLUTEOS: { bg: '#2e0a2e', text: '#F472B6' },
-    PANTURRILHA: { bg: '#0a0a2e', text: '#818CF8' },
-  };
-
-  const normalizeMuscle = (muscle: string | undefined): string => {
-    if (!muscle) return '';
-    return muscle
-      .normalize('NFD')
-      .replace(/[̀-ͯ]/g, '')
-      .toUpperCase();
   };
 
   const tagLabel = (item: WorkoutPlanItem, letter: string): string => {
@@ -305,43 +383,6 @@ export default function WorkoutScreen({ navigation }: Props) {
     );
   };
 
-  const renderExerciseCard = ({ item }: ListRenderItemInfo<Exercise>) => {
-    const muscleColor = MUSCLE_COLORS[normalizeMuscle(item.muscles)] ?? { bg: KINETIC.surface2, text: KINETIC.primary };
-
-    return (
-      <View style={styles.exerciseCard}>
-        <View style={styles.cardHeader}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.exerciseName}>{item.name}</Text>
-            <View style={styles.badgesRow}>
-              <View style={[styles.badge, { backgroundColor: muscleColor.bg }]}>
-                <Text style={[styles.badgeText, { color: muscleColor.text }]}>{item.muscles}</Text>
-              </View>
-              <View style={[styles.badge, styles.badgeGhost]}>
-                <Text style={styles.badgeTextGhost}>{item.type}</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.gridRow}>
-          <View style={styles.gridCol}>
-            <Text style={styles.gridLabel}>SERIES x REPS</Text>
-            <Text style={styles.gridValue}>{item.sets} x {item.reps}</Text>
-          </View>
-          <View style={styles.gridCol}>
-            <Text style={styles.gridLabel}>PESO SUGERIDO</Text>
-            <Text style={[styles.gridValue, { color: KINETIC.primary }]}>{item.weight}</Text>
-          </View>
-          <View style={styles.gridCol}>
-            <Text style={styles.gridLabel}>DESCANSO</Text>
-            <Text style={styles.gridValue}>{item.restTime}</Text>
-          </View>
-        </View>
-      </View>
-    );
-  };
-
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -391,55 +432,103 @@ export default function WorkoutScreen({ navigation }: Props) {
   }
 
   const workout = selectedWorkout ?? workoutPlans[0];
-  const exercises = (workout?.data ?? []) as Exercise[];
+  if (!workout) {
+    return <SafeAreaView style={styles.container} />;
+  }
+
+  const exercises = (workout.data ?? []) as Exercise[];
+  const selectedIndex = Math.max(0, workoutPlans.findIndex((p) => p.id === workout.id));
+  const accent = ACCENTS[selectedIndex % ACCENTS.length];
+  const letter = DAY_LETTERS[selectedIndex % DAY_LETTERS.length];
+
+  const muscleGroups = Array.from(
+    new Set(exercises.map((e) => (e.muscles ?? '').trim()).filter(Boolean))
+  );
+  const sections = groupSections(exercises);
+  const volumeKg = workout.estimatedTotalVolumeKg ?? null;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <AppHeader />
-
-      <View style={styles.backNav}>
-        <TouchableOpacity onPress={goBackToList}>
-          <Text style={styles.backActionText}>{'<'} Voltar para Fichas</Text>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={styles.detailHeader}>
+        <TouchableOpacity
+          onPress={goBackToList}
+          accessibilityRole="button"
+          accessibilityLabel="Voltar para Fichas"
+          style={styles.backBtn}
+        >
+          <View style={styles.backChip}>
+            <IcChevronLeft color={KINETIC.text} />
+          </View>
+          <Text style={styles.backLabel}>Fichas</Text>
         </TouchableOpacity>
       </View>
 
-      <FlatList<Exercise>
-        data={exercises}
-        keyExtractor={(item, index) => item.id ?? `${item.name}-${index}`}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContent}
-        ListHeaderComponent={() => (
-          <View style={styles.pageHeader}>
-            <View style={styles.tagBadge}>
-              <Text style={styles.tagBadgeText}>{workout?.tag}</Text>
+      <ScrollView style={styles.detailScrollView} showsVerticalScrollIndicator={false} contentContainerStyle={styles.detailScroll}>
+        <View style={styles.titleBlock}>
+          <View style={[styles.dayBadge, styles.dayBadgeStart, { backgroundColor: accent.dim, borderColor: accent.soft }]}>
+            <Text style={[styles.dayBadgeText, { color: accent.color }]}>{tagLabel(workout, letter)}</Text>
+          </View>
+
+          <Text style={styles.detailTitle}>{(workout.title ?? '').toUpperCase()}</Text>
+
+          {muscleGroups.length > 0 && (
+            <View style={styles.chipsRow}>
+              {muscleGroups.map((g) => (
+                <View key={g} style={styles.muscleChip}>
+                  <Text style={styles.muscleChipText}>{g}</Text>
+                </View>
+              ))}
             </View>
-            <Text style={styles.pageTitle}>{workout?.title}</Text>
-            <Text style={styles.pageSubtitle}>{workout?.subtitle}</Text>
-            <Text style={styles.exerciseCount}>{exercises.length} exercicios - Volume total calculado</Text>
+          )}
+
+          <View style={styles.infoBox}>
+            <View style={styles.infoLine}>
+              <IcSparkle color={KINETIC.textMuted} />
+              <Text style={styles.infoText}>Sugestão por IA — consulte um profissional de educação física.</Text>
+            </View>
+            <View style={styles.infoLine}>
+              <IcInfo color={KINETIC.textMuted} />
+              <Text style={styles.infoText}>RPE = esforço percebido, de 1 (muito leve) a 10 (esforço máximo).</Text>
+            </View>
           </View>
-        )}
-        renderItem={renderExerciseCard}
-        ListFooterComponent={() => (
-          <View style={styles.footerActions}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Iniciar treino"
-              onPress={() => workout && startSession(workout)}
-              style={({ pressed }) => [styles.ctaWrap, pressed && styles.ctaPressed]}
-            >
-              <LinearGradient
-                colors={[KINETIC.primary, KINETIC.primaryDeep]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.cta}
-              >
-                <Text style={[styles.ctaText, { color: '#001a1f' }]}>INICIAR TREINO</Text>
-                <IcArrow color="#001a1f" />
-              </LinearGradient>
-            </Pressable>
+
+          <Text style={styles.metaText}>
+            {exercises.length} exercícios
+            {volumeKg != null && (
+              <Text>
+                {' · '}
+                <Text style={[styles.metaStrong, { color: accent.color }]}>≈ {formatVolumeKg(volumeKg)} kg</Text>
+                {' de volume total'}
+              </Text>
+            )}
+          </Text>
+        </View>
+
+        {sections.map((sec) => (
+          <View key={sec.id}>
+            {sec.label && <Text style={styles.sectionHeader}>{sec.label}</Text>}
+            <View style={styles.sectionBody}>
+              {sec.items.map((ex, i) => (
+                <DetailExerciseCard key={ex.id ?? `${ex.name}-${i}`} ex={ex} accent={accent} />
+              ))}
+            </View>
           </View>
-        )}
-      />
+        ))}
+      </ScrollView>
+
+      <View style={[styles.ctaBar, { paddingBottom: tabBarHeight + 12 }]}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Iniciar treino"
+          onPress={() => startSession(workout)}
+          style={({ pressed }) => [styles.ctaWrap, pressed && styles.ctaPressed]}
+        >
+          <LinearGradient colors={accent.grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.cta}>
+            <Text style={[styles.ctaText, { color: accent.fg }]}>Iniciar treino</Text>
+            <IcArrow color={accent.fg} />
+          </LinearGradient>
+        </Pressable>
+      </View>
     </SafeAreaView>
   );
 }
@@ -589,59 +678,92 @@ const styles = StyleSheet.create({
   },
   disclaimerText: { flex: 1, fontSize: 11, color: KINETIC.textMuted, lineHeight: 17 },
 
-  // ─── DETAIL ───
-  backNav: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+  // ─── DETAIL: header compacto ───
+  detailHeader: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 8 },
+  backBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start' },
+  backChip: {
+    width: 28,
+    height: 28,
+    borderRadius: 9,
+    backgroundColor: KINETIC.surface1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  backActionText: {
-    color: KINETIC.primary,
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  pageHeader: { marginBottom: 24, marginTop: 4, paddingHorizontal: 4 },
-  tagBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: KINETIC.primaryDim,
-    borderWidth: 1,
-    borderColor: KINETIC.primarySoft,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 20,
+  backLabel: { color: KINETIC.textDim, fontSize: 13, fontWeight: '600' },
+
+  // ─── DETAIL: bloco de título ───
+  detailScrollView: { flex: 1 },
+  detailScroll: { paddingBottom: 20 },
+  titleBlock: { paddingHorizontal: 20, paddingTop: 4, paddingBottom: 6 },
+  dayBadgeStart: { alignSelf: 'flex-start', marginBottom: 12 },
+  detailTitle: {
+    fontSize: 32,
+    fontStyle: 'italic',
+    fontWeight: '900',
+    letterSpacing: -1,
+    lineHeight: 34,
+    color: KINETIC.text,
     marginBottom: 12,
   },
-  tagBadgeText: { color: KINETIC.primary, fontSize: 11, fontWeight: 'bold', letterSpacing: 1.5 },
-  pageTitle: { fontSize: 34, fontStyle: 'italic', fontWeight: '900', lineHeight: 38, marginBottom: 4, color: KINETIC.text },
-  pageSubtitle: { color: KINETIC.textDim, fontSize: 13, fontWeight: 'bold', letterSpacing: 1, marginBottom: 8 },
-  exerciseCount: { color: KINETIC.textMuted, fontSize: 12 },
-  exerciseCard: {
-    marginBottom: 14,
-    borderRadius: 16,
-    padding: 18,
-    backgroundColor: KINETIC.surface1,
-    borderLeftWidth: 2,
-    borderLeftColor: KINETIC.primary,
+  infoBox: {
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: KINETIC.ghost,
+    marginBottom: 12,
   },
-  cardHeader: {
+  infoLine: { flexDirection: 'row', alignItems: 'flex-start', gap: 7 },
+  infoText: { flex: 1, fontSize: 11.5, color: KINETIC.textMuted, lineHeight: 16 },
+  metaText: { fontSize: 12.5, color: KINETIC.textDim, fontWeight: '500' },
+  metaStrong: { fontWeight: '700' },
+
+  // ─── DETAIL: seções ───
+  sectionHeader: {
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    paddingBottom: 8,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    color: KINETIC.textMuted,
+  },
+  sectionBody: { gap: 10, paddingHorizontal: 16 },
+
+  // ─── DETAIL: card de exercício ───
+  exCard: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16,
+    backgroundColor: KINETIC.surface1,
+    borderRadius: 18,
+    overflow: 'hidden',
   },
-  exerciseName: {
-    fontSize: 17,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: KINETIC.text,
+  exStripe: { width: 3 },
+  exBody: { flex: 1, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 15 },
+  exName: { fontSize: 16.5, fontWeight: '700', color: KINETIC.text, lineHeight: 21, marginBottom: 10 },
+  exChipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 14 },
+  exMuscleChip: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999, borderWidth: 1 },
+  exMuscleChipText: { fontSize: 10, fontWeight: '700', letterSpacing: 0.3 },
+  exTypeChip: {
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: KINETIC.ghostHi,
   },
-  badgesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  badgeText: { fontSize: 10, fontWeight: 'bold' },
-  badgeGhost: { backgroundColor: KINETIC.surface2 },
-  badgeTextGhost: { color: KINETIC.textDim, fontSize: 10, fontWeight: 'bold' },
-  gridRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  gridCol: { alignItems: 'flex-start', flex: 1 },
-  gridLabel: { color: KINETIC.textMuted, fontSize: 9, fontWeight: 'bold', marginBottom: 6, letterSpacing: 0.5 },
-  gridValue: { fontSize: 15, fontWeight: 'bold', color: KINETIC.text },
-  footerActions: { marginTop: 24 },
+  exTypeChipText: { fontSize: 10, fontWeight: '600', color: KINETIC.textMuted },
+  exGrid: { flexDirection: 'row', gap: 10 },
+  exGridCol: { flex: 1 },
+  exGridLabel: { fontSize: 9.5, fontWeight: '700', letterSpacing: 0.6, color: KINETIC.textMuted, marginBottom: 4 },
+  exGridValue: { fontSize: 13.5, fontWeight: '700', color: KINETIC.text, lineHeight: 18 },
+
+  // ─── DETAIL: CTA fixo (barra em fluxo, ancorada abaixo do ScrollView) ───
+  ctaBar: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 12,
+    backgroundColor: KINETIC.bg,
+    borderTopWidth: 1,
+    borderTopColor: KINETIC.ghost,
+  },
 });

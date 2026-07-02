@@ -207,6 +207,8 @@ public class GeminiService {
             - Volume Total: Gere rigorosamente de 6 a 8 exercícios por sessão para manter o treino eficiente e com duração adequada.
             - Distribuição: Grupos musculares maiores (PEITO, COSTAS, QUADRICEPS, POSTERIOR) podem receber de 2 a 4 exercícios. Grupos menores (BICEPS, TRICEPS, PANTURRILHA, ANTEBRACO) devem receber no máximo 1 a 2 exercícios, considerando o estímulo indireto já recebido nos exercícios compostos.
 
+            REGRA DE SEÇÃO (OBRIGATÓRIO): Classifique CADA exercício no campo 'section' usando EXATAMENTE um destes valores: "AQUECIMENTO" (mobilidade, ativação e aquecimento no início da sessão), "PRINCIPAL" (exercícios centrais de força/hipertrofia) ou "FINALIZACAO" (cardio de recuperação/zona 2, alongamento ou finalização no fim da sessão). Cada ficha DEVE começar com 1 a 2 exercícios "AQUECIMENTO" e usar "FINALIZACAO" apenas quando houver um exercício de encerramento; os demais são "PRINCIPAL". Nunca deixe o campo vazio.
+
             REGRA DE DESCANSO: Para hipertrofia, sugira descanso entre 90-180s. Para perda de gordura, sugira descanso entre 60-90s. Para performance/força, sugira descanso entre 2-5 minutos. Adapte de acordo com o objetivo principal.
 
             REGRA DE DURAÇÃO ESTIMADA: Para CADA treino, calcule a duração total média em minutos para concluir a sessão, considerando o número de séries, repetições e os tempos de descanso de TODOS os exercícios (incluindo o aquecimento). Retorne esse valor inteiro no campo 'estimatedDurationMinutes' de cada objeto de treino. O valor deve ficar entre 30 e 90 minutos, coerente com 6 a 8 exercícios por sessão.
@@ -230,7 +232,8 @@ public class GeminiService {
                     "sets": 2,
                     "reps": "10 cada lado",
                     "weight": "Sem carga (RPE 3)",
-                    "restTime": "30s"
+                    "restTime": "30s",
+                    "section": "AQUECIMENTO"
                 }
                 ]
             }

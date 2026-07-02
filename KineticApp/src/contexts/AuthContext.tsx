@@ -50,6 +50,7 @@ export interface WorkoutPlanItem {
   tag?: string | null;
   level?: string | null;
   estimatedDurationMinutes?: number | null;
+  estimatedTotalVolumeKg?: number | null;
   lastCompletedAt?: string | null;
   createdAt?: string | null;
   data: unknown[];
