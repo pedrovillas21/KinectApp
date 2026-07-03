@@ -176,7 +176,19 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
     }
   };
 
-  const handleExitSession = () => {
+  // Saída deliberada da tela: marca a flag para o beforeRemove não interceptar de novo.
+  // Se a saída veio de um voltar bloqueado (gesto/botão do Android), redespacha a ação original.
+  const allowLeaveRef = useRef(false);
+  const leaveScreen = (pendingAction?: any) => {
+    allowLeaveRef.current = true;
+    if (pendingAction) {
+      navigation.dispatch(pendingAction);
+    } else {
+      navigation.goBack();
+    }
+  };
+
+  const handleExitSession = (pendingAction?: any) => {
     Alert.alert(
       'Tem a certeza que deseja sair?',
       'O seu treino será encerrado. Apenas as séries marcadas como concluídas serão guardadas no seu histórico.',
@@ -200,7 +212,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
             if (allLogs.length === 0) {
               // Sessão vazia: descarta sem poluir o banco
               if (timerRef.current) clearInterval(timerRef.current);
-              navigation.goBack();
+              leaveScreen(pendingAction);
               return;
             }
 
@@ -218,7 +230,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
               .then(() => {
                 markSaved();
                 Alert.alert('Treino Salvo', 'As séries concluídas foram guardadas.');
-                navigation.goBack();
+                leaveScreen(pendingAction);
               })
               .catch((error: unknown) => {
                 console.error('Erro ao salvar sessão parcial', error);
@@ -229,6 +241,23 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
       ]
     );
   };
+
+  // Intercepta QUALQUER tentativa de sair da tela (botão/gesto de voltar do Android,
+  // goBack programático) e força o fluxo de confirmação — sem isso o usuário sai
+  // arrastando pro lado e as séries concluídas nunca são salvas. O ref evita que o
+  // listener capture state desatualizado (séries, cronômetro) entre renders.
+  const exitHandlerRef = useRef(handleExitSession);
+  exitHandlerRef.current = handleExitSession;
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e: any) => {
+      // Saída já autorizada (pós-confirmação/salvamento) ou sessão sem exercícios: deixa passar.
+      if (allowLeaveRef.current || exercises.length === 0) return;
+      e.preventDefault();
+      exitHandlerRef.current(e.data.action);
+    });
+    return unsubscribe;
+  }, [navigation, exercises.length]);
 
   const finishWorkoutSession = async () => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -247,7 +276,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
     const finalLogs = [...globalSetsLog, ...mappedLogs];
 
     if (finalLogs.length === 0) {
-      navigation.goBack();
+      leaveScreen();
       return;
     }
 
@@ -262,7 +291,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
       await api.post('/sessions/log', payload);
       markSaved();
       Alert.alert('Parabéns!', 'Seu treino foi salvo com sucesso.');
-      navigation.goBack();
+      leaveScreen();
     } catch (error) {
       console.error('Erro ao salvar sessão', error);
       Alert.alert('Erro', 'Não foi possível salvar os dados do treino.');
@@ -289,7 +318,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
         <View style={styles.topRow}>
           <TouchableOpacity
             style={styles.exitBtn}
-            onPress={handleExitSession}
+            onPress={() => handleExitSession()}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <View style={styles.exitIconBox}>

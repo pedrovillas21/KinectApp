@@ -87,7 +87,14 @@ export default function AppRoutes(): React.ReactElement | null {
   return (
     <Stack.Navigator key="main-stack" screenOptions={{ headerShown: false }}>
       <Stack.Screen name="MainTabs" component={MainTabs} />
-      <Stack.Screen name="ActiveSession" component={ActiveSessionScreen} />
+      {/* gestureEnabled: false — no native-stack o swipe-back do iOS completa nativamente
+          antes do beforeRemove conseguir bloquear; sem isso o usuário sai da sessão
+          arrastando pro lado e pula a confirmação/salvamento parcial do treino. */}
+      <Stack.Screen
+        name="ActiveSession"
+        component={ActiveSessionScreen}
+        options={{ gestureEnabled: false }}
+      />
     </Stack.Navigator>
   );
 }
