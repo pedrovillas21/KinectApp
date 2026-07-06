@@ -34,6 +34,13 @@ function requiresWeight(weightLabel?: string): boolean {
   return /\d/.test(String(weightLabel ?? ''));
 }
 
+// Evita renderizar o literal "undefined" quando o campo vem ausente do plano (ex.:
+// exercício sem reps/restTime cadastrados).
+function withSuffix(value: unknown, suffix: string): string {
+  if (value === undefined || value === null || value === '') return '-';
+  return `${value} ${suffix}`;
+}
+
 // Pequeno relógio de referência para o cabeçalho (discreto, não compete com o fluxo).
 function ClockIcon() {
   return (
@@ -138,9 +145,11 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
     setSetsData(newSets);
   };
 
+  // Editar uma série anterior invalida a confirmação de todas as séries seguintes:
+  // o modelo sequencial assume que "confirmada" é sempre um prefixo contíguo, então
+  // deixar séries posteriores confirmadas com uma anterior reaberta quebraria essa invariante.
   const editSet = (index: number) => {
-    const newSets = [...setsData];
-    newSets[index].completed = false;
+    const newSets = setsData.map((s, i) => (i >= index ? { ...s, completed: false } : s));
     setSetsData(newSets);
   };
 
@@ -364,9 +373,9 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
             <SerieCard
               key={idx}
               setNumber={idx + 1}
-              targetReps={`${currentExercise.reps} reps`}
+              targetReps={withSuffix(currentExercise.reps, 'reps')}
               cargaLabel={currentExercise.weight}
-              restLabel={`${currentExercise.restTime} descanso`}
+              restLabel={withSuffix(currentExercise.restTime, 'descanso')}
               weightRequired={weightRequired}
               status={statusOf(idx)}
               weightValue={setObj.weight}

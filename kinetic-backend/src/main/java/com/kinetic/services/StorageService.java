@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -146,6 +147,8 @@ public class StorageService {
         } catch (RestClientResponseException e) {
             log.warn("Falha ao remover objeto '{}' do Storage ({}): {}",
                     key, e.getStatusCode(), e.getResponseBodyAsString());
+        } catch (RestClientException e) {
+            log.warn("Falha ao remover objeto '{}' do Storage: {}", key, e.getMessage());
         }
     }
 
@@ -180,6 +183,9 @@ public class StorageService {
             } catch (RestClientResponseException e) {
                 log.warn("Falha ao listar '{}'  (offset={}): {}", folder, offset,
                         e.getResponseBodyAsString());
+                break;
+            } catch (RestClientException e) {
+                log.warn("Falha ao listar '{}' (offset={}): {}", folder, offset, e.getMessage());
                 break;
             }
             if (page == null || page.isEmpty()) break;

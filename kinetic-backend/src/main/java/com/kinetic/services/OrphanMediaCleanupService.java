@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -33,13 +32,13 @@ public class OrphanMediaCleanupService {
 
     /**
      * Varre o bucket diariamente às 05:00 e apaga objetos sem linha correspondente
-     * em social_posts que já ultrapassaram o grace period. O @Transactional(readOnly=true)
-     * garante que falha na query do banco aborta o job antes de qualquer exclusão.
+     * em social_posts que já ultrapassaram o grace period. A leitura do banco é isolada
+     * em {@link #findAllImageUrls()}, que abre/fecha sua própria transação, para que a
+     * conexão JDBC não fique presa durante as chamadas HTTP (list/delete) ao Storage.
      */
     @Scheduled(cron = "0 0 5 * * *")
-    @Transactional(readOnly = true)
     public void cleanOrphanMedia() {
-        List<String> imageUrls = socialPostRepository.findAllImageUrls();
+        List<String> imageUrls = findAllImageUrls();
         Set<String> knownKeys = new HashSet<>();
         for (String url : imageUrls) {
             String key = storageService.keyFromPublicUrl(url);
@@ -76,5 +75,12 @@ public class OrphanMediaCleanupService {
         } else {
             log.info("OrphanMediaCleanupService: {} mídia(s) órfã(s) removida(s).", orphanCount);
         }
+    }
+
+    // Repositórios Spring Data JPA já abrem uma transação readOnly própria para cada
+    // método find*/get*, então isolar a chamada aqui é suficiente para que a conexão
+    // JDBC seja devolvida ao pool assim que a query termina, antes do loop de HTTP.
+    private List<String> findAllImageUrls() {
+        return socialPostRepository.findAllImageUrls();
     }
 }
