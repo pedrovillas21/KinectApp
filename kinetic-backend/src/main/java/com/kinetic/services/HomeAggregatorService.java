@@ -256,6 +256,9 @@ public class HomeAggregatorService {
     }
 
     /** Corta para o tamanho do card garantindo que a linha "Você" sempre apareça (com a posição real). */
+    // O "this" implícito de RankingEntryDTO::isCurrentUser não tem nulidade declarada pelo
+    // Predicate<T> do JDK, gerando aviso de unchecked conversion sem risco real de NPE.
+    @SuppressWarnings("null")
     private List<RankingEntryDTO> trimRankingForCard(List<RankingEntryDTO> entries) {
         if (entries.size() <= RANKING_CARD_SIZE) return entries;
         List<RankingEntryDTO> top = new ArrayList<>(entries.subList(0, RANKING_CARD_SIZE));

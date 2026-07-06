@@ -208,6 +208,10 @@ public class StatsService {
         return new VolumeSummaryDTO(byGroup, totalCurrent, totalDeltaPct);
     }
 
+    // Double::sum faz auto-unboxing para o BiFunction<Double,Double,Double> do Map.merge; os
+    // parâmetros boxed do JDK não têm nulidade declarada, gerando aviso sem risco real de NPE
+    // (o valor default 0.0 acima já garante que nunca chega null aqui).
+    @SuppressWarnings("null")
     private Map<String, Double> aggregateByCategory(Map<String, Double> volumeByMuscle) {
         Map<String, Double> result = new LinkedHashMap<>();
         volumeByMuscle.forEach((muscle, vol) -> {

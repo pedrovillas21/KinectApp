@@ -157,6 +157,10 @@ public class StorageService {
      * Restrito à whitelist {@code ALLOWED_FOLDERS}. Best-effort: erro de API retorna
      * o que foi coletado até o momento.
      */
+    // MediaType.APPLICATION_JSON e o Map.of(...) não têm nulidade declarada pelas classes do
+    // Spring/JDK, gerando aviso de unchecked conversion para os parâmetros @NonNull do
+    // RestClient sem risco real de NPE (ambos são constantes/literais nunca nulos).
+    @SuppressWarnings("null")
     public List<RemoteObject> list(String folder) {
         if (!ALLOWED_FOLDERS.contains(folder)) {
             throw new IllegalArgumentException("Pasta inválida: " + folder);
