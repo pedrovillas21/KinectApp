@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -42,6 +43,20 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
             GROUP BY ws.user.id
             """)
     List<Object[]> countSessionsPerUserBetween(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate")   LocalDate endDate
+    );
+
+    /** Soma de segundos treinados por usuário no intervalo — alimenta o Ranking da Arena da Home. */
+    @Query("""
+            SELECT ws.user.id, COALESCE(SUM(ws.durationInSeconds), 0)
+            FROM WorkoutSession ws
+            WHERE ws.user.id IN :userIds
+              AND ws.sessionDate BETWEEN :startDate AND :endDate
+            GROUP BY ws.user.id
+            """)
+    List<Object[]> sumDurationSecondsPerUserBetween(
+            @Param("userIds")   Collection<UUID> userIds,
             @Param("startDate") LocalDate startDate,
             @Param("endDate")   LocalDate endDate
     );

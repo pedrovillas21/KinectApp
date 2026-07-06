@@ -5,6 +5,7 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  KeyboardTypeOptions,
 } from 'react-native';
 import { ThemeContext } from '../contexts/ThemeContext';
 import { COLORS } from '../theme/colors';
@@ -18,6 +19,10 @@ interface Props {
   secureTextEntry?: boolean;
   isPassword?: boolean;
   icon?: ReactNode;
+  keyboardType?: KeyboardTypeOptions;
+  maxLength?: number;
+  autoCorrect?: boolean;
+  autoComplete?: React.ComponentProps<typeof TextInput>['autoComplete'];
 }
 
 export default function CustomInput({
@@ -28,6 +33,10 @@ export default function CustomInput({
   secureTextEntry,
   isPassword,
   icon,
+  keyboardType,
+  maxLength,
+  autoCorrect,
+  autoComplete,
 }: Props) {
   const { isDarkMode } = useContext(ThemeContext);
   const [isPasswordHidden, setIsPasswordHidden] = useState(true);
@@ -60,6 +69,10 @@ export default function CustomInput({
           value={value}
           onChangeText={onChangeText}
           secureTextEntry={isPassword ? isPasswordHidden : secureTextEntry}
+          keyboardType={keyboardType}
+          maxLength={maxLength}
+          autoCorrect={autoCorrect}
+          autoComplete={autoComplete}
         />
         {isPassword && (
           <TouchableOpacity

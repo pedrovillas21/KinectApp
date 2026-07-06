@@ -33,6 +33,11 @@ public class WorkoutPlan {
     @Column(nullable = false)
     private String level;
 
+    // Duracao media estimada pela IA (Gemini) para concluir a ficha, em minutos.
+    // Nullable: fichas antigas ficam null e caem no fallback heuristico no DTO.
+    @Column(name = "estimated_duration_minutes")
+    private Integer estimatedDurationMinutes;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 

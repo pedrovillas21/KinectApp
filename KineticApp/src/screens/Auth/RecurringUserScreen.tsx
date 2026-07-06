@@ -162,6 +162,20 @@ export default function RecurringUserScreen({ navigation }: Props) {
   useEffect(() => {
     (async () => {
       const level = await LocalAuthentication.getEnrolledLevelAsync();
+
+      // ─── DIAGNÓSTICO Face ID (remover depois) ──────────────────────────────
+      const hasHardware = await LocalAuthentication.hasHardwareAsync();
+      const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+      const supportedTypes = await LocalAuthentication.supportedAuthenticationTypesAsync();
+      console.log('[FaceID diag]', {
+        level, // 0 = NONE, 1 = SECRET (PIN/senha), 2 = BIOMETRIC
+        hasHardware, // false = device/OS sem sensor detectado
+        isEnrolled, // false = nada cadastrado no sistema
+        supportedTypes, // [1]=digital, [2]=Face, [3]=íris
+        SecurityLevel: LocalAuthentication.SecurityLevel,
+      });
+      // ───────────────────────────────────────────────────────────────────────
+
       if (level === LocalAuthentication.SecurityLevel.NONE) {
         setSecurity('none');
       } else if (level === LocalAuthentication.SecurityLevel.SECRET) {

@@ -39,6 +39,10 @@ public class Exercise {
     @Column(name = "rest_time")
     private String restTime;
 
+    // Secao logica dentro da ficha: AQUECIMENTO | PRINCIPAL | FINALIZACAO.
+    // Classificada pela IA na geracao. Nullable para fichas antigas (fallback no front).
+    private String section;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "workout_plan_id", nullable = false)
     @JsonIgnore

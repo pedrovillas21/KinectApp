@@ -1,11 +1,12 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Circle, Polyline } from 'react-native-svg';
 import { ThemeContext } from '../contexts/ThemeContext';
-import { COLORS } from '../theme/colors';
+import { KINETIC } from '../theme/kinetic';
 import Icon from '../components/Icon';
-import SerieCard from '../components/SerieCard';
-import AppHeader from '../components/AppHeader';
+import SerieCard, { SerieStatus } from '../components/SerieCard';
 import { SetLogDto, LogSessionRequestDTO } from '../types';
 import api from '../services/api';
 import useWorkoutPresence from '../hooks/useWorkoutPresence';
@@ -27,11 +28,39 @@ function localDateString(d: Date = new Date()): string {
   return `${year}-${month}-${day}`;
 }
 
+// Um exercício exige peso quando o rótulo de carga tem valor numérico (ex.: "40 kg").
+// Rótulos como "Sem carga" / "Peso corporal" não têm dígitos → campo opcional.
+function requiresWeight(weightLabel?: string): boolean {
+  return /\d/.test(String(weightLabel ?? ''));
+}
+
+// Evita renderizar o literal "undefined" quando o campo vem ausente do plano (ex.:
+// exercício sem reps/restTime cadastrados).
+function withSuffix(value: unknown, suffix: string): string {
+  if (value === undefined || value === null || value === '') return '-';
+  return `${value} ${suffix}`;
+}
+
+// Pequeno relógio de referência para o cabeçalho (discreto, não compete com o fluxo).
+function ClockIcon() {
+  return (
+    <Svg width={11} height={11} viewBox="0 0 24 24">
+      <Circle cx={12} cy={12} r={10} fill="none" stroke={KINETIC.textMuted} strokeWidth={2} />
+      <Polyline
+        points="12 6 12 12 16 14"
+        fill="none"
+        stroke={KINETIC.textMuted}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 export default function ActiveSessionScreen({ navigation, route }: any) {
   useContext(ThemeContext);
   const { markSaved } = useWorkoutPresence();
-
-  const bgColor = '#121212';
 
   const workoutData = route?.params?.workoutData;
   const workoutPlanId: string | undefined = route?.params?.workoutPlanId;
@@ -62,6 +91,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const currentExercise = exercises[currentIndex];
   const numSets = parseInt(currentExercise?.sets, 10) || 3;
+  const weightRequired = requiresWeight(currentExercise?.weight);
 
   const [setsData, setSetsData] = useState<SetData[]>([]);
 
@@ -74,42 +104,52 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
     setSetsData(initialSets);
   }, [currentIndex, numSets]);
 
-  const activeSetIndex = setsData.findIndex(s => !s.completed);
-  const currentActiveSet = activeSetIndex === -1 ? numSets - 1 : activeSetIndex;
+  // Fluxo sequencial: a primeira série não confirmada é a "atual"; as posteriores
+  // ficam bloqueadas até a anterior ser confirmada.
+  const firstPending = setsData.findIndex(s => !s.completed);
+  const allConfirmed = setsData.length > 0 && firstPending === -1;
+  const confirmedCount = setsData.filter(s => s.completed).length;
 
-  const updateSet = (index: number, field: keyof SetData, value: string | boolean) => {
+  const statusOf = (i: number): SerieStatus => {
+    if (setsData[i].completed) return 'confirmada';
+    if (i === firstPending) return 'atual';
+    return 'locked';
+  };
+
+  const updateSet = (index: number, field: 'weight' | 'reps', value: string) => {
     const newSets = [...setsData];
-    (newSets[index][field] as any) = value;
+    newSets[index][field] = value;
     setSetsData(newSets);
   };
 
-  const toggleSetComplete = (index: number) => {
+  const confirmSet = (index: number) => {
     const set = setsData[index];
-
-    // Se já está completa, permite desmarcar
-    if (set.completed) {
-      const newSets = [...setsData];
-      newSets[index].completed = false;
-      setSetsData(newSets);
-      return;
-    }
 
     // Validação Fail Fast
     const numericReps = parseInt(set.reps, 10);
-    const numericWeight = parseFloat(set.weight.replace(',', '.'));
-
     if (isNaN(numericReps) || numericReps < 1) {
       Alert.alert('Série Incompleta', 'Insira pelo menos 1 repetição.');
       return;
     }
 
-    if (isNaN(numericWeight) || numericWeight < 0) {
-      Alert.alert('Peso Inválido', 'O peso não pode ser negativo. Use 0 para peso do corpo.');
-      return;
+    if (weightRequired) {
+      const numericWeight = parseFloat(set.weight.replace(',', '.'));
+      if (isNaN(numericWeight) || numericWeight < 0) {
+        Alert.alert('Peso Inválido', 'O peso não pode ser negativo. Use 0 para peso do corpo.');
+        return;
+      }
     }
 
     const newSets = [...setsData];
     newSets[index].completed = true;
+    setSetsData(newSets);
+  };
+
+  // Editar uma série anterior invalida a confirmação de todas as séries seguintes:
+  // o modelo sequencial assume que "confirmada" é sempre um prefixo contíguo, então
+  // deixar séries posteriores confirmadas com uma anterior reaberta quebraria essa invariante.
+  const editSet = (index: number) => {
+    const newSets = setsData.map((s, i) => (i >= index ? { ...s, completed: false } : s));
     setSetsData(newSets);
   };
 
@@ -133,21 +173,8 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
   const isLastExercise = currentIndex === exercises.length - 1;
 
   const handleNextAction = () => {
-    const hasAnyCompleted = setsData.some(s => s.completed);
-
-    if (isLastExercise) {
-      // Último exercício: verificar se há algo para enviar (este ex. ou anteriores)
-      if (!hasAnyCompleted && globalSetsLog.length === 0) {
-        Alert.alert('Treino Vazio', 'Marque pelo menos uma série como concluída antes de finalizar o treino.');
-        return;
-      }
-    } else {
-      // Exercício intermediário: exige pelo menos 1 série marcada para avançar
-      if (!hasAnyCompleted) {
-        Alert.alert('Treino Incompleto', 'Complete e marque (✓) pelo menos uma série deste exercício para avançar.');
-        return;
-      }
-    }
+    // O CTA só fica ativo com todas as séries confirmadas; guarda por segurança.
+    if (!allConfirmed) return;
 
     accumulateCurrentExerciseSets();
 
@@ -158,7 +185,19 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
     }
   };
 
-  const handleExitSession = () => {
+  // Saída deliberada da tela: marca a flag para o beforeRemove não interceptar de novo.
+  // Se a saída veio de um voltar bloqueado (gesto/botão do Android), redespacha a ação original.
+  const allowLeaveRef = useRef(false);
+  const leaveScreen = (pendingAction?: any) => {
+    allowLeaveRef.current = true;
+    if (pendingAction) {
+      navigation.dispatch(pendingAction);
+    } else {
+      navigation.goBack();
+    }
+  };
+
+  const handleExitSession = (pendingAction?: any) => {
     Alert.alert(
       'Tem a certeza que deseja sair?',
       'O seu treino será encerrado. Apenas as séries marcadas como concluídas serão guardadas no seu histórico.',
@@ -182,7 +221,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
             if (allLogs.length === 0) {
               // Sessão vazia: descarta sem poluir o banco
               if (timerRef.current) clearInterval(timerRef.current);
-              navigation.goBack();
+              leaveScreen(pendingAction);
               return;
             }
 
@@ -200,7 +239,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
               .then(() => {
                 markSaved();
                 Alert.alert('Treino Salvo', 'As séries concluídas foram guardadas.');
-                navigation.goBack();
+                leaveScreen(pendingAction);
               })
               .catch((error: unknown) => {
                 console.error('Erro ao salvar sessão parcial', error);
@@ -212,10 +251,27 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
     );
   };
 
+  // Intercepta QUALQUER tentativa de sair da tela (botão/gesto de voltar do Android,
+  // goBack programático) e força o fluxo de confirmação — sem isso o usuário sai
+  // arrastando pro lado e as séries concluídas nunca são salvas. O ref evita que o
+  // listener capture state desatualizado (séries, cronômetro) entre renders.
+  const exitHandlerRef = useRef(handleExitSession);
+  exitHandlerRef.current = handleExitSession;
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e: any) => {
+      // Saída já autorizada (pós-confirmação/salvamento) ou sessão sem exercícios: deixa passar.
+      if (allowLeaveRef.current || exercises.length === 0) return;
+      e.preventDefault();
+      exitHandlerRef.current(e.data.action);
+    });
+    return unsubscribe;
+  }, [navigation, exercises.length]);
+
   const finishWorkoutSession = async () => {
     if (timerRef.current) clearInterval(timerRef.current);
 
-    // O globalSetsLog já contém os exercícios anteriores. 
+    // O globalSetsLog já contém os exercícios anteriores.
     // Como accumulateCurrentExerciseSets pode não ter refletido no state imediato devido ao batching,
     // vamos pegar os dados da tela atual também para garantir:
     const completedSets = setsData.filter(s => s.completed);
@@ -229,7 +285,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
     const finalLogs = [...globalSetsLog, ...mappedLogs];
 
     if (finalLogs.length === 0) {
-      navigation.goBack();
+      leaveScreen();
       return;
     }
 
@@ -244,7 +300,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
       await api.post('/sessions/log', payload);
       markSaved();
       Alert.alert('Parabéns!', 'Seu treino foi salvo com sucesso.');
-      navigation.goBack();
+      leaveScreen();
     } catch (error) {
       console.error('Erro ao salvar sessão', error);
       Alert.alert('Erro', 'Não foi possível salvar os dados do treino.');
@@ -253,8 +309,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
 
   if (!currentExercise) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]}>
-        <AppHeader />
+      <SafeAreaView style={styles.container}>
         <View style={styles.emptyState}>
           <Text style={styles.emptyTitle}>Nenhum exercicio encontrado</Text>
           <TouchableOpacity style={styles.emptyButton} onPress={() => navigation.goBack()}>
@@ -266,148 +321,201 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]}>
-      <AppHeader />
+    <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Barra superior: sair (esq.) · tempo discreto (dir.) · progresso do exercício */}
+      <View style={styles.topBar}>
+        <View style={styles.topRow}>
+          <TouchableOpacity
+            style={styles.exitBtn}
+            onPress={() => handleExitSession()}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <View style={styles.exitIconBox}>
+              <Icon name="arrow-left" size={15} color={KINETIC.text} strokeWidth={2.4} />
+            </View>
+            <Text style={styles.exitText}>Sair da sessão</Text>
+          </TouchableOpacity>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        
-        <View style={styles.timerSection}>
-          <Text style={styles.elapsedLabel}>ELAPSED TIME</Text>
-          <Text style={styles.timeValue}>{formatTime(elapsedTime)}</Text>
-          <View style={styles.progressBadge}>
-            <Text style={styles.progressBadgeText}>⤡ {currentIndex + 1}/{exercises.length} Exercícios</Text>
+          <View style={styles.timerBadge}>
+            <ClockIcon />
+            <Text style={styles.timerText}>{formatTime(elapsedTime)}</Text>
           </View>
         </View>
 
+        <Text style={styles.progressLabel}>
+          Exercício {currentIndex + 1} de {exercises.length}
+        </Text>
+        <View style={styles.progressTrack}>
+          <LinearGradient
+            colors={[KINETIC.primary, '#00bcd4']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={[
+              styles.progressFill,
+              { width: `${((currentIndex + 1) / exercises.length) * 100}%` },
+            ]}
+          />
+        </View>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.exerciseHeader}>
           <Text style={styles.exerciseTitle}>{currentExercise.name.toUpperCase()}</Text>
-          <Text style={styles.exerciseFocus}>Focus: {currentExercise.muscles}</Text>
+          {!!currentExercise.muscles && (
+            <View style={styles.focusChip}>
+              <Text style={styles.focusChipText}>Foco: {currentExercise.muscles}</Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.setsContainer}>
           {setsData.map((setObj, idx) => (
-            <SerieCard 
+            <SerieCard
               key={idx}
               setNumber={idx + 1}
-              targetReps={currentExercise.reps + ' reps'}
-              targetWeight={currentExercise.weight}
-              restTime={currentExercise.restTime + ' rest'}
-              isActive={idx === currentActiveSet}
-              isCompleted={setObj.completed}
+              targetReps={withSuffix(currentExercise.reps, 'reps')}
+              cargaLabel={currentExercise.weight}
+              restLabel={withSuffix(currentExercise.restTime, 'descanso')}
+              weightRequired={weightRequired}
+              status={statusOf(idx)}
               weightValue={setObj.weight}
               repsValue={setObj.reps}
               onWeightChange={(val: string) => updateSet(idx, 'weight', val)}
               onRepsChange={(val: string) => updateSet(idx, 'reps', val)}
-              onToggleComplete={() => toggleSetComplete(idx)}
+              onConfirm={() => confirmSet(idx)}
+              onEdit={() => editSet(idx)}
             />
           ))}
         </View>
-
       </ScrollView>
 
+      {/* CTA inferior: bloqueado até todas as séries serem confirmadas */}
       <View style={styles.footer}>
-        <TouchableOpacity 
-          style={[styles.primaryCta, isLastExercise && { backgroundColor: COLORS.neonBlue }]}
-          onPress={handleNextAction}
-        >
-          <View style={styles.primaryCtaContent}>
-            <Text style={styles.primaryCtaText}>
-              {isLastExercise ? 'FINALIZAR TREINO' : 'PRÓXIMO EXERCÍCIO'}
+        {!allConfirmed && (
+          <Text style={styles.footerHint}>
+            {confirmedCount} de {setsData.length} séries confirmadas
+          </Text>
+        )}
+        {allConfirmed ? (
+          <TouchableOpacity activeOpacity={0.85} onPress={handleNextAction}>
+            <LinearGradient
+              colors={[KINETIC.primary, '#00bcd4']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.primaryCta}
+            >
+              <Text style={[styles.primaryCtaText, { color: '#001f24' }]}>
+                {isLastExercise ? 'Finalizar treino' : 'Próximo exercício'}
+              </Text>
+              <Icon name="arrow-right" size={16} color="#001f24" strokeWidth={2.5} />
+            </LinearGradient>
+          </TouchableOpacity>
+        ) : (
+          <View style={[styles.primaryCta, styles.primaryCtaDisabled]}>
+            <Text style={[styles.primaryCtaText, { color: KINETIC.textMuted }]}>
+              {isLastExercise ? 'Finalizar treino' : 'Próximo exercício'}
             </Text>
-            {!isLastExercise && <Icon name="arrow-right" size={18} color="#000" strokeWidth={2.4} />}
+            <Icon name="arrow-right" size={16} color={KINETIC.textMuted} strokeWidth={2.5} />
           </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.secondaryCta} onPress={handleExitSession}>
-          <Text style={styles.secondaryCtaText}>Sair da Sessão</Text>
-        </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  scrollContent: { paddingHorizontal: 20, paddingBottom: 120 },
-  timerSection: {
-    alignItems: 'center',
-    marginVertical: 32,
-  },
-  elapsedLabel: {
-    color: '#CCC',
-    fontSize: 12,
-    fontWeight: 'bold',
-    letterSpacing: 2,
-    marginBottom: 4,
-  },
-  timeValue: {
-    color: COLORS.neonBlue,
-    fontSize: 56,
-    fontWeight: '900',
-    marginBottom: 16,
-  },
-  progressBadge: {
-    backgroundColor: '#1E1E1E',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  progressBadgeText: {
-    color: '#FFF',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  exerciseHeader: {
-    marginBottom: 24,
-  },
-  exerciseTitle: {
-    color: '#FFF',
-    fontSize: 28,
-    fontWeight: '900',
-    marginBottom: 6,
-  },
-  exerciseFocus: {
-    color: '#00E5FF',
-    fontSize: 14,
-  },
-  setsContainer: {
-    marginBottom: 20,
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 24,
-    backgroundColor: '#121212',
-  },
-  primaryCta: {
-    backgroundColor: COLORS.neonBlue,
-    height: 56,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  primaryCtaContent: {
+  container: { flex: 1, backgroundColor: KINETIC.bg },
+
+  topBar: { paddingHorizontal: 16, paddingTop: 4 },
+  topRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
+    marginBottom: 16,
   },
-  primaryCtaText: {
-    color: '#000',
-    fontSize: 16,
-    fontWeight: '900',
-    letterSpacing: 1,
-  },
-  secondaryCta: {
+  exitBtn: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  exitIconBox: {
+    width: 26,
+    height: 26,
+    borderRadius: 8,
+    backgroundColor: KINETIC.surface1,
     alignItems: 'center',
-    paddingBottom: 8,
+    justifyContent: 'center',
   },
-  secondaryCtaText: {
-    color: '#CCC',
-    fontSize: 14,
+  exitText: { color: KINETIC.textDim, fontSize: 12.5, fontWeight: '600' },
+  timerBadge: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  timerText: {
+    color: KINETIC.textMuted,
+    fontSize: 11.5,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
   },
+  progressLabel: {
+    color: KINETIC.textDim,
+    fontSize: 11.5,
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+  progressTrack: {
+    height: 4,
+    borderRadius: 999,
+    backgroundColor: KINETIC.ghost,
+    overflow: 'hidden',
+  },
+  progressFill: { height: '100%', borderRadius: 999 },
+
+  scrollContent: { paddingBottom: 150 },
+
+  exerciseHeader: { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 4 },
+  exerciseTitle: {
+    color: KINETIC.text,
+    fontSize: 21,
+    fontWeight: '800',
+    letterSpacing: -0.4,
+    lineHeight: 25,
+    marginBottom: 8,
+  },
+  focusChip: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 999,
+    backgroundColor: KINETIC.primaryDim,
+    borderWidth: 1,
+    borderColor: KINETIC.primarySoft,
+  },
+  focusChipText: { color: KINETIC.primary, fontSize: 11, fontWeight: '700' },
+
+  setsContainer: { paddingHorizontal: 16, paddingTop: 14 },
+
+  footer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 22,
+    backgroundColor: KINETIC.bg,
+  },
+  footerHint: {
+    textAlign: 'center',
+    color: KINETIC.textMuted,
+    fontSize: 11.5,
+    fontWeight: '600',
+    marginBottom: 9,
+  },
+  primaryCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 15,
+    borderRadius: 14,
+  },
+  primaryCtaDisabled: { backgroundColor: KINETIC.surface2 },
+  primaryCtaText: { fontSize: 15, fontWeight: '800', letterSpacing: 0.2 },
+
   emptyState: {
     flex: 1,
     alignItems: 'center',
@@ -415,21 +523,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   emptyTitle: {
-    color: '#FFF',
+    color: KINETIC.text,
     fontSize: 20,
     fontWeight: '900',
     marginBottom: 20,
     textAlign: 'center',
   },
   emptyButton: {
-    backgroundColor: COLORS.neonBlue,
+    backgroundColor: KINETIC.primary,
     borderRadius: 8,
     paddingHorizontal: 24,
     paddingVertical: 12,
   },
   emptyButtonText: {
-    color: '#000',
+    color: '#001f24',
     fontSize: 12,
     fontWeight: '900',
-  }
+  },
 });

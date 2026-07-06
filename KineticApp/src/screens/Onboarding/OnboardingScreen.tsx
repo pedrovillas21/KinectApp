@@ -255,6 +255,10 @@ function StepMetrics({ data, onChange, isDark }: StepMetricsProps) {
         secureTextEntry={false}
         isPassword={false}
         icon={null}
+        keyboardType="number-pad"
+        maxLength={10}
+        autoCorrect={false}
+        autoComplete="off"
       />
       {!!birthError && (
         <Text style={styles.fieldError}>{birthError}</Text>
@@ -267,6 +271,10 @@ function StepMetrics({ data, onChange, isDark }: StepMetricsProps) {
         secureTextEntry={false}
         isPassword={false}
         icon={null}
+        keyboardType="numeric"
+        maxLength={5}
+        autoCorrect={false}
+        autoComplete="off"
       />
       <CustomInput
         label="ALTURA (CM)"
@@ -276,6 +284,10 @@ function StepMetrics({ data, onChange, isDark }: StepMetricsProps) {
         secureTextEntry={false}
         isPassword={false}
         icon={null}
+        keyboardType="numeric"
+        maxLength={3}
+        autoCorrect={false}
+        autoComplete="off"
       />
     </>
   );

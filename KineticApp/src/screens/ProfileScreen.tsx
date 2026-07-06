@@ -472,7 +472,9 @@ function MetricsModal({ visible, form, onSave, onClose }: MetricsModalProps) {
     const m = cleaned.slice(2, 4);
     const y = cleaned.slice(4, 8);
     const iso = `${y}-${m}-${d}`;
-    const date = new Date(iso);
+    // Constrói a data em horário local para evitar o problema de UTC midnight
+    // que desloca o dia em fusos negativos (ex: Brasil UTC-3)
+    const date = new Date(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(d, 10));
     const rollover =
       date.getFullYear() !== parseInt(y, 10) ||
       date.getMonth() + 1 !== parseInt(m, 10) ||
@@ -506,6 +508,8 @@ function MetricsModal({ visible, form, onSave, onClose }: MetricsModalProps) {
             placeholderTextColor={KINETIC.textMuted}
             keyboardType="number-pad"
             maxLength={10}
+            autoCorrect={false}
+            autoComplete="off"
           />
           <Text style={s.inputLabel}>PESO (KG)</Text>
           <TextInput
@@ -937,7 +941,9 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         level,
         medicalConditions: medicalConditions?.trim() || 'Nenhuma',
       };
-      await api.post('/workouts/generate', payload, { timeout: 120000 });
+      // O backend tenta até N modelos com 120s de read timeout cada.
+      // 3 modelos × 120s + 60s de buffer = 420s. Mantemos 480s para folga.
+      await api.post('/workouts/generate', payload, { timeout: 480000 });
       Alert.alert('Pronto!', 'Seu treino foi regenerado com sucesso com base nos novos dados.');
       navigation.navigate('Home');
     } catch (e) {

@@ -193,7 +193,11 @@ public class GeminiService {
 
             REGRA DE ESTRUTURA OBRIGATÓRIA: O PRIMEIRO exercício da lista 'data' de CADA treino deve ser obrigatoriamente um exercício de MOBILIDADE ou AQUECIMENTO DINÂMICO focado na articulação principal do grupo muscular do dia (Ex: Rotação de manguito rotador para treino de Peito/Ombro; Mobilização de quadril para LEG DAY; Dislocação de ombro com bastão para PULL DAY). NUNCA inicie um treino diretamente com carga pesada. Este exercício de mobilidade conta como um dos 6-8 obrigatórios.
 
-            REGRA DE CARGA E INTENSIDADE: Ao sugerir peso no campo 'weight', priorize a indicação através de RPE (Percepção de Esforço, ex: RPE 7-8) ou RIR (Repetições na Reserva, ex: 2 RIR). Se sugerir um peso absoluto (kg), deixe claro que é apenas um 'Exemplo Ilustrativo', pois a força absoluta varia. Ex: "Halteres de 12kg (Exemplo — RPE 8)", "20kg de cada lado (2 RIR)". Evite usar apenas "Corpo" a menos que estritamente necessário (ex: Barra Fixa).
+            REGRA DE CARGA E INTENSIDADE: O campo 'weight' é OBRIGATÓRIO para TODOS os exercícios — nunca retorne null, vazio ou omita o campo. Siga as diretrizes abaixo para cada tipo:
+            - Exercícios compostos ou isolados com carga: indique um exemplo de peso absoluto seguido de RPE ou RIR. Ex: "Halteres de 14kg (RPE 8)", "Barra 60kg (2 RIR)", "40kg cada lado (RPE 7-8)".
+            - Exercícios de peso corporal: indique "Peso corporal (RPE X)" ou adicione variação de carga se aplicável. Ex: "Peso corporal (RPE 8)", "Colete 10kg (RPE 7)".
+            - Mobilidade e aquecimento sem carga: use "Sem carga (RPE 3-4)".
+            O valor de RPE deve ser coerente com o objetivo: hipertrofia (RPE 7-9), perda de gordura (RPE 6-8), performance (RPE 8-10). Nunca retorne apenas "Corpo" ou deixe o campo sem valor.
 
             REGRA DE MÚCULOS TRABALHADOS: Ao gerar o músculo correspondente ao exercício proposto, siga apenas com estes grupos definidos -> PEITO,OMBRO,TRICEPS,BICEPS,COSTAS,ANTEBRACO,QUADRICEPS,POSTERIOR,GLUTEOS,PANTURRILHA. Evite termos genéricos como "perna" ou "braço".
 
@@ -203,7 +207,11 @@ public class GeminiService {
             - Volume Total: Gere rigorosamente de 6 a 8 exercícios por sessão para manter o treino eficiente e com duração adequada.
             - Distribuição: Grupos musculares maiores (PEITO, COSTAS, QUADRICEPS, POSTERIOR) podem receber de 2 a 4 exercícios. Grupos menores (BICEPS, TRICEPS, PANTURRILHA, ANTEBRACO) devem receber no máximo 1 a 2 exercícios, considerando o estímulo indireto já recebido nos exercícios compostos.
 
+            REGRA DE SEÇÃO (OBRIGATÓRIO): Classifique CADA exercício no campo 'section' usando EXATAMENTE um destes valores: "AQUECIMENTO" (mobilidade, ativação e aquecimento no início da sessão), "PRINCIPAL" (exercícios centrais de força/hipertrofia) ou "FINALIZACAO" (cardio de recuperação/zona 2, alongamento ou finalização no fim da sessão). Cada ficha DEVE começar com 1 a 2 exercícios "AQUECIMENTO" e usar "FINALIZACAO" apenas quando houver um exercício de encerramento; os demais são "PRINCIPAL". Nunca deixe o campo vazio.
+
             REGRA DE DESCANSO: Para hipertrofia, sugira descanso entre 90-180s. Para perda de gordura, sugira descanso entre 60-90s. Para performance/força, sugira descanso entre 2-5 minutos. Adapte de acordo com o objetivo principal.
+
+            REGRA DE DURAÇÃO ESTIMADA: Para CADA treino, calcule a duração total média em minutos para concluir a sessão, considerando o número de séries, repetições e os tempos de descanso de TODOS os exercícios (incluindo o aquecimento). Retorne esse valor inteiro no campo 'estimatedDurationMinutes' de cada objeto de treino. O valor deve ficar entre 30 e 90 minutos, coerente com 6 a 8 exercícios por sessão.
 
             NOTA ÉTICA OBRIGATÓRIA: No campo 'subtitle' de CADA treino, adicione ao final dos músculos trabalhados o aviso: ' · Sugestão IA — consulte um profissional.' Exemplo: 'PEITO / OMBRO / TRÍCEPS · Sugestão IA — consulte um profissional.'
 
@@ -215,6 +223,7 @@ public class GeminiService {
                 "title": "NOME DO TREINO (ex: PUSH DAY)",
                 "subtitle": "MÚSCULOS TRABALHADOS · Sugestão IA — consulte um profissional.",
                 "tag": "DIA A",
+                "estimatedDurationMinutes": 50,
                 "data": [
                 {
                     "name": "Nome do Exercício, ex: Rotação de Manguito Rotador (Aquecimento)",
@@ -223,7 +232,8 @@ public class GeminiService {
                     "sets": 2,
                     "reps": "10 cada lado",
                     "weight": "Sem carga (RPE 3)",
-                    "restTime": "30s"
+                    "restTime": "30s",
+                    "section": "AQUECIMENTO"
                 }
                 ]
             }
