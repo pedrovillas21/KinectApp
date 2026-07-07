@@ -43,6 +43,7 @@
 - `models/User.java` — `@Enumerated(EnumType.STRING) Role role` (default `ALUNO`) + `company_id` nullable.
 - `models/Company.java` *(novo)* — mínimo (id, nome, created_at) só para o FK existir; telas de empresa ficam para depois.
 - Migração SQL: coluna `role` com default `'ALUNO'` (backfill dos usuários atuais) + tabela `companies` + coluna `company_id` em `users`.
+- 🛡️ **Blindagem — índice em `role`:** a mesma migração cria `CREATE INDEX idx_users_role ON users(role)`. Consultas por papel (listar personais, agregados por role) crescem com a base — com o índice viram *Index Scan* e a API se mantém instantânea.
 
 **Segurança (habilita o `@PreAuthorize`)**
 - `security/JwtUtil.java` — incluir `role` nas claims do token.
@@ -61,8 +62,15 @@
 
 **Modelo**
 - `models/TrainerClient.java` *(novo)* — `id`, `trainer_id` (FK User), `student_id` (FK User), `status` (`PENDENTE`/`ATIVO`/`RECUSADO`/`ENCERRADO`), `source` (`INVITE`/`COMPANY`), `company_id?`, `created_at`, `responded_at`.
-- `repositories/TrainerClientRepository.java`.
+- `repositories/TrainerClientRepository.java` — a query que valida "aluno já tem personal?" filtra **explicitamente** por `status = 'ATIVO'` (ex.: `existsByStudentIdAndStatus(studentId, ATIVO)`); vínculos `PENDENTE`/`RECUSADO`/`ENCERRADO` não bloqueiam novo convite.
 - Migração SQL da tabela `trainer_clients`.
+- 🛡️ **Blindagem — concorrência de convites:** a validação na aplicação não basta sob corrida (dois personais convidando/aceitando ao mesmo tempo passam ambos pelo `exists` antes do commit). A migração adiciona um **índice único parcial** que faz o banco ser a última linha de defesa:
+  ```sql
+  CREATE UNIQUE INDEX uq_trainer_clients_one_active_per_student
+      ON trainer_clients (student_id)
+      WHERE status = 'ATIVO';
+  ```
+  O service trata a `DataIntegrityViolationException` do insert/update concorrente e responde 409 (aluno já possui personal ativo).
 
 **Endpoints**
 - `POST /api/trainer/invites` — personal convida aluno por e-mail (valida existência; bloqueia se aluno já tem personal ativo).
@@ -87,6 +95,7 @@
 **Tempo real (STOMP)**
 - Dependência `spring-boot-starter-websocket`.
 - `config/WebSocketConfig.java` — endpoint `/ws` com handshake autenticado por JWT.
+- 🛡️ **Blindagem — token no handshake:** navegadores (e vários clientes móveis) **não enviam header `Authorization` customizado** no handshake nativo do WebSocket. Não depender do header HTTP: o cliente manda o JWT no **header STOMP `CONNECT`** (`connectHeaders: { Authorization: 'Bearer …' }`) — com query param na URL como fallback — e um **`ChannelInterceptor`** (registrado em `configureClientInboundChannel`) intercepta o frame `CONNECT`, valida o token via `JwtUtil` e injeta o `Principal`/`Authentication` no contexto de segurança da sessão STOMP. Sem token válido, a conexão é rejeitada ali.
 - Envio via STOMP + fila por usuário (`/user/queue/chat`).
 - Reaproveitar `PresenceService`/`lastActive` para status "online".
 
