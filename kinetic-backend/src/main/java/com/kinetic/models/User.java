@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.lang.NonNull;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -73,4 +74,10 @@ public class User {
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    /** E-mail é NOT NULL/unique no schema; getter explícito só para expor essa garantia ao null-analysis. */
+    @SuppressWarnings("null")
+    public @NonNull String getEmail() {
+        return email;
+    }
 }

@@ -12,6 +12,7 @@ import com.kinetic.repositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,7 +80,7 @@ public class TrainerLinkService {
     }
 
     @Transactional
-    public TrainerLinkDTO accept(String studentEmail, UUID inviteId) {
+    public TrainerLinkDTO accept(String studentEmail, @NonNull UUID inviteId) {
         User student = userRepository.getByEmailOrThrow(studentEmail);
         TrainerClient link = getOwnedPendingInvite(student, inviteId);
 
@@ -98,7 +99,7 @@ public class TrainerLinkService {
     }
 
     @Transactional
-    public void decline(String studentEmail, UUID inviteId) {
+    public void decline(String studentEmail, @NonNull UUID inviteId) {
         User student = userRepository.getByEmailOrThrow(studentEmail);
         TrainerClient link = getOwnedPendingInvite(student, inviteId);
         link.setStatus(TrainerLinkStatus.RECUSADO);
@@ -126,7 +127,7 @@ public class TrainerLinkService {
     }
 
     /** Busca o convite garantindo posse (é do aluno logado) e estado PENDENTE. */
-    private TrainerClient getOwnedPendingInvite(User student, UUID inviteId) {
+    private TrainerClient getOwnedPendingInvite(User student, @NonNull UUID inviteId) {
         TrainerClient link = trainerClientRepository.findById(inviteId)
                 .orElseThrow(() -> new EntityNotFoundException("Convite não encontrado."));
         if (!link.getStudent().getId().equals(student.getId())) {

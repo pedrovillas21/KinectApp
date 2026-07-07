@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.WebSocketHandler;
@@ -35,9 +37,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private String allowedOrigins;
 
     @Override
-    public void registerStompEndpoints(StompEndpointRegistry registry) {
+    @SuppressWarnings("null")
+    public void registerStompEndpoints(@NonNull StompEndpointRegistry registry) {
         String[] origins = Arrays.stream(allowedOrigins.split(","))
-                .map(String::trim)
+                .map(s -> s.trim())
                 .filter(s -> !s.isEmpty())
                 .toArray(String[]::new);
 
@@ -47,14 +50,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     }
 
     @Override
-    public void configureMessageBroker(MessageBrokerRegistry registry) {
+    public void configureMessageBroker(@NonNull MessageBrokerRegistry registry) {
         registry.enableSimpleBroker("/queue");
         registry.setApplicationDestinationPrefixes("/app");
         registry.setUserDestinationPrefix("/user");
     }
 
     @Override
-    public void configureClientInboundChannel(ChannelRegistration registration) {
+    public void configureClientInboundChannel(@NonNull ChannelRegistration registration) {
         registration.interceptors(jwtChannelInterceptor);
     }
 
@@ -62,8 +65,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private HandshakeInterceptor tokenQueryParamInterceptor() {
         return new HandshakeInterceptor() {
             @Override
-            public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
-                                           WebSocketHandler wsHandler, Map<String, Object> attributes) {
+            public boolean beforeHandshake(@NonNull ServerHttpRequest request, @NonNull ServerHttpResponse response,
+                                           @NonNull WebSocketHandler wsHandler, @NonNull Map<String, Object> attributes) {
                 if (request instanceof ServletServerHttpRequest servletRequest) {
                     String token = servletRequest.getServletRequest().getParameter("token");
                     if (token != null && !token.isBlank()) {
@@ -74,8 +77,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             }
 
             @Override
-            public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response,
-                                       WebSocketHandler wsHandler, Exception exception) {
+            public void afterHandshake(@NonNull ServerHttpRequest request, @NonNull ServerHttpResponse response,
+                                       @NonNull WebSocketHandler wsHandler, @Nullable Exception exception) {
                 // nada a fazer
             }
         };

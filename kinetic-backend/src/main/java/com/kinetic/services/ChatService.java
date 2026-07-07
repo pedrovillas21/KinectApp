@@ -9,6 +9,7 @@ import com.kinetic.repositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.lang.NonNull;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -34,7 +35,7 @@ public class ChatService {
     private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional
-    public ChatMessageDTO sendMessage(String senderEmail, UUID recipientId, String content) {
+    public ChatMessageDTO sendMessage(String senderEmail, @NonNull UUID recipientId, String content) {
         User sender = userRepository.getByEmailOrThrow(senderEmail);
         User recipient = userRepository.findById(recipientId)
                 .orElseThrow(() -> new EntityNotFoundException("Destinatário não encontrado."));
@@ -84,7 +85,7 @@ public class ChatService {
         }
     }
 
-    private ChatMessageDTO toDto(ChatMessage m) {
+    private @NonNull ChatMessageDTO toDto(ChatMessage m) {
         return new ChatMessageDTO(
                 m.getId(),
                 m.getSender().getId(),

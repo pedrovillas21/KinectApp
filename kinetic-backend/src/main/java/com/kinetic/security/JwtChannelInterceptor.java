@@ -1,6 +1,7 @@
 package com.kinetic.security;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.lang.NonNull;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -29,7 +30,8 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
     private final CustomUserDetailsService customUserDetailsService;
 
     @Override
-    public Message<?> preSend(Message<?> message, MessageChannel channel) {
+    @SuppressWarnings("null")
+    public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
         if (accessor == null || !StompCommand.CONNECT.equals(accessor.getCommand())) {
             return message;

@@ -4,6 +4,7 @@ import com.kinetic.dtos.TrainerLinkDTO;
 import com.kinetic.services.TrainerLinkService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,12 +26,12 @@ public class StudentTrainerController extends BaseController {
     }
 
     @PostMapping("/invites/{id}/accept")
-    public ResponseEntity<TrainerLinkDTO> accept(@PathVariable UUID id) {
+    public ResponseEntity<TrainerLinkDTO> accept(@PathVariable @NonNull UUID id) {
         return ResponseEntity.ok(trainerLinkService.accept(currentUserEmail(), id));
     }
 
     @PostMapping("/invites/{id}/decline")
-    public ResponseEntity<Void> decline(@PathVariable UUID id) {
+    public ResponseEntity<Void> decline(@PathVariable @NonNull UUID id) {
         trainerLinkService.decline(currentUserEmail(), id);
         return ResponseEntity.noContent().build();
     }

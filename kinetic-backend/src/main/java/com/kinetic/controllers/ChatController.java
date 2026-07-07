@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,7 +36,7 @@ public class ChatController extends BaseController {
     }
 
     @PostMapping("/{peerId}/messages")
-    public ResponseEntity<ChatMessageDTO> send(@PathVariable UUID peerId,
+    public ResponseEntity<ChatMessageDTO> send(@PathVariable @NonNull UUID peerId,
                                                @Valid @RequestBody SendChatMessageDTO dto) {
         // O peer da URL é a fonte de verdade do destinatário no fluxo REST.
         return ResponseEntity.status(HttpStatus.CREATED)
