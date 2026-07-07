@@ -1,5 +1,6 @@
 package com.kinetic.models;
 
+import com.kinetic.enums.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -32,6 +33,13 @@ public class User {
     @com.fasterxml.jackson.annotation.JsonIgnore
     @Column(nullable = false)
     private String senha;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "VARCHAR(16) DEFAULT 'ALUNO'")
+    private Role role = Role.ALUNO;
+
+    @Column(name = "company_id")
+    private UUID companyId;
 
     @Column(nullable = true)
     private String level;

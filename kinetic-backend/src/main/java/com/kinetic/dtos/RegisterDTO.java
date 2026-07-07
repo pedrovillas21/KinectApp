@@ -17,4 +17,11 @@ public class RegisterDTO {
     @NotBlank(message = "Senha é obrigatória")
     @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*_=+-]).{8,20}$", message = "A senha deve ter entre 8 e 20 caracteres, contendo pelo menos uma letra maiúscula, uma minúscula e um caractere especial.")
     private String senha;
+
+    /**
+     * Opcional. Aceita apenas ALUNO (default) ou PERSONAL (auto-cadastro de
+     * personal autônomo). EMPRESA/ROOT jamais nascem por auto-cadastro.
+     */
+    @Pattern(regexp = "ALUNO|PERSONAL", message = "Papel inválido.")
+    private String role;
 }

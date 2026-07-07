@@ -21,6 +21,7 @@ import StatsScreen from '../screens/StatsScreen';
 import SocialScreen from '../screens/SocialScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ActiveSessionScreen from '../screens/ActiveSessionScreen';
+import TrainerChatScreen from '../screens/TrainerChatScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -95,6 +96,7 @@ export default function AppRoutes(): React.ReactElement | null {
         component={ActiveSessionScreen}
         options={{ gestureEnabled: false }}
       />
+      <Stack.Screen name="TrainerChat" component={TrainerChatScreen} />
     </Stack.Navigator>
   );
 }

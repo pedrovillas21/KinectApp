@@ -19,6 +19,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
 
+    @ExceptionHandler(ActiveTrainerConflictException.class)
+    public ResponseEntity<String> handleActiveTrainerConflict(ActiveTrainerConflictException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
+
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<String> handleNotFound(EntityNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());

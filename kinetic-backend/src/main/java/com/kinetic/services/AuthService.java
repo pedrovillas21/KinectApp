@@ -1,5 +1,6 @@
 package com.kinetic.services;
 
+import com.kinetic.enums.Role;
 import com.kinetic.models.User;
 import com.kinetic.repositories.UserRepository;
 import com.kinetic.dtos.RegisterDTO;
@@ -36,6 +37,9 @@ public class AuthService {
         user.setNome(dto.getNome());
         user.setEmail(dto.getEmail());
         user.setSenha(passwordEncoder.encode(dto.getSenha()));
+        // Auto-cadastro só produz ALUNO ou PERSONAL (whitelist no DTO);
+        // EMPRESA e ROOT nascem por outros caminhos (ROOT: seed no boot).
+        user.setRole("PERSONAL".equals(dto.getRole()) ? Role.PERSONAL : Role.ALUNO);
 
         return userRepository.save(user);
     }
@@ -52,7 +56,7 @@ public class AuthService {
         // insert diário) jamais deve impedir um login com credenciais válidas.
         recordDailyLoginSafely(user);
 
-        String token = jwtUtil.generateToken(user.getEmail());
+        String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
         String refreshToken = refreshTokenService.createForUser(user);
         return new AuthResponseDTO(
                 token,
