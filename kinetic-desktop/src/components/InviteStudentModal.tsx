@@ -1,20 +1,14 @@
-import { useState, type CSSProperties, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { inviteStudent } from '../services/trainerService';
-import { KINETIC } from '../theme/kinetic';
+import { X, Mail, AlertCircle, CheckCircle2 } from 'lucide-react';
 import type { TrainerLink } from '../types';
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  /** Chamado após o convite ser criado com sucesso (para feedback na lista). */
   onInvited: (link: TrainerLink) => void;
 }
 
-/**
- * Convite de aluno por e-mail (porta a lógica do fluxo de convite do mobile):
- * guard de duplo-clique + tratamento dos erros esperados do backend
- * (404 = aluno não cadastrado, 409 = já tem personal ativo/convite pendente).
- */
 export default function InviteStudentModal({ open, onClose, onInvited }: Props) {
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -68,114 +62,75 @@ export default function InviteStudentModal({ open, onClose, onInvited }: Props) 
   };
 
   return (
-    <div style={st.overlay} onClick={handleClose}>
-      <div style={st.sheet} onClick={(e) => e.stopPropagation()}>
-        <div style={st.header}>
-          <h2 style={st.title}>Convidar aluno</h2>
-          <button style={st.closeBtn} onClick={handleClose} aria-label="Fechar">
-            ✕
+    <div
+      onClick={handleClose}
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-[480px] bg-k-surface1 border border-k-ghost rounded-2xl p-6 shadow-2xl animate-scale-up"
+      >
+        {/* Modal Header */}
+        <div className="flex items-center justify-between pb-3 border-b border-k-ghost/40 mb-4">
+          <h2 className="text-base font-extrabold tracking-tight">Convidar Novo Aluno</h2>
+          <button
+            onClick={handleClose}
+            aria-label="Fechar"
+            className="w-8 h-8 rounded-xl bg-k-surface2 border border-k-ghost text-k-text-muted hover:text-white flex items-center justify-center transition-all cursor-pointer"
+          >
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        <p style={st.hint}>
-          Informe o e-mail da conta do aluno no app Kinetic. Ele receberá o
-          convite e precisa aceitá-lo para entrar na sua carteira.
+        {/* Modal Body */}
+        <p className="text-xs text-k-text-dim leading-relaxed mb-5">
+          Informe o e-mail cadastrado na conta do seu aluno no aplicativo mobile Kinetic. Ele receberá o convite na página inicial do app e, ao aceitar, o perfil dele aparecerá no seu painel.
         </p>
 
-        <form onSubmit={handleSubmit} style={st.form}>
-          <input
-            type="email"
-            placeholder="aluno@exemplo.com"
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              setError(null);
-              setSuccess(null);
-            }}
-            autoFocus
-            style={{ flex: 1 }}
-          />
+        {/* Invite Form */}
+        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1 flex items-center">
+            <span className="absolute left-3.5 text-k-text-muted">
+              <Mail className="w-4 h-4" />
+            </span>
+            <input
+              type="email"
+              placeholder="aluno@exemplo.com"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setError(null);
+                setSuccess(null);
+              }}
+              autoFocus
+              required
+              className="w-full pl-10 pr-4 py-2.5 bg-k-surface2/60 border border-k-ghost rounded-xl outline-none focus:border-k-primary focus:ring-1 focus:ring-k-primary/30 transition-all text-xs placeholder:text-k-text-muted"
+            />
+          </div>
           <button
             type="submit"
-            style={{ ...st.sendBtn, opacity: busy || !email.trim() ? 0.5 : 1 }}
             disabled={busy || !email.trim()}
+            className="py-2.5 px-5 bg-k-primary hover:bg-k-primary-deep text-k-on-primary font-bold text-xs rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer whitespace-nowrap"
           >
-            {busy ? 'Enviando…' : 'Convidar'}
+            {busy ? 'Enviando…' : 'Enviar Convite'}
           </button>
         </form>
 
+        {/* Success / Error Feedbacks */}
         {error && (
-          <div style={st.errorBox} role="alert">
-            {error}
+          <div className="flex gap-2.5 mt-4 p-3 rounded-xl bg-k-error/10 border border-k-error/30 text-k-error text-xs leading-normal">
+            <AlertCircle className="w-4.5 h-4.5 shrink-0 text-k-error" />
+            <span>{error}</span>
           </div>
         )}
-        {success && <div style={st.successBox}>{success}</div>}
+
+        {success && (
+          <div className="flex gap-2.5 mt-4 p-3 rounded-xl bg-k-success/10 border border-k-success/30 text-k-success text-xs leading-normal">
+            <CheckCircle2 className="w-4.5 h-4.5 shrink-0 text-k-success" />
+            <span>{success}</span>
+          </div>
+        )}
       </div>
     </div>
   );
 }
-
-const st: Record<string, CSSProperties> = {
-  overlay: {
-    position: 'fixed',
-    inset: 0,
-    background: 'rgba(0,0,0,0.6)',
-    backdropFilter: 'blur(4px)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 50,
-  },
-  sheet: {
-    width: 460,
-    maxWidth: 'calc(100vw - 48px)',
-    background: KINETIC.surface1,
-    border: `1px solid ${KINETIC.ghost}`,
-    borderRadius: 20,
-    padding: 24,
-  },
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-  },
-  title: { fontSize: 18, fontWeight: 800 },
-  closeBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    background: KINETIC.surface2,
-    color: KINETIC.textMuted,
-    fontSize: 14,
-  },
-  hint: { fontSize: 12.5, color: KINETIC.textDim, marginBottom: 16, lineHeight: 1.5 },
-  form: { display: 'flex', gap: 10 },
-  sendBtn: {
-    padding: '0 18px',
-    borderRadius: 12,
-    background: KINETIC.primary,
-    color: '#001a1f',
-    fontWeight: 800,
-  },
-  errorBox: {
-    marginTop: 12,
-    padding: '10px 12px',
-    borderRadius: 10,
-    background: 'rgba(255,68,68,0.10)',
-    border: '1px solid rgba(255,68,68,0.35)',
-    color: '#ff8a8a',
-    fontSize: 13,
-    lineHeight: 1.4,
-  },
-  successBox: {
-    marginTop: 12,
-    padding: '10px 12px',
-    borderRadius: 10,
-    background: 'rgba(74,222,128,0.10)',
-    border: '1px solid rgba(74,222,128,0.35)',
-    color: KINETIC.success,
-    fontSize: 13,
-    lineHeight: 1.4,
-  },
-};

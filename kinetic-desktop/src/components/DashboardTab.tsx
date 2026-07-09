@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import {
   Bar,
   BarChart,
@@ -15,7 +15,16 @@ import {
   getStudentPlanEvolution,
   getStudentStats,
 } from '../services/trainerService';
-import { KINETIC } from '../theme/kinetic';
+import {
+  Sparkles,
+  Award,
+  BarChart3,
+  Scale,
+  Calendar,
+  AlertCircle,
+  HelpCircle,
+  RefreshCw,
+} from 'lucide-react';
 import type {
   MetricDeltaDTO,
   PlanEvolutionResponseDTO,
@@ -35,13 +44,10 @@ const PERIODS: { id: StatsPeriodId; label: string }[] = [
   { id: 'year', label: 'Ano' },
 ];
 
-// Cor de marca dos gráficos: passo mais escuro do ciano Kinetic, validado
-// pela skill dataviz para a superfície #131313 (o #00E5FF puro fica acima da
-// banda de luminosidade para marcas em dark — reservado aos acentos de UI).
 const CHART = {
-  mark: '#00A5B8',
-  grid: '#262626',
-  tick: KINETIC.textMuted,
+  mark: '#00e5ff',
+  grid: 'rgba(255,255,255,0.06)',
+  tick: 'rgba(245, 246, 247, 0.36)',
 } as const;
 
 const nf = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
@@ -52,34 +58,45 @@ const formatShortDate = (iso: string): string => {
   return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
 };
 
-const tooltipStyle: CSSProperties = {
-  background: KINETIC.surface2,
-  border: `1px solid ${KINETIC.ghostHi}`,
-  borderRadius: 10,
-  fontSize: 12.5,
-  color: KINETIC.text,
+const tooltipStyle = {
+  background: '#1c1b1b',
+  border: '1px solid rgba(255,255,255,0.08)',
+  borderRadius: '12px',
+  fontSize: '12px',
+  color: '#f5f6f7',
+  padding: '8px 12px',
 };
 
-/** Placeholder padrão Kinetic para cards sem dados (aluno recém-vinculado). */
 function EmptyCard({ children }: { children: ReactNode }) {
-  return <div style={st.emptyCard}>{children}</div>;
+  return (
+    <div className="flex flex-col items-center justify-center text-center p-8 py-10 rounded-2xl bg-k-surface2/30 border border-dashed border-k-ghost text-k-text-muted text-xs leading-relaxed max-w-lg mx-auto gap-2">
+      <HelpCircle className="w-6 h-6 text-k-text-muted/60" />
+      <p>{children}</p>
+    </div>
+  );
 }
 
-/** Chip de variação: sinal + cor por direção×benefício (status, não série). */
 function DeltaChip({ delta, good, suffix }: { delta: number; good?: boolean | null; suffix: string }) {
   const sign = delta > 0 ? '+' : '';
-  const color =
-    delta === 0 || good == null
-      ? KINETIC.textDim
-      : good
-        ? KINETIC.success
-        : KINETIC.warn;
-  const arrow = delta === 0 ? '·' : delta > 0 ? '▲' : '▼';
+  const isZeroOrNull = delta === 0 || good == null;
+  const isPositive = delta > 0;
+  
   return (
-    <span style={{ ...st.deltaChip, color }}>
-      {arrow} {sign}
-      {nf.format(delta)}
-      {suffix}
+    <span
+      className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5 shrink-0 ${
+        isZeroOrNull
+          ? 'bg-k-surface2 text-k-text-dim border border-k-ghost'
+          : good
+            ? 'bg-k-success/10 text-k-success border border-k-success/20'
+            : 'bg-k-warn/10 text-k-warn border border-k-warn/20'
+      }`}
+    >
+      <span>{delta === 0 ? '·' : isPositive ? '▲' : '▼'}</span>
+      <span>
+        {sign}
+        {nf.format(delta)}
+        {suffix}
+      </span>
     </span>
   );
 }
@@ -89,20 +106,31 @@ function StatTile({
   value,
   detail,
   chip,
+  icon,
 }: {
   label: string;
   value: string;
   detail?: string;
   chip?: ReactNode;
+  icon: ReactNode;
 }) {
   return (
-    <div style={st.tile}>
-      <span style={st.tileLabel}>{label}</span>
-      <span style={st.tileValue}>{value}</span>
-      <span style={st.tileDetail}>
-        {detail}
-        {chip}
-      </span>
+    <div className="flex flex-col justify-between gap-4 p-5 rounded-2xl bg-k-surface1/60 border border-k-ghost hover:border-k-ghost-hi hover:bg-k-surface1 transition-all duration-300">
+      <div className="flex items-start justify-between">
+        <div className="flex flex-col gap-1">
+          <span className="text-[11px] font-bold text-k-text-muted uppercase tracking-wider">{label}</span>
+          <span className="text-2xl font-black tracking-tight text-white">{value}</span>
+        </div>
+        <div className="w-8 h-8 rounded-lg bg-k-surface2 border border-k-ghost flex items-center justify-center text-k-text-dim">
+          {icon}
+        </div>
+      </div>
+      {(detail || chip) && (
+        <div className="flex items-center gap-2 text-xs text-k-text-dim border-t border-k-ghost/40 pt-3 mt-1">
+          {chip}
+          <span className="truncate">{detail}</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -110,18 +138,19 @@ function StatTile({
 function MetricRow({ label, metric, unit }: { label: string; metric: MetricDeltaDTO | null; unit: string }) {
   if (!metric) return null;
   return (
-    <div style={st.metricRow}>
-      <span style={st.metricLabel}>{label}</span>
-      <span style={st.metricValues}>
-        {nf.format(metric.previous)} → <strong style={{ color: KINETIC.text }}>{nf.format(metric.current)}</strong>{' '}
-        {unit}
-      </span>
-      <DeltaChip delta={metric.delta} good={metric.good} suffix={unit === '%' ? '%' : ` ${unit}`} />
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 rounded-xl bg-k-surface2/30 border border-k-ghost/40">
+      <span className="text-xs font-bold text-k-text-dim">{label}</span>
+      <div className="flex items-center gap-3">
+        <span className="text-xs text-k-text-muted">
+          {nf.format(metric.previous)} → <strong className="text-white font-extrabold">{nf.format(metric.current)}</strong>{' '}
+          {unit}
+        </span>
+        <DeltaChip delta={metric.delta} good={metric.good} suffix={unit === '%' ? '%' : ` ${unit}`} />
+      </div>
     </div>
   );
 }
 
-/** Dashboard básico do aluno: stats do período + evolução do ciclo (Fase 3). */
 export default function DashboardTab({ studentId, studentFirstName }: Props) {
   const [period, setPeriod] = useState<StatsPeriodId>('month');
   const [stats, setStats] = useState<StatsSummaryResponseDTO | null>(null);
@@ -170,37 +199,56 @@ export default function DashboardTab({ studentId, studentFirstName }: Props) {
   const emptyMessage = `Nenhum treino registrado por ${studentFirstName} no período selecionado.`;
 
   return (
-    <div style={st.scroll}>
-      <div style={st.inner}>
-        {/* Filtros numa única linha acima dos gráficos */}
-        <div style={st.filterRow}>
-          {PERIODS.map((p) => (
-            <button
-              key={p.id}
-              style={{ ...st.periodBtn, ...(p.id === period ? st.periodBtnActive : {}) }}
-              onClick={() => setPeriod(p.id)}
-            >
-              {p.label}
-            </button>
-          ))}
+    <div className="flex-1 overflow-y-auto min-h-0 bg-k-bg">
+      <div className="max-w-5xl w-full mx-auto px-6 py-6 flex flex-col gap-6">
+        
+        {/* Period selection */}
+        <div className="flex items-center justify-between border-b border-k-ghost/40 pb-4">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-k-primary" />
+            <span className="text-xs font-bold text-k-text-dim uppercase tracking-wider">Período de Análise</span>
+          </div>
+          <div className="flex gap-1.5 bg-k-surface1 border border-k-ghost p-1 rounded-xl">
+            {PERIODS.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => setPeriod(p.id)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  p.id === period
+                    ? 'bg-k-primary-dim text-k-primary shadow-[inset_0_0_0_1px_rgba(0,229,255,0.15)]'
+                    : 'text-k-text-muted hover:text-k-text'
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {loading ? (
-          <p style={st.muted}>Carregando estatísticas…</p>
+          <div className="flex flex-col items-center justify-center py-20 gap-3 text-k-text-muted">
+            <RefreshCw className="w-8 h-8 animate-spin text-k-primary" />
+            <p className="text-sm font-medium">Processando métricas e treinos...</p>
+          </div>
         ) : error || !stats ? (
-          <EmptyCard>{error ?? 'Sem dados.'}</EmptyCard>
+          <div className="flex flex-col items-center justify-center py-16 px-4 bg-k-surface1 border border-k-ghost rounded-2xl gap-3">
+            <AlertCircle className="w-8 h-8 text-k-error" />
+            <p className="text-sm font-bold text-k-text">{error ?? 'Sem dados disponíveis.'}</p>
+          </div>
         ) : (
           <>
-            {/* Stat tiles */}
-            <div style={st.tilesRow}>
+            {/* Stat Tiles Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <StatTile
-                label="Aderência no período"
+                label="Aderência no ciclo"
                 value={`${stats.efficiencyPercentage}%`}
-                detail={`${stats.completedSessions} de ${stats.targetSessions} treinos`}
+                detail={`${stats.completedSessions} de ${stats.targetSessions} treinos planejados`}
+                icon={<Award className="w-4.5 h-4.5" />}
               />
               <StatTile
-                label="Volume total"
+                label="Tonelagem total"
                 value={`${nf.format(stats.volume.total)} kg`}
+                icon={<BarChart3 className="w-4.5 h-4.5" />}
                 chip={
                   stats.volume.total > 0 ? (
                     <DeltaChip
@@ -210,259 +258,195 @@ export default function DashboardTab({ studentId, studentFirstName }: Props) {
                     />
                   ) : undefined
                 }
+                detail="variação vs. período anterior"
               />
               <StatTile
-                label="Peso atual"
+                label="Peso corporal"
                 value={stats.weight.current > 0 ? formatKg(stats.weight.current) : '—'}
+                icon={<Scale className="w-4.5 h-4.5" />}
                 chip={
                   stats.weight.history.length > 1 ? (
                     <DeltaChip delta={stats.weight.delta} good={null} suffix=" kg" />
                   ) : undefined
                 }
+                detail={stats.weight.history.length > 1 ? "variação no período atual" : "única aferição registrada"}
               />
             </div>
 
-            {/* Insight do motor de regras */}
+            {/* Smart IA insight box */}
             {stats.insight?.body && (
-              <div style={st.insightCard}>
-                <span style={st.insightTag}>{stats.insight.tag}</span>
-                <p style={st.insightBody}>{stats.insight.body}</p>
+              <div className="flex items-start gap-4 p-4.5 rounded-2xl bg-k-primary-dim/40 border border-k-primary-soft shadow-[0_0_15px_rgba(0,229,255,0.03)]">
+                <div className="w-9 h-9 rounded-xl bg-k-primary/10 border border-k-primary-soft flex items-center justify-center text-k-primary shrink-0">
+                  <Sparkles className="w-4.5 h-4.5 animate-pulse" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-[10px] font-extrabold tracking-widest text-k-primary uppercase bg-k-primary-dim px-2.5 py-0.5 rounded-full border border-k-primary-soft">
+                    {stats.insight.tag}
+                  </span>
+                  <p className="text-xs text-k-text-dim mt-2 leading-relaxed font-medium">
+                    {stats.insight.body}
+                  </p>
+                </div>
               </div>
             )}
 
-            {/* Volume por grupo muscular */}
-            <section style={st.card}>
-              <h3 style={st.cardTitle}>Volume por grupo muscular</h3>
-              <p style={st.cardSub}>Tonelagem (kg) no período</p>
-              {volumeData.length === 0 || noWorkouts ? (
-                <EmptyCard>{emptyMessage}</EmptyCard>
-              ) : (
-                <ResponsiveContainer width="100%" height={Math.max(180, volumeData.length * 40 + 30)}>
-                  <BarChart data={volumeData} layout="vertical" margin={{ top: 4, right: 56, bottom: 0, left: 8 }}>
-                    <CartesianGrid horizontal={false} stroke={CHART.grid} strokeWidth={1} />
-                    <XAxis
-                      type="number"
-                      tick={{ fill: CHART.tick, fontSize: 11 }}
-                      axisLine={false}
-                      tickLine={false}
-                      tickFormatter={(v: number) => nf.format(v)}
-                    />
-                    <YAxis
-                      type="category"
-                      dataKey="name"
-                      width={110}
-                      tick={{ fill: KINETIC.textDim, fontSize: 12 }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <Tooltip
-                      cursor={{ fill: 'rgba(255,255,255,0.04)' }}
-                      contentStyle={tooltipStyle}
-                      formatter={(value) => [formatKg(Number(value)), 'Volume']}
-                    />
-                    <Bar dataKey="volume" fill={CHART.mark} barSize={18} radius={[0, 4, 4, 0]}>
-                      <LabelList
-                        dataKey="volume"
-                        position="right"
-                        formatter={(v: ReactNode) => nf.format(Number(v))}
-                        style={{ fill: KINETIC.textDim, fontSize: 11 }}
-                      />
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </section>
+            {/* Two Column Charts Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              
+              {/* Muscle group volume chart */}
+              <div className="p-5 rounded-2xl bg-k-surface1/60 border border-k-ghost flex flex-col">
+                <div className="mb-4">
+                  <h3 className="text-sm font-extrabold tracking-tight">Volume por Grupo Muscular</h3>
+                  <p className="text-xs text-k-text-muted mt-0.5">Distribuição de carga acumulada (kg)</p>
+                </div>
+                
+                <div className="flex-1 min-h-[220px]">
+                  {volumeData.length === 0 || noWorkouts ? (
+                    <div className="h-full flex items-center justify-center">
+                      <EmptyCard>{emptyMessage}</EmptyCard>
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={Math.max(220, volumeData.length * 40 + 20)}>
+                      <BarChart data={volumeData} layout="vertical" margin={{ top: 10, right: 30, bottom: 5, left: 0 }}>
+                        <CartesianGrid horizontal={false} stroke={CHART.grid} />
+                        <XAxis
+                          type="number"
+                          tick={{ fill: CHART.tick, fontSize: 10, fontWeight: 600 }}
+                          axisLine={false}
+                          tickLine={false}
+                          tickFormatter={(v: number) => nf.format(v)}
+                        />
+                        <YAxis
+                          type="category"
+                          dataKey="name"
+                          width={95}
+                          tick={{ fill: '#f5f6f7', fontSize: 11, fontWeight: 700 }}
+                          axisLine={false}
+                          tickLine={false}
+                        />
+                        <Tooltip
+                          cursor={{ fill: 'rgba(255,255,255,0.02)' }}
+                          contentStyle={tooltipStyle}
+                          formatter={(value) => [formatKg(Number(value)), 'Volume']}
+                        />
+                        <Bar dataKey="volume" fill={CHART.mark} barSize={16} radius={[0, 4, 4, 0]}>
+                          <LabelList
+                            dataKey="volume"
+                            position="right"
+                            formatter={(v: any) => nf.format(Number(v))}
+                            style={{ fill: 'rgba(245, 246, 247, 0.62)', fontSize: 10, fontWeight: 'bold' }}
+                          />
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </div>
 
-            {/* Evolução de peso */}
-            <section style={st.card}>
-              <h3 style={st.cardTitle}>Evolução de peso</h3>
-              <p style={st.cardSub}>
-                Registros no período{stats.weight.unit ? ` (${stats.weight.unit})` : ''}
-              </p>
-              {weightData.length < 2 ? (
-                <EmptyCard>
-                  {weightData.length === 1
-                    ? `Apenas um registro de peso de ${studentFirstName} no período — a linha aparece a partir do segundo.`
-                    : `Nenhum registro de peso de ${studentFirstName} no período selecionado.`}
-                </EmptyCard>
-              ) : (
-                <ResponsiveContainer width="100%" height={240}>
-                  <LineChart data={weightData} margin={{ top: 12, right: 24, bottom: 0, left: 0 }}>
-                    <CartesianGrid vertical={false} stroke={CHART.grid} strokeWidth={1} />
-                    <XAxis
-                      dataKey="date"
-                      tick={{ fill: CHART.tick, fontSize: 11 }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <YAxis
-                      domain={['auto', 'auto']}
-                      tick={{ fill: CHART.tick, fontSize: 11 }}
-                      axisLine={false}
-                      tickLine={false}
-                      tickFormatter={(v: number) => nf.format(v)}
-                      width={44}
-                    />
-                    <Tooltip
-                      contentStyle={tooltipStyle}
-                      formatter={(value) => [formatKg(Number(value)), 'Peso']}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="peso"
-                      stroke={CHART.mark}
-                      strokeWidth={2}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      // Anel de 2px na cor da superfície: o ponto segue legível cruzando a linha.
-                      dot={{ r: 4, fill: CHART.mark, stroke: KINETIC.bg, strokeWidth: 2 }}
-                      activeDot={{ r: 5, fill: CHART.mark, stroke: KINETIC.bg, strokeWidth: 2 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              )}
-            </section>
+              {/* Weight evolution chart */}
+              <div className="p-5 rounded-2xl bg-k-surface1/60 border border-k-ghost flex flex-col">
+                <div className="mb-4">
+                  <h3 className="text-sm font-extrabold tracking-tight">Evolução do Peso</h3>
+                  <p className="text-xs text-k-text-muted mt-0.5">Histórico de aferições corporais no período</p>
+                </div>
+                
+                <div className="flex-1 min-h-[220px]">
+                  {weightData.length < 2 ? (
+                    <div className="h-full flex items-center justify-center">
+                      <EmptyCard>
+                        {weightData.length === 1
+                          ? `Apenas uma pesagem registrada. A curva de evolução exige pelo menos dois registros.`
+                          : `Nenhum peso corporal foi lançado por ${studentFirstName} neste período.`}
+                      </EmptyCard>
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={240}>
+                      <LineChart data={weightData} margin={{ top: 15, right: 15, bottom: 5, left: -20 }}>
+                        <CartesianGrid vertical={false} stroke={CHART.grid} />
+                        <XAxis
+                          dataKey="date"
+                          tick={{ fill: CHART.tick, fontSize: 10, fontWeight: 600 }}
+                          axisLine={false}
+                          tickLine={false}
+                        />
+                        <YAxis
+                          domain={['auto', 'auto']}
+                          tick={{ fill: CHART.tick, fontSize: 10, fontWeight: 600 }}
+                          axisLine={false}
+                          tickLine={false}
+                          tickFormatter={(v: number) => nf.format(v)}
+                        />
+                        <Tooltip
+                          contentStyle={tooltipStyle}
+                          formatter={(value) => [formatKg(Number(value)), 'Peso']}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="peso"
+                          stroke={CHART.mark}
+                          strokeWidth={2.5}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          dot={{ r: 4, fill: CHART.mark, stroke: '#131313', strokeWidth: 2 }}
+                          activeDot={{ r: 6, fill: CHART.mark, stroke: '#131313', strokeWidth: 2 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </div>
+            </div>
 
-            {/* Evolução do ciclo (plan-evolution) */}
-            <section style={st.card}>
-              <h3 style={st.cardTitle}>Ciclo atual vs. anterior</h3>
-              <p style={st.cardSub}>
-                Comparação desde a última regeneração da ficha
-                {evolution?.goal ? ` — objetivo: ${evolution.goal}` : ''}
-              </p>
+            {/* Ciclo actual vs. anterior section */}
+            <div className="p-5 rounded-2xl bg-k-surface1/60 border border-k-ghost">
+              <div className="mb-4">
+                <h3 className="text-sm font-extrabold tracking-tight">Ciclo de Treino Atual vs. Anterior</h3>
+                <p className="text-xs text-k-text-muted mt-0.5">
+                  Análise comparativa desde a última regeneração da ficha
+                  {evolution?.goal ? ` (Meta do aluno: ${evolution.goal})` : ''}
+                </p>
+              </div>
+
               {!evolution?.available ? (
                 <EmptyCard>
-                  A ficha de {studentFirstName} ainda não foi regenerada — sem ciclo anterior para comparar.
+                  A ficha deste aluno ainda não passou por nenhuma atualização ou regeneração — sem ciclo anterior para comparação.
                 </EmptyCard>
               ) : !evolution.currentCycleStarted ? (
                 <EmptyCard>
-                  O ciclo atual de {studentFirstName} ainda não tem treinos registrados.
+                  O novo ciclo de treinos foi gerado, mas {studentFirstName} ainda não registrou sessões para iniciar a comparação.
                 </EmptyCard>
               ) : (
-                <div style={st.metricList}>
-                  <MetricRow label="Peso" metric={evolution.weight} unit="kg" />
-                  <MetricRow label="Volume" metric={evolution.volume} unit="kg" />
-                  <MetricRow label="Aderência" metric={evolution.adherence} unit="%" />
-                  <div style={st.metricRow}>
-                    <span style={st.metricLabel}>Treinos concluídos</span>
-                    <span style={st.metricValues}>
-                      {evolution.previousCompletedSessions} →{' '}
-                      <strong style={{ color: KINETIC.text }}>
-                        {evolution.currentCompletedSessions}
-                      </strong>
+                <div className="flex flex-col gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <MetricRow label="Peso Corporal" metric={evolution.weight} unit="kg" />
+                    <MetricRow label="Volume de Carga" metric={evolution.volume} unit="kg" />
+                    <MetricRow label="Aderência ao Plano" metric={evolution.adherence} unit="%" />
+                  </div>
+                  
+                  {/* Sessions details */}
+                  <div className="flex items-center justify-between p-3.5 rounded-xl bg-k-surface2/30 border border-k-ghost/40 mt-1">
+                    <span className="text-xs font-bold text-k-text-dim">Treinos Concluídos</span>
+                    <span className="text-xs text-k-text-dim">
+                      <span className="text-k-text-muted mr-1">Ciclo anterior:</span>
+                      <strong className="text-k-text-muted font-bold">{evolution.previousCompletedSessions}</strong>
+                      <span className="mx-2 text-k-ghost-hi">/</span>
+                      <span className="text-k-text-muted mr-1">Atual:</span>
+                      <strong className="text-k-primary font-black text-sm">{evolution.currentCompletedSessions}</strong>
                     </span>
                   </div>
+
                   {evolution.insight?.body && (
-                    <p style={st.metricInsight}>{evolution.insight.body}</p>
+                    <div className="mt-3 p-3.5 bg-k-surface2/40 border border-k-ghost/50 rounded-xl flex gap-3 text-xs leading-relaxed text-k-text-dim">
+                      <div className="w-1.5 h-1.5 rounded-full bg-k-primary mt-1.5 shrink-0" />
+                      <p>{evolution.insight.body}</p>
+                    </div>
                   )}
                 </div>
               )}
-            </section>
+            </div>
           </>
         )}
       </div>
     </div>
   );
 }
-
-const st: Record<string, CSSProperties> = {
-  scroll: { flex: 1, minHeight: 0, overflowY: 'auto' },
-  inner: {
-    width: '100%',
-    maxWidth: 920,
-    margin: '0 auto',
-    padding: '20px 28px 40px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 16,
-  },
-  filterRow: { display: 'flex', gap: 8 },
-  periodBtn: {
-    padding: '7px 16px',
-    borderRadius: 10,
-    fontSize: 13,
-    fontWeight: 600,
-    color: KINETIC.textMuted,
-    background: KINETIC.surface1,
-    border: `1px solid ${KINETIC.ghost}`,
-  },
-  periodBtnActive: {
-    color: KINETIC.primary,
-    background: KINETIC.primaryDim,
-    border: `1px solid ${KINETIC.primarySoft}`,
-  },
-  tilesRow: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: 12,
-  },
-  tile: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 4,
-    padding: '16px 18px',
-    borderRadius: 14,
-    background: KINETIC.surface1,
-    border: `1px solid ${KINETIC.ghost}`,
-  },
-  tileLabel: { fontSize: 12, color: KINETIC.textMuted, fontWeight: 600 },
-  tileValue: { fontSize: 26, fontWeight: 700, color: KINETIC.text, letterSpacing: -0.5 },
-  tileDetail: {
-    fontSize: 12,
-    color: KINETIC.textDim,
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-  },
-  deltaChip: { fontSize: 12, fontWeight: 700 },
-  insightCard: {
-    padding: '12px 16px',
-    borderRadius: 12,
-    background: KINETIC.primaryDim,
-    border: `1px solid ${KINETIC.primarySoft}`,
-  },
-  insightTag: {
-    fontSize: 10.5,
-    fontWeight: 800,
-    color: KINETIC.primary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  insightBody: { fontSize: 13, color: KINETIC.textDim, marginTop: 4, lineHeight: 1.5 },
-  card: {
-    padding: '18px 20px',
-    borderRadius: 14,
-    background: KINETIC.surface1,
-    border: `1px solid ${KINETIC.ghost}`,
-  },
-  cardTitle: { fontSize: 15, fontWeight: 800, letterSpacing: -0.2 },
-  cardSub: { fontSize: 12, color: KINETIC.textMuted, marginTop: 2, marginBottom: 14 },
-  emptyCard: {
-    padding: '32px 20px',
-    textAlign: 'center',
-    color: KINETIC.textMuted,
-    fontSize: 13,
-    lineHeight: 1.5,
-    opacity: 0.85,
-    background: 'rgba(255,255,255,0.02)',
-    borderRadius: 10,
-  },
-  muted: { color: KINETIC.textMuted, fontSize: 13 },
-  metricList: { display: 'flex', flexDirection: 'column', gap: 10 },
-  metricRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 14,
-    padding: '10px 12px',
-    borderRadius: 10,
-    background: 'rgba(255,255,255,0.02)',
-  },
-  metricLabel: { width: 150, fontSize: 13, fontWeight: 600, color: KINETIC.textDim },
-  metricValues: { flex: 1, fontSize: 13, color: KINETIC.textDim },
-  metricInsight: {
-    fontSize: 12.5,
-    color: KINETIC.textMuted,
-    lineHeight: 1.5,
-    padding: '4px 12px 0',
-  },
-};

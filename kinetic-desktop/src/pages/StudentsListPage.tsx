@@ -1,13 +1,12 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { listStudents } from '../services/trainerService';
 import Avatar from '../components/Avatar';
 import InviteStudentModal from '../components/InviteStudentModal';
-import { KINETIC } from '../theme/kinetic';
+import { LogOut, UserPlus, Users, ChevronRight, RefreshCw, AlertCircle, Inbox, Activity } from 'lucide-react';
 import type { TrainerLink } from '../types';
 
-/** Carteira de alunos do personal: lista vínculos ATIVOS + convite por e-mail. */
 export default function StudentsListPage() {
   const { currentUser, signOut } = useAuth();
   const navigate = useNavigate();
@@ -16,8 +15,6 @@ export default function StudentsListPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
-  // Feedback pós-convite: o vínculo fica PENDENTE até o aluno aceitar,
-  // então não entra na lista — mostramos um aviso efêmero.
   const [pendingNote, setPendingNote] = useState<string | null>(null);
 
   const load = async () => {
@@ -37,74 +34,138 @@ export default function StudentsListPage() {
   }, []);
 
   return (
-    <div style={st.shell}>
-      <header style={st.header}>
-        <div style={st.brandRow}>
-          <span style={st.brandMark}>K</span>
+    <div className="h-screen bg-k-bg text-k-text flex flex-col overflow-hidden">
+      {/* Premium Header */}
+      <header className="border-b border-k-ghost bg-k-surface1/60 backdrop-blur-md sticky top-0 z-30 px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-k-primary to-k-primary-deep text-k-on-primary shadow-[0_0_12px_rgba(0,229,255,0.25)]">
+            <Activity className="w-5 h-5 stroke-[2.5]" />
+          </div>
           <div>
-            <h1 style={st.brandTitle}>Kinetic — Painel do Personal</h1>
-            <p style={st.brandSub}>{currentUser?.nome}</p>
+            <h1 className="text-base font-extrabold tracking-tight">Kinetic</h1>
+            <p className="text-xs text-k-text-muted">Painel do Personal</p>
           </div>
         </div>
-        <div style={st.headerActions}>
-          <button style={st.inviteBtn} onClick={() => setInviteOpen(true)}>
-            + Convidar aluno
+
+        <div className="flex items-center gap-4">
+          <div className="text-right hidden sm:block">
+            <p className="text-sm font-bold leading-tight">{currentUser?.nome}</p>
+            <p className="text-xs text-k-text-muted">Personal Trainer</p>
+          </div>
+
+          <div className="h-6 w-[1px] bg-k-ghost hidden sm:block" />
+
+          <button
+            onClick={() => setInviteOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-k-primary hover:bg-k-primary-deep text-k-on-primary font-bold text-xs rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>Convidar aluno</span>
           </button>
-          <button style={st.signOutBtn} onClick={() => void signOut()}>
-            Sair
+
+          <button
+            onClick={() => void signOut()}
+            aria-label="Sair"
+            className="flex items-center justify-center p-2.5 rounded-xl bg-k-surface2 border border-k-ghost text-k-text-dim hover:text-k-error hover:border-k-error/30 transition-all active:scale-95 cursor-pointer"
+          >
+            <LogOut className="w-4.5 h-4.5" />
           </button>
         </div>
       </header>
 
-      <main style={st.main}>
-        <div style={st.listHeader}>
-          <h2 style={st.listTitle}>Meus alunos</h2>
-          <span style={st.listCount}>
+      {/* Main Container */}
+      <main className="flex-1 min-h-0 overflow-y-auto px-6 py-8 max-w-5xl w-full mx-auto flex flex-col gap-6">
+        {/* Welcome Section / Header Info */}
+        <div className="flex items-center justify-between pb-2 border-b border-k-ghost/40">
+          <div className="flex items-center gap-2.5">
+            <Users className="w-5 h-5 text-k-primary" />
+            <h2 className="text-lg font-extrabold tracking-tight">Alunos Vinculados</h2>
+          </div>
+          <span className="text-xs px-2.5 py-1 rounded-full bg-k-surface2 border border-k-ghost font-semibold text-k-text-dim">
             {loading ? '—' : `${students.length} ativo${students.length === 1 ? '' : 's'}`}
           </span>
         </div>
 
+        {/* Temporary pending alert */}
         {pendingNote && (
-          <div style={st.noteBox}>
-            {pendingNote}
-            <button style={st.noteDismiss} onClick={() => setPendingNote(null)}>
+          <div className="flex items-start justify-between gap-3 px-4 py-3.5 rounded-xl bg-k-primary-dim border border-k-primary-soft text-k-primary text-sm animate-fade-in">
+            <div className="flex gap-2.5">
+              <AlertCircle className="w-5 h-5 shrink-0" />
+              <p className="leading-normal">{pendingNote}</p>
+            </div>
+            <button
+              onClick={() => setPendingNote(null)}
+              className="text-k-primary hover:text-white transition-colors text-xs font-bold px-1"
+            >
               ✕
             </button>
           </div>
         )}
 
-        <div style={st.listScroll}>
+        {/* Students list/grid */}
+        <div className="flex-1">
           {loading ? (
-            <p style={st.muted}>Carregando alunos…</p>
+            <div className="flex flex-col items-center justify-center py-20 gap-3 text-k-text-muted">
+              <RefreshCw className="w-8 h-8 animate-spin text-k-primary" />
+              <p className="text-sm">Buscando alunos da carteira...</p>
+            </div>
           ) : loadError ? (
-            <div style={st.errorWrap}>
-              <p style={st.muted}>{loadError}</p>
-              <button style={st.retryBtn} onClick={() => void load()}>
-                Tentar novamente
+            <div className="flex flex-col items-center justify-center text-center py-16 px-4 bg-k-surface1 border border-k-ghost rounded-2xl gap-4">
+              <AlertCircle className="w-10 h-10 text-k-error" />
+              <div>
+                <p className="font-bold text-sm text-k-text">{loadError}</p>
+                <p className="text-xs text-k-text-muted mt-1">Verifique sua conexão de rede ou tente recarregar.</p>
+              </div>
+              <button
+                onClick={() => void load()}
+                className="flex items-center gap-2 px-4 py-2 bg-k-surface2 hover:bg-k-surface3 border border-k-ghost rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Tentar novamente</span>
               </button>
             </div>
           ) : students.length === 0 ? (
-            <div style={st.emptyWrap}>
-              <p style={st.emptyTitle}>Nenhum aluno vinculado ainda</p>
-              <p style={st.muted}>
-                Convide um aluno pelo e-mail — quando ele aceitar pelo app, aparece aqui.
-              </p>
+            <div className="flex flex-col items-center justify-center text-center py-24 px-6 bg-k-surface1/40 border border-dashed border-k-ghost rounded-2xl gap-4">
+              <div className="w-14 h-14 rounded-full bg-k-surface2 flex items-center justify-center text-k-text-muted">
+                <Inbox className="w-7 h-7" />
+              </div>
+              <div className="max-w-sm">
+                <p className="font-bold text-base text-k-text-dim">Nenhum aluno vinculado ainda</p>
+                <p className="text-xs text-k-text-muted mt-2 leading-relaxed">
+                  Envie um convite usando o e-mail de cadastro do seu aluno. Assim que ele aceitar o convite no aplicativo mobile, o perfil dele ficará disponível aqui.
+                </p>
+              </div>
+              <button
+                onClick={() => setInviteOpen(true)}
+                className="flex items-center gap-2 mt-2 px-4.5 py-2.5 bg-k-primary hover:bg-k-primary-deep text-k-on-primary font-bold text-xs rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>Enviar primeiro convite</span>
+              </button>
             </div>
           ) : (
-            students.map((link) => (
-              <button
-                key={link.id}
-                style={st.row}
-                onClick={() => navigate(`/students/${link.peer.id}`)}
-              >
-                <Avatar name={link.peer.nome} avatarUrl={link.peer.avatarUrl} size={44} />
-                <div style={st.rowInfo}>
-                  <span style={st.rowName}>{link.peer.nome}</span>
-                  <span style={st.rowEmail}>{link.peer.email}</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {students.map((link) => (
+                <div
+                  key={link.id}
+                  onClick={() => navigate(`/students/${link.peer.id}`)}
+                  className="group flex items-center gap-4 p-4 bg-k-surface1/60 hover:bg-k-surface1 border border-k-ghost hover:border-k-primary/45 rounded-2xl cursor-pointer transition-all duration-300 hover:shadow-[0_0_15px_rgba(0,229,255,0.06)]"
+                >
+                  <Avatar name={link.peer.nome} avatarUrl={link.peer.avatarUrl} size={48} />
+                  <div className="flex-1 min-w-0 flex flex-col">
+                    <span className="font-bold text-sm group-hover:text-k-primary transition-colors truncate">
+                      {link.peer.nome}
+                    </span>
+                    <span className="text-xs text-k-text-muted truncate mt-0.5">
+                      {link.peer.email}
+                    </span>
+                  </div>
+                  <div className="w-8 h-8 rounded-lg bg-k-surface2/60 group-hover:bg-k-primary/10 flex items-center justify-center text-k-text-muted group-hover:text-k-primary transition-all">
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                  </div>
                 </div>
-                <span style={st.rowChevron}>›</span>
-              </button>
-            ))
+              ))}
+            </div>
           )}
         </div>
       </main>
@@ -114,152 +175,10 @@ export default function StudentsListPage() {
         onClose={() => setInviteOpen(false)}
         onInvited={(link) =>
           setPendingNote(
-            `Convite para ${link.peer.nome} pendente — ele entra na lista quando aceitar pelo app.`,
+            `Convite enviado com sucesso para ${link.peer.nome}! O vínculo está pendente e será ativado assim que ele aceitar o convite no aplicativo mobile.`,
           )
         }
       />
     </div>
   );
 }
-
-const st: Record<string, CSSProperties> = {
-  shell: {
-    height: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden',
-  },
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '16px 28px',
-    borderBottom: `1px solid ${KINETIC.ghost}`,
-    background: KINETIC.surface1,
-  },
-  brandRow: { display: 'flex', alignItems: 'center', gap: 12 },
-  brandMark: {
-    width: 38,
-    height: 38,
-    borderRadius: 11,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: KINETIC.primary,
-    color: '#001a1f',
-    fontWeight: 900,
-    fontSize: 19,
-  },
-  brandTitle: { fontSize: 15.5, fontWeight: 800, letterSpacing: -0.3 },
-  brandSub: { fontSize: 12, color: KINETIC.textMuted, marginTop: 1 },
-  headerActions: { display: 'flex', gap: 10 },
-  inviteBtn: {
-    padding: '9px 16px',
-    borderRadius: 11,
-    background: KINETIC.primary,
-    color: '#001a1f',
-    fontWeight: 800,
-    fontSize: 13.5,
-  },
-  signOutBtn: {
-    padding: '9px 16px',
-    borderRadius: 11,
-    background: KINETIC.surface2,
-    color: KINETIC.textDim,
-    fontWeight: 600,
-    fontSize: 13.5,
-  },
-  main: {
-    flex: 1,
-    minHeight: 0,
-    display: 'flex',
-    flexDirection: 'column',
-    width: '100%',
-    maxWidth: 860,
-    margin: '0 auto',
-    padding: '24px 28px 0',
-  },
-  listHeader: {
-    display: 'flex',
-    alignItems: 'baseline',
-    justifyContent: 'space-between',
-    marginBottom: 14,
-  },
-  listTitle: { fontSize: 20, fontWeight: 800, letterSpacing: -0.4 },
-  listCount: { fontSize: 12.5, color: KINETIC.textMuted },
-  noteBox: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    padding: '10px 14px',
-    marginBottom: 12,
-    borderRadius: 12,
-    background: KINETIC.primaryDim,
-    border: `1px solid ${KINETIC.primarySoft}`,
-    color: KINETIC.primary,
-    fontSize: 13,
-  },
-  noteDismiss: { color: KINETIC.primary, fontSize: 13, opacity: 0.7 },
-  listScroll: {
-    flex: 1,
-    minHeight: 0,
-    overflowY: 'auto',
-    paddingBottom: 24,
-  },
-  row: {
-    width: '100%',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 14,
-    padding: '14px 16px',
-    marginBottom: 8,
-    borderRadius: 14,
-    background: KINETIC.surface1,
-    border: `1px solid ${KINETIC.ghost}`,
-    textAlign: 'left',
-    transition: 'border-color 0.15s ease',
-  },
-  rowInfo: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 },
-  rowName: {
-    fontSize: 15,
-    fontWeight: 700,
-    color: KINETIC.text,
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-  rowEmail: {
-    fontSize: 12.5,
-    color: KINETIC.textMuted,
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-  rowChevron: { color: KINETIC.textMuted, fontSize: 20 },
-  emptyWrap: {
-    padding: '56px 24px',
-    textAlign: 'center',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 8,
-  },
-  emptyTitle: { fontSize: 15.5, fontWeight: 700, color: KINETIC.textDim },
-  muted: { color: KINETIC.textMuted, fontSize: 13, lineHeight: 1.5 },
-  errorWrap: {
-    padding: '48px 24px',
-    textAlign: 'center',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 14,
-  },
-  retryBtn: {
-    padding: '9px 18px',
-    borderRadius: 11,
-    background: KINETIC.surface2,
-    color: KINETIC.text,
-    fontWeight: 600,
-    fontSize: 13,
-  },
-};

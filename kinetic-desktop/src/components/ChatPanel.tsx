@@ -2,7 +2,6 @@ import {
   useEffect,
   useRef,
   useState,
-  type CSSProperties,
   type KeyboardEvent,
   type UIEvent,
 } from 'react';
@@ -14,7 +13,7 @@ import {
   sendMessageRest,
   type ChatSocket,
 } from '../services/chatService';
-import { KINETIC } from '../theme/kinetic';
+import { Send, Wifi, WifiOff, Loader2, Sparkles } from 'lucide-react';
 import type { ChatMessage } from '../types';
 
 interface Props {
@@ -23,8 +22,6 @@ interface Props {
 }
 
 const PAGE_SIZE = 30;
-// Sem WebSocket (rede restritiva, proxy…) o histórico é re-sincronizado por
-// polling — chat continua funcional, só menos imediato.
 const POLL_INTERVAL_MS = 10000;
 
 function formatTime(iso: string): string {
@@ -33,13 +30,6 @@ function formatTime(iso: string): string {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
-/**
- * Conversa personal↔aluno — porta o state machine do TrainerChatScreen do
- * mobile: paginação por PAGE_SIZE, dedupe por id, envio STOMP-first com
- * fallback REST e polling só enquanto o socket está fora. A lista usa
- * column-reverse (equivalente DOM da FlatList invertida): messages[0] é a
- * mais recente e fica no fundo.
- */
 export default function ChatPanel({ peerId, peerName }: Props) {
   const { currentUser } = useAuth();
   const myId = String(currentUser?.id ?? '');
@@ -58,7 +48,6 @@ export default function ChatPanel({ peerId, peerName }: Props) {
   const hasMoreRef = useRef(true);
   const listRef = useRef<HTMLDivElement | null>(null);
 
-  // Insere sem duplicar (eco do próprio envio chega também via socket).
   const mergeMessage = (msg: ChatMessage) => {
     setMessages((prev) => (prev.some((m) => m.id === msg.id) ? prev : [msg, ...prev]));
   };
@@ -108,7 +97,6 @@ export default function ChatPanel({ peerId, peerName }: Props) {
 
     socketRef.current = connectChatSocket(
       (msg) => {
-        // Só mensagens desta conversa: a fila /user/queue/chat é global do usuário.
         if (msg.senderId !== peerId && msg.recipientId !== peerId) return;
         mergeMessage(msg);
         if (msg.senderId === peerId) void markConversationRead(peerId);
@@ -119,7 +107,6 @@ export default function ChatPanel({ peerId, peerName }: Props) {
       },
     );
 
-    // Fallback: re-sincroniza a página mais recente enquanto o WS não conecta.
     const poll = setInterval(() => {
       if (connectedRef.current) return;
       void getMessages(peerId, 0, PAGE_SIZE)
@@ -146,17 +133,15 @@ export default function ChatPanel({ peerId, peerName }: Props) {
     if (!content || sending) return;
     setInput('');
 
-    // Caminho rápido: STOMP. O eco do backend insere a mensagem na lista.
     if (socketRef.current?.send(peerId, content)) return;
 
-    // Fallback REST quando o socket está fora.
     setSending(true);
     try {
       const saved = await sendMessageRest(peerId, content);
       mergeMessage(saved);
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
-      setInput(content); // devolve o texto para o usuário tentar de novo
+      setInput(content);
     } finally {
       setSending(false);
     }
@@ -169,8 +154,6 @@ export default function ChatPanel({ peerId, peerName }: Props) {
     }
   };
 
-  // Com column-reverse, o scroll "para cima" caminha para scrollTop negativo:
-  // perto do topo visual (fim do histórico carregado) → busca a próxima página.
   const handleScroll = (e: UIEvent<HTMLDivElement>) => {
     const el = e.currentTarget;
     const distanceToTop = el.scrollHeight - el.clientHeight + el.scrollTop;
@@ -178,48 +161,69 @@ export default function ChatPanel({ peerId, peerName }: Props) {
   };
 
   return (
-    <div style={st.panel}>
-      <div style={st.statusBar}>
-        <span
-          style={{
-            ...st.statusDot,
-            background: connected ? KINETIC.success : KINETIC.warn,
-          }}
-        />
-        <span style={st.statusText}>
-          {connected ? 'Tempo real conectado' : 'Sincronizando…'}
+    <div className="flex-1 min-h-0 flex flex-col bg-k-bg text-k-text">
+      {/* Real-time Status Bar */}
+      <div className="flex items-center justify-between px-6 py-2.5 border-b border-k-ghost/40 bg-k-surface1/30">
+        <div className="flex items-center gap-2">
+          {connected ? (
+            <Wifi className="w-3.5 h-3.5 text-k-success" />
+          ) : (
+            <WifiOff className="w-3.5 h-3.5 text-k-warn animate-pulse" />
+          )}
+          <span className="text-[11px] font-bold uppercase tracking-wider text-k-text-muted">
+            {connected ? 'Canal em tempo real conectado' : 'Conexão limitada, sincronizando histórico...'}
+          </span>
+        </div>
+        <span className="text-[10px] font-bold text-k-primary bg-k-primary-dim px-2 py-0.5 border border-k-primary-soft rounded-full uppercase tracking-wider">
+          Chat do Personal
         </span>
       </div>
 
+      {/* Message List */}
       {loading ? (
-        <div style={st.loadingWrap}>Carregando conversa…</div>
+        <div className="flex-1 flex flex-col items-center justify-center gap-3 text-k-text-muted">
+          <Loader2 className="w-6 h-6 animate-spin text-k-primary" />
+          <p className="text-xs font-semibold uppercase tracking-wider">Buscando conversa…</p>
+        </div>
       ) : (
-        <div ref={listRef} style={st.list} onScroll={handleScroll}>
-          {/* column-reverse: primeiro filho = mensagem mais recente, no fundo. */}
+        <div
+          ref={listRef}
+          onScroll={handleScroll}
+          className="flex-1 min-h-0 overflow-y-auto flex flex-col-reverse gap-4 px-6 py-6"
+        >
           {messages.length === 0 && (
-            <div style={st.emptyWrap}>
-              Comece a conversa com {peerName.split(' ')[0]} 👋
+            <div className="flex flex-col items-center justify-center py-20 text-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-k-primary-dim border border-k-primary-soft flex items-center justify-center text-k-primary">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <div className="max-w-[280px]">
+                <p className="font-extrabold text-sm text-k-text-dim">Nova conversa iniciada</p>
+                <p className="text-xs text-k-text-muted mt-1 leading-relaxed">
+                  Envie uma mensagem para {peerName.split(' ')[0]} para orientá-lo ou debater feedbacks dos treinos.
+                </p>
+              </div>
             </div>
           )}
+          
           {messages.map((item) => {
             const mine = item.senderId === myId;
             return (
               <div
                 key={item.id}
-                style={{
-                  ...st.bubbleRow,
-                  justifyContent: mine ? 'flex-end' : 'flex-start',
-                }}
+                className={`flex w-full ${mine ? 'justify-end' : 'justify-start'}`}
               >
-                <div style={{ ...st.bubble, ...(mine ? st.bubbleMine : st.bubbleTheirs) }}>
-                  <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                    {item.content}
-                  </span>
+                <div
+                  className={`max-w-[70%] sm:max-w-[60%] flex flex-col gap-1 p-3.5 shadow-md ${
+                    mine
+                      ? 'bg-k-primary text-k-on-primary rounded-2xl rounded-tr-xs font-medium'
+                      : 'bg-k-surface1 border border-k-ghost text-k-text rounded-2xl rounded-tl-xs'
+                  }`}
+                >
+                  <span className="text-sm leading-relaxed whitespace-pre-wrap break-words">{item.content}</span>
                   <span
-                    style={{
-                      ...st.bubbleTime,
-                      color: mine ? 'rgba(0,26,31,0.55)' : KINETIC.textMuted,
-                    }}
+                    className={`text-[9px] font-bold self-end mt-1 ${
+                      mine ? 'text-k-on-primary/60' : 'text-k-text-muted'
+                    }`}
                   >
                     {formatTime(item.sentAt)}
                   </span>
@@ -227,125 +231,40 @@ export default function ChatPanel({ peerId, peerName }: Props) {
               </div>
             );
           })}
-          {loadingMore && <div style={st.loadingMore}>Carregando mensagens antigas…</div>}
+          
+          {loadingMore && (
+            <div className="text-center py-2 flex items-center justify-center gap-2 text-xs text-k-text-muted font-bold uppercase tracking-wider">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-k-primary" />
+              <span>Carregando histórico anterior…</span>
+            </div>
+          )}
         </div>
       )}
 
-      <div style={st.inputBar}>
+      {/* Input Bar */}
+      <div className="p-4 border-t border-k-ghost/40 bg-k-surface1/40 backdrop-blur-md flex items-end gap-3 shrink-0">
         <textarea
-          style={st.textarea}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Escreva uma mensagem… (Enter envia, Shift+Enter quebra linha)"
+          placeholder="Escreva uma orientação profissional… (Enter envia, Shift+Enter quebra linha)"
           rows={1}
           maxLength={4000}
+          className="flex-1 bg-k-surface2/80 border border-k-ghost rounded-xl px-4 py-3 text-sm max-h-32 resize-none outline-none focus:border-k-primary focus:ring-1 focus:ring-k-primary/30 transition-all placeholder:text-k-text-muted"
         />
         <button
-          style={{
-            ...st.sendBtn,
-            opacity: !input.trim() || sending ? 0.4 : 1,
-          }}
           onClick={() => void handleSend()}
           disabled={!input.trim() || sending}
           aria-label="Enviar"
+          className="w-11 h-11 rounded-xl bg-k-primary hover:bg-k-primary-deep text-k-on-primary shadow-md hover:shadow-[0_0_12px_rgba(0,229,255,0.25)] flex items-center justify-center transition-all shrink-0 active:scale-95 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
         >
-          {sending ? '…' : '➤'}
+          {sending ? (
+            <Loader2 className="w-4.5 h-4.5 animate-spin" />
+          ) : (
+            <Send className="w-4.5 h-4.5 stroke-[2.5]" />
+          )}
         </button>
       </div>
     </div>
   );
 }
-
-const st: Record<string, CSSProperties> = {
-  panel: {
-    flex: 1,
-    minHeight: 0,
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  statusBar: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 7,
-    padding: '8px 20px',
-    borderBottom: `1px solid ${KINETIC.ghost}`,
-  },
-  statusDot: { width: 8, height: 8, borderRadius: '50%' },
-  statusText: { fontSize: 11.5, color: KINETIC.textMuted },
-  loadingWrap: {
-    flex: 1,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: KINETIC.textMuted,
-    fontSize: 13,
-  },
-  list: {
-    flex: 1,
-    minHeight: 0,
-    overflowY: 'auto',
-    display: 'flex',
-    flexDirection: 'column-reverse',
-    gap: 8,
-    padding: '14px 20px',
-  },
-  emptyWrap: {
-    padding: '48px 0',
-    textAlign: 'center',
-    color: KINETIC.textMuted,
-    fontSize: 13,
-  },
-  loadingMore: {
-    textAlign: 'center',
-    color: KINETIC.textMuted,
-    fontSize: 12,
-    padding: '6px 0',
-  },
-  bubbleRow: { display: 'flex' },
-  bubble: {
-    maxWidth: '68%',
-    borderRadius: 16,
-    padding: '9px 13px',
-    fontSize: 14.5,
-    lineHeight: 1.4,
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  bubbleMine: {
-    background: KINETIC.primary,
-    color: '#001a1f',
-    borderBottomRightRadius: 4,
-  },
-  bubbleTheirs: {
-    background: KINETIC.surface1,
-    color: KINETIC.text,
-    borderBottomLeftRadius: 4,
-  },
-  bubbleTime: { fontSize: 10, marginTop: 3, alignSelf: 'flex-end' },
-  inputBar: {
-    display: 'flex',
-    alignItems: 'flex-end',
-    gap: 10,
-    padding: '12px 20px',
-    borderTop: `1px solid ${KINETIC.ghost}`,
-    background: KINETIC.bg,
-  },
-  textarea: {
-    flex: 1,
-    resize: 'none',
-    maxHeight: 110,
-    borderRadius: 16,
-    lineHeight: 1.4,
-  },
-  sendBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    background: KINETIC.primary,
-    color: '#001a1f',
-    fontSize: 16,
-    fontWeight: 800,
-    flexShrink: 0,
-  },
-};

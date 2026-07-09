@@ -1,3 +1,28 @@
+@import "tailwindcss";
+
+@theme {
+  --color-k-bg: #131313;
+  --color-k-surface1: #1c1b1b;
+  --color-k-surface2: #2a2a2a;
+  --color-k-surface3: #353534;
+
+  --color-k-primary: #00e5ff;
+  --color-k-primary-deep: #00daf3;
+  --color-k-primary-dim: rgba(0, 229, 255, 0.1);
+  --color-k-primary-soft: rgba(0, 229, 255, 0.2);
+
+  --color-k-text: #f5f6f7;
+  --color-k-text-dim: rgba(245, 246, 247, 0.62);
+  --color-k-text-muted: rgba(245, 246, 247, 0.36);
+
+  --color-k-ghost: rgba(255, 255, 255, 0.08);
+  --color-k-ghost-hi: rgba(255, 255, 255, 0.15);
+
+  --color-k-success: #4ade80;
+  --color-k-warn: #f5b945;
+  --color-k-error: #ff4444;
+}
+
 /*
  * Tema global do painel Kinetic (dark + ciano neon).
  * Os valores espelham src/theme/kinetic.ts — alterar lá e aqui juntos.
@@ -31,87 +56,89 @@
   color-scheme: dark;
 }
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
 
-/* Reset de SPA desktop: a página nunca rola — o scroll vive nos painéis
-   internos (lista de alunos, mensagens do chat, conteúdo das abas). */
-html,
-body,
-#root {
-  height: 100vh;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-}
+  /* Reset de SPA desktop: a página nunca rola — o scroll vive nos painéis
+     internos (lista de alunos, mensagens do chat, conteúdo das abas). */
+  html,
+  body,
+  #root {
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
 
-body {
-  background: var(--k-bg);
-  color: var(--k-text);
-  font-family:
-    'Segoe UI',
-    system-ui,
-    -apple-system,
-    Roboto,
-    'Helvetica Neue',
-    Arial,
-    sans-serif;
-  font-size: 14px;
-  line-height: 1.45;
-  -webkit-font-smoothing: antialiased;
-}
+  body {
+    background: var(--k-bg);
+    color: var(--k-text);
+    font-family:
+      'Segoe UI',
+      system-ui,
+      -apple-system,
+      Roboto,
+      'Helvetica Neue',
+      Arial,
+      sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
 
-h1,
-h2,
-h3,
-h4,
-p {
-  margin: 0;
-}
+  h1,
+  h2,
+  h3,
+  h4,
+  p {
+    margin: 0;
+  }
 
-button {
-  font-family: inherit;
-  font-size: inherit;
-  border: none;
-  cursor: pointer;
-  background: none;
-  color: inherit;
-}
+  button {
+    font-family: inherit;
+    font-size: inherit;
+    border: none;
+    cursor: pointer;
+    background: none;
+    color: inherit;
+  }
 
-button:disabled {
-  cursor: not-allowed;
-}
+  button:disabled {
+    cursor: not-allowed;
+  }
 
-input,
-textarea {
-  font-family: inherit;
-  font-size: inherit;
-  color: var(--k-text);
-  background: var(--k-surface1);
-  border: 1px solid var(--k-ghost);
-  border-radius: 12px;
-  padding: 10px 14px;
-  outline: none;
-  transition: border-color 0.15s ease;
-}
+  input,
+  textarea {
+    font-family: inherit;
+    font-size: inherit;
+    color: var(--k-text);
+    background: var(--k-surface1);
+    border: 1px solid var(--k-ghost);
+    border-radius: 12px;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
 
-input::placeholder,
-textarea::placeholder {
-  color: var(--k-text-muted);
-}
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--k-text-muted);
+  }
 
-/* Ciano como cor de estado ativo/foco, como no mobile. */
-input:focus,
-textarea:focus {
-  border-color: var(--k-primary);
-}
+  /* Ciano como cor de estado ativo/foco, como no mobile. */
+  input:focus,
+  textarea:focus {
+    border-color: var(--k-primary);
+  }
 
-a {
-  color: var(--k-primary);
-  text-decoration: none;
+  a {
+    color: var(--k-primary);
+    text-decoration: none;
+  }
 }
 
 ::-webkit-scrollbar {
@@ -131,3 +158,56 @@ a {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--k-text-muted);
 }
+
+/* Password visibility toggle on LoginPage */
+.password-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.password-input {
+  width: 100%;
+  padding-right: 42px !important;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--k-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+  transition: color 0.15s ease;
+}
+
+.password-toggle-btn:hover,
+.password-toggle-btn:focus-visible {
+  color: var(--k-primary);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.96); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-scale-up {
+  animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+

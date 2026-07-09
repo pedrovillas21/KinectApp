@@ -1,20 +1,14 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { listStudents } from '../services/trainerService';
 import Avatar from '../components/Avatar';
 import ChatPanel from '../components/ChatPanel';
 import DashboardTab from '../components/DashboardTab';
-import { KINETIC } from '../theme/kinetic';
+import { ArrowLeft, MessageSquare, LayoutDashboard, UserX, RefreshCw } from 'lucide-react';
 import type { TrainerPeer } from '../types';
 
 type Tab = 'dashboard' | 'chat';
 
-/**
- * Detalhe do aluno: cabeçalho fixo com o peer + abas Dashboard/Chat.
- * O peer é resolvido pela carteira (listStudents) para sobreviver a refresh —
- * se o id não está na carteira, o aluno não é deste personal (mesma regra de
- * posse dos endpoints).
- */
 export default function StudentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [peer, setPeer] = useState<TrainerPeer | null>(null);
@@ -42,51 +36,85 @@ export default function StudentDetailPage() {
   }, [id]);
 
   if (loading) {
-    return <div style={st.centered}>Carregando aluno…</div>;
+    return (
+      <div className="h-screen bg-k-bg text-k-text flex flex-col items-center justify-center gap-3">
+        <RefreshCw className="w-8 h-8 animate-spin text-k-primary" />
+        <p className="text-sm text-k-text-muted font-medium">Carregando perfil do aluno…</p>
+      </div>
+    );
   }
 
   if (!peer || !id) {
     return (
-      <div style={st.centered}>
-        <p style={{ color: KINETIC.textDim, marginBottom: 12 }}>
-          Aluno não encontrado na sua carteira.
-        </p>
-        <Link to="/students" style={st.backLink}>
-          ← Voltar para meus alunos
+      <div className="h-screen bg-k-bg text-k-text flex flex-col items-center justify-center p-6 text-center gap-4">
+        <div className="w-14 h-14 rounded-full bg-k-surface2 flex items-center justify-center text-k-error">
+          <UserX className="w-7 h-7" />
+        </div>
+        <div>
+          <p className="font-extrabold text-base text-k-text-dim">Aluno não encontrado</p>
+          <p className="text-xs text-k-text-muted mt-1 max-w-xs">
+            Este aluno não foi encontrado na sua carteira de alunos ativos ou o link de acesso está incorreto.
+          </p>
+        </div>
+        <Link
+          to="/students"
+          className="flex items-center gap-2 mt-2 px-4 py-2.5 bg-k-surface2 hover:bg-k-surface3 border border-k-ghost rounded-xl text-xs font-bold transition-all active:scale-95"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Voltar para meus alunos</span>
         </Link>
       </div>
     );
   }
 
   return (
-    <div style={st.shell}>
-      {/* Cabeçalho fixo (sticky por construção: fora da área rolável) */}
-      <header style={st.header}>
-        <Link to="/students" style={st.backBtn} aria-label="Voltar">
-          ←
-        </Link>
-        <Avatar name={peer.nome} avatarUrl={peer.avatarUrl} size={42} />
-        <div style={st.headerInfo}>
-          <h1 style={st.headerName}>{peer.nome}</h1>
-          <p style={st.headerEmail}>{peer.email}</p>
-        </div>
-        <nav style={st.tabs} aria-label="Seções do aluno">
-          <button
-            style={{ ...st.tabBtn, ...(tab === 'dashboard' ? st.tabBtnActive : {}) }}
-            onClick={() => setTab('dashboard')}
+    <div className="h-screen bg-k-bg text-k-text flex flex-col overflow-hidden">
+      {/* Fixed Sticky Header */}
+      <header className="border-b border-k-ghost bg-k-surface1/60 backdrop-blur-md sticky top-0 z-30 px-6 py-3.5 flex items-center gap-4 justify-between shrink-0">
+        <div className="flex items-center gap-3.5 min-w-0">
+          <Link
+            to="/students"
+            aria-label="Voltar"
+            className="w-9 h-9 rounded-xl bg-k-surface2 border border-k-ghost text-k-text-dim hover:text-white hover:border-k-ghost-hi flex items-center justify-center transition-all shrink-0 active:scale-95"
           >
-            Dashboard
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+          <Avatar name={peer.nome} avatarUrl={peer.avatarUrl} size={42} />
+          <div className="min-w-0">
+            <h1 className="font-extrabold text-sm sm:text-base leading-tight truncate">{peer.nome}</h1>
+            <p className="text-xs text-k-text-muted truncate mt-0.5">{peer.email}</p>
+          </div>
+        </div>
+
+        {/* Tab Navigation */}
+        <nav className="flex items-center bg-k-bg/80 border border-k-ghost p-1 rounded-xl shrink-0" aria-label="Seções do aluno">
+          <button
+            onClick={() => setTab('dashboard')}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold text-xs transition-all cursor-pointer ${
+              tab === 'dashboard'
+                ? 'bg-k-primary-dim text-k-primary shadow-[inset_0_0_0_1px_rgba(0,229,255,0.15)]'
+                : 'text-k-text-muted hover:text-k-text'
+            }`}
+          >
+            <LayoutDashboard className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Dashboard</span>
           </button>
           <button
-            style={{ ...st.tabBtn, ...(tab === 'chat' ? st.tabBtnActive : {}) }}
             onClick={() => setTab('chat')}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold text-xs transition-all cursor-pointer ${
+              tab === 'chat'
+                ? 'bg-k-primary-dim text-k-primary shadow-[inset_0_0_0_1px_rgba(0,229,255,0.15)]'
+                : 'text-k-text-muted hover:text-k-text'
+            }`}
           >
-            Chat
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Chat</span>
           </button>
         </nav>
       </header>
 
-      <div style={st.content}>
+      {/* Main Content Area */}
+      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
         {tab === 'dashboard' ? (
           <DashboardTab studentId={id} studentFirstName={peer.nome.split(' ')[0]} />
         ) : (
@@ -96,84 +124,3 @@ export default function StudentDetailPage() {
     </div>
   );
 }
-
-const st: Record<string, CSSProperties> = {
-  shell: {
-    height: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden',
-  },
-  centered: {
-    height: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: KINETIC.textMuted,
-  },
-  backLink: { fontSize: 13.5, fontWeight: 600 },
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 14,
-    padding: '14px 24px',
-    borderBottom: `1px solid ${KINETIC.ghost}`,
-    background: KINETIC.surface1,
-    flexShrink: 0,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 11,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: KINETIC.surface2,
-    color: KINETIC.text,
-    fontSize: 17,
-  },
-  headerInfo: { flex: 1, minWidth: 0 },
-  headerName: {
-    fontSize: 16.5,
-    fontWeight: 800,
-    letterSpacing: -0.3,
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-  headerEmail: {
-    fontSize: 12,
-    color: KINETIC.textMuted,
-    marginTop: 1,
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-  tabs: {
-    display: 'flex',
-    gap: 6,
-    background: KINETIC.bg,
-    padding: 4,
-    borderRadius: 12,
-  },
-  tabBtn: {
-    padding: '8px 18px',
-    borderRadius: 9,
-    fontSize: 13.5,
-    fontWeight: 700,
-    color: KINETIC.textMuted,
-  },
-  tabBtnActive: {
-    background: KINETIC.primaryDim,
-    color: KINETIC.primary,
-    boxShadow: `inset 0 0 0 1px ${KINETIC.primarySoft}`,
-  },
-  content: {
-    flex: 1,
-    minHeight: 0,
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden',
-  },
-};
