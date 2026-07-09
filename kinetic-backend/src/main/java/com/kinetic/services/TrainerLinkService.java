@@ -126,6 +126,24 @@ public class TrainerLinkService {
                 .toList();
     }
 
+    /**
+     * Resolve o e-mail de um aluno garantindo que ele pertence à carteira do
+     * personal (vínculo ATIVO). Gate de posse dos endpoints de dashboard do
+     * personal: sem vínculo, responde 404 — e não 403 — para não revelar a
+     * existência do aluno.
+     */
+    @Transactional(readOnly = true)
+    public String resolveOwnedStudentEmail(String trainerEmail, @NonNull UUID studentId) {
+        User trainer = userRepository.getByEmailOrThrow(trainerEmail);
+        if (!trainerClientRepository.existsByTrainerIdAndStudentIdAndStatus(
+                trainer.getId(), studentId, TrainerLinkStatus.ATIVO)) {
+            throw new EntityNotFoundException("Aluno não encontrado.");
+        }
+        return userRepository.findById(studentId)
+                .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado."))
+                .getEmail();
+    }
+
     /** Busca o convite garantindo posse (é do aluno logado) e estado PENDENTE. */
     private TrainerClient getOwnedPendingInvite(User student, @NonNull UUID inviteId) {
         TrainerClient link = trainerClientRepository.findById(inviteId)

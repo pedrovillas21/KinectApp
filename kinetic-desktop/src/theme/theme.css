@@ -1,0 +1,133 @@
+/*
+ * Tema global do painel Kinetic (dark + ciano neon).
+ * Os valores espelham src/theme/kinetic.ts — alterar lá e aqui juntos.
+ */
+
+:root {
+  --k-bg: #131313;
+  --k-surface1: #1c1b1b;
+  --k-surface2: #2a2a2a;
+  --k-surface3: #353534;
+
+  --k-primary: #00e5ff;
+  --k-primary-deep: #00daf3;
+  --k-primary-dim: rgba(0, 229, 255, 0.1);
+  --k-primary-soft: rgba(0, 229, 255, 0.2);
+
+  --k-text: #f5f6f7;
+  --k-text-dim: rgba(245, 246, 247, 0.62);
+  --k-text-muted: rgba(245, 246, 247, 0.36);
+
+  --k-ghost: rgba(255, 255, 255, 0.08);
+  --k-ghost-hi: rgba(255, 255, 255, 0.15);
+
+  --k-success: #4ade80;
+  --k-warn: #f5b945;
+  --k-error: #ff4444;
+
+  /* Texto sobre superfícies ciano (botões primários, bolhas minhas). */
+  --k-on-primary: #001a1f;
+
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Reset de SPA desktop: a página nunca rola — o scroll vive nos painéis
+   internos (lista de alunos, mensagens do chat, conteúdo das abas). */
+html,
+body,
+#root {
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+body {
+  background: var(--k-bg);
+  color: var(--k-text);
+  font-family:
+    'Segoe UI',
+    system-ui,
+    -apple-system,
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  border: none;
+  cursor: pointer;
+  background: none;
+  color: inherit;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+input,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: var(--k-text);
+  background: var(--k-surface1);
+  border: 1px solid var(--k-ghost);
+  border-radius: 12px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--k-text-muted);
+}
+
+/* Ciano como cor de estado ativo/foco, como no mobile. */
+input:focus,
+textarea:focus {
+  border-color: var(--k-primary);
+}
+
+a {
+  color: var(--k-primary);
+  text-decoration: none;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--k-ghost-hi);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--k-text-muted);
+}

@@ -70,7 +70,8 @@ public class AuthService {
                 user.getHeight(),
                 user.getGoal(),
                 user.getFrequency(),
-                user.getMedicalConditions()
+                user.getMedicalConditions(),
+                user.getRole().name()
         );
     }
 
