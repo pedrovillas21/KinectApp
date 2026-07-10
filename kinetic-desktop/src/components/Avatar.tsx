@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { KINETIC } from '../theme/kinetic';
 
 interface Props {
@@ -10,6 +10,8 @@ interface Props {
 
 /** Avatar circular: foto quando existe, senão a inicial do nome sobre ciano dim. */
 export default function Avatar({ name, avatarUrl, size = 40 }: Props) {
+  const [failed, setFailed] = useState(false);
+
   const style: CSSProperties = {
     width: size,
     height: size,
@@ -17,8 +19,15 @@ export default function Avatar({ name, avatarUrl, size = 40 }: Props) {
     flexShrink: 0,
   };
 
-  if (avatarUrl) {
-    return <img src={avatarUrl} alt={name} style={{ ...style, objectFit: 'cover' }} />;
+  if (avatarUrl && !failed) {
+    return (
+      <img
+        src={avatarUrl}
+        alt={name}
+        style={{ ...style, objectFit: 'cover' }}
+        onError={() => setFailed(true)}
+      />
+    );
   }
 
   const initial = (name.trim().charAt(0) || '?').toUpperCase();

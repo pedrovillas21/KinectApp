@@ -1,7 +1,10 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { inviteStudent } from '../services/trainerService';
 import { X, Mail, AlertCircle, CheckCircle2 } from 'lucide-react';
 import type { TrainerLink } from '../types';
+
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
 
 interface Props {
   open: boolean;
@@ -14,8 +17,7 @@ export default function InviteStudentModal({ open, onClose, onInvited }: Props) 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-
-  if (!open) return null;
+  const sheetRef = useRef<HTMLDivElement>(null);
 
   const reset = () => {
     setEmail('');
@@ -27,6 +29,32 @@ export default function InviteStudentModal({ open, onClose, onInvited }: Props) 
     if (busy) return;
     reset();
     onClose();
+  };
+
+  if (!open) return null;
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Escape') {
+      e.stopPropagation();
+      handleClose();
+      return;
+    }
+    if (e.key !== 'Tab' || !sheetRef.current) return;
+
+    const focusable = Array.from(
+      sheetRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+    );
+    if (focusable.length === 0) return;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -67,12 +95,18 @@ export default function InviteStudentModal({ open, onClose, onInvited }: Props) 
       className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
     >
       <div
+        ref={sheetRef}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-[480px] bg-k-surface1 border border-k-ghost rounded-2xl p-6 shadow-2xl animate-scale-up"
+        onKeyDown={handleKeyDown}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="invite-student-title"
+        tabIndex={-1}
+        className="w-full max-w-[480px] bg-k-surface1 border border-k-ghost rounded-2xl p-6 shadow-2xl animate-scale-up outline-none"
       >
         {/* Modal Header */}
         <div className="flex items-center justify-between pb-3 border-b border-k-ghost/40 mb-4">
-          <h2 className="text-base font-extrabold tracking-tight">Convidar Novo Aluno</h2>
+          <h2 id="invite-student-title" className="text-base font-extrabold tracking-tight">Convidar Novo Aluno</h2>
           <button
             onClick={handleClose}
             aria-label="Fechar"

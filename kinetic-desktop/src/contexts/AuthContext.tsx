@@ -11,11 +11,7 @@ import api, {
   refreshAccessToken,
   logoutUser,
 } from '../services/api';
-import {
-  getRefreshToken,
-  clearTokens,
-  setTokens,
-} from '../services/tokenStorage';
+import { clearTokens, setAccessToken } from '../services/tokenStorage';
 
 const USER_KEY = 'kinetic_web_user';
 
@@ -72,13 +68,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
 
-  // Restaura a sessão: usuário salvo + refresh token válido → logado.
+  // Restaura a sessão: usuário salvo + cookie de refresh válido → logado.
+  // O cookie é HttpOnly (não dá pra checar sua existência aqui), então a
+  // única forma de confirmar é tentar o refresh e ver se o backend aceita.
   useEffect(() => {
     const bootstrap = async () => {
       try {
         const userJson = localStorage.getItem(USER_KEY);
-        const storedRefresh = await getRefreshToken();
-        if (!userJson || !storedRefresh) return;
+        if (!userJson) return;
 
         const user = JSON.parse(userJson) as KineticWebUser;
         if (user.role !== 'PERSONAL') {
@@ -125,17 +122,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         senha: password,
       });
 
-      const { token, refreshToken, id, nome, email: userEmail, role } = response.data;
+      const { token, id, nome, email: userEmail, role } = response.data;
 
       // Gate de papel: o painel é só do PERSONAL. Não persiste nada de quem
-      // não é — os tokens da resposta são simplesmente descartados.
+      // não é — o access token é descartado e o cookie de refresh (já
+      // gravado pelo backend na resposta) é limpo no logout best-effort.
       if (role !== 'PERSONAL') {
+        await logoutUser();
         return { success: false, error: ROLE_BLOCKED_ERROR };
       }
 
       const user: KineticWebUser = { id: String(id), nome, email: userEmail, role };
 
-      await setTokens(token, refreshToken);
+      await setAccessToken(token);
       localStorage.setItem(USER_KEY, JSON.stringify(user));
       setCurrentUser(user);
       setIsLoggedIn(true);
@@ -187,10 +186,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = useCallback(async (): Promise<void> => {
     try {
-      const refreshToken = await getRefreshToken();
-      if (refreshToken) {
-        await logoutUser(refreshToken);
-      }
+      // O refresh token vai no cookie HttpOnly; o backend o revoga e limpa
+      // o cookie na resposta.
+      await logoutUser();
       await clearTokens();
       localStorage.removeItem(USER_KEY);
     } finally {

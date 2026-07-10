@@ -5,9 +5,11 @@ import type { ChatMessage } from '../types';
 
 /**
  * Chat personal↔aluno. Histórico/leitura via REST; tempo real via STOMP
- * sobre WebSocket. O JWT vai no header do frame CONNECT (connectHeaders) —
- * browsers/RN não enviam header HTTP Authorization no handshake nativo —
- * com ?token= na URL como fallback (ambos aceitos pelo backend).
+ * sobre WebSocket. O JWT vai só no header do frame CONNECT (connectHeaders) —
+ * browsers não enviam header HTTP Authorization no handshake nativo do
+ * WebSocket, mas o STOMP CONNECT chega depois, já sobre a conexão aberta.
+ * Evitamos repetir o token na query string da URL para não deixá-lo em logs
+ * de acesso e ferramentas de rede.
  */
 
 // ─── REST ─────────────────────────────────────────────────────
@@ -69,7 +71,6 @@ export const connectChatSocket = (
     beforeConnect: async () => {
       const token = await getAccessToken();
       client.connectHeaders = { Authorization: `Bearer ${token ?? ''}` };
-      client.brokerURL = `${WS_URL}?token=${encodeURIComponent(token ?? '')}`;
     },
     brokerURL: WS_URL,
     reconnectDelay: 5000,

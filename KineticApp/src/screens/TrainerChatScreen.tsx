@@ -122,11 +122,14 @@ export default function TrainerChatScreen({ navigation, route }: any) {
       if (connectedRef.current) return;
       void getMessages(peerId, 0, PAGE_SIZE)
         .then((history) => {
+          let hasFreshFromPeer = false;
           setMessages((prev) => {
             const seen = new Set(prev.map((m) => m.id));
             const fresh = history.filter((m) => !seen.has(m.id));
+            hasFreshFromPeer = fresh.some((m) => m.senderId === peerId);
             return fresh.length ? [...fresh, ...prev] : prev;
           });
+          if (hasFreshFromPeer) void markConversationRead(peerId);
         })
         .catch(() => {});
     }, POLL_INTERVAL_MS);

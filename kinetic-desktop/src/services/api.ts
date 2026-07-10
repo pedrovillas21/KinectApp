@@ -4,13 +4,7 @@ import axios, {
   type AxiosError,
   type InternalAxiosRequestConfig,
 } from 'axios';
-import {
-  getAccessToken,
-  setAccessToken,
-  setRefreshToken,
-  getRefreshToken,
-  clearTokens,
-} from './tokenStorage';
+import { getAccessToken, setAccessToken, clearTokens } from './tokenStorage';
 
 const API_URL = `${import.meta.env.VITE_API_URL}/api`;
 
@@ -20,6 +14,9 @@ const api: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  // O refresh token vive num cookie HttpOnly (kinetic_refresh_token) —
+  // withCredentials garante que o browser o envie/receba em /auth/*.
+  withCredentials: true,
 });
 
 // Raw client for refresh/logout — bypasses interceptors to avoid recursion.
@@ -29,6 +26,7 @@ const refreshClient: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 });
 
 let _signOutHandler: (() => Promise<void>) | null = null;
@@ -39,10 +37,11 @@ export const setSignOutHandler = (
   _signOutHandler = handler;
 };
 
-// Best-effort server-side logout.
-export const logoutUser = async (refreshToken: string): Promise<void> => {
+// Best-effort server-side logout. O refresh token vai no cookie HttpOnly
+// (withCredentials); o backend o lê de lá e limpa o cookie na resposta.
+export const logoutUser = async (): Promise<void> => {
   try {
-    await refreshClient.post('/auth/logout', { refreshToken });
+    await refreshClient.post('/auth/logout');
   } catch {
     // intentionally ignored: network failure must not block local sign-out
   }
@@ -56,21 +55,16 @@ export const refreshAccessToken = async (): Promise<string | null> => {
 
   refreshPromise = (async () => {
     try {
-      const storedRefresh = await getRefreshToken();
-      if (!storedRefresh) return null;
-
+      // Sem corpo: o refresh token vai no cookie HttpOnly (withCredentials).
       const res = await refreshClient.post<{ token: string; refreshToken: string }>(
         '/auth/refresh',
-        { refreshToken: storedRefresh },
       );
 
       const newToken = res.data?.token;
-      const newRefreshToken = res.data?.refreshToken;
       if (!newToken) return null;
 
       await setAccessToken(newToken);
-      if (newRefreshToken) await setRefreshToken(newRefreshToken);
-
+      // O backend já regravou o cookie com o refresh token rotacionado.
       return newToken;
     } catch {
       return null;

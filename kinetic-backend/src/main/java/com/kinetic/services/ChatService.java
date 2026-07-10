@@ -42,6 +42,10 @@ public class ChatService {
 
         requireActiveLink(sender.getId(), recipient.getId());
 
+        if (content == null || content.isBlank()) {
+            throw new IllegalArgumentException("Mensagem não pode estar vazia.");
+        }
+
         ChatMessage message = new ChatMessage();
         message.setSender(sender);
         message.setRecipient(recipient);

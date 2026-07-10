@@ -71,6 +71,10 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(origins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        // Necessário para o cookie HttpOnly do refresh token (kinetic-desktop chama
+        // /api/auth/* com withCredentials); exige origens explícitas acima — nunca
+        // "*" — porque allowCredentials(true) proíbe wildcard.
+        configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
