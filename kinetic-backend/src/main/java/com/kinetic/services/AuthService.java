@@ -3,6 +3,7 @@ package com.kinetic.services;
 import com.kinetic.enums.Role;
 import com.kinetic.models.User;
 import com.kinetic.repositories.UserRepository;
+import com.kinetic.utils.DocumentValidator;
 import com.kinetic.dtos.RegisterDTO;
 import com.kinetic.dtos.LoginDTO;
 import com.kinetic.dtos.AuthResponseDTO;
@@ -39,7 +40,22 @@ public class AuthService {
         user.setSenha(passwordEncoder.encode(dto.getSenha()));
         // Auto-cadastro só produz ALUNO ou PERSONAL (whitelist no DTO);
         // EMPRESA e ROOT nascem por outros caminhos (ROOT: seed no boot).
-        user.setRole("PERSONAL".equals(dto.getRole()) ? Role.PERSONAL : Role.ALUNO);
+        boolean isPersonal = "PERSONAL".equals(dto.getRole());
+        user.setRole(isPersonal ? Role.PERSONAL : Role.ALUNO);
+
+        if (isPersonal) {
+            if (dto.getCpf() == null || dto.getCpf().isBlank()) {
+                throw new IllegalArgumentException("CPF é obrigatório para personal trainers.");
+            }
+            if (!DocumentValidator.isValidCPF(dto.getCpf())) {
+                throw new IllegalArgumentException("CPF informado é inválido.");
+            }
+            String cleanCpf = dto.getCpf().replaceAll("\\D", "");
+            if (userRepository.existsByCpf(cleanCpf)) {
+                throw new EmailAlreadyInUseException("CPF já está em uso.");
+            }
+            user.setCpf(cleanCpf);
+        }
 
         return userRepository.save(user);
     }

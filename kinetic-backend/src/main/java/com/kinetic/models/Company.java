@@ -27,6 +27,9 @@ public class Company {
     @Column(nullable = false)
     private String nome;
 
+    @Column(unique = true)
+    private String cnpj;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

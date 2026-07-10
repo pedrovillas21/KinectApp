@@ -47,6 +47,21 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
             @Param("endDate")   LocalDate endDate
     );
 
+    /** Contagem de sessões por dia para um conjunto de usuários — volume da unidade (EMPRESA). */
+    @Query("""
+            SELECT ws.sessionDate, COUNT(ws)
+            FROM WorkoutSession ws
+            WHERE ws.user.id IN :userIds
+              AND ws.sessionDate BETWEEN :startDate AND :endDate
+            GROUP BY ws.sessionDate
+            ORDER BY ws.sessionDate
+            """)
+    List<Object[]> countSessionsPerDayForUsers(
+            @Param("userIds")   Collection<UUID> userIds,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate")   LocalDate endDate
+    );
+
     /** Soma de segundos treinados por usuário no intervalo — alimenta o Ranking da Arena da Home. */
     @Query("""
             SELECT ws.user.id, COALESCE(SUM(ws.durationInSeconds), 0)

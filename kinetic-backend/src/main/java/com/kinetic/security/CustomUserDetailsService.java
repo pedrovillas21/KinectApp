@@ -1,5 +1,6 @@
 package com.kinetic.security;
 
+import com.kinetic.enums.UserStatus;
 import com.kinetic.models.User;
 import com.kinetic.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,9 +23,18 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com o e-mail: " + email));
 
+        // Compliance: só ATIVO é enabled; BLOQUEADO também é accountNonLocked=false.
+        // Isso barra login (DaoAuthenticationProvider) e requests (filtro checa isEnabled).
+        boolean enabled = user.getStatus() == UserStatus.ATIVO;
+        boolean accountNonLocked = user.getStatus() != UserStatus.BLOQUEADO;
+
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
                 user.getSenha(),
+                enabled,
+                true,
+                true,
+                accountNonLocked,
                 List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
         );
     }

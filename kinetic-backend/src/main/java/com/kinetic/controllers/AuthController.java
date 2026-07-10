@@ -8,7 +8,10 @@ import com.kinetic.dtos.RegisterDTO;
 import com.kinetic.dtos.ResetPasswordDTO;
 import com.kinetic.dtos.VerifyEmailDTO;
 import com.kinetic.services.AuthService;
+import com.kinetic.services.CompanyService;
 import com.kinetic.services.InvalidRefreshTokenException;
+import com.kinetic.dtos.CompanyDTO;
+import com.kinetic.dtos.CreateCompanyRequestDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
@@ -36,6 +39,7 @@ public class AuthController {
     private static final String REFRESH_COOKIE = "kinetic_refresh_token";
 
     private final AuthService authService;
+    private final CompanyService companyService;
 
     @Value("${jwt.refresh-expiration}")
     private long refreshExpirationMs;
@@ -49,6 +53,15 @@ public class AuthController {
     public ResponseEntity<?> register(@Valid @RequestBody RegisterDTO dto) {
         authService.register(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body("Usuário registrado com sucesso.");
+    }
+
+    @Operation(
+            summary = "Cadastrar uma empresa (cria a empresa e o usuário dono)",
+            description = "Endpoint público para auto-cadastro de empresas no painel."
+    )
+    @PostMapping("/register-company")
+    public ResponseEntity<CompanyDTO> registerCompany(@Valid @RequestBody CreateCompanyRequestDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(companyService.createCompany(dto));
     }
 
     @Operation(
@@ -120,6 +133,7 @@ public class AuthController {
         return null;
     }
 
+    @SuppressWarnings("null")
     private ResponseCookie buildRefreshCookie(String value) {
         return ResponseCookie.from(REFRESH_COOKIE, value)
                 .httpOnly(true)

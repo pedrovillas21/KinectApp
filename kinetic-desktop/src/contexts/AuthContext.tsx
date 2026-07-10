@@ -12,12 +12,16 @@ import api, {
   logoutUser,
 } from '../services/api';
 import { clearTokens, setAccessToken } from '../services/tokenStorage';
+import { isPanelRole } from '../config/nav';
 
 const USER_KEY = 'kinetic_web_user';
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
-/** Usuário logado no painel — sempre role PERSONAL (o login barra os demais). */
+/**
+ * Usuário logado no painel. `role` é um dos papéis do painel (PERSONAL,
+ * EMPRESA ou ROOT) — o login barra ALUNO e qualquer papel desconhecido.
+ */
 export interface KineticWebUser {
   id: string;
   nome: string;
@@ -38,6 +42,14 @@ interface AuthContextValue {
     name: string;
     email: string;
     password: string;
+    cpf: string;
+  }) => Promise<AuthResult>;
+  registerCompany: (args: {
+    companyName: string;
+    companyCnpj: string;
+    ownerName: string;
+    ownerEmail: string;
+    ownerPassword: string;
   }) => Promise<AuthResult>;
 }
 
@@ -51,7 +63,7 @@ interface LoginResponse {
 }
 
 const ROLE_BLOCKED_ERROR =
-  'Este painel é exclusivo para personal trainers. Use o app Kinetic no celular para acessar sua conta de aluno.';
+  'Este painel é para personais, empresas e administradores. Use o app Kinetic no celular para acessar sua conta de aluno.';
 
 // ─── Context ──────────────────────────────────────────────────────────────
 
@@ -78,7 +90,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (!userJson) return;
 
         const user = JSON.parse(userJson) as KineticWebUser;
-        if (user.role !== 'PERSONAL') {
+        if (!isPanelRole(user.role)) {
           await clearSession();
           return;
         }
@@ -124,10 +136,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       const { token, id, nome, email: userEmail, role } = response.data;
 
-      // Gate de papel: o painel é só do PERSONAL. Não persiste nada de quem
-      // não é — o access token é descartado e o cookie de refresh (já
+      // Gate de papel: o painel aceita PERSONAL, EMPRESA e ROOT — ALUNO (e
+      // qualquer papel desconhecido) é barrado. Não persiste nada de quem não
+      // é do painel — o access token é descartado e o cookie de refresh (já
       // gravado pelo backend na resposta) é limpo no logout best-effort.
-      if (role !== 'PERSONAL') {
+      if (!isPanelRole(role)) {
         await logoutUser();
         return { success: false, error: ROLE_BLOCKED_ERROR };
       }
@@ -157,12 +170,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     name,
     email,
     password,
+    cpf,
   }: {
     name: string;
     email: string;
     password: string;
+    cpf: string;
   }): Promise<AuthResult> => {
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !cpf) {
       return { success: false, error: 'Preencha todos os campos.' };
     }
 
@@ -172,11 +187,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         email: email.trim(),
         senha: password,
         role: 'PERSONAL',
+        cpf: cpf.trim(),
       });
       return { success: true };
     } catch (e: unknown) {
       const err = e as { response?: { data?: unknown } };
       const message = err.response?.data || 'Erro ao cadastrar. Tente novamente.';
+      return {
+        success: false,
+        error: typeof message === 'string' ? message : JSON.stringify(message),
+      };
+    }
+  };
+
+  /** Cadastro de empresa (Company + dono com papel EMPRESA) */
+  const registerCompany = async ({
+    companyName,
+    companyCnpj,
+    ownerName,
+    ownerEmail,
+    ownerPassword,
+  }: {
+    companyName: string;
+    companyCnpj: string;
+    ownerName: string;
+    ownerEmail: string;
+    ownerPassword: string;
+  }): Promise<AuthResult> => {
+    if (!companyName || !companyCnpj || !ownerName || !ownerEmail || !ownerPassword) {
+      return { success: false, error: 'Preencha todos os campos.' };
+    }
+
+    try {
+      await api.post('/auth/register-company', {
+        companyName: companyName.trim(),
+        companyCnpj: companyCnpj.trim(),
+        ownerName: ownerName.trim(),
+        ownerEmail: ownerEmail.trim(),
+        ownerPassword: ownerPassword,
+      });
+      return { success: true };
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: unknown } };
+      const message = err.response?.data || 'Erro ao cadastrar empresa. Tente novamente.';
       return {
         success: false,
         error: typeof message === 'string' ? message : JSON.stringify(message),
@@ -205,7 +258,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ isLoggedIn, currentUser, isLoadingAuth, signIn, signOut, register }}
+      value={{ isLoggedIn, currentUser, isLoadingAuth, signIn, signOut, register, registerCompany }}
     >
       {children}
     </AuthContext.Provider>

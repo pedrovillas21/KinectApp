@@ -29,6 +29,7 @@ import java.util.UUID;
  */
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class TrainerLinkService {
 
     private final TrainerClientRepository trainerClientRepository;
@@ -142,6 +143,61 @@ public class TrainerLinkService {
         return userRepository.findById(studentId)
                 .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado."))
                 .getEmail();
+    }
+
+    /**
+     * Write-path corporativo: a EMPRESA atribui um aluno a um personal seu,
+     * criando um vínculo já ATIVO com source=COMPANY. Respeita a mesma regra de
+     * "1 personal ATIVO por aluno" (checagem + índice único parcial → 409).
+     */
+    @Transactional
+    public TrainerLinkDTO assignStudentToTrainer(UUID companyId, UUID trainerId, UUID studentId) {
+        User trainer = userRepository.findById(trainerId)
+                .orElseThrow(() -> new EntityNotFoundException("Personal não encontrado."));
+        User student = userRepository.findById(studentId)
+                .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado."));
+
+        if (trainer.getRole() != Role.PERSONAL) {
+            throw new IllegalArgumentException("O funcionário informado não é um personal.");
+        }
+        if (student.getRole() != Role.ALUNO) {
+            throw new IllegalArgumentException("O e-mail informado não pertence a um aluno.");
+        }
+        if (!companyId.equals(trainer.getCompanyId())) {
+            throw new IllegalArgumentException("Este personal não pertence à sua empresa.");
+        }
+        if (trainerClientRepository.existsByStudentIdAndStatus(student.getId(), TrainerLinkStatus.ATIVO)) {
+            throw new ActiveTrainerConflictException("Este aluno já possui um personal ativo.");
+        }
+
+        TrainerClient link = new TrainerClient();
+        link.setTrainer(trainer);
+        link.setStudent(student);
+        link.setStatus(TrainerLinkStatus.ATIVO);
+        link.setSource(TrainerLinkSource.COMPANY);
+        link.setCompanyId(companyId);
+        link.setRespondedAt(LocalDateTime.now());
+
+        try {
+            return toDto(trainerClientRepository.saveAndFlush(link), student);
+        } catch (DataIntegrityViolationException e) {
+            // Corrida: o índice único parcial barrou um segundo vínculo ATIVO.
+            throw new ActiveTrainerConflictException("Este aluno já possui um personal ativo.");
+        }
+    }
+
+    /** Encerra um vínculo corporativo da empresa (desvincular aluno). */
+    @Transactional
+    public void endCompanyLink(UUID companyId, @NonNull UUID linkId) {
+        TrainerClient link = trainerClientRepository.findById(linkId)
+                .orElseThrow(() -> new EntityNotFoundException("Vínculo não encontrado."));
+        if (!companyId.equals(link.getCompanyId())) {
+            // 404 (e não 403) para não revelar vínculos de outra empresa.
+            throw new EntityNotFoundException("Vínculo não encontrado.");
+        }
+        link.setStatus(TrainerLinkStatus.ENCERRADO);
+        link.setRespondedAt(LocalDateTime.now());
+        trainerClientRepository.save(link);
     }
 
     /** Busca o convite garantindo posse (é do aluno logado) e estado PENDENTE. */

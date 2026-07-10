@@ -134,6 +134,77 @@ export interface TrainerLink {
   respondedAt: string | null;
 }
 
+// ── Painel ROOT ──────────────────────────────────────────────────────────────
+
+export type UserStatus = 'ATIVO' | 'SUSPENSO' | 'BLOQUEADO';
+
+/** Espelha RootMetricsDTO. */
+export interface RootMetrics {
+  totalCompanies: number;
+  totalPersonais: number;
+  totalAlunos: number;
+  newUsersInPeriod: number;
+  growth: { date: string; count: number }[];
+}
+
+/** Espelha CompanyDTO. */
+export interface Company {
+  id: string;
+  nome: string;
+  createdAt: string;
+  ownerId: string | null;
+  ownerName: string | null;
+  ownerEmail: string | null;
+  ownerStatus: UserStatus | null;
+}
+
+/** Espelha UserAdminDTO. */
+export interface UserAdmin {
+  id: string;
+  nome: string;
+  email: string;
+  role: 'ALUNO' | 'PERSONAL' | 'EMPRESA' | 'ROOT';
+  status: UserStatus;
+  companyId: string | null;
+  createdAt: string;
+}
+
+// ── Painel EMPRESA ───────────────────────────────────────────────────────────
+
+/** Espelha EmpresaStudentLinkDTO. */
+export interface EmpresaStudentLink {
+  linkId: string;
+  student: TrainerPeer;
+  trainer: TrainerPeer;
+  createdAt: string;
+}
+
+/** Espelha EmpresaAnalyticsDTO. */
+export interface EmpresaAnalytics {
+  personaisAtivos: number;
+  alunosAtivos: number;
+  alunosVinculadosNoPeriodo: number;
+  retentionRate: number;
+  sessoesNoPeriodo: number;
+  volumeSeries: { date: string; sessions: number }[];
+  desempenhoPorInstrutor: {
+    trainerId: string;
+    trainerName: string;
+    activeStudents: number;
+  }[];
+}
+
+/** Espelha FeedbackDTO. */
+export interface Feedback {
+  id: string;
+  content: string;
+  anonymous: boolean;
+  createdAt: string;
+  studentName: string | null;
+  personalName: string;
+  corporate: boolean;
+}
+
 // ── Chat ───────────────────────────────────────────────────────────────────
 
 /** Mensagem do chat personal↔aluno — espelha ChatMessageDTO do backend. */

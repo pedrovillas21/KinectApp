@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.lang.NonNull;
 import java.util.List;
 import java.util.UUID;
 
@@ -70,7 +71,7 @@ public class TrainerController extends BaseController {
     )
     @GetMapping("/students/{studentId}/stats")
     public ResponseEntity<StatsSummaryResponseDTO> studentStats(
-            @PathVariable UUID studentId,
+            @PathVariable @NonNull UUID studentId,
             @Parameter(description = "Período a calcular: \"week\", \"month\", \"q\" (trimestre) ou \"year\". Padrão: \"month\".")
             @RequestParam(name = "period", defaultValue = "month") String period) {
         String studentEmail = trainerLinkService.resolveOwnedStudentEmail(currentUserEmail(), studentId);
@@ -83,7 +84,7 @@ public class TrainerController extends BaseController {
                     + "Exige vínculo ATIVO entre o personal logado e o aluno; sem vínculo, responde 404."
     )
     @GetMapping("/students/{studentId}/plan-evolution")
-    public ResponseEntity<PlanEvolutionResponseDTO> studentPlanEvolution(@PathVariable UUID studentId) {
+    public ResponseEntity<PlanEvolutionResponseDTO> studentPlanEvolution(@PathVariable @NonNull UUID studentId) {
         String studentEmail = trainerLinkService.resolveOwnedStudentEmail(currentUserEmail(), studentId);
         return ResponseEntity.ok(statsService.getPlanEvolution(studentEmail));
     }
@@ -94,7 +95,7 @@ public class TrainerController extends BaseController {
                     + "informado. Exige vínculo ATIVO entre o personal logado e o aluno; sem vínculo, responde 404."
     )
     @GetMapping("/students/{studentId}/monthly-stats")
-    public ResponseEntity<MonthlyStatsResponseDTO> studentMonthlyStats(@PathVariable UUID studentId) {
+    public ResponseEntity<MonthlyStatsResponseDTO> studentMonthlyStats(@PathVariable @NonNull UUID studentId) {
         String studentEmail = trainerLinkService.resolveOwnedStudentEmail(currentUserEmail(), studentId);
         return ResponseEntity.ok(workoutSessionService.getMonthlyStats(studentEmail));
     }

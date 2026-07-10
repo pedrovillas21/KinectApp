@@ -1,6 +1,7 @@
 package com.kinetic.models;
 
 import com.kinetic.enums.Role;
+import com.kinetic.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -39,8 +40,15 @@ public class User {
     @Column(nullable = false, columnDefinition = "VARCHAR(16) DEFAULT 'ALUNO'")
     private Role role = Role.ALUNO;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "VARCHAR(16) DEFAULT 'ATIVO'")
+    private UserStatus status = UserStatus.ATIVO;
+
     @Column(name = "company_id")
     private UUID companyId;
+
+    @Column(unique = true)
+    private String cpf;
 
     @Column(nullable = true)
     private String level;

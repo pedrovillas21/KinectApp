@@ -1,11 +1,11 @@
 import { useState, type FormEvent } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { homeForRole } from '../config/nav';
 import { Eye, EyeOff, Lock, Mail, Activity } from 'lucide-react';
 
 export default function LoginPage() {
-  const { signIn, isLoggedIn, isLoadingAuth } = useAuth();
-  const navigate = useNavigate();
+  const { signIn, isLoggedIn, isLoadingAuth, currentUser } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,7 +13,11 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  if (!isLoadingAuth && isLoggedIn) return <Navigate to="/students" replace />;
+  // Redirect role-aware: cada papel cai na sua home. Ao logar com sucesso o
+  // AuthContext marca isLoggedIn/currentUser → este guard reavalia e navega.
+  if (!isLoadingAuth && isLoggedIn) {
+    return <Navigate to={homeForRole(currentUser?.role)} replace />;
+  }
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -22,11 +26,10 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       const result = await signIn({ email, password });
-      if (result.success) {
-        navigate('/students', { replace: true });
-      } else {
+      if (!result.success) {
         setError(result.error);
       }
+      // Em caso de sucesso, o <Navigate> acima assume o redirect por papel.
     } finally {
       setSubmitting(false);
     }
@@ -134,6 +137,14 @@ export default function LoginPage() {
           >
             {submitting ? 'Entrando…' : 'Entrar no Painel'}
           </button>
+
+          {/* Register Link */}
+          <div className="text-center text-xs mt-1">
+            <span className="text-k-text-muted">Não possui uma conta? </span>
+            <Link to="/register" className="font-extrabold text-k-primary hover:text-white transition-colors">
+              Cadastre-se
+            </Link>
+          </div>
 
           {/* Footer Note */}
           <p className="text-[11px] text-k-text-muted text-center leading-normal mt-2">

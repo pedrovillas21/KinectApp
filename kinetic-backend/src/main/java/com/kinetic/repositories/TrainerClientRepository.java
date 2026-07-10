@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -42,4 +43,25 @@ public interface TrainerClientRepository extends JpaRepository<TrainerClient, UU
               AND ((tc.trainer.id = :a AND tc.student.id = :b) OR (tc.trainer.id = :b AND tc.student.id = :a))
             """)
     boolean existsActiveLinkBetween(@Param("a") UUID a, @Param("b") UUID b);
+
+    // ── Painel EMPRESA: vínculos corporativos (source=COMPANY) ──────────────
+
+    /** Vínculos da empresa num dado status, com aluno e personal carregados (evita N+1). */
+    @Query("SELECT tc FROM TrainerClient tc JOIN FETCH tc.student JOIN FETCH tc.trainer WHERE tc.companyId = :companyId AND tc.status = :status ORDER BY tc.createdAt DESC")
+    List<TrainerClient> findByCompanyAndStatusFetch(@Param("companyId") UUID companyId,
+                                                    @Param("status") TrainerLinkStatus status);
+
+    long countByCompanyIdAndStatus(UUID companyId, TrainerLinkStatus status);
+
+    long countByCompanyIdAndCreatedAtGreaterThanEqual(UUID companyId, LocalDateTime start);
+
+    long countByCompanyIdAndStatusAndCreatedAtGreaterThanEqual(
+            UUID companyId, TrainerLinkStatus status, LocalDateTime start);
+
+    /** Nº de alunos ATIVOS por instrutor da empresa (gráfico "desempenho por instrutor"). */
+    @Query("SELECT tc.trainer.id, tc.trainer.nome, COUNT(tc) FROM TrainerClient tc "
+            + "WHERE tc.companyId = :companyId AND tc.status = :status "
+            + "GROUP BY tc.trainer.id, tc.trainer.nome ORDER BY COUNT(tc) DESC")
+    List<Object[]> countActiveStudentsPerTrainer(@Param("companyId") UUID companyId,
+                                                 @Param("status") TrainerLinkStatus status);
 }

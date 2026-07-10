@@ -24,4 +24,6 @@ public class RegisterDTO {
      */
     @Pattern(regexp = "ALUNO|PERSONAL", message = "Papel inválido.")
     private String role;
+
+    private String cpf;
 }

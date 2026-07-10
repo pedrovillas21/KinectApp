@@ -1,4 +1,7 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
 
 @theme {
   --color-k-bg: #131313;
@@ -21,6 +24,91 @@
   --color-k-success: #4ade80;
   --color-k-warn: #f5b945;
   --color-k-error: #ff4444;
+}
+
+/* ── shadcn/ui tokens → mapeados aos tokens de marca Kinetic ────────────────
+ * O painel é dark por padrão, então os valores "dark" vivem direto no :root.
+ * Alimentam os componentes shadcn (bg-background, text-foreground,
+ * border-border, bg-primary, etc.) já no visual "athletic" da marca. */
+:root {
+  --radius: 0.75rem;
+
+  --background: #131313;          /* k-bg */
+  --foreground: #f5f6f7;          /* k-text */
+  --card: #1c1b1b;                /* k-surface1 */
+  --card-foreground: #f5f6f7;
+  --popover: #1c1b1b;
+  --popover-foreground: #f5f6f7;
+  --primary: #00e5ff;             /* k-primary */
+  --primary-foreground: #001a1f;  /* k-on-primary */
+  --secondary: #2a2a2a;           /* k-surface2 */
+  --secondary-foreground: #f5f6f7;
+  --muted: #2a2a2a;
+  --muted-foreground: rgba(245, 246, 247, 0.62); /* k-text-dim */
+  --accent: #2a2a2a;
+  --accent-foreground: #f5f6f7;
+  --destructive: #ff4444;         /* k-error */
+  --destructive-foreground: #f5f6f7;
+  --border: rgba(255, 255, 255, 0.08);   /* k-ghost */
+  --input: rgba(255, 255, 255, 0.15);    /* k-ghost-hi */
+  --ring: #00e5ff;                        /* k-primary */
+
+  /* Séries de gráfico — chart-1 é o ciano escurecido validado (dataviz). */
+  --chart-1: #00a5b8;
+  --chart-2: #4ade80;
+  --chart-3: #f5b945;
+  --chart-4: #a78bfa;
+  --chart-5: #f472b6;
+
+  /* Sidebar (bloco oficial do shadcn). */
+  --sidebar: #1c1b1b;
+  --sidebar-foreground: #f5f6f7;
+  --sidebar-primary: #00e5ff;
+  --sidebar-primary-foreground: #001a1f;
+  --sidebar-accent: #2a2a2a;
+  --sidebar-accent-foreground: #f5f6f7;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #00e5ff;
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
 }
 
 /*
@@ -210,4 +298,14 @@
   animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+.dark {
+  --sidebar: hsl(240 5.9% 10%);
+  --sidebar-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-primary: hsl(224.3 76.3% 48%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(240 3.7% 15.9%);
+  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-border: hsl(240 3.7% 15.9%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
 
