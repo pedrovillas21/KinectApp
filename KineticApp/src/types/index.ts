@@ -313,3 +313,31 @@ export interface GenerateWorkoutRequest {
   level: string;
   medicalConditions: string;
 }
+
+/** Lado oposto de um vínculo personal↔aluno (para o aluno, é o personal). */
+export interface TrainerPeer {
+  id: string;
+  nome: string;
+  email: string;
+  avatarUrl: string | null;
+}
+
+/** Vínculo personal↔aluno — espelha TrainerLinkDTO do backend. */
+export interface TrainerLink {
+  id: string;
+  peer: TrainerPeer;
+  status: 'PENDENTE' | 'ATIVO' | 'RECUSADO' | 'ENCERRADO';
+  source: 'INVITE' | 'COMPANY';
+  createdAt: string;
+  respondedAt: string | null;
+}
+
+/** Mensagem do chat personal↔aluno — espelha ChatMessageDTO do backend. */
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  recipientId: string;
+  content: string;
+  sentAt: string;
+  readAt: string | null;
+}

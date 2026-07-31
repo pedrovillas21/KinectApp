@@ -4,6 +4,8 @@ import com.kinetic.dtos.ChangePasswordDTO;
 import com.kinetic.dtos.UpdateWeightRequestDTO;
 import com.kinetic.dtos.UserProfileResponseDTO;
 import com.kinetic.services.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -16,6 +18,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/users")
+@Tag(
+        name = "Usuário",
+        description = "Dados de perfil, senha e peso do usuário logado (dados pessoais, não de treino)."
+)
 public class UserController extends BaseController {
 
     private final UserService userService;
@@ -24,6 +30,11 @@ public class UserController extends BaseController {
         this.userService = userService;
     }
 
+    @Operation(
+            summary = "Ver os dados de perfil do usuário logado",
+            description = "Busca no banco os dados cadastrais do usuário (nome, e-mail, dados físicos etc.) a "
+                    + "partir do token enviado — não é preciso informar nenhum ID."
+    )
     @GetMapping("/profile")
     public ResponseEntity<?> getProfile() {
         String userEmail = currentUserEmail();
@@ -35,6 +46,11 @@ public class UserController extends BaseController {
         }
     }
 
+    @Operation(
+            summary = "Trocar a senha",
+            description = "Confere a senha atual informada e, se estiver correta, grava a nova senha (com hash) no "
+                    + "banco. Exige a senha atual por segurança, mesmo com o usuário já logado."
+    )
     @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordDTO request) {
         String userEmail = currentUserEmail();
@@ -48,6 +64,11 @@ public class UserController extends BaseController {
         }
     }
 
+    @Operation(
+            summary = "Atualizar o peso atual do usuário",
+            description = "Salva um novo registro de peso corporal para o usuário logado, usado depois nos "
+                    + "gráficos de evolução."
+    )
     @PostMapping("/weight")
     public ResponseEntity<?> updateWeight(@Valid @RequestBody UpdateWeightRequestDTO request) {
         String userEmail = currentUserEmail();

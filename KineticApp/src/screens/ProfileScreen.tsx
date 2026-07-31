@@ -19,7 +19,14 @@ import Icon from '../components/Icon';
 import Svg, { Circle, Path, Polygon, Polyline, Rect } from 'react-native-svg';
 import api from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
-import { GenerateWorkoutRequest, UserProfileResponse } from '../types';
+import { GenerateWorkoutRequest, TrainerLink, UserProfileResponse } from '../types';
+import {
+  acceptInvite,
+  declineInvite,
+  getMyTrainer,
+  getPendingInvites,
+} from '../services/trainerService';
+import TrainerInvitesModal from '../components/TrainerInvitesModal';
 import { formatMemberSince, formatProfileName } from '../utils/formatters';
 import {
   ageFromBirthDate,
@@ -647,6 +654,49 @@ function PreferencesSection() {
   );
 }
 
+// ─── Seu Personal ─────────────────────────────────────────────
+interface TrainerSectionProps {
+  trainer: TrainerLink | null;
+  inviteCount: number;
+  onOpenInvites: () => void;
+  onOpenChat: () => void;
+}
+
+function TrainerSection({ trainer, inviteCount, onOpenInvites, onOpenChat }: TrainerSectionProps) {
+  return (
+    <View>
+      <SectionTitle sub="Acompanhamento profissional">Seu Personal</SectionTitle>
+      <RowGroup>
+        {trainer ? (
+          <Row
+            icon={Icons.users}
+            label={trainer.peer.nome}
+            sub="Toque para conversar com seu personal"
+            onPress={onOpenChat}
+            accent
+          />
+        ) : (
+          <Row
+            icon={Icons.users}
+            label="Nenhum personal ativo"
+            sub="Aceite um convite para ser acompanhado"
+          />
+        )}
+        <Row
+          icon={Icons.mail}
+          label="Convites de personal"
+          onPress={onOpenInvites}
+          badge={
+            inviteCount > 0
+              ? { text: String(inviteCount), color: KINETIC.warn, bg: 'rgba(245,185,69,0.14)' }
+              : undefined
+          }
+        />
+      </RowGroup>
+    </View>
+  );
+}
+
 // ─── Comunidade ───────────────────────────────────────────────
 function CommunitySection() {
   return (
@@ -866,6 +916,46 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const [protocolForm, setProtocolForm] = useState<ProtocolForm | null>(null);
   const [activeModal, setActiveModal] = useState<ProtocolModal>(null);
   const [isRegenerating, setIsRegenerating] = useState<boolean>(false);
+  const [trainer, setTrainer] = useState<TrainerLink | null>(null);
+  const [trainerInvites, setTrainerInvites] = useState<TrainerLink[]>([]);
+  const [invitesOpen, setInvitesOpen] = useState(false);
+
+  // Vínculo com personal: quem é o personal ativo + convites pendentes.
+  const refreshTrainerData = async () => {
+    try {
+      const [active, invites] = await Promise.all([getMyTrainer(), getPendingInvites()]);
+      setTrainer(active);
+      setTrainerInvites(invites);
+    } catch (error) {
+      console.error('Erro ao carregar vínculo com personal:', error);
+    }
+  };
+
+  const handleAcceptInvite = async (inviteId: string) => {
+    try {
+      await acceptInvite(inviteId);
+      setInvitesOpen(false);
+      await refreshTrainerData();
+    } catch (e) {
+      const err = e as { response?: { status?: number; data?: unknown } };
+      const raw = err.response?.data;
+      Alert.alert(
+        'Não foi possível aceitar',
+        typeof raw === 'string' && raw ? raw : 'Tente novamente em instantes.',
+      );
+      await refreshTrainerData();
+    }
+  };
+
+  const handleDeclineInvite = async (inviteId: string) => {
+    try {
+      await declineInvite(inviteId);
+    } catch (error) {
+      console.error('Erro ao recusar convite:', error);
+    } finally {
+      await refreshTrainerData();
+    }
+  };
 
   // Email real do usuário logado: prioriza o perfil do servidor e cai para o
   // usuário em sessão (disponível antes do fetch concluir).
@@ -913,6 +1003,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       }
     };
     fetchProfile();
+    void refreshTrainerData();
   }, []);
 
   const patchForm = (patch: Partial<ProtocolForm>) =>
@@ -1020,6 +1111,22 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           </View>
         )}
         <View style={s.section}>
+          <TrainerSection
+            trainer={trainer}
+            inviteCount={trainerInvites.length}
+            onOpenInvites={() => setInvitesOpen(true)}
+            onOpenChat={() => {
+              if (trainer) {
+                navigation.navigate('TrainerChat', {
+                  peerId: trainer.peer.id,
+                  peerName: trainer.peer.nome,
+                  peerAvatarUrl: trainer.peer.avatarUrl,
+                });
+              }
+            }}
+          />
+        </View>
+        <View style={s.section}>
           <AccountSection
             email={accountEmail}
             plan={DEFAULT_PLAN}
@@ -1073,6 +1180,14 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           />
         </>
       )}
+
+      <TrainerInvitesModal
+        visible={invitesOpen}
+        invites={trainerInvites}
+        onClose={() => setInvitesOpen(false)}
+        onAccept={handleAcceptInvite}
+        onDecline={handleDeclineInvite}
+      />
 
       <ChangePasswordModal
         visible={passwordOpen}

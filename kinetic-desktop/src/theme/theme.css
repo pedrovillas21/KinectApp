@@ -1,0 +1,311 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-k-bg: #131313;
+  --color-k-surface1: #1c1b1b;
+  --color-k-surface2: #2a2a2a;
+  --color-k-surface3: #353534;
+
+  --color-k-primary: #00e5ff;
+  --color-k-primary-deep: #00daf3;
+  --color-k-primary-dim: rgba(0, 229, 255, 0.1);
+  --color-k-primary-soft: rgba(0, 229, 255, 0.2);
+
+  --color-k-text: #f5f6f7;
+  --color-k-text-dim: rgba(245, 246, 247, 0.62);
+  --color-k-text-muted: rgba(245, 246, 247, 0.36);
+
+  --color-k-ghost: rgba(255, 255, 255, 0.08);
+  --color-k-ghost-hi: rgba(255, 255, 255, 0.15);
+
+  --color-k-success: #4ade80;
+  --color-k-warn: #f5b945;
+  --color-k-error: #ff4444;
+}
+
+/* ── shadcn/ui tokens → mapeados aos tokens de marca Kinetic ────────────────
+ * O painel é dark por padrão, então os valores "dark" vivem direto no :root.
+ * Alimentam os componentes shadcn (bg-background, text-foreground,
+ * border-border, bg-primary, etc.) já no visual "athletic" da marca. */
+:root {
+  --radius: 0.75rem;
+
+  --background: #131313;          /* k-bg */
+  --foreground: #f5f6f7;          /* k-text */
+  --card: #1c1b1b;                /* k-surface1 */
+  --card-foreground: #f5f6f7;
+  --popover: #1c1b1b;
+  --popover-foreground: #f5f6f7;
+  --primary: #00e5ff;             /* k-primary */
+  --primary-foreground: #001a1f;  /* k-on-primary */
+  --secondary: #2a2a2a;           /* k-surface2 */
+  --secondary-foreground: #f5f6f7;
+  --muted: #2a2a2a;
+  --muted-foreground: rgba(245, 246, 247, 0.62); /* k-text-dim */
+  --accent: #2a2a2a;
+  --accent-foreground: #f5f6f7;
+  --destructive: #ff4444;         /* k-error */
+  --destructive-foreground: #f5f6f7;
+  --border: rgba(255, 255, 255, 0.08);   /* k-ghost */
+  --input: rgba(255, 255, 255, 0.15);    /* k-ghost-hi */
+  --ring: #00e5ff;                        /* k-primary */
+
+  /* Séries de gráfico — chart-1 é o ciano escurecido validado (dataviz). */
+  --chart-1: #00a5b8;
+  --chart-2: #4ade80;
+  --chart-3: #f5b945;
+  --chart-4: #a78bfa;
+  --chart-5: #f472b6;
+
+  /* Sidebar (bloco oficial do shadcn). */
+  --sidebar: #1c1b1b;
+  --sidebar-foreground: #f5f6f7;
+  --sidebar-primary: #00e5ff;
+  --sidebar-primary-foreground: #001a1f;
+  --sidebar-accent: #2a2a2a;
+  --sidebar-accent-foreground: #f5f6f7;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #00e5ff;
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/*
+ * Tema global do painel Kinetic (dark + ciano neon).
+ * Os valores espelham src/theme/kinetic.ts — alterar lá e aqui juntos.
+ */
+
+:root {
+  --k-bg: #131313;
+  --k-surface1: #1c1b1b;
+  --k-surface2: #2a2a2a;
+  --k-surface3: #353534;
+
+  --k-primary: #00e5ff;
+  --k-primary-deep: #00daf3;
+  --k-primary-dim: rgba(0, 229, 255, 0.1);
+  --k-primary-soft: rgba(0, 229, 255, 0.2);
+
+  --k-text: #f5f6f7;
+  --k-text-dim: rgba(245, 246, 247, 0.62);
+  --k-text-muted: rgba(245, 246, 247, 0.36);
+
+  --k-ghost: rgba(255, 255, 255, 0.08);
+  --k-ghost-hi: rgba(255, 255, 255, 0.15);
+
+  --k-success: #4ade80;
+  --k-warn: #f5b945;
+  --k-error: #ff4444;
+
+  /* Texto sobre superfícies ciano (botões primários, bolhas minhas). */
+  --k-on-primary: #001a1f;
+
+  color-scheme: dark;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  /* Reset de SPA desktop: a página nunca rola — o scroll vive nos painéis
+     internos (lista de alunos, mensagens do chat, conteúdo das abas). */
+  html,
+  body,
+  #root {
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  body {
+    background: var(--k-bg);
+    color: var(--k-text);
+    font-family:
+      'Segoe UI',
+      system-ui,
+      -apple-system,
+      Roboto,
+      'Helvetica Neue',
+      Arial,
+      sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  p {
+    margin: 0;
+  }
+
+  button {
+    font-family: inherit;
+    font-size: inherit;
+    border: none;
+    cursor: pointer;
+    background: none;
+    color: inherit;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  input,
+  textarea {
+    font-family: inherit;
+    font-size: inherit;
+    color: var(--k-text);
+    background: var(--k-surface1);
+    border: 1px solid var(--k-ghost);
+    border-radius: 12px;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--k-text-muted);
+  }
+
+  /* Ciano como cor de estado ativo/foco, como no mobile. */
+  input:focus,
+  textarea:focus {
+    border-color: var(--k-primary);
+  }
+
+  a {
+    color: var(--k-primary);
+    text-decoration: none;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--k-ghost-hi);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--k-text-muted);
+}
+
+/* Password visibility toggle on LoginPage */
+.password-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.password-input {
+  width: 100%;
+  padding-right: 42px !important;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--k-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+  transition: color 0.15s ease;
+}
+
+.password-toggle-btn:hover,
+.password-toggle-btn:focus-visible {
+  color: var(--k-primary);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.96); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-scale-up {
+  animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.dark {
+  --sidebar: hsl(240 5.9% 10%);
+  --sidebar-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-primary: hsl(224.3 76.3% 48%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(240 3.7% 15.9%);
+  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-border: hsl(240 3.7% 15.9%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+

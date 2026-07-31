@@ -1,11 +1,14 @@
 package com.kinetic.models;
 
+import com.kinetic.enums.Role;
+import com.kinetic.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.lang.NonNull;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -32,6 +35,20 @@ public class User {
     @com.fasterxml.jackson.annotation.JsonIgnore
     @Column(nullable = false)
     private String senha;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "VARCHAR(16) DEFAULT 'ALUNO'")
+    private Role role = Role.ALUNO;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "VARCHAR(16) DEFAULT 'ATIVO'")
+    private UserStatus status = UserStatus.ATIVO;
+
+    @Column(name = "company_id")
+    private UUID companyId;
+
+    @Column(unique = true)
+    private String cpf;
 
     @Column(nullable = true)
     private String level;
@@ -65,4 +82,10 @@ public class User {
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    /** E-mail é NOT NULL/unique no schema; getter explícito só para expor essa garantia ao null-analysis. */
+    @SuppressWarnings("null")
+    public @NonNull String getEmail() {
+        return email;
+    }
 }

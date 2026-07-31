@@ -15,6 +15,7 @@ public record AuthResponseDTO(
         Double height,
         String goal,
         Integer frequency,
-        String medicalConditions
+        String medicalConditions,
+        String role
 ) {
 }
