@@ -15,10 +15,12 @@ import type {
 export const avatarFallback = (id: string, url?: string | null): string =>
   url ?? `https://i.pravatar.cc/150?u=${id}`;
 
-// Sobe um arquivo local (file://) para o Storage via backend e devolve a URL
-// pública. Sobrescreve o Content-Type para multipart por requisição: o axios
-// usa application/json por padrão (api.ts), e o React Native só monta o
-// boundary correto quando o header é multipart/form-data.
+// Sobe um arquivo local (file://) para o Storage via backend e devolve o
+// identificador do arquivo — não um endereço navegável. O bucket é privado; quem
+// entrega link (temporário) é o feed/stories, só para conexões aceitas.
+// Sobrescreve o Content-Type para multipart por requisição: o axios usa
+// application/json por padrão (api.ts), e o React Native só monta o boundary
+// correto quando o header é multipart/form-data.
 export const uploadMedia = async (
   uri: string,
   folder: 'posts' | 'stories' = 'posts',
