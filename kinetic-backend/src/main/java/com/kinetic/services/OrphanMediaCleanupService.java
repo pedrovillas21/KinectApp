@@ -38,14 +38,16 @@ public class OrphanMediaCleanupService {
      */
     @Scheduled(cron = "0 0 5 * * *")
     public void cleanOrphanMedia() {
-        List<String> imageUrls = findAllImageUrls();
+        List<String> stored = findAllImageUrls();
         Set<String> knownKeys = new HashSet<>();
-        for (String url : imageUrls) {
-            String key = storageService.keyFromPublicUrl(url);
+        for (String value : stored) {
+            // Hoje o banco guarda a storage key; normalizeKey ainda aceita URL
+            // pública para o caso de alguma linha legada ter escapado do backfill.
+            String key = storageService.normalizeKey(value);
             if (key != null) knownKeys.add(key);
         }
 
-        log.info("OrphanMediaCleanupService: {} URL(s) conhecida(s) no banco.", knownKeys.size());
+        log.info("OrphanMediaCleanupService: {} mídia(s) conhecida(s) no banco.", knownKeys.size());
 
         Instant cutoff = Instant.now().minus(graceHours, ChronoUnit.HOURS);
         int orphanCount = 0;

@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -27,9 +29,15 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Sobe um arquivo de imagem para o Supabase Storage usando a service_role key
- * (que nunca sai do servidor) e devolve a URL pública. Reusa a autenticação JWT
- * existente do app; o segredo do Storage fica restrito ao backend.
+ * Sobe arquivos de imagem para o Supabase Storage usando a service_role key (que
+ * nunca sai do servidor) e gera URLs assinadas de curta duração para leitura.
+ *
+ * <p>O bucket é <b>privado</b>: nenhum objeto é acessível sem uma assinatura. O que
+ * fica guardado em {@code social_posts.image_url} é apenas a <i>storage key</i>
+ * (ex.: {@code posts/<uuid>.jpg}); a URL assinada é gerada a cada leitura, depois
+ * que a camada de serviço já decidiu que o usuário pode ver aquele post. Assim a
+ * regra de amizade continua sendo a única fonte de verdade e nenhum link
+ * permanente escapa do servidor.
  */
 @Service
 public class StorageService {
@@ -53,6 +61,15 @@ public class StorageService {
     @Value("${supabase.storage.bucket}")
     private String bucket;
 
+    /**
+     * Validade da URL assinada. Curta de propósito: é a janela em que um link
+     * copiado ainda funcionaria depois de a amizade ser desfeita. Precisa ser
+     * maior que o tempo de rolagem de uma sessão de feed para as imagens não
+     * "quebrarem" no meio do uso.
+     */
+    @Value("${supabase.storage.signed-url-ttl-seconds:900}")
+    private int signedUrlTtlSeconds;
+
     public StorageService() {
         // Timeouts explícitos: sem eles o RestClient herda os defaults do client HTTP
         // subjacente, que podem esperar indefinidamente e travar a thread do servlet
@@ -69,8 +86,11 @@ public class StorageService {
 
     /**
      * Sobe {@code file} para {@code {bucket}/{folder}/{uuid}.{ext}} e retorna a
-     * URL pública. Lança {@link IllegalArgumentException} (→ 400) para arquivos
-     * inválidos e {@link RuntimeException} (→ 500) em falha do Storage.
+     * <b>storage key</b> (ex.: {@code posts/<uuid>.jpg}) — não uma URL. É esse
+     * valor que deve ser persistido no post/story; a URL de leitura é gerada
+     * depois por {@link #signUrls(Collection)}. Lança
+     * {@link IllegalArgumentException} (→ 400) para arquivos inválidos e
+     * {@link RuntimeException} (→ 500) em falha do Storage.
      */
     public String upload(MultipartFile file, String folder) {
         if (file == null || file.isEmpty()) {
@@ -116,19 +136,82 @@ public class StorageService {
             throw new RuntimeException("Falha ao subir a imagem para o Storage.", e);
         }
 
-        return supabaseUrl + "/storage/v1/object/public/" + bucket + "/" + key;
+        return key;
     }
 
     /**
-     * Remove do Storage a mídia apontada por {@code publicUrl}. Usado como limpeza
-     * compensatória quando o upload deu certo mas a criação do post/story falhou,
-     * evitando objetos órfãos no bucket. É best-effort: falhas só são logadas.
+     * Gera URLs assinadas para as {@code keys} informadas, em uma única chamada ao
+     * Storage (o endpoint de assinatura aceita lote), e devolve um mapa
+     * {@code key → URL assinada}. Keys que o Storage rejeitar ficam de fora do
+     * mapa — o chamador trata a ausência como "post sem imagem" em vez de
+     * devolver um link quebrado.
+     *
+     * <p>Chamar isto <b>depois</b> de ter validado o acesso: assinar é conceder
+     * acesso.
      */
-    public void delete(String publicUrl) {
-        if (publicUrl == null || publicUrl.isBlank()) {
-            return;
+    // Mesmo motivo do @SuppressWarnings em list(): MediaType/Map são constantes
+    // sem nulidade declarada, o que gera unchecked conversion sem risco real.
+    @SuppressWarnings("null")
+    public Map<String, String> signUrls(Collection<String> keys) {
+        if (keys == null || keys.isEmpty()) {
+            return Map.of();
         }
-        String key = keyFromPublicUrl(publicUrl);
+        List<String> paths = keys.stream().filter(Objects::nonNull).distinct().toList();
+        if (paths.isEmpty()) {
+            return Map.of();
+        }
+
+        List<SignedItem> items;
+        try {
+            items = restClient.post()
+                    .uri(supabaseUrl + "/storage/v1/object/sign/" + bucket)
+                    .header("apikey", serviceRoleKey)
+                    .header("Authorization", "Bearer " + serviceRoleKey)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of("expiresIn", signedUrlTtlSeconds, "paths", paths))
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<>() {});
+        } catch (RestClientResponseException e) {
+            log.error("Falha ao assinar {} objeto(s) no Storage ({}): {}",
+                    paths.size(), e.getStatusCode(), e.getResponseBodyAsString());
+            return Map.of();
+        } catch (RestClientException e) {
+            log.error("Falha ao assinar {} objeto(s) no Storage: {}", paths.size(), e.getMessage());
+            return Map.of();
+        }
+        if (items == null) {
+            return Map.of();
+        }
+
+        Map<String, String> result = new HashMap<>();
+        for (SignedItem item : items) {
+            if (item.signedUrl() == null || item.path() == null) {
+                // O Storage reporta o erro por item (ex.: objeto removido do bucket)
+                // sem falhar o lote inteiro.
+                log.warn("Storage nao assinou '{}': {}", item.path(), item.error());
+                continue;
+            }
+            result.put(item.path(), absolutize(item.signedUrl()));
+        }
+        return result;
+    }
+
+    /** Versão de conveniência de {@link #signUrls(Collection)} para uma única key. */
+    public String signUrl(String key) {
+        if (key == null || key.isBlank()) {
+            return null;
+        }
+        return signUrls(List.of(key)).get(key);
+    }
+
+    /**
+     * Remove do Storage a mídia informada, aceitando tanto uma storage key quanto
+     * uma URL pública legada (posts criados antes de o bucket virar privado).
+     * Usado como limpeza compensatória quando o upload deu certo mas a criação do
+     * post/story falhou. É best-effort: falhas só são logadas.
+     */
+    public void delete(String urlOrKey) {
+        String key = normalizeKey(urlOrKey);
         if (key == null) {
             return;
         }
@@ -203,17 +286,45 @@ public class StorageService {
         return result;
     }
 
-    /** Extrai a storage key a partir de uma URL pública deste bucket. Retorna null se não pertencer. */
-    String keyFromPublicUrl(String publicUrl) {
-        if (publicUrl == null || publicUrl.isBlank()) return null;
+    /**
+     * Normaliza para storage key um valor que pode vir como key já pronta
+     * ({@code posts/uuid.jpg}) ou como URL pública legada, de antes de o bucket
+     * virar privado. Retorna null para entrada vazia ou URL de outro bucket.
+     */
+    String normalizeKey(String urlOrKey) {
+        if (urlOrKey == null || urlOrKey.isBlank()) return null;
+        String value = urlOrKey.trim();
+        if (!value.startsWith("http")) {
+            return value; // já é uma key
+        }
         String marker = "/storage/v1/object/public/" + bucket + "/";
-        int idx = publicUrl.indexOf(marker);
+        int idx = value.indexOf(marker);
         if (idx < 0) return null;
-        return publicUrl.substring(idx + marker.length());
+        return value.substring(idx + marker.length());
+    }
+
+    /**
+     * O Storage devolve a URL assinada como caminho relativo
+     * ({@code /object/sign/...}); aqui vira URL absoluta. Tolera a variante já
+     * prefixada com {@code /storage/v1} para não duplicar o segmento.
+     */
+    private String absolutize(String signedUrl) {
+        if (signedUrl.startsWith("http")) return signedUrl;
+        String suffix = signedUrl.startsWith("/storage/v1")
+                ? signedUrl
+                : "/storage/v1" + (signedUrl.startsWith("/") ? signedUrl : "/" + signedUrl);
+        return supabaseUrl + suffix;
     }
 
     /** Objeto listado no bucket com sua key completa e data de criação. */
     public record RemoteObject(String key, Instant createdAt) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record SignedItem(
+            String path,
+            @JsonProperty("signedURL") String signedUrl,
+            String error
+    ) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     private record SupabaseListItem(

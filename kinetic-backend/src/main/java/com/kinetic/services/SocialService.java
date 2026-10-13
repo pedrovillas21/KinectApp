@@ -25,17 +25,20 @@ public class SocialService {
     private final SocialPostRepository postRepository;
     private final PostLikeRepository likeRepository;
     private final PostCommentRepository commentRepository;
+    private final StorageService storageService;
 
     public SocialService(UserRepository userRepository,
                          UserConnectionRepository connectionRepository,
                          SocialPostRepository postRepository,
                          PostLikeRepository likeRepository,
-                         PostCommentRepository commentRepository) {
+                         PostCommentRepository commentRepository,
+                         StorageService storageService) {
         this.userRepository = userRepository;
         this.connectionRepository = connectionRepository;
         this.postRepository = postRepository;
         this.likeRepository = likeRepository;
         this.commentRepository = commentRepository;
+        this.storageService = storageService;
     }
 
     // ── Search ──────────────────────────────────────────────────────────────
@@ -155,9 +158,12 @@ public class SocialService {
         Map<UUID, Long> likeCounts = buildLikeCounts(postIds);
         Map<UUID, Long> commentCounts = buildCommentCounts(postIds);
         Set<UUID> likedByMe = new HashSet<>(likeRepository.findLikedPostIds(postIds, me.getId()));
+        // findFeed já restringiu os autores a conexões ACCEPTED, então assinar aqui
+        // é conceder acesso só ao que este usuário tem direito de ver.
+        Map<String, String> signed = signKeysOf(posts);
 
         List<FeedPostDTO> dtos = posts.stream()
-                .map(p -> toFeedPostDTO(p, likeCounts, commentCounts, likedByMe))
+                .map(p -> toFeedPostDTO(p, likeCounts, commentCounts, likedByMe, signed))
                 .toList();
 
         return new PageImpl<>(dtos, pageable, page.getTotalElements());
@@ -173,11 +179,13 @@ public class SocialService {
         post.setDurationMinutes(req.durationMinutes());
         post.setCalories(req.calories());
         post.setCaption(req.caption());
-        post.setImageUrl(req.imageUrl());
+        // Versões antigas do app ainda mandam a URL pública devolvida pelo upload
+        // anterior; normalizeKey aceita as duas formas e grava sempre a key.
+        post.setImageUrl(storageService.normalizeKey(req.imageUrl()));
         post.setBadge(req.badge());
         postRepository.save(post);
 
-        return toFeedPostDTO(post, Map.of(), Map.of(), Set.of());
+        return toFeedPostDTO(post, Map.of(), Map.of(), Set.of(), signKeysOf(List.of(post)));
     }
 
     // ── Stories ──────────────────────────────────────────────────────────────
@@ -188,12 +196,12 @@ public class SocialService {
         SocialPost story = new SocialPost();
         story.setAuthor(me);
         story.setKind("STORY");
-        story.setImageUrl(req.imageUrl());
+        story.setImageUrl(storageService.normalizeKey(req.imageUrl()));
         story.setCaption(req.caption());
         story.setExpiresAt(LocalDateTime.now().plusHours(24));
         postRepository.save(story);
-        return new StoryDTO(story.getId(), story.getImageUrl(), story.getCaption(),
-                story.getCreatedAt(), story.getExpiresAt());
+        return new StoryDTO(story.getId(), storageService.signUrl(story.getImageUrl()),
+                story.getCaption(), story.getCreatedAt(), story.getExpiresAt());
     }
 
     @Transactional(readOnly = true)
@@ -203,14 +211,17 @@ public class SocialService {
         authorIds.add(me.getId());
 
         List<SocialPost> stories = postRepository.findActiveStories(authorIds, LocalDateTime.now());
+        // Mesmo contrato do feed: findActiveStories já limitou aos autores conectados.
+        Map<String, String> signed = signKeysOf(stories);
 
         // Agrupa por autor preservando a ordem cronológica das stories.
         Map<UUID, List<StoryDTO>> grouped = new LinkedHashMap<>();
         Map<UUID, User> authors = new HashMap<>();
         for (SocialPost s : stories) {
             UUID authorId = s.getAuthor().getId();
+            String imageUrl = s.getImageUrl() != null ? signed.get(s.getImageUrl()) : null;
             grouped.computeIfAbsent(authorId, k -> new ArrayList<>())
-                    .add(new StoryDTO(s.getId(), s.getImageUrl(), s.getCaption(), s.getCreatedAt(), s.getExpiresAt()));
+                    .add(new StoryDTO(s.getId(), imageUrl, s.getCaption(), s.getCreatedAt(), s.getExpiresAt()));
             authors.putIfAbsent(authorId, s.getAuthor());
         }
 
@@ -340,10 +351,25 @@ public class SocialService {
                 .collect(Collectors.toMap(row -> (UUID) row[0], row -> (Long) row[1]));
     }
 
+    /**
+     * Assina em lote as mídias de {@code posts} — uma única chamada ao Storage por
+     * página de feed, em vez de uma por post. Só deve ser chamado depois de a
+     * consulta já ter limitado os posts aos autores que o usuário pode ver.
+     */
+    private Map<String, String> signKeysOf(List<SocialPost> posts) {
+        Set<String> keys = posts.stream()
+                .map(SocialPost::getImageUrl)
+                .filter(Objects::nonNull)
+                .filter(k -> !k.isBlank())
+                .collect(Collectors.toSet());
+        return storageService.signUrls(keys);
+    }
+
     private FeedPostDTO toFeedPostDTO(SocialPost p,
                                       Map<UUID, Long> likeCounts,
                                       Map<UUID, Long> commentCounts,
-                                      Set<UUID> likedByMe) {
+                                      Set<UUID> likedByMe,
+                                      Map<String, String> signedUrls) {
         User author = p.getAuthor();
         FeedAuthorDTO authorDTO = new FeedAuthorDTO(author.getId(), author.getNome(), avatarOf(author));
 
@@ -356,7 +382,9 @@ public class SocialService {
                 authorDTO,
                 timestamp,
                 p.getCategory() != null ? p.getCategory().toUpperCase() : "",
-                p.getImageUrl(),
+                // image_url guarda a storage key; o cliente recebe a URL assinada.
+                // Ausência no mapa (objeto sumiu do bucket) vira post sem imagem.
+                p.getImageUrl() != null ? signedUrls.get(p.getImageUrl()) : null,
                 duration,
                 calories,
                 p.getBadge(),

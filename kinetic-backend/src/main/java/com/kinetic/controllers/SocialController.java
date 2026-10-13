@@ -41,8 +41,11 @@ public class SocialController extends BaseController {
     @Operation(
             summary = "Enviar uma foto/vídeo para o armazenamento",
             description = "Sobe o arquivo enviado (campo \"file\", formulário multipart) para o Supabase Storage e "
-                    + "devolve a URL pública gerada. Chame este endpoint primeiro e use a URL da resposta para "
-                    + "criar um post ou story — o arquivo em si não vai dentro do post/story."
+                    + "devolve o identificador interno do arquivo. Chame este endpoint primeiro e repasse esse "
+                    + "identificador ao criar o post ou story — o arquivo em si não vai dentro do post/story. "
+                    + "O bucket é privado: o identificador não é um endereço acessível. Ao ler o feed ou os "
+                    + "stories, o campo \"imageUrl\" vem preenchido com um link temporário, válido por poucos "
+                    + "minutos e emitido apenas para quem tem conexão aceita com o autor da publicação."
     )
     @PostMapping(value = "/media", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MediaUploadResponse> uploadMedia(
@@ -61,7 +64,7 @@ public class SocialController extends BaseController {
                     + "\"órfão\" ocupando espaço."
     )
     @DeleteMapping("/media")
-    public ResponseEntity<Void> deleteMedia(@Parameter(description = "URL pública retornada pelo upload.") @RequestParam String url) {
+    public ResponseEntity<Void> deleteMedia(@Parameter(description = "Identificador devolvido pelo upload.") @RequestParam String url) {
         storageService.delete(url);
         return ResponseEntity.noContent().build();
     }
