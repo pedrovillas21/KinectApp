@@ -1,0 +1,625 @@
+{
+  "communities": {
+    "0": [
+      "auth_forgotpasswordscreen_forgotpasswordscreen",
+      "auth_forgotpasswordscreen_styles",
+      "auth_loginscreen_loginscreen",
+      "auth_loginscreen_styles",
+      "auth_registerscreen_registerscreen",
+      "auth_registerscreen_styles",
+      "auth_resetpasswordscreen_resetpasswordscreen",
+      "auth_resetpasswordscreen_styles",
+      "auth_verifycodescreen_styles",
+      "auth_verifycodescreen_verifycodescreen",
+      "components_appheader_appheader",
+      "components_appheader_styles",
+      "components_customdrawercontent_customdrawercontent",
+      "components_customdrawercontent_styles",
+      "components_custominput_custominput",
+      "components_custominput_styles",
+      "components_headerlogo_headerlogo",
+      "components_headerlogo_styles",
+      "components_passwordrequirements_passwordrequirements",
+      "components_passwordrequirements_styles",
+      "components_primarybutton_primarybutton",
+      "components_primarybutton_styles",
+      "components_squadbar_squadbar",
+      "components_squadbar_styles",
+      "components_themetoggle_styles",
+      "components_themetoggle_themetoggle",
+      "contexts_authcontext_authcontext",
+      "contexts_authcontext_authprovider",
+      "contexts_themecontext_themecontext",
+      "contexts_themecontext_themeprovider",
+      "kineticapp_app_app",
+      "kineticapp_app_js",
+      "kineticapp_index_js",
+      "kineticapp_src_components_appheader_js",
+      "kineticapp_src_components_customdrawercontent_js",
+      "kineticapp_src_components_custominput_js",
+      "kineticapp_src_components_headerlogo_js",
+      "kineticapp_src_components_passwordrequirements_js",
+      "kineticapp_src_components_primarybutton_js",
+      "kineticapp_src_components_squadbar_js",
+      "kineticapp_src_components_themetoggle_js",
+      "kineticapp_src_contexts_authcontext_js",
+      "kineticapp_src_contexts_themecontext_js",
+      "kineticapp_src_routes_approutes_js",
+      "kineticapp_src_screens_auth_forgotpasswordscreen_js",
+      "kineticapp_src_screens_auth_loginscreen_js",
+      "kineticapp_src_screens_auth_registerscreen_js",
+      "kineticapp_src_screens_auth_resetpasswordscreen_js",
+      "kineticapp_src_screens_auth_verifycodescreen_js",
+      "kineticapp_src_screens_gearscreen_js",
+      "kineticapp_src_screens_onboarding_onboardingscreen_js",
+      "kineticapp_src_screens_workoutscreen_js",
+      "kineticapp_src_theme_colors_js",
+      "onboarding_onboardingscreen_onboardingscreen",
+      "onboarding_onboardingscreen_styles",
+      "routes_approutes_approutes",
+      "routes_approutes_drawer",
+      "routes_approutes_drawernavigator",
+      "routes_approutes_stack",
+      "routes_approutes_tab",
+      "routes_approutes_tabnavigator",
+      "screens_gearscreen_gearscreen",
+      "screens_gearscreen_styles",
+      "screens_workoutscreen_styles",
+      "screens_workoutscreen_workoutscreen",
+      "theme_colors_colors"
+    ],
+    "1": [
+      "kineticapp_src_screens_statsscreen_tsx",
+      "kineticapp_src_types_index_ts",
+      "kineticapp_src_utils_statsutils_ts",
+      "screens_statsscreen_cardheader",
+      "screens_statsscreen_cardheaderprops",
+      "screens_statsscreen_chipstyles",
+      "screens_statsscreen_consistencycard",
+      "screens_statsscreen_consistencycardprops",
+      "screens_statsscreen_consistencystyles",
+      "screens_statsscreen_deltachip",
+      "screens_statsscreen_deltachipprops",
+      "screens_statsscreen_insightblock",
+      "screens_statsscreen_insightblockprops",
+      "screens_statsscreen_insightstyles",
+      "screens_statsscreen_kpidata",
+      "screens_statsscreen_kpistrip",
+      "screens_statsscreen_kpistripprops",
+      "screens_statsscreen_kpistyles",
+      "screens_statsscreen_periodselector",
+      "screens_statsscreen_periodselectorprops",
+      "screens_statsscreen_selectorstyles",
+      "screens_statsscreen_statsscreen",
+      "screens_statsscreen_styles",
+      "screens_statsscreen_t",
+      "screens_statsscreen_volumecard",
+      "screens_statsscreen_volumecardprops",
+      "screens_statsscreen_volumestyles",
+      "screens_statsscreen_weightcard",
+      "screens_statsscreen_weightcardprops",
+      "screens_statsscreen_weightstyles",
+      "types_index_communitycomparisondto",
+      "types_index_statsinsightdto",
+      "types_index_statsperiodid",
+      "types_index_statsperiodoption",
+      "types_index_statssummaryresponsedto",
+      "types_index_updateweightrequestdto",
+      "types_index_volumebymusclegroupdto",
+      "types_index_volumesummarydto",
+      "types_index_weightpointdto",
+      "types_index_weightsummarydto",
+      "utils_statsutils_formatnumberptbr",
+      "utils_statsutils_formatsignednumberptbr",
+      "utils_statsutils_formatsignedpercent",
+      "utils_statsutils_formattotalvolume",
+      "utils_statsutils_formatvolumekg",
+      "utils_statsutils_period_description",
+      "utils_statsutils_perioddescription",
+      "utils_statsutils_stats_periods"
+    ],
+    "2": [
+      "controllers_authcontroller_authcontroller",
+      "controllers_authcontroller_authcontroller_login",
+      "controllers_authcontroller_authcontroller_register",
+      "controllers_authcontroller_authcontroller_resetpassword",
+      "controllers_authcontroller_authcontroller_verifyemail",
+      "controllers_usercontroller_usercontroller",
+      "controllers_usercontroller_usercontroller_updateweight",
+      "controllers_usercontroller_usercontroller_usercontroller",
+      "kinetic_backend_src_main_java_com_kinetic_controllers_authcontroller_java",
+      "kinetic_backend_src_main_java_com_kinetic_controllers_usercontroller_java",
+      "kinetic_backend_src_main_java_com_kinetic_repositories_userrepository_java",
+      "kinetic_backend_src_main_java_com_kinetic_repositories_weighthistoryrepository_java",
+      "kinetic_backend_src_main_java_com_kinetic_security_customuserdetailsservice_java",
+      "kinetic_backend_src_main_java_com_kinetic_services_authservice_java",
+      "kinetic_backend_src_main_java_com_kinetic_services_userservice_java",
+      "repositories_userrepository_userrepository",
+      "repositories_userrepository_userrepository_existsbyemail",
+      "repositories_userrepository_userrepository_findalluseridandfrequency",
+      "repositories_userrepository_userrepository_findbyemail",
+      "repositories_weighthistoryrepository_weighthistoryrepository",
+      "repositories_weighthistoryrepository_weighthistoryrepository_findallbyuserorderbyloggedatasc",
+      "repositories_weighthistoryrepository_weighthistoryrepository_findbyuserandloggedat",
+      "repositories_weighthistoryrepository_weighthistoryrepository_findfirstbyuserorderbyloggedatdesc",
+      "security_customuserdetailsservice_customuserdetailsservice",
+      "security_customuserdetailsservice_customuserdetailsservice_loaduserbyusername",
+      "services_authservice_authservice",
+      "services_authservice_authservice_checkemailexists",
+      "services_authservice_authservice_login",
+      "services_authservice_authservice_register",
+      "services_authservice_authservice_resetpassword",
+      "services_userservice_userservice",
+      "services_userservice_userservice_needsweightupdate",
+      "services_userservice_userservice_updateuserweight",
+      "services_userservice_userservice_userservice",
+      "userdetailsservice"
+    ],
+    "3": [
+      "enums_statsperiodparam_enddate",
+      "enums_statsperiodparam_fromstring",
+      "enums_statsperiodparam_id",
+      "enums_statsperiodparam_insighttag",
+      "enums_statsperiodparam_previousenddate",
+      "enums_statsperiodparam_previousstartdate",
+      "enums_statsperiodparam_startdate",
+      "enums_statsperiodparam_targetsessions",
+      "enums_statsperiodparam_targetweeks",
+      "kinetic_backend_src_main_java_com_kinetic_enums_statsperiodparam_java",
+      "kinetic_backend_src_main_java_com_kinetic_repositories_exerciserepository_java",
+      "kinetic_backend_src_main_java_com_kinetic_repositories_exercisesetlogrepository_java",
+      "kinetic_backend_src_main_java_com_kinetic_services_statsservice_java",
+      "repositories_exerciserepository_exerciserepository",
+      "repositories_exerciserepository_exerciserepository_finddistinctmusclesbyuserid",
+      "repositories_exercisesetlogrepository_exercisesetlogrepository",
+      "repositories_exercisesetlogrepository_exercisesetlogrepository_findvolumebymusclegroupbetween",
+      "repositories_weighthistoryrepository_weighthistoryrepository_findbyuserandloggedatbetweenorderbyloggedatasc",
+      "services_statsservice_statsservice",
+      "services_statsservice_statsservice_buildinsight",
+      "services_statsservice_statsservice_buildvolumesummary",
+      "services_statsservice_statsservice_buildweightsummary",
+      "services_statsservice_statsservice_deltapct",
+      "services_statsservice_statsservice_getsummary",
+      "services_statsservice_statsservice_statsservice",
+      "services_statsservice_statsservice_volumemapfromdb"
+    ],
+    "4": [
+      "kinetic_backend_src_main_java_com_kinetic_repositories_workoutsessionrepository_java",
+      "kinetic_backend_src_main_java_com_kinetic_services_communitystatsservice_java",
+      "kinetic_backend_src_main_java_com_kinetic_services_workoutsessionservice_java",
+      "repositories_workoutsessionrepository_workoutsessionrepository",
+      "repositories_workoutsessionrepository_workoutsessionrepository_countbyuseridandsessiondategreaterthanequalandsessiondatelessthan",
+      "repositories_workoutsessionrepository_workoutsessionrepository_countsessionsperuserbetween",
+      "repositories_workoutsessionrepository_workoutsessionrepository_findbyuseridandsessiondatebetween",
+      "services_communitystatsservice_communitystatsservice",
+      "services_communitystatsservice_communitystatsservice_communitystatsservice",
+      "services_communitystatsservice_communitystatsservice_getaverageefficiency",
+      "services_communitystatsservice_communitystatsservice_refreshcache",
+      "services_communitystatsservice_communitystatsservice_warmcacheonstartup",
+      "services_workoutsessionservice_workoutsessionservice",
+      "services_workoutsessionservice_workoutsessionservice_finduserbyemail",
+      "services_workoutsessionservice_workoutsessionservice_getmonthlystats",
+      "services_workoutsessionservice_workoutsessionservice_logsession",
+      "services_workoutsessionservice_workoutsessionservice_workoutsessionservice"
+    ],
+    "5": [
+      "components_evolutionmodal_evolutionmodal",
+      "components_evolutionmodal_evolutionmodalprops",
+      "components_evolutionmodal_styles",
+      "kineticapp_src_components_evolutionmodal_tsx",
+      "kineticapp_src_screens_homescreen_tsx",
+      "kineticapp_src_services_api_js",
+      "screens_homescreen_empty_dashboard",
+      "screens_homescreen_homescreen",
+      "screens_homescreen_homescreenprops",
+      "screens_homescreen_leaderboardentry",
+      "screens_homescreen_leaders",
+      "screens_homescreen_styles",
+      "screens_homescreen_week_days",
+      "services_api_api",
+      "services_api_setsignouthandler",
+      "types_index_homedashboardresponsedto"
+    ],
+    "6": [
+      "controllers_workoutcontroller_workoutcontroller",
+      "controllers_workoutcontroller_workoutcontroller_generateworkout",
+      "controllers_workoutcontroller_workoutcontroller_getmyplans",
+      "controllers_workoutcontroller_workoutcontroller_workoutcontroller",
+      "kinetic_backend_src_main_java_com_kinetic_controllers_workoutcontroller_java",
+      "kinetic_backend_src_main_java_com_kinetic_repositories_workoutplanrepository_java",
+      "kinetic_backend_src_main_java_com_kinetic_services_workoutservice_java",
+      "repositories_workoutplanrepository_workoutplanrepository",
+      "repositories_workoutplanrepository_workoutplanrepository_findbyuserid",
+      "services_workoutservice_workoutservice",
+      "services_workoutservice_workoutservice_finduserbyemail",
+      "services_workoutservice_workoutservice_generateworkoutforuser",
+      "services_workoutservice_workoutservice_getmyplans",
+      "services_workoutservice_workoutservice_validaterequest",
+      "services_workoutservice_workoutservice_workoutservice"
+    ],
+    "7": [
+      "kinetic_backend_src_main_java_com_kinetic_security_jwtauthenticationfilter_java",
+      "kinetic_backend_src_main_java_com_kinetic_security_jwtutil_java",
+      "onceperrequestfilter",
+      "security_jwtauthenticationfilter_jwtauthenticationfilter",
+      "security_jwtauthenticationfilter_jwtauthenticationfilter_dofilterinternal",
+      "security_jwtutil_jwtutil",
+      "security_jwtutil_jwtutil_createtoken",
+      "security_jwtutil_jwtutil_extractallclaims",
+      "security_jwtutil_jwtutil_extractclaim",
+      "security_jwtutil_jwtutil_extractexpiration",
+      "security_jwtutil_jwtutil_extractusername",
+      "security_jwtutil_jwtutil_generatetoken",
+      "security_jwtutil_jwtutil_getsigningkey",
+      "security_jwtutil_jwtutil_istokenexpired",
+      "security_jwtutil_jwtutil_validatetoken"
+    ],
+    "8": [
+      "dtos_geminirequestdto_json",
+      "dtos_geminirequestdto_of",
+      "dtos_geminiresponsedto_gettext",
+      "kinetic_backend_src_main_java_com_kinetic_dtos_geminirequestdto_java",
+      "kinetic_backend_src_main_java_com_kinetic_dtos_geminiresponsedto_java",
+      "kinetic_backend_src_main_java_com_kinetic_services_geminiservice_java",
+      "runtimeexception",
+      "services_geminiservice_geminiservice",
+      "services_geminiservice_geminiservice_buildprompt",
+      "services_geminiservice_geminiservice_geminiservice",
+      "services_geminiservice_geminiservice_generateworkoutplan",
+      "services_geminiservice_invalidgeminiresponseexception",
+      "services_geminiservice_invalidgeminiresponseexception_invalidgeminiresponseexception"
+    ],
+    "9": [
+      "components_feedpost_feedpost",
+      "components_feedpost_styles",
+      "kineticapp_src_components_feedpost_js",
+      "kineticapp_src_screens_socialscreen_js",
+      "kineticapp_src_utils_mockdata_js",
+      "screens_socialscreen_socialscreen",
+      "screens_socialscreen_styles",
+      "utils_mockdata_day_a",
+      "utils_mockdata_day_b",
+      "utils_mockdata_day_c",
+      "utils_mockdata_mockfeed",
+      "utils_mockdata_mocksquad",
+      "utils_mockdata_workout_map"
+    ],
+    "10": [
+      "components_seriecard_seriecard",
+      "components_seriecard_styles",
+      "kineticapp_src_components_seriecard_js",
+      "kineticapp_src_screens_activesessionscreen_tsx",
+      "screens_activesessionscreen_activesessionscreen",
+      "screens_activesessionscreen_setdata",
+      "screens_activesessionscreen_styles",
+      "types_index_logsessionrequestdto",
+      "types_index_setlogdto"
+    ],
+    "11": [
+      "config_securityconfig_securityconfig",
+      "config_securityconfig_securityconfig_authenticationmanager",
+      "config_securityconfig_securityconfig_authenticationprovider",
+      "config_securityconfig_securityconfig_corsconfigurationsource",
+      "config_securityconfig_securityconfig_passwordencoder",
+      "config_securityconfig_securityconfig_securityfilterchain",
+      "kinetic_backend_src_main_java_com_kinetic_config_securityconfig_java"
+    ],
+    "12": [
+      "controllers_workoutsessioncontroller_workoutsessioncontroller",
+      "controllers_workoutsessioncontroller_workoutsessioncontroller_getmonthlystats",
+      "controllers_workoutsessioncontroller_workoutsessioncontroller_logsession",
+      "controllers_workoutsessioncontroller_workoutsessioncontroller_workoutsessioncontroller",
+      "kinetic_backend_src_main_java_com_kinetic_controllers_workoutsessioncontroller_java"
+    ],
+    "13": [
+      "controllers_statscontroller_statscontroller",
+      "controllers_statscontroller_statscontroller_getsummary",
+      "controllers_statscontroller_statscontroller_statscontroller",
+      "kinetic_backend_src_main_java_com_kinetic_controllers_statscontroller_java"
+    ],
+    "14": [
+      "kinetic_backend_src_main_java_com_kinetic_kineticapplication_java",
+      "kinetic_kineticapplication_kineticapplication",
+      "kinetic_kineticapplication_kineticapplication_main"
+    ],
+    "15": [
+      "components_custombutton_custombutton",
+      "components_custombutton_styles",
+      "kineticapp_src_components_custombutton_js"
+    ],
+    "16": [
+      "components_exercisecard_exercisecard",
+      "components_exercisecard_styles",
+      "kineticapp_src_components_exercisecard_js"
+    ],
+    "17": [
+      "dtos_exerciseresponsedto_fromentity",
+      "kinetic_backend_src_main_java_com_kinetic_dtos_exerciseresponsedto_java"
+    ],
+    "18": [
+      "dtos_logindto_logindto",
+      "kinetic_backend_src_main_java_com_kinetic_dtos_logindto_java"
+    ],
+    "19": [
+      "dtos_registerdto_registerdto",
+      "kinetic_backend_src_main_java_com_kinetic_dtos_registerdto_java"
+    ],
+    "20": [
+      "dtos_resetpassworddto_resetpassworddto",
+      "kinetic_backend_src_main_java_com_kinetic_dtos_resetpassworddto_java"
+    ],
+    "21": [
+      "dtos_verifyemaildto_verifyemaildto",
+      "kinetic_backend_src_main_java_com_kinetic_dtos_verifyemaildto_java"
+    ],
+    "22": [
+      "dtos_workoutplanresponsedto_fromentity",
+      "kinetic_backend_src_main_java_com_kinetic_dtos_workoutplanresponsedto_java"
+    ],
+    "23": [
+      "kinetic_backend_src_main_java_com_kinetic_models_exercise_java",
+      "models_exercise_exercise"
+    ],
+    "24": [
+      "kinetic_backend_src_main_java_com_kinetic_models_exercisesetlog_java",
+      "models_exercisesetlog_exercisesetlog"
+    ],
+    "25": [
+      "kinetic_backend_src_main_java_com_kinetic_models_user_java",
+      "models_user_user"
+    ],
+    "26": [
+      "kinetic_backend_src_main_java_com_kinetic_models_weighthistory_java",
+      "models_weighthistory_weighthistory"
+    ],
+    "27": [
+      "kinetic_backend_src_main_java_com_kinetic_models_workoutplan_java",
+      "models_workoutplan_workoutplan"
+    ],
+    "28": [
+      "kinetic_backend_src_main_java_com_kinetic_models_workoutsession_java",
+      "models_workoutsession_workoutsession"
+    ],
+    "29": [
+      "kinetic_backend_src_main_java_com_kinetic_dtos_authresponsedto_java"
+    ],
+    "30": [
+      "kinetic_backend_src_main_java_com_kinetic_dtos_communitycomparisondto_java"
+    ],
+    "31": [
+      "kinetic_backend_src_main_java_com_kinetic_dtos_generatedexercisedto_java"
+    ],
+    "32": [
+      "kinetic_backend_src_main_java_com_kinetic_dtos_generatedworkoutplandto_java"
+    ],
+    "33": [
+      "kinetic_backend_src_main_java_com_kinetic_dtos_generateworkoutrequestdto_java"
+    ],
+    "34": [
+      "kinetic_backend_src_main_java_com_kinetic_dtos_logsessionrequestdto_java"
+    ],
+    "35": [
+      "kinetic_backend_src_main_java_com_kinetic_dtos_monthlystatsresponsedto_java"
+    ],
+    "36": [
+      "kinetic_backend_src_main_java_com_kinetic_dtos_setlogdto_java"
+    ],
+    "37": [
+      "kinetic_backend_src_main_java_com_kinetic_dtos_statsinsightdto_java"
+    ],
+    "38": [
+      "kinetic_backend_src_main_java_com_kinetic_dtos_statssummaryresponsedto_java"
+    ],
+    "39": [
+      "kinetic_backend_src_main_java_com_kinetic_dtos_updateweightrequestdto_java"
+    ],
+    "40": [
+      "kinetic_backend_src_main_java_com_kinetic_dtos_volumebymusclegroupdto_java"
+    ],
+    "41": [
+      "kinetic_backend_src_main_java_com_kinetic_dtos_volumesummarydto_java"
+    ],
+    "42": [
+      "kinetic_backend_src_main_java_com_kinetic_dtos_weightpointdto_java"
+    ],
+    "43": [
+      "kinetic_backend_src_main_java_com_kinetic_dtos_weightsummarydto_java"
+    ],
+    "44": [
+      "kinetic_backend_src_main_java_com_kinetic_dtos_workoutsessionlogrequestdto_java"
+    ]
+  },
+  "cohesion": {
+    "0": 0.07,
+    "1": 0.07,
+    "2": 0.07,
+    "3": 0.13,
+    "4": 0.14,
+    "5": 0.12,
+    "6": 0.16,
+    "7": 0.24,
+    "8": 0.18,
+    "9": 0.18,
+    "10": 0.22,
+    "11": 0.43,
+    "12": 0.4,
+    "13": 0.5,
+    "14": 0.67,
+    "15": 0.67,
+    "16": 0.67,
+    "17": 1.0,
+    "18": 1.0,
+    "19": 1.0,
+    "20": 1.0,
+    "21": 1.0,
+    "22": 1.0,
+    "23": 1.0,
+    "24": 1.0,
+    "25": 1.0,
+    "26": 1.0,
+    "27": 1.0,
+    "28": 1.0,
+    "29": 1.0,
+    "30": 1.0,
+    "31": 1.0,
+    "32": 1.0,
+    "33": 1.0,
+    "34": 1.0,
+    "35": 1.0,
+    "36": 1.0,
+    "37": 1.0,
+    "38": 1.0,
+    "39": 1.0,
+    "40": 1.0,
+    "41": 1.0,
+    "42": 1.0,
+    "43": 1.0,
+    "44": 1.0
+  },
+  "gods": [
+    {
+      "id": "theme_colors_colors",
+      "label": "COLORS",
+      "degree": 22
+    },
+    {
+      "id": "contexts_themecontext_themecontext",
+      "label": "ThemeContext",
+      "degree": 19
+    },
+    {
+      "id": "security_jwtutil_jwtutil",
+      "label": "JwtUtil",
+      "degree": 10
+    },
+    {
+      "id": "contexts_authcontext_authcontext",
+      "label": "AuthContext",
+      "degree": 9
+    },
+    {
+      "id": "services_statsservice_statsservice",
+      "label": "StatsService",
+      "degree": 8
+    },
+    {
+      "id": "utils_statsutils_formatnumberptbr",
+      "label": "formatNumberPtBR()",
+      "degree": 7
+    },
+    {
+      "id": "config_securityconfig_securityconfig",
+      "label": "SecurityConfig",
+      "degree": 6
+    },
+    {
+      "id": "services_workoutservice_workoutservice",
+      "label": "WorkoutService",
+      "degree": 6
+    },
+    {
+      "id": "controllers_authcontroller_authcontroller",
+      "label": "AuthController",
+      "degree": 5
+    },
+    {
+      "id": "repositories_weighthistoryrepository_weighthistoryrepository",
+      "label": "WeightHistoryRepository",
+      "degree": 5
+    }
+  ],
+  "surprises": [
+    {
+      "source": "DeltaChip()",
+      "target": "formatNumberPtBR()",
+      "source_files": [
+        "KineticApp/src/screens/StatsScreen.tsx",
+        "KineticApp/src/utils/statsUtils.ts"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "peripheral node `DeltaChip()` unexpectedly reaches hub `formatNumberPtBR()`"
+    },
+    {
+      "source": "WeightCard()",
+      "target": "periodDescription()",
+      "source_files": [
+        "KineticApp/src/screens/StatsScreen.tsx",
+        "KineticApp/src/utils/statsUtils.ts"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "cross-file semantic connection"
+    },
+    {
+      "source": "WeightCard()",
+      "target": "formatNumberPtBR()",
+      "source_files": [
+        "KineticApp/src/screens/StatsScreen.tsx",
+        "KineticApp/src/utils/statsUtils.ts"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "cross-file semantic connection"
+    },
+    {
+      "source": "VolumeCard()",
+      "target": "formatTotalVolume()",
+      "source_files": [
+        "KineticApp/src/screens/StatsScreen.tsx",
+        "KineticApp/src/utils/statsUtils.ts"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "cross-file semantic connection"
+    },
+    {
+      "source": "VolumeCard()",
+      "target": "formatVolumeKg()",
+      "source_files": [
+        "KineticApp/src/screens/StatsScreen.tsx",
+        "KineticApp/src/utils/statsUtils.ts"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "cross-file semantic connection"
+    }
+  ],
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `COLORS` connect `Community 0` to `Community 9`, `Community 10`, `Community 5`?",
+      "why": "High betweenness centrality (0.019) - this node is a cross-community bridge."
+    },
+    {
+      "type": "isolated_nodes",
+      "question": "What connects `LoginDTO`, `RegisterDTO`, `ResetPasswordDTO` to the rest of the system?",
+      "why": "69 weakly-connected nodes found - possible documentation gaps or missing edges."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Community 0` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.07 - nodes in this community are weakly interconnected."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Community 1` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.07 - nodes in this community are weakly interconnected."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Community 2` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.07 - nodes in this community are weakly interconnected."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Community 3` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.13 - nodes in this community are weakly interconnected."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Community 4` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.14 - nodes in this community are weakly interconnected."
+    }
+  ]
+}
