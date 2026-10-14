@@ -53,6 +53,8 @@ export interface WorkoutPlanItem {
   estimatedTotalVolumeKg?: number | null;
   lastCompletedAt?: string | null;
   createdAt?: string | null;
+  // Nome do personal que montou a ficha; null/ausente = gerada por IA.
+  prescribedByName?: string | null;
   data: unknown[];
 }
 

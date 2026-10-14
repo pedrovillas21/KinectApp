@@ -5,8 +5,11 @@ import com.kinetic.dtos.PlanEvolutionResponseDTO;
 import com.kinetic.dtos.StatsSummaryResponseDTO;
 import com.kinetic.dtos.TrainerInviteRequestDTO;
 import com.kinetic.dtos.TrainerLinkDTO;
+import com.kinetic.dtos.TrainerWorkoutPlanRequestDTO;
+import com.kinetic.dtos.WorkoutPlanResponseDTO;
 import com.kinetic.services.StatsService;
 import com.kinetic.services.TrainerLinkService;
+import com.kinetic.services.TrainerPlanService;
 import com.kinetic.services.WorkoutSessionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -29,13 +32,15 @@ import java.util.UUID;
 @PreAuthorize("hasRole('PERSONAL')")
 @Tag(
         name = "Personal trainer",
-        description = "Endpoints só para usuários com o papel PERSONAL: convidar alunos e ver a carteira de alunos."
+        description = "Endpoints só para usuários com o papel PERSONAL: convidar alunos, ver a carteira de alunos "
+                + "e montar as fichas de treino de cada aluno."
 )
 public class TrainerController extends BaseController {
 
     private final TrainerLinkService trainerLinkService;
     private final StatsService statsService;
     private final WorkoutSessionService workoutSessionService;
+    private final TrainerPlanService trainerPlanService;
 
     @Operation(
             summary = "Convidar um aluno pelo e-mail",
@@ -98,5 +103,57 @@ public class TrainerController extends BaseController {
     public ResponseEntity<MonthlyStatsResponseDTO> studentMonthlyStats(@PathVariable @NonNull UUID studentId) {
         String studentEmail = trainerLinkService.resolveOwnedStudentEmail(currentUserEmail(), studentId);
         return ResponseEntity.ok(workoutSessionService.getMonthlyStats(studentEmail));
+    }
+
+    // ── Fichas do aluno (prescrição pelo personal) ──────────────────────────
+    // Mesmo gate de posse: sem vínculo ATIVO com o aluno, 404.
+
+    @Operation(
+            summary = "Listar as fichas vigentes de um aluno",
+            description = "Mesmo formato de GET /api/workouts/my-plans, sobre as fichas do aluno informado. Inclui "
+                    + "fichas geradas por IA (prescribedByName = null) e as montadas por personal."
+    )
+    @GetMapping("/students/{studentId}/plans")
+    public ResponseEntity<List<WorkoutPlanResponseDTO>> studentPlans(@PathVariable @NonNull UUID studentId) {
+        return ResponseEntity.ok(trainerPlanService.listPlans(currentUserEmail(), studentId));
+    }
+
+    @Operation(
+            summary = "Criar uma ficha para um aluno",
+            description = "Salva uma ficha nova montada pelo personal; ela aparece na hora no app do aluno, ao lado "
+                    + "das fichas vigentes. A ordem dos exercícios enviados é a ordem de exibição."
+    )
+    @PostMapping("/students/{studentId}/plans")
+    public ResponseEntity<WorkoutPlanResponseDTO> createStudentPlan(
+            @PathVariable @NonNull UUID studentId,
+            @Valid @RequestBody TrainerWorkoutPlanRequestDTO dto) {
+        WorkoutPlanResponseDTO plan = trainerPlanService.createPlan(currentUserEmail(), studentId, dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(plan);
+    }
+
+    @Operation(
+            summary = "Editar uma ficha de um aluno",
+            description = "Substitui o conteúdo da ficha. Exercícios enviados com id são atualizados no lugar, "
+                    + "preservando o histórico de séries; os omitidos são arquivados (nunca apagados). Editar uma "
+                    + "ficha gerada por IA passa a autoria para o personal."
+    )
+    @PutMapping("/students/{studentId}/plans/{planId}")
+    public ResponseEntity<WorkoutPlanResponseDTO> updateStudentPlan(
+            @PathVariable @NonNull UUID studentId,
+            @PathVariable @NonNull UUID planId,
+            @Valid @RequestBody TrainerWorkoutPlanRequestDTO dto) {
+        return ResponseEntity.ok(trainerPlanService.updatePlan(currentUserEmail(), studentId, planId, dto));
+    }
+
+    @Operation(
+            summary = "Remover uma ficha do app do aluno",
+            description = "Arquiva a ficha (some do app do aluno). O histórico de sessões feitas com ela é mantido."
+    )
+    @DeleteMapping("/students/{studentId}/plans/{planId}")
+    public ResponseEntity<Void> archiveStudentPlan(
+            @PathVariable @NonNull UUID studentId,
+            @PathVariable @NonNull UUID planId) {
+        trainerPlanService.archivePlan(currentUserEmail(), studentId, planId);
+        return ResponseEntity.noContent().build();
     }
 }

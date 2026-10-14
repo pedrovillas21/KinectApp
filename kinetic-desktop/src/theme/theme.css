@@ -13,6 +13,9 @@
   --color-k-primary-deep: #00daf3;
   --color-k-primary-dim: rgba(0, 229, 255, 0.1);
   --color-k-primary-soft: rgba(0, 229, 255, 0.2);
+  /* Texto sobre ciano (botões primários). Sem este token, `text-k-on-primary` não
+     gerava classe e os botões herdavam o texto branco (~1.2:1 de contraste). */
+  --color-k-on-primary: #001a1f;
 
   --color-k-text: #f5f6f7;
   --color-k-text-dim: rgba(245, 246, 247, 0.62);

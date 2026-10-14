@@ -1038,13 +1038,14 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       Alert.alert('Pronto!', 'Seu treino foi regenerado com sucesso com base nos novos dados.');
       navigation.navigate('Home');
     } catch (e) {
-      const err = e as { response?: { data?: unknown } };
+      const err = e as { response?: { status?: number; data?: unknown } };
       const raw = err.response?.data;
       const message =
         typeof raw === 'string' && raw
           ? raw
           : 'Não foi possível regenerar o treino agora. Tente novamente.';
-      Alert.alert('Erro', message);
+      // 409 = a ficha vigente foi montada pelo personal (regra de negócio, não falha).
+      Alert.alert(err.response?.status === 409 ? 'Treino do seu personal' : 'Erro', message);
     } finally {
       setIsRegenerating(false);
     }

@@ -4,9 +4,12 @@ import com.kinetic.dtos.GenerateWorkoutRequestDto;
 import com.kinetic.dtos.GeneratedExerciseDto;
 import com.kinetic.dtos.GeneratedWorkoutPlanDto;
 import com.kinetic.dtos.WorkoutPlanResponseDTO;
+import com.kinetic.enums.TrainerLinkStatus;
+import com.kinetic.exceptions.TrainerManagedPlanException;
 import com.kinetic.models.Exercise;
 import com.kinetic.models.User;
 import com.kinetic.models.WorkoutPlan;
+import com.kinetic.repositories.TrainerClientRepository;
 import com.kinetic.repositories.UserRepository;
 import com.kinetic.repositories.WorkoutExecutionLogRepository;
 import com.kinetic.repositories.WorkoutPlanRepository;
@@ -33,17 +36,20 @@ public class WorkoutService {
     private final UserRepository userRepository;
     private final PlanCycleSnapshotService planCycleSnapshotService;
     private final WorkoutExecutionLogRepository workoutExecutionLogRepository;
+    private final TrainerClientRepository trainerClientRepository;
 
     public WorkoutService(GeminiService geminiService,
                           WorkoutPlanRepository workoutPlanRepository,
                           UserRepository userRepository,
                           PlanCycleSnapshotService planCycleSnapshotService,
-                          WorkoutExecutionLogRepository workoutExecutionLogRepository) {
+                          WorkoutExecutionLogRepository workoutExecutionLogRepository,
+                          TrainerClientRepository trainerClientRepository) {
         this.geminiService = geminiService;
         this.workoutPlanRepository = workoutPlanRepository;
         this.userRepository = userRepository;
         this.planCycleSnapshotService = planCycleSnapshotService;
         this.workoutExecutionLogRepository = workoutExecutionLogRepository;
+        this.trainerClientRepository = trainerClientRepository;
     }
 
     @Transactional
@@ -60,6 +66,16 @@ public class WorkoutService {
         }
 
         User user = findUserByEmail(userEmail);
+
+        // Regenerar arquiva as fichas vigentes. Se o personal montou alguma e o vínculo segue
+        // ativo, o treino é dele: bloqueia antes de gastar a chamada ao Gemini. Com o vínculo
+        // encerrado o aluno volta a ter o controle da própria ficha.
+        if (trainerClientRepository.existsByStudentIdAndStatus(user.getId(), TrainerLinkStatus.ATIVO)
+                && workoutPlanRepository.existsByUserIdAndStatusAndCreatedByIsNotNull(user.getId(), "active")) {
+            throw new TrainerManagedPlanException(
+                    "Seu treino é montado pelo seu personal. Fale com ele pelo chat para ajustar a ficha.");
+        }
+
         log.info("Usuário encontrado. Atualizando perfil... (Idade calculada com data {}: {} anos)", request.birthDate(), age);
 
         // Captura estado pré-regeneração antes de sobrescrever o perfil
@@ -103,6 +119,7 @@ public class WorkoutService {
             workoutPlan.setEstimatedDurationMinutes(generatedDto.estimatedDurationMinutes());
             workoutPlan.setUser(user);
 
+            int sortOrder = 0;
             for (GeneratedExerciseDto exDto : generatedDto.data()) {
                 if (exDto.name() == null || exDto.name().isBlank() || exDto.sets() == null || exDto.reps() == null) {
                     throw new IllegalStateException("Falha na geração: exercício com campos obrigatórios ausentes.");
@@ -116,6 +133,7 @@ public class WorkoutService {
                 exercise.setWeight(exDto.weight());
                 exercise.setRestTime(exDto.restTime());
                 exercise.setSection(exDto.section());
+                exercise.setSortOrder(sortOrder++);
                 exercise.setWorkoutPlan(workoutPlan);
                 workoutPlan.getExercises().add(exercise);
             }
@@ -166,7 +184,8 @@ public class WorkoutService {
         // Uma unica query agregada (sem N+1): ultima conclusao por plano do usuario.
         Map<UUID, LocalDateTime> lastCompletionByPlan = buildLastCompletionMap(user.getId());
 
-        return workoutPlanRepository.findByUserIdAndStatus(user.getId(), "active").stream()
+        // Ordem de criação: o app atribui as letras A/B/C pela posição, então ela precisa ser estável.
+        return workoutPlanRepository.findByUserIdAndStatusOrderByCreatedAtAsc(user.getId(), "active").stream()
                 .map(plan -> WorkoutPlanResponseDTO.fromEntity(plan, lastCompletionByPlan.get(plan.getId())))
                 .toList();
     }

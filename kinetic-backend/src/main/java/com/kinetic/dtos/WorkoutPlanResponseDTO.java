@@ -4,6 +4,7 @@ import com.kinetic.models.Exercise;
 import com.kinetic.models.WorkoutPlan;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -19,6 +20,8 @@ public record WorkoutPlanResponseDTO(
         Integer estimatedTotalVolumeKg,
         LocalDateTime lastCompletedAt,
         LocalDateTime createdAt,
+        // Nome do personal que montou a ficha; null quando foi gerada por IA no app.
+        String prescribedByName,
         List<ExerciseResponseDTO> data
 ) {
     /**
@@ -29,9 +32,12 @@ public record WorkoutPlanResponseDTO(
     }
 
     public static WorkoutPlanResponseDTO fromEntity(WorkoutPlan workoutPlan, LocalDateTime lastCompletedAt) {
-        List<ExerciseResponseDTO> exercises = workoutPlan.getExercises().stream()
+        List<ExerciseResponseDTO> exercises = visibleExercises(workoutPlan).stream()
                 .map(ExerciseResponseDTO::fromEntity)
                 .toList();
+        String prescribedByName = workoutPlan.getCreatedBy() != null
+                ? workoutPlan.getCreatedBy().getNome()
+                : null;
 
         return new WorkoutPlanResponseDTO(
                 workoutPlan.getId(),
@@ -43,8 +49,23 @@ public record WorkoutPlanResponseDTO(
                 computeTotalVolumeKg(workoutPlan),
                 lastCompletedAt,
                 workoutPlan.getCreatedAt(),
+                prescribedByName,
                 exercises
         );
+    }
+
+    /**
+     * Exercicios ainda na ficha. Ao carregar do banco o @SQLRestriction ja exclui os
+     * arquivados; o filtro cobre a resposta da propria edicao, em que o exercicio recem
+     * arquivado continua na colecao em memoria.
+     */
+    private static List<Exercise> visibleExercises(WorkoutPlan plan) {
+        // Sort estavel: fichas antigas (sortOrder null) mantem a ordem em que vieram do banco.
+        return plan.getExercises().stream()
+                .filter(e -> !e.isArchived())
+                .sorted(Comparator.comparing(Exercise::getSortOrder,
+                        Comparator.nullsLast(Comparator.naturalOrder())))
+                .toList();
     }
 
     /**
@@ -54,7 +75,7 @@ public record WorkoutPlanResponseDTO(
         if (plan.getEstimatedDurationMinutes() != null) {
             return plan.getEstimatedDurationMinutes();
         }
-        int totalSets = plan.getExercises().stream()
+        int totalSets = visibleExercises(plan).stream()
                 .mapToInt(e -> e.getSets() != null ? e.getSets() : 0)
                 .sum();
         return heuristicDurationMinutes(totalSets);
@@ -86,7 +107,7 @@ public record WorkoutPlanResponseDTO(
     private static Integer computeTotalVolumeKg(WorkoutPlan plan) {
         double total = 0;
         boolean anyWeighted = false;
-        for (Exercise e : plan.getExercises()) {
+        for (Exercise e : visibleExercises(plan)) {
             double kg = parseWeightKg(e.getWeight());
             if (kg <= 0) continue;
             int sets = e.getSets() != null ? e.getSets() : 0;

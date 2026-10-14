@@ -135,14 +135,19 @@ public class TrainerLinkService {
      */
     @Transactional(readOnly = true)
     public String resolveOwnedStudentEmail(String trainerEmail, @NonNull UUID studentId) {
+        return resolveOwnedStudent(trainerEmail, studentId).getEmail();
+    }
+
+    /** Mesmo gate de posse de {@link #resolveOwnedStudentEmail}, devolvendo a entidade. */
+    @Transactional(readOnly = true)
+    public User resolveOwnedStudent(String trainerEmail, @NonNull UUID studentId) {
         User trainer = userRepository.getByEmailOrThrow(trainerEmail);
         if (!trainerClientRepository.existsByTrainerIdAndStudentIdAndStatus(
                 trainer.getId(), studentId, TrainerLinkStatus.ATIVO)) {
             throw new EntityNotFoundException("Aluno não encontrado.");
         }
         return userRepository.findById(studentId)
-                .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado."))
-                .getEmail();
+                .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado."));
     }
 
     /**

@@ -43,6 +43,18 @@ public class Exercise {
     // Classificada pela IA na geracao. Nullable para fichas antigas (fallback no front).
     private String section;
 
+    // Observacoes do personal (execucao, cadencia, ajustes). Null em fichas da IA.
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+
+    // Ordem de exibicao na ficha. Null em fichas antigas (ordem de insercao).
+    @Column(name = "sort_order")
+    private Integer sortOrder;
+
+    // Removido da ficha pelo personal. Nunca apagamos a linha: os setLogs do aluno a referenciam.
+    @Column(nullable = false)
+    private boolean archived = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "workout_plan_id", nullable = false)
     @JsonIgnore

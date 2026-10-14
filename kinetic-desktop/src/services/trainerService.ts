@@ -5,6 +5,8 @@ import type {
   StatsPeriodId,
   StatsSummaryResponseDTO,
   TrainerLink,
+  WorkoutPlan,
+  WorkoutPlanInput,
 } from '../types';
 
 /**
@@ -58,4 +60,38 @@ export const getStudentMonthlyStats = async (
     `/trainer/students/${studentId}/monthly-stats`,
   );
   return res.data;
+};
+
+// ── Fichas do aluno ──────────────────────────────────────────────────────────
+// Erros esperados: 404 = sem vínculo ATIVO ou ficha inexistente/já removida;
+// 400 = validação (o corpo é a mensagem em texto, pronta para exibir).
+
+/** Fichas vigentes do aluno, no mesmo formato que o app recebe. */
+export const listStudentPlans = async (studentId: string): Promise<WorkoutPlan[]> => {
+  const res = await api.get<WorkoutPlan[]>(`/trainer/students/${studentId}/plans`);
+  return res.data;
+};
+
+/** Cria uma ficha; aparece na hora no app do aluno. */
+export const createStudentPlan = async (
+  studentId: string,
+  plan: WorkoutPlanInput,
+): Promise<WorkoutPlan> => {
+  const res = await api.post<WorkoutPlan>(`/trainer/students/${studentId}/plans`, plan);
+  return res.data;
+};
+
+/** Substitui o conteúdo da ficha; exercícios omitidos são arquivados no backend. */
+export const updateStudentPlan = async (
+  studentId: string,
+  planId: string,
+  plan: WorkoutPlanInput,
+): Promise<WorkoutPlan> => {
+  const res = await api.put<WorkoutPlan>(`/trainer/students/${studentId}/plans/${planId}`, plan);
+  return res.data;
+};
+
+/** Tira a ficha do app do aluno (arquiva; o histórico de sessões é mantido). */
+export const archiveStudentPlan = async (studentId: string, planId: string): Promise<void> => {
+  await api.delete(`/trainer/students/${studentId}/plans/${planId}`);
 };

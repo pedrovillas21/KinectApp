@@ -33,6 +33,9 @@ public interface WorkoutPlanRepository extends JpaRepository<WorkoutPlan, UUID> 
     @Query("UPDATE WorkoutPlan w SET w.status = 'archived' WHERE w.user.id = :userId AND w.status = 'active'")
     void archiveActivePlans(@Param("userId") UUID userId);
 
+    // Aluno tem ficha vigente montada por personal? Bloqueia a regeneração por IA no app.
+    boolean existsByUserIdAndStatusAndCreatedByIsNotNull(UUID userId, String status);
+
     // Retorna a data de criação do plano ativo mais antigo — define o início do ciclo atual.
     @Query("SELECT MIN(w.createdAt) FROM WorkoutPlan w WHERE w.user.id = :userId AND w.status = 'active'")
     Optional<LocalDateTime> findEarliestActiveCreatedAt(@Param("userId") UUID userId);

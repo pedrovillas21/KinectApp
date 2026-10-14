@@ -13,7 +13,8 @@ public record ExerciseResponseDTO(
         String reps,
         String weight,
         String restTime,
-        String section
+        String section,
+        String notes
 ) {
     public static ExerciseResponseDTO fromEntity(Exercise exercise) {
         return new ExerciseResponseDTO(
@@ -25,7 +26,8 @@ public record ExerciseResponseDTO(
                 exercise.getReps(),
                 exercise.getWeight(),
                 exercise.getRestTime(),
-                exercise.getSection()
+                exercise.getSection(),
+                exercise.getNotes()
         );
     }
 }

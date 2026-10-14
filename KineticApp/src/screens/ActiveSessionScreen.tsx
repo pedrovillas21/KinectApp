@@ -366,6 +366,12 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
               <Text style={styles.focusChipText}>Foco: {currentExercise.muscles}</Text>
             </View>
           )}
+          {!!currentExercise.notes && (
+            <View style={styles.notesBox}>
+              <Text style={styles.notesLabel}>OBSERVAÇÃO DO PERSONAL</Text>
+              <Text style={styles.notesText}>{currentExercise.notes}</Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.setsContainer}>
@@ -374,7 +380,8 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
               key={idx}
               setNumber={idx + 1}
               targetReps={withSuffix(currentExercise.reps, 'reps')}
-              cargaLabel={currentExercise.weight}
+              // Ficha do personal pode vir sem carga definida: o aluno escolhe.
+              cargaLabel={currentExercise.weight || 'Carga livre'}
               restLabel={withSuffix(currentExercise.restTime, 'descanso')}
               weightRequired={weightRequired}
               status={statusOf(idx)}
@@ -485,6 +492,17 @@ const styles = StyleSheet.create({
     borderColor: KINETIC.primarySoft,
   },
   focusChipText: { color: KINETIC.primary, fontSize: 11, fontWeight: '700' },
+  notesBox: {
+    marginTop: 12,
+    paddingVertical: 9,
+    paddingHorizontal: 11,
+    borderRadius: 10,
+    borderLeftWidth: 2,
+    borderLeftColor: KINETIC.primary,
+    backgroundColor: KINETIC.ghost,
+  },
+  notesLabel: { color: KINETIC.textMuted, fontSize: 9.5, fontWeight: '700', letterSpacing: 0.6, marginBottom: 4 },
+  notesText: { color: KINETIC.text, fontSize: 13, lineHeight: 18 },
 
   setsContainer: { paddingHorizontal: 16, paddingTop: 14 },
 

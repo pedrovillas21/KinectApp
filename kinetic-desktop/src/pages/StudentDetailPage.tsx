@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import { ArrowLeft, BarChart3, MessageSquare, Target, UserX } from 'lucide-react';
+import { ArrowLeft, BarChart3, Dumbbell, MessageSquare, Target, UserX } from 'lucide-react';
 import { listStudents } from '../services/trainerService';
 import Avatar from '../components/Avatar';
 import ChatPanel from '../components/ChatPanel';
 import DashboardTab from '../components/DashboardTab';
-import { EASE_OUT } from '../components/motion/primitives';
+import WorkoutPlansTab from '../components/personal/WorkoutPlansTab';
+import { EASE_OUT, SPRING_PILL } from '../components/motion/primitives';
 import type { TrainerLink } from '../types';
 
 /** A partir desta largura, dashboard e conversa ficam lado a lado. */
@@ -25,6 +26,13 @@ function useMediaQuery(query: string): boolean {
   return matches;
 }
 
+type TabId = 'dashboard' | 'plans';
+
+const TABS: { id: TabId; label: string; icon: typeof BarChart3 }[] = [
+  { id: 'dashboard', label: 'Desempenho', icon: BarChart3 },
+  { id: 'plans', label: 'Treinos', icon: Dumbbell },
+];
+
 const sinceLabel = (iso: string): string => {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '';
@@ -34,6 +42,12 @@ const sinceLabel = (iso: string): string => {
 export default function StudentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const split = useMediaQuery(SPLIT_QUERY);
+  // A aba fica na URL (?aba=treinos): sobrevive a recarregar e ao voltar do navegador.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab: TabId = searchParams.get('aba') === 'treinos' ? 'plans' : 'dashboard';
+  // Aba visitada continua montada (só oculta): trocar de aba não perde um
+  // rascunho de ficha em edição nem refaz as buscas do desempenho.
+  const [visited, setVisited] = useState<Set<TabId>>(() => new Set([tab]));
 
   const [link, setLink] = useState<TrainerLink | null>(null);
   const [loading, setLoading] = useState(true);
@@ -110,8 +124,20 @@ export default function StudentDetailPage() {
 
   const peer = link.peer;
   const firstName = peer.nome.trim().split(/\s+/)[0] ?? peer.nome;
-  const showDashboard = split || !chatOpen;
-  const toggleLabel = chatOpen ? (split ? 'Ocultar conversa' : 'Ver desempenho') : 'Abrir conversa';
+  const showMain = split || !chatOpen;
+  const activeTab = TABS.find((t) => t.id === tab) ?? TABS[0];
+  const toggleLabel = chatOpen
+    ? split
+      ? 'Ocultar conversa'
+      : `Ver ${activeTab.label.toLowerCase()}`
+    : 'Abrir conversa';
+
+  const selectTab = (next: TabId) => {
+    setVisited((v) => (v.has(next) ? v : new Set(v).add(next)));
+    setSearchParams(next === 'plans' ? { aba: 'treinos' } : {}, { replace: true });
+    // Em tela estreita a conversa ocupa o lugar do conteúdo: escolher uma aba volta a ele.
+    if (!split) setChatOpen(false);
+  };
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-k-bg text-k-text">
@@ -160,31 +186,87 @@ export default function StudentDetailPage() {
           </div>
         </motion.div>
 
-        <button
-          type="button"
-          aria-pressed={chatOpen}
-          onClick={() => setChatOpen((open) => !open)}
-          className={`flex h-11 items-center gap-2 rounded-xl border px-4 text-sm font-semibold transition-colors active:scale-[0.97] ${
-            chatOpen
-              ? 'border-k-primary/30 bg-k-primary/[0.12] text-k-primary'
-              : 'border-white/10 bg-k-surface1 text-k-text-dim hover:bg-k-surface2 hover:text-k-text'
-          }`}
-        >
-          {chatOpen && !split ? (
-            <BarChart3 className="h-[17px] w-[17px]" />
-          ) : (
-            <MessageSquare className="h-[17px] w-[17px]" />
-          )}
-          {toggleLabel}
-        </button>
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div
+            role="tablist"
+            aria-label="Seções do aluno"
+            className="flex rounded-[14px] border border-k-ghost bg-k-surface1 p-1"
+          >
+            {TABS.map((t) => {
+              const active = t.id === tab && showMain;
+              const Icon = t.icon;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  role="tab"
+                  id={`student-tab-${t.id}`}
+                  aria-selected={active}
+                  aria-controls={`student-panel-${t.id}`}
+                  onClick={() => selectTab(t.id)}
+                  className={`relative flex h-[36px] items-center gap-2 rounded-[10px] px-3.5 text-[13px] font-semibold transition-colors ${
+                    active ? 'text-k-primary' : 'text-k-text-muted hover:text-k-text'
+                  }`}
+                >
+                  {active && (
+                    <motion.span
+                      layoutId="student-tab-pill"
+                      transition={SPRING_PILL}
+                      className="absolute inset-0 rounded-[10px] bg-k-primary/[0.12] shadow-[inset_0_0_0_1px_rgba(0,229,255,0.28)]"
+                    />
+                  )}
+                  <Icon className="relative h-4 w-4" />
+                  <span className="relative">{t.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            type="button"
+            aria-pressed={chatOpen}
+            onClick={() => setChatOpen((open) => !open)}
+            className={`flex h-11 items-center gap-2 rounded-xl border px-4 text-sm font-semibold transition-colors active:scale-[0.97] ${
+              chatOpen
+                ? 'border-k-primary/30 bg-k-primary/[0.12] text-k-primary'
+                : 'border-white/10 bg-k-surface1 text-k-text-dim hover:bg-k-surface2 hover:text-k-text'
+            }`}
+          >
+            {chatOpen && !split ? (
+              <activeTab.icon className="h-[17px] w-[17px]" />
+            ) : (
+              <MessageSquare className="h-[17px] w-[17px]" />
+            )}
+            {toggleLabel}
+          </button>
+        </div>
       </header>
 
       <div className="flex min-h-0 flex-1">
-        {showDashboard && (
-          <div className="min-w-0 flex-1 overflow-y-auto">
-            <DashboardTab studentId={id} studentFirstName={firstName} onGoal={setGoal} />
-          </div>
-        )}
+        {/* Oculto (não desmontado) enquanto a conversa ocupa a tela estreita: um
+            rascunho de ficha em edição não pode se perder ao abrir o chat. */}
+        <div className={`min-w-0 flex-1 overflow-y-auto ${showMain ? '' : 'hidden'}`}>
+          {visited.has('dashboard') && (
+            <div
+              role="tabpanel"
+              id="student-panel-dashboard"
+              aria-labelledby="student-tab-dashboard"
+              hidden={tab !== 'dashboard'}
+            >
+              <DashboardTab studentId={id} studentFirstName={firstName} onGoal={setGoal} />
+            </div>
+          )}
+          {visited.has('plans') && (
+            <div
+              role="tabpanel"
+              id="student-panel-plans"
+              aria-labelledby="student-tab-plans"
+              hidden={tab !== 'plans'}
+            >
+              <WorkoutPlansTab studentId={id} studentFirstName={firstName} />
+            </div>
+          )}
+        </div>
 
         <AnimatePresence initial={false}>
           {chatOpen &&

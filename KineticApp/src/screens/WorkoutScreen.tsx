@@ -29,9 +29,11 @@ interface Exercise {
   type: string;
   sets: number | string;
   reps: number | string;
-  weight: string;
-  restTime: string;
+  weight: string | null;
+  restTime: string | null;
   section?: string | null;
+  // Observação do personal (fichas prescritas pelo painel). Null nas fichas da IA.
+  notes?: string | null;
 }
 
 interface Props {
@@ -148,6 +150,16 @@ function MetricItem({ icon, label, muted }: { icon: React.ReactNode; label: stri
   );
 }
 
+function IcUserCheck({ color }: { color: string }) {
+  return (
+    <Svg width={11} height={11} viewBox="0 0 24 24">
+      <Circle cx="9" cy="7" r="4" fill="none" stroke={color} strokeWidth={2.2} />
+      <Path d="M2 21v-1a6 6 0 0 1 6-6h2" fill="none" stroke={color} strokeWidth={2.2} strokeLinecap="round" />
+      <Polyline points="15 18 17.5 20.5 22 15" fill="none" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
 function IcChevronLeft({ color }: { color: string }) {
   return (
     <Svg width={16} height={16} viewBox="0 0 24 24">
@@ -206,8 +218,11 @@ function groupSections(exercises: Exercise[]): RenderSection[] {
   return nonEmpty.map((k) => ({ id: k, label: showLabels ? SECTION_LABELS[k] : null, items: buckets[k] }));
 }
 
+// Primeiro nome do personal para os selos ("Por Marina").
+const firstName = (name: string) => name.trim().split(/\s+/)[0] ?? name;
+
 // ─── Card de exercício (DETAIL) ────────────────────────────────────
-function DetailExerciseCard({ ex, accent }: { ex: Exercise; accent: Accent }) {
+function DetailExerciseCard({ ex, accent, prescribed }: { ex: Exercise; accent: Accent; prescribed: boolean }) {
   return (
     <View style={styles.exCard}>
       <LinearGradient colors={accent.grad} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.exStripe} />
@@ -233,14 +248,21 @@ function DetailExerciseCard({ ex, accent }: { ex: Exercise; accent: Accent }) {
             <Text style={styles.exGridValue}>{ex.sets} × {ex.reps}</Text>
           </View>
           <View style={styles.exGridCol}>
-            <Text style={styles.exGridLabel}>SUGESTÃO</Text>
-            <Text style={[styles.exGridValue, { color: accent.color }]}>{ex.weight}</Text>
+            <Text style={styles.exGridLabel}>{prescribed ? 'CARGA' : 'SUGESTÃO'}</Text>
+            <Text style={[styles.exGridValue, { color: accent.color }]}>{ex.weight || '—'}</Text>
           </View>
           <View style={styles.exGridCol}>
             <Text style={styles.exGridLabel}>DESCANSO</Text>
-            <Text style={styles.exGridValue}>{ex.restTime}</Text>
+            <Text style={styles.exGridValue}>{ex.restTime || '—'}</Text>
           </View>
         </View>
+
+        {!!ex.notes && (
+          <View style={[styles.exNotes, { borderLeftColor: accent.color }]}>
+            <Text style={styles.exGridLabel}>OBSERVAÇÃO DO PERSONAL</Text>
+            <Text style={styles.exNotesText}>{ex.notes}</Text>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -339,10 +361,19 @@ export default function WorkoutScreen({ navigation }: Props) {
             <View style={[styles.dayBadge, { backgroundColor: accent.dim, borderColor: accent.soft }]}>
               <Text style={[styles.dayBadgeText, { color: accent.color }]}>{tagLabel(item, letter)}</Text>
             </View>
-            <View style={styles.iaBadge}>
-              <IcSparkle color={KINETIC.textMuted} />
-              <Text style={styles.iaBadgeText}>Sugestão IA</Text>
-            </View>
+            {item.prescribedByName ? (
+              <View style={[styles.iaBadge, styles.trainerBadge]}>
+                <IcUserCheck color={KINETIC.success} />
+                <Text style={[styles.iaBadgeText, { color: KINETIC.success }]}>
+                  Por {firstName(item.prescribedByName)}
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.iaBadge}>
+                <IcSparkle color={KINETIC.textMuted} />
+                <Text style={styles.iaBadgeText}>Sugestão IA</Text>
+              </View>
+            )}
           </View>
 
           <Text style={styles.cardTitle}>{item.title}</Text>
@@ -482,10 +513,17 @@ export default function WorkoutScreen({ navigation }: Props) {
           )}
 
           <View style={styles.infoBox}>
-            <View style={styles.infoLine}>
-              <IcSparkle color={KINETIC.textMuted} />
-              <Text style={styles.infoText}>Sugestão por IA — consulte um profissional de educação física.</Text>
-            </View>
+            {workout.prescribedByName ? (
+              <View style={styles.infoLine}>
+                <IcUserCheck color={KINETIC.success} />
+                <Text style={styles.infoText}>Ficha prescrita por {workout.prescribedByName}, seu personal.</Text>
+              </View>
+            ) : (
+              <View style={styles.infoLine}>
+                <IcSparkle color={KINETIC.textMuted} />
+                <Text style={styles.infoText}>Sugestão por IA — consulte um profissional de educação física.</Text>
+              </View>
+            )}
             <View style={styles.infoLine}>
               <IcInfo color={KINETIC.textMuted} />
               <Text style={styles.infoText}>RPE = esforço percebido, de 1 (muito leve) a 10 (esforço máximo).</Text>
@@ -509,7 +547,12 @@ export default function WorkoutScreen({ navigation }: Props) {
             {sec.label && <Text style={styles.sectionHeader}>{sec.label}</Text>}
             <View style={styles.sectionBody}>
               {sec.items.map((ex, i) => (
-                <DetailExerciseCard key={ex.id ?? `${ex.name}-${i}`} ex={ex} accent={accent} />
+                <DetailExerciseCard
+                  key={ex.id ?? `${ex.name}-${i}`}
+                  ex={ex}
+                  accent={accent}
+                  prescribed={!!workout.prescribedByName}
+                />
               ))}
             </View>
           </View>
@@ -624,6 +667,7 @@ const styles = StyleSheet.create({
     backgroundColor: KINETIC.ghost,
   },
   iaBadgeText: { fontSize: 10, fontWeight: '600', color: KINETIC.textMuted },
+  trainerBadge: { backgroundColor: 'rgba(74,222,128,0.10)' },
   cardTitle: {
     fontSize: 22,
     fontWeight: '800',
@@ -756,6 +800,15 @@ const styles = StyleSheet.create({
   exGridCol: { flex: 1 },
   exGridLabel: { fontSize: 9.5, fontWeight: '700', letterSpacing: 0.6, color: KINETIC.textMuted, marginBottom: 4 },
   exGridValue: { fontSize: 13.5, fontWeight: '700', color: KINETIC.text, lineHeight: 18 },
+  exNotes: {
+    marginTop: 14,
+    paddingVertical: 9,
+    paddingHorizontal: 11,
+    borderRadius: 10,
+    borderLeftWidth: 2,
+    backgroundColor: KINETIC.ghost,
+  },
+  exNotesText: { fontSize: 13, color: KINETIC.text, lineHeight: 18 },
 
   // ─── DETAIL: CTA fixo (barra em fluxo, ancorada abaixo do ScrollView) ───
   ctaBar: {

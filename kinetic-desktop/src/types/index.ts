@@ -134,6 +134,64 @@ export interface TrainerLink {
   respondedAt: string | null;
 }
 
+// ── Fichas de treino (prescrição pelo personal) ─────────────────────────────
+
+export type ExerciseSection = 'AQUECIMENTO' | 'PRINCIPAL' | 'FINALIZACAO';
+
+/** Exercício de uma ficha — espelha ExerciseResponseDTO do backend. */
+export interface WorkoutExercise {
+  id: string;
+  name: string;
+  muscles: string | null;
+  type: string | null;
+  sets: number | null;
+  reps: string | null;
+  weight: string | null;
+  restTime: string | null;
+  section: string | null;
+  notes: string | null;
+}
+
+/** Ficha vigente do aluno — espelha WorkoutPlanResponseDTO do backend. */
+export interface WorkoutPlan {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  tag: string | null;
+  level: string;
+  estimatedDurationMinutes: number | null;
+  estimatedTotalVolumeKg: number | null;
+  lastCompletedAt: string | null;
+  createdAt: string;
+  /** Nome do personal que montou a ficha; null = gerada por IA no app. */
+  prescribedByName: string | null;
+  data: WorkoutExercise[];
+}
+
+/** Exercício enviado ao salvar. `id` presente = exercício existente (preserva o histórico). */
+export interface WorkoutExerciseInput {
+  id?: string;
+  name: string;
+  muscles: string | null;
+  type: string | null;
+  sets: number;
+  reps: string;
+  weight: string | null;
+  restTime: string | null;
+  section: ExerciseSection;
+  notes: string | null;
+}
+
+/** Corpo de POST/PUT /trainer/students/{id}/plans — espelha TrainerWorkoutPlanRequestDTO. */
+export interface WorkoutPlanInput {
+  title: string;
+  subtitle: string | null;
+  tag: string | null;
+  level: string | null;
+  estimatedDurationMinutes: number | null;
+  exercises: WorkoutExerciseInput[];
+}
+
 // ── Painel ROOT ──────────────────────────────────────────────────────────────
 
 export type UserStatus = 'ATIVO' | 'SUSPENSO' | 'BLOQUEADO';
