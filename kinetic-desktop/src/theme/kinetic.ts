@@ -17,7 +17,7 @@ export const KINETIC = {
 
   text: '#f5f6f7',
   textDim: 'rgba(245,246,247,0.62)',
-  textMuted: 'rgba(245,246,247,0.36)',
+  textMuted: '#8e8f90',
 
   ghost: 'rgba(255,255,255,0.08)',
   ghostHi: 'rgba(255,255,255,0.15)',

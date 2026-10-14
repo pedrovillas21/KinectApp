@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   caption: { color: '#FFF', fontSize: 15, lineHeight: 20 },
-  tapZones: { ...StyleSheet.absoluteFillObject, flexDirection: 'row', top: 70 },
+  tapZones: { ...StyleSheet.absoluteFill, flexDirection: 'row', top: 70 },
   tapLeft: { width: width * 0.3 },
   tapRight: { flex: 1 },
 });

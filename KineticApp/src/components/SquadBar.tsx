@@ -39,7 +39,7 @@ function PulsingRing({ color }: { color: string }) {
 
   return (
     <Animated.View
-      style={[StyleSheet.absoluteFillObject, styles.pulseRing, { borderColor: color, opacity }]}
+      style={[StyleSheet.absoluteFill, styles.pulseRing, { borderColor: color, opacity }]}
     />
   );
 }

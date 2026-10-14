@@ -1,31 +1,59 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { AnimatePresence, motion } from 'motion/react';
+import { ArrowLeft, BarChart3, MessageSquare, Target, UserX } from 'lucide-react';
 import { listStudents } from '../services/trainerService';
 import Avatar from '../components/Avatar';
 import ChatPanel from '../components/ChatPanel';
 import DashboardTab from '../components/DashboardTab';
-import { ArrowLeft, MessageSquare, LayoutDashboard, UserX, RefreshCw } from 'lucide-react';
-import type { TrainerPeer } from '../types';
+import { EASE_OUT } from '../components/motion/primitives';
+import type { TrainerLink } from '../types';
 
-type Tab = 'dashboard' | 'chat';
+/** A partir desta largura, dashboard e conversa ficam lado a lado. */
+const SPLIT_QUERY = '(min-width: 1100px)';
+const CHAT_WIDTH = 400;
+
+function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
+  useEffect(() => {
+    const mql = window.matchMedia(query);
+    const onChange = () => setMatches(mql.matches);
+    onChange();
+    mql.addEventListener('change', onChange);
+    return () => mql.removeEventListener('change', onChange);
+  }, [query]);
+  return matches;
+}
+
+const sinceLabel = (iso: string): string => {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+};
 
 export default function StudentDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const [peer, setPeer] = useState<TrainerPeer | null>(null);
+  const split = useMediaQuery(SPLIT_QUERY);
+
+  const [link, setLink] = useState<TrainerLink | null>(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<Tab>('dashboard');
+  const [goal, setGoal] = useState<string | null>(null);
+  // Em tela larga a conversa já abre ao lado; em tela estreita ela substitui
+  // o dashboard enquanto aberta.
+  const [chatOpen, setChatOpen] = useState(() => window.matchMedia(SPLIT_QUERY).matches);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    setPeer(null);
+    setLink(null);
+    setGoal(null);
     listStudents()
       .then((links) => {
         if (cancelled) return;
-        setPeer(links.find((l) => l.peer.id === id)?.peer ?? null);
+        setLink(links.find((l) => l.peer.id === id) ?? null);
       })
       .catch(() => {
-        if (!cancelled) setPeer(null);
+        if (!cancelled) setLink(null);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -37,89 +65,162 @@ export default function StudentDetailPage() {
 
   if (loading) {
     return (
-      <div className="h-screen bg-k-bg text-k-text flex flex-col items-center justify-center gap-3">
-        <RefreshCw className="w-8 h-8 animate-spin text-k-primary" />
-        <p className="text-sm text-k-text-muted font-medium">Carregando perfil do aluno…</p>
+      <div className="flex h-screen flex-col bg-k-bg text-k-text" role="status" aria-label="Carregando perfil do aluno">
+        <div className="flex items-center gap-3.5 border-b border-k-ghost px-8 py-3.5">
+          <div className="k-skeleton h-11 w-11 rounded-xl bg-k-surface1" />
+          <div className="k-skeleton h-12 w-12 rounded-full bg-k-surface2" />
+          <div className="flex flex-col gap-2">
+            <div className="k-skeleton h-4 w-44 rounded-full bg-k-surface2" />
+            <div className="k-skeleton h-3 w-64 rounded-full bg-k-surface1" />
+          </div>
+        </div>
       </div>
     );
   }
 
-  if (!peer || !id) {
+  if (!link || !id) {
     return (
-      <div className="h-screen bg-k-bg text-k-text flex flex-col items-center justify-center p-6 text-center gap-4">
-        <div className="w-14 h-14 rounded-full bg-k-surface2 flex items-center justify-center text-k-error">
-          <UserX className="w-7 h-7" />
-        </div>
+      <div className="flex h-screen flex-col items-center justify-center gap-4 bg-k-bg p-6 text-center text-k-text">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, ease: EASE_OUT }}
+          className="flex h-16 w-16 items-center justify-center rounded-[20px] bg-k-alert/[0.12] text-k-alert"
+        >
+          <UserX className="h-7 w-7" />
+        </motion.div>
         <div>
-          <p className="font-extrabold text-base text-k-text-dim">Aluno não encontrado</p>
-          <p className="text-xs text-k-text-muted mt-1 max-w-xs">
-            Este aluno não foi encontrado na sua carteira de alunos ativos ou o link de acesso está incorreto.
+          <p className="font-display text-xl font-extrabold font-stretch-semi-expanded">
+            Aluno não encontrado
+          </p>
+          <p className="mt-1.5 max-w-xs text-sm text-k-text-dim">
+            Este aluno não está na sua carteira de alunos ativos ou o link está incorreto.
           </p>
         </div>
         <Link
           to="/students"
-          className="flex items-center gap-2 mt-2 px-4 py-2.5 bg-k-surface2 hover:bg-k-surface3 border border-k-ghost rounded-xl text-xs font-bold transition-all active:scale-95"
+          className="mt-2 flex h-11 items-center gap-2 rounded-xl border border-white/10 bg-k-surface1 px-4 text-sm font-semibold transition-colors hover:bg-k-surface2"
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Voltar para meus alunos</span>
+          <ArrowLeft className="h-4 w-4" />
+          Voltar para meus alunos
         </Link>
       </div>
     );
   }
 
+  const peer = link.peer;
+  const firstName = peer.nome.trim().split(/\s+/)[0] ?? peer.nome;
+  const showDashboard = split || !chatOpen;
+  const toggleLabel = chatOpen ? (split ? 'Ocultar conversa' : 'Ver desempenho') : 'Abrir conversa';
+
   return (
-    <div className="h-screen bg-k-bg text-k-text flex flex-col overflow-hidden">
-      {/* Fixed Sticky Header */}
-      <header className="border-b border-k-ghost bg-k-surface1/60 backdrop-blur-md sticky top-0 z-30 px-6 py-3.5 flex items-center gap-4 justify-between shrink-0">
-        <div className="flex items-center gap-3.5 min-w-0">
+    <div className="flex h-screen flex-col overflow-hidden bg-k-bg text-k-text">
+      <header className="z-30 flex shrink-0 flex-wrap items-center justify-between gap-4 border-b border-k-ghost bg-k-bg/85 px-8 py-3.5 backdrop-blur-[14px]">
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: EASE_OUT }}
+          className="flex min-w-0 items-center gap-3.5"
+        >
           <Link
             to="/students"
-            aria-label="Voltar"
-            className="w-9 h-9 rounded-xl bg-k-surface2 border border-k-ghost text-k-text-dim hover:text-white hover:border-k-ghost-hi flex items-center justify-center transition-all shrink-0 active:scale-95"
+            aria-label="Voltar para alunos"
+            className="group flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-k-surface1 text-k-text-dim transition-colors hover:bg-k-surface2 hover:text-k-text"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="h-[18px] w-[18px] transition-transform duration-300 group-hover:-translate-x-0.5" />
           </Link>
-          <Avatar name={peer.nome} avatarUrl={peer.avatarUrl} size={42} />
+          <Avatar name={peer.nome} avatarUrl={peer.avatarUrl} size={48} ring="rgba(0,229,255,0.5)" />
           <div className="min-w-0">
-            <h1 className="font-extrabold text-sm sm:text-base leading-tight truncate">{peer.nome}</h1>
-            <p className="text-xs text-k-text-muted truncate mt-0.5">{peer.email}</p>
+            <h1 className="truncate font-display text-xl font-extrabold tracking-tight font-stretch-semi-expanded">
+              {peer.nome}
+            </h1>
+            <p className="truncate text-[12.5px] text-k-text-muted">
+              {peer.email} · Vinculado desde {sinceLabel(link.respondedAt ?? link.createdAt)}
+            </p>
           </div>
-        </div>
+          <div className="ml-1.5 hidden gap-2 lg:flex">
+            <AnimatePresence>
+              {goal && (
+                <motion.span
+                  key="goal"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 26 }}
+                  className="inline-flex h-7 items-center gap-1.5 whitespace-nowrap rounded-full bg-k-primary-dim px-3 text-[12.5px] font-semibold text-k-primary"
+                >
+                  <Target className="h-3.5 w-3.5" />
+                  Meta: {goal}
+                </motion.span>
+              )}
+            </AnimatePresence>
+            <span className="inline-flex h-7 items-center gap-1.5 whitespace-nowrap rounded-full bg-k-success/10 px-3 text-[12.5px] font-semibold text-k-success">
+              <span className="h-[7px] w-[7px] rounded-full bg-k-success" />
+              Vínculo ativo
+            </span>
+          </div>
+        </motion.div>
 
-        {/* Tab Navigation */}
-        <nav className="flex items-center bg-k-bg/80 border border-k-ghost p-1 rounded-xl shrink-0" aria-label="Seções do aluno">
-          <button
-            onClick={() => setTab('dashboard')}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold text-xs transition-all cursor-pointer ${
-              tab === 'dashboard'
-                ? 'bg-k-primary-dim text-k-primary shadow-[inset_0_0_0_1px_rgba(0,229,255,0.15)]'
-                : 'text-k-text-muted hover:text-k-text'
-            }`}
-          >
-            <LayoutDashboard className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Dashboard</span>
-          </button>
-          <button
-            onClick={() => setTab('chat')}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold text-xs transition-all cursor-pointer ${
-              tab === 'chat'
-                ? 'bg-k-primary-dim text-k-primary shadow-[inset_0_0_0_1px_rgba(0,229,255,0.15)]'
-                : 'text-k-text-muted hover:text-k-text'
-            }`}
-          >
-            <MessageSquare className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Chat</span>
-          </button>
-        </nav>
+        <button
+          type="button"
+          aria-pressed={chatOpen}
+          onClick={() => setChatOpen((open) => !open)}
+          className={`flex h-11 items-center gap-2 rounded-xl border px-4 text-sm font-semibold transition-colors active:scale-[0.97] ${
+            chatOpen
+              ? 'border-k-primary/30 bg-k-primary/[0.12] text-k-primary'
+              : 'border-white/10 bg-k-surface1 text-k-text-dim hover:bg-k-surface2 hover:text-k-text'
+          }`}
+        >
+          {chatOpen && !split ? (
+            <BarChart3 className="h-[17px] w-[17px]" />
+          ) : (
+            <MessageSquare className="h-[17px] w-[17px]" />
+          )}
+          {toggleLabel}
+        </button>
       </header>
 
-      {/* Main Content Area */}
-      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-        {tab === 'dashboard' ? (
-          <DashboardTab studentId={id} studentFirstName={peer.nome.split(' ')[0]} />
-        ) : (
-          <ChatPanel peerId={id} peerName={peer.nome} />
+      <div className="flex min-h-0 flex-1">
+        {showDashboard && (
+          <div className="min-w-0 flex-1 overflow-y-auto">
+            <DashboardTab studentId={id} studentFirstName={firstName} onGoal={setGoal} />
+          </div>
         )}
+
+        <AnimatePresence initial={false}>
+          {chatOpen &&
+            (split ? (
+              // Lado a lado: a coluna abre/fecha pela largura e o dashboard
+              // acompanha suavemente, sem salto de layout.
+              <motion.aside
+                key="chat-split"
+                aria-label={`Conversa com ${peer.nome}`}
+                initial={{ width: 0, opacity: 0 }}
+                animate={{ width: CHAT_WIDTH + 16, opacity: 1 }}
+                exit={{ width: 0, opacity: 0 }}
+                transition={{ duration: 0.5, ease: EASE_OUT }}
+                className="shrink-0 overflow-hidden py-4 pr-4"
+              >
+                <div
+                  className="h-full overflow-hidden rounded-[20px] border border-k-ghost"
+                  style={{ width: CHAT_WIDTH }}
+                >
+                  <ChatPanel peerId={id} peerName={peer.nome} onClose={() => setChatOpen(false)} />
+                </div>
+              </motion.aside>
+            ) : (
+              <motion.aside
+                key="chat-full"
+                aria-label={`Conversa com ${peer.nome}`}
+                initial={{ opacity: 0, x: 32 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 32 }}
+                transition={{ duration: 0.45, ease: EASE_OUT }}
+                className="m-4 min-w-0 flex-1 overflow-hidden rounded-[20px] border border-k-ghost"
+              >
+                <ChatPanel peerId={id} peerName={peer.nome} onClose={() => setChatOpen(false)} />
+              </motion.aside>
+            ))}
+        </AnimatePresence>
       </div>
     </div>
   );

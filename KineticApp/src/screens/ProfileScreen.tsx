@@ -501,7 +501,7 @@ function MetricsModal({ visible, form, onSave, onClose }: MetricsModalProps) {
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.sheetKAV}>
-        <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         <View style={s.sheetPanel}>
           <View style={s.sheetHandle} />
           <Text style={s.sheetTitle}>Suas métricas</Text>
@@ -576,7 +576,7 @@ function AnamnesisModal({ visible, value, onSave, onClose }: AnamnesisModalProps
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.sheetKAV}>
-        <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         <View style={s.sheetPanel}>
           <View style={s.sheetHandle} />
           <Text style={s.sheetTitle}>Anamnese</Text>
@@ -831,7 +831,7 @@ function ChangePasswordModal({ visible, onClose, onSubmit, onSuccess }: ChangePa
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.sheetKAV}>
-        <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         <View style={s.sheetPanel}>
           <View style={s.sheetHandle} />
           <Text style={s.sheetTitle}>Alterar senha</Text>

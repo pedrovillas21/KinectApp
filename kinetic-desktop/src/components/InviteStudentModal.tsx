@@ -1,6 +1,8 @@
 import { useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
+import { AlertCircle, Mail, Send, X } from 'lucide-react';
 import { inviteStudent } from '../services/trainerService';
-import { X, Mail, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { EASE_OUT } from './motion/primitives';
 import type { TrainerLink } from '../types';
 
 const FOCUSABLE_SELECTOR =
@@ -9,20 +11,19 @@ const FOCUSABLE_SELECTOR =
 interface Props {
   open: boolean;
   onClose: () => void;
+  /** Chamado com o vínculo PENDENTE criado; o modal fecha em seguida. */
   onInvited: (link: TrainerLink) => void;
 }
 
 export default function InviteStudentModal({ open, onClose, onInvited }: Props) {
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
 
   const reset = () => {
     setEmail('');
     setError(null);
-    setSuccess(null);
   };
 
   const handleClose = () => {
@@ -30,8 +31,6 @@ export default function InviteStudentModal({ open, onClose, onInvited }: Props) 
     reset();
     onClose();
   };
-
-  if (!open) return null;
 
   const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Escape') {
@@ -64,14 +63,11 @@ export default function InviteStudentModal({ open, onClose, onInvited }: Props) 
 
     setBusy(true);
     setError(null);
-    setSuccess(null);
     try {
       const link = await inviteStudent(target);
+      reset();
       onInvited(link);
-      setSuccess(
-        `Convite enviado para ${link.peer.nome}. Ele precisa aceitar pelo app para o vínculo valer.`,
-      );
-      setEmail('');
+      onClose();
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } }).response?.status;
       if (status === 404) {
@@ -90,81 +86,117 @@ export default function InviteStudentModal({ open, onClose, onInvited }: Props) 
   };
 
   return (
-    <div
-      onClick={handleClose}
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
-    >
-      <div
-        ref={sheetRef}
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={handleKeyDown}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="invite-student-title"
-        tabIndex={-1}
-        className="w-full max-w-[480px] bg-k-surface1 border border-k-ghost rounded-2xl p-6 shadow-2xl animate-scale-up outline-none"
-      >
-        {/* Modal Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-k-ghost/40 mb-4">
-          <h2 id="invite-student-title" className="text-base font-extrabold tracking-tight">Convidar Novo Aluno</h2>
-          <button
-            onClick={handleClose}
-            aria-label="Fechar"
-            className="w-8 h-8 rounded-xl bg-k-surface2 border border-k-ghost text-k-text-muted hover:text-white flex items-center justify-center transition-all cursor-pointer"
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          key="invite-overlay"
+          onClick={handleClose}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6 backdrop-blur-[6px]"
+        >
+          <motion.div
+            ref={sheetRef}
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={handleKeyDown}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="invite-student-title"
+            tabIndex={-1}
+            initial={{ opacity: 0, y: 14, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.97 }}
+            transition={{ duration: 0.45, ease: EASE_OUT }}
+            className="flex w-full max-w-[460px] flex-col gap-5 rounded-[22px] border border-white/10 bg-k-surface1 p-7 shadow-[0_40px_90px_-20px_rgba(0,0,0,0.7)] outline-none"
           >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
+            <div className="flex items-start justify-between gap-4">
+              <span className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-k-primary/[0.12] text-k-primary">
+                <Mail className="h-[22px] w-[22px]" />
+              </span>
+              <button
+                type="button"
+                onClick={handleClose}
+                aria-label="Fechar"
+                className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-k-surface1 text-k-text-dim transition-colors hover:bg-k-surface2 hover:text-k-text"
+              >
+                <X className="h-[18px] w-[18px]" />
+              </button>
+            </div>
 
-        {/* Modal Body */}
-        <p className="text-xs text-k-text-dim leading-relaxed mb-5">
-          Informe o e-mail cadastrado na conta do seu aluno no aplicativo mobile Kinetic. Ele receberá o convite na página inicial do app e, ao aceitar, o perfil dele aparecerá no seu painel.
-        </p>
+            <div>
+              <h2
+                id="invite-student-title"
+                className="font-display text-2xl font-extrabold tracking-tight font-stretch-semi-expanded"
+              >
+                Convidar aluno
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-k-text-dim">
+                Use o e-mail de cadastro do aluno no app Kinetic. O vínculo é ativado assim que ele
+                aceitar o convite.
+              </p>
+            </div>
 
-        {/* Invite Form */}
-        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1 flex items-center">
-            <span className="absolute left-3.5 text-k-text-muted">
-              <Mail className="w-4 h-4" />
-            </span>
-            <input
-              type="email"
-              placeholder="aluno@exemplo.com"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setError(null);
-                setSuccess(null);
-              }}
-              autoFocus
-              required
-              className="w-full pl-10 pr-4 py-2.5 bg-k-surface2/60 border border-k-ghost rounded-xl outline-none focus:border-k-primary focus:ring-1 focus:ring-k-primary/30 transition-all text-xs placeholder:text-k-text-muted"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={busy || !email.trim()}
-            className="py-2.5 px-5 bg-k-primary hover:bg-k-primary-deep text-k-on-primary font-bold text-xs rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer whitespace-nowrap"
-          >
-            {busy ? 'Enviando…' : 'Enviar Convite'}
-          </button>
-        </form>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+              <div className="flex flex-col gap-2">
+                <label htmlFor="invite-email" className="text-[13px] font-semibold text-k-text-soft">
+                  E-mail do aluno
+                </label>
+                <input
+                  id="invite-email"
+                  type="email"
+                  placeholder="aluno@email.com"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setError(null);
+                  }}
+                  autoFocus
+                  required
+                  aria-invalid={!!error}
+                  aria-describedby={error ? 'invite-error' : undefined}
+                  className="h-12 w-full rounded-xl border border-white/10 bg-k-bg px-4 text-[15px] transition-[border-color,box-shadow] placeholder:text-k-text-muted focus:border-k-primary focus:shadow-[0_0_0_4px_rgba(0,229,255,0.12)]"
+                />
+                <AnimatePresence>
+                  {error && (
+                    <motion.p
+                      id="invite-error"
+                      role="alert"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="flex gap-2 overflow-hidden text-[13px] leading-snug text-k-alert"
+                    >
+                      <AlertCircle className="mt-px h-4 w-4 shrink-0" />
+                      <span>{error}</span>
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              </div>
 
-        {/* Success / Error Feedbacks */}
-        {error && (
-          <div className="flex gap-2.5 mt-4 p-3 rounded-xl bg-k-error/10 border border-k-error/30 text-k-error text-xs leading-normal">
-            <AlertCircle className="w-4.5 h-4.5 shrink-0 text-k-error" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {success && (
-          <div className="flex gap-2.5 mt-4 p-3 rounded-xl bg-k-success/10 border border-k-success/30 text-k-success text-xs leading-normal">
-            <CheckCircle2 className="w-4.5 h-4.5 shrink-0 text-k-success" />
-            <span>{success}</span>
-          </div>
-        )}
-      </div>
-    </div>
+              <div className="flex flex-wrap justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="h-11 rounded-xl border border-white/10 bg-k-surface1 px-[18px] text-sm font-semibold text-k-text-dim transition-colors hover:bg-k-surface2 hover:text-k-text"
+                >
+                  Cancelar
+                </button>
+                <motion.button
+                  type="submit"
+                  disabled={busy || !email.trim()}
+                  whileTap={{ scale: 0.97 }}
+                  className="flex h-11 items-center gap-2 rounded-xl bg-k-primary px-5 text-sm font-bold text-k-on-primary transition-[box-shadow,opacity] hover:shadow-[0_0_0_4px_rgba(0,229,255,0.14),0_10px_26px_-10px_rgba(0,229,255,0.8)] disabled:pointer-events-none disabled:opacity-50"
+                >
+                  <Send className="h-4 w-4" />
+                  {busy ? 'Enviando…' : 'Enviar convite'}
+                </motion.button>
+              </div>
+            </form>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

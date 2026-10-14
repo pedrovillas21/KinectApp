@@ -16,7 +16,9 @@
 
   --color-k-text: #f5f6f7;
   --color-k-text-dim: rgba(245, 246, 247, 0.62);
-  --color-k-text-muted: rgba(245, 246, 247, 0.36);
+  /* Sólido (não alpha) para garantir 4.5:1 sobre k-bg/k-surface1. */
+  --color-k-text-muted: #8e8f90;
+  --color-k-text-soft: #dcdddd;
 
   --color-k-ghost: rgba(255, 255, 255, 0.08);
   --color-k-ghost-hi: rgba(255, 255, 255, 0.15);
@@ -24,6 +26,14 @@
   --color-k-success: #4ade80;
   --color-k-warn: #f5b945;
   --color-k-error: #ff4444;
+  /* "Precisa de atenção" — mais claro que k-error para ler bem em texto. */
+  --color-k-alert: #ff6b6b;
+  /* Série secundária de gráfico (ciano escurecido validado). */
+  --color-k-chart-2: #00a5b8;
+
+  --font-sans: 'Geist', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  /* Títulos e números: Archivo com eixo de largura (use font-stretch-*). */
+  --font-display: 'Archivo', 'Segoe UI', system-ui, sans-serif;
 }
 
 /* ── shadcn/ui tokens → mapeados aos tokens de marca Kinetic ────────────────
@@ -129,7 +139,7 @@
 
   --k-text: #f5f6f7;
   --k-text-dim: rgba(245, 246, 247, 0.62);
-  --k-text-muted: rgba(245, 246, 247, 0.36);
+  --k-text-muted: #8e8f90;
 
   --k-ghost: rgba(255, 255, 255, 0.08);
   --k-ghost-hi: rgba(255, 255, 255, 0.15);
@@ -166,6 +176,7 @@
     background: var(--k-bg);
     color: var(--k-text);
     font-family:
+      'Geist',
       'Segoe UI',
       system-ui,
       -apple-system,
@@ -296,6 +307,51 @@
 
 .animate-scale-up {
   animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ── Micro-animações contínuas (as de entrada/estado ficam no Motion) ──── */
+
+@keyframes kLivePulse {
+  0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.55); }
+  70% { box-shadow: 0 0 0 7px rgba(74, 222, 128, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+}
+
+@keyframes kBadgePulse {
+  0% { box-shadow: 0 0 0 0 rgba(0, 229, 255, 0.45); }
+  70% { box-shadow: 0 0 0 9px rgba(0, 229, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 229, 255, 0); }
+}
+
+@keyframes kRipple {
+  0% { transform: scale(0.55); opacity: 0.7; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+@keyframes kTwinkle {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.15) rotate(14deg); }
+}
+
+@keyframes kSkeleton {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.42; }
+}
+
+.k-live-dot { animation: kLivePulse 2s ease-out infinite; }
+.k-badge-pulse { animation: kBadgePulse 2.4s ease-out infinite; }
+.k-ripple { animation: kRipple 3s cubic-bezier(0.16, 1, 0.3, 1) infinite; }
+.k-twinkle { animation: kTwinkle 3.2s ease-in-out infinite; }
+.k-skeleton { animation: kSkeleton 1.6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .k-live-dot,
+  .k-badge-pulse,
+  .k-ripple,
+  .k-twinkle,
+  .k-skeleton {
+    animation: none;
+  }
 }
 
 .dark {
