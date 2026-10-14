@@ -54,10 +54,15 @@ public class TrainerPlanService {
     public WorkoutPlanResponseDTO createPlan(String trainerEmail, @NonNull UUID studentId,
                                              TrainerWorkoutPlanRequestDTO request) {
         User student = trainerLinkService.resolveOwnedStudent(trainerEmail, studentId);
+        WorkoutPlan plan = buildPlan(student, userRepository.getByEmailOrThrow(trainerEmail), request);
+        return WorkoutPlanResponseDTO.fromEntity(workoutPlanRepository.save(plan));
+    }
 
+    /** Ficha nova do personal para o aluno, ainda não salva (também usada na aprovação de fichas da IA). */
+    WorkoutPlan buildPlan(User student, User trainer, TrainerWorkoutPlanRequestDTO request) {
         WorkoutPlan plan = new WorkoutPlan();
         plan.setUser(student);
-        plan.setCreatedBy(userRepository.getByEmailOrThrow(trainerEmail));
+        plan.setCreatedBy(trainer);
         applyPlanFields(plan, request, student);
 
         // Na criação os ids são ignorados: o painel pode duplicar uma ficha existente.
@@ -68,8 +73,7 @@ public class TrainerPlanService {
             applyExerciseFields(exercise, dto, order++);
             plan.getExercises().add(exercise);
         }
-
-        return WorkoutPlanResponseDTO.fromEntity(workoutPlanRepository.save(plan));
+        return plan;
     }
 
     /**
@@ -154,7 +158,7 @@ public class TrainerPlanService {
     }
 
     /** Nível explícito > nível atual da ficha > nível do aluno > padrão. */
-    private static String resolveLevel(String requested, String current, String studentLevel) {
+    static String resolveLevel(String requested, String current, String studentLevel) {
         String level = upperOrNull(requested);
         if (level != null) {
             if ("INTERMEDIARIO".equals(level)) level = "INTERMEDIÁRIO";
@@ -165,6 +169,7 @@ public class TrainerPlanService {
         }
         if (current != null) return current;
         String fromStudent = upperOrNull(studentLevel);
+        if ("INTERMEDIARIO".equals(fromStudent)) fromStudent = "INTERMEDIÁRIO";
         return fromStudent != null && LEVELS.contains(fromStudent) ? fromStudent : DEFAULT_LEVEL;
     }
 

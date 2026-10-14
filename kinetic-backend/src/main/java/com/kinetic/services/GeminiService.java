@@ -57,7 +57,18 @@ public class GeminiService {
         if (frequency < 1 || frequency > 7) throw new IllegalArgumentException("Frequência deve ser entre 1 e 7: " + frequency);
 
         String prompt = buildPrompt(level, age, weight, height, goal, frequency, medicalConditions);
+        return generateJson(prompt, new TypeReference<List<GeneratedWorkoutPlanDto>>() {}).value();
+    }
 
+    /** Resposta da IA já convertida, com o modelo que a produziu (para registro). */
+    public record GeminiResult<T>(T value, String model) {}
+
+    /**
+     * Envia o prompt pedindo resposta em JSON e converte para {@code type}. Tenta os modelos
+     * configurados em ordem: indisponibilidade (429/5xx), falha de rede ou JSON inválido
+     * passam para o próximo; outros erros HTTP abortam.
+     */
+    public <T> GeminiResult<T> generateJson(String prompt, TypeReference<T> type) {
         GeminiRequestDto requestDto = new GeminiRequestDto(
                 List.of(GeminiRequestDto.Content.of(prompt)),
                 GeminiRequestDto.GenerationConfig.json());
@@ -88,9 +99,9 @@ public class GeminiService {
 
                 String jsonText = response.getText();
                 try {
-                    List<GeneratedWorkoutPlanDto> plan = objectMapper.readValue(jsonText, new TypeReference<List<GeneratedWorkoutPlanDto>>() {});
+                    T value = objectMapper.readValue(jsonText, type);
                     log.info("Sucesso: ficha de treino gerada pelo modelo '{}' (tentativa {}/{}).", model, i + 1, models.length);
-                    return plan;
+                    return new GeminiResult<>(value, model);
                 } catch (JsonProcessingException e) {
                     log.warn("Modelo '{}' retornou JSON inválido. Tentando o próximo modelo...", model);
                     lastException = new InvalidGeminiResponseException("A IA retornou um treino em formato invalido. Tente gerar novamente.", e);
@@ -111,11 +122,20 @@ public class GeminiService {
         }
 
         log.error("Todos os {} modelo(s) de IA falharam. Nenhuma ficha de treino pôde ser gerada.", models.length);
-        throw new RuntimeException("Todos os modelos de IA estão indisponíveis no momento. Tente novamente mais tarde.", lastException);
+        if (lastException instanceof InvalidGeminiResponseException invalid) {
+            throw invalid;
+        }
+        throw new GeminiUnavailableException("Todos os modelos de IA estão indisponíveis no momento. Tente novamente mais tarde.", lastException);
     }
 
     public static class InvalidGeminiResponseException extends RuntimeException {
         public InvalidGeminiResponseException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
+
+    public static class GeminiUnavailableException extends RuntimeException {
+        public GeminiUnavailableException(String message, Throwable cause) {
             super(message, cause);
         }
     }

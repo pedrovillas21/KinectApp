@@ -1,13 +1,18 @@
 package com.kinetic.controllers;
 
+import com.kinetic.dtos.AiPlanContextDTO;
+import com.kinetic.dtos.AiPlanPreviewDTO;
 import com.kinetic.dtos.MonthlyStatsResponseDTO;
 import com.kinetic.dtos.PlanEvolutionResponseDTO;
 import com.kinetic.dtos.StatsSummaryResponseDTO;
+import com.kinetic.dtos.TrainerAiPlanApproveRequestDTO;
+import com.kinetic.dtos.TrainerAiPlanRequestDTO;
 import com.kinetic.dtos.TrainerInviteRequestDTO;
 import com.kinetic.dtos.TrainerLinkDTO;
 import com.kinetic.dtos.TrainerWorkoutPlanRequestDTO;
 import com.kinetic.dtos.WorkoutPlanResponseDTO;
 import com.kinetic.services.StatsService;
+import com.kinetic.services.TrainerAiPlanService;
 import com.kinetic.services.TrainerLinkService;
 import com.kinetic.services.TrainerPlanService;
 import com.kinetic.services.WorkoutSessionService;
@@ -41,6 +46,7 @@ public class TrainerController extends BaseController {
     private final StatsService statsService;
     private final WorkoutSessionService workoutSessionService;
     private final TrainerPlanService trainerPlanService;
+    private final TrainerAiPlanService trainerAiPlanService;
 
     @Operation(
             summary = "Convidar um aluno pelo e-mail",
@@ -155,5 +161,48 @@ public class TrainerController extends BaseController {
             @PathVariable @NonNull UUID planId) {
         trainerPlanService.archivePlan(currentUserEmail(), studentId, planId);
         return ResponseEntity.noContent().build();
+    }
+
+    // ── Fichas geradas por IA a pedido do personal ──────────────────────────
+    // A IA só gera a prévia; as fichas chegam ao aluno quando o personal aprova.
+
+    @Operation(
+            summary = "Ver o que a IA considera do aluno",
+            description = "Dados da anamnese do aluno (objetivo, nível, idade, peso, altura, frequência e condições "
+                    + "médicas) que vão para a IA junto com o pedido do personal, e quantas fichas ele tem hoje."
+    )
+    @GetMapping("/students/{studentId}/ai-plans/context")
+    public ResponseEntity<AiPlanContextDTO> aiPlanContext(@PathVariable @NonNull UUID studentId) {
+        return ResponseEntity.ok(trainerAiPlanService.getContext(currentUserEmail(), studentId));
+    }
+
+    @Operation(
+            summary = "Gerar uma prévia de fichas com IA",
+            description = "O Gemini monta as fichas a partir do pedido do personal e do perfil do aluno. Nada é salvo "
+                    + "no app do aluno: a resposta é uma prévia para revisão, válida por 24 horas. Pode levar alguns "
+                    + "segundos. 502/503 = a IA falhou ou está indisponível."
+    )
+    @PostMapping("/students/{studentId}/ai-plans/preview")
+    public ResponseEntity<AiPlanPreviewDTO> generateAiPlanPreview(
+            @PathVariable @NonNull UUID studentId,
+            @Valid @RequestBody TrainerAiPlanRequestDTO dto) {
+        AiPlanPreviewDTO preview = trainerAiPlanService.generatePreview(currentUserEmail(), studentId, dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(preview);
+    }
+
+    @Operation(
+            summary = "Aprovar uma prévia de fichas da IA",
+            description = "Salva as fichas como o personal as revisou, prescritas por ele, e registra a declaração "
+                    + "de revisão aceita. Com replaceCurrent, as fichas atuais do aluno são arquivadas. 409 = prévia "
+                    + "já aprovada ou expirada."
+    )
+    @PostMapping("/students/{studentId}/ai-plans/{generationId}/approve")
+    public ResponseEntity<List<WorkoutPlanResponseDTO>> approveAiPlans(
+            @PathVariable @NonNull UUID studentId,
+            @PathVariable @NonNull UUID generationId,
+            @Valid @RequestBody TrainerAiPlanApproveRequestDTO dto) {
+        List<WorkoutPlanResponseDTO> plans =
+                trainerAiPlanService.approve(currentUserEmail(), studentId, generationId, dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(plans);
     }
 }

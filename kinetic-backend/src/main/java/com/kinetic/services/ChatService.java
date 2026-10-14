@@ -50,7 +50,9 @@ public class ChatService {
         message.setSender(sender);
         message.setRecipient(recipient);
         message.setContent(content);
-        ChatMessageDTO dto = toDto(chatMessageRepository.save(message));
+        // saveAndFlush: o @CreationTimestamp só preenche sent_at no INSERT; com save() o
+        // INSERT fica para o commit e o DTO sairia com sentAt null (data de 1970 na tela).
+        ChatMessageDTO dto = toDto(chatMessageRepository.saveAndFlush(message));
 
         // Push em tempo real para as filas pessoais dos dois lados: o
         // destinatário recebe a mensagem e o remetente a confirmação.

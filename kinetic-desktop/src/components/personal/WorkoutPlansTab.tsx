@@ -19,12 +19,15 @@ import { archiveStudentPlan, listStudentPlans } from '../../services/trainerServ
 import { EASE_OUT, riseItem, staggerContainer } from '../motion/primitives';
 import ConfirmDialog from './ConfirmDialog';
 import PlanEditor, { type EditorMode } from './PlanEditor';
+import AiPlanFlow from './ai/AiPlanFlow';
 import { heuristicDurationMinutes, muscleLabel } from './workoutVocab';
 import type { WorkoutPlan } from '../../types';
 
 interface Props {
   studentId: string;
   studentFirstName: string;
+  /** Nome completo: vai na declaração de aprovação das fichas da IA. */
+  studentName: string;
 }
 
 /** Acento por posição (A/B/C ciclando) — o mesmo do app do aluno. */
@@ -48,6 +51,15 @@ const nextTag = (plans: WorkoutPlan[]) => {
 
 const nf0 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
 
+/** "13 out, 14:32" — quando a ficha da IA foi aprovada. */
+const approvedLabel = (iso: string): string => {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const day = d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' }).replace('.', '').replace(' de ', ' ');
+  const time = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  return `${day}, ${time}`;
+};
+
 const lastDoneLabel = (iso: string | null): string => {
   if (!iso) return 'Ainda não realizada';
   const done = new Date(iso);
@@ -59,12 +71,13 @@ const lastDoneLabel = (iso: string | null): string => {
   return `Feita há ${days} dias`;
 };
 
-export default function WorkoutPlansTab({ studentId, studentFirstName }: Props) {
+export default function WorkoutPlansTab({ studentId, studentFirstName, studentName }: Props) {
   const { currentUser } = useAuth();
   const [plans, setPlans] = useState<WorkoutPlan[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const [editor, setEditor] = useState<EditorMode | null>(null);
+  const [aiFlow, setAiFlow] = useState(false);
   // A ficha alvo continua definida enquanto o diálogo anima o fechamento (o texto não some).
   const [toRemove, setToRemove] = useState<WorkoutPlan | null>(null);
   const [removeOpen, setRemoveOpen] = useState(false);
@@ -73,6 +86,7 @@ export default function WorkoutPlansTab({ studentId, studentFirstName }: Props) 
   useEffect(() => {
     setPlans(null);
     setEditor(null);
+    setAiFlow(false);
   }, [studentId]);
 
   useEffect(() => {
@@ -125,6 +139,30 @@ export default function WorkoutPlansTab({ studentId, studentFirstName }: Props) 
     }
   };
 
+  if (aiFlow && plans) {
+    return (
+      <AiPlanFlow
+        studentId={studentId}
+        studentFirstName={studentFirstName}
+        studentName={studentName}
+        currentPlans={plans}
+        onExit={() => setAiFlow(false)}
+        onApproved={(saved, replaced) => {
+          setAiFlow(false);
+          const many = saved.length !== 1;
+          toast.success(
+            `${saved.length} ${many ? 'fichas aprovadas' : 'ficha aprovada'}. ${
+              many ? 'Já aparecem' : 'Já aparece'
+            } no app de ${studentFirstName}, ${many ? 'prescritas' : 'prescrita'} por você.${
+              replaced ? ' As fichas anteriores saíram do app.' : ''
+            }`,
+          );
+          reload();
+        }}
+      />
+    );
+  }
+
   if (editor) {
     return (
       <PlanEditor
@@ -152,7 +190,12 @@ export default function WorkoutPlansTab({ studentId, studentFirstName }: Props) 
             Fichas ativas no app de {studentFirstName}. O que você salvar aparece para ele na hora.
           </p>
         </div>
-        {plans && plans.length > 0 && <NewPlanButton onClick={() => startCreate()} />}
+        {plans && plans.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2.5">
+            <AiPlanButton onClick={() => setAiFlow(true)} />
+            <NewPlanButton onClick={() => startCreate()} />
+          </div>
+        )}
       </div>
 
       {error && !plans ? (
@@ -174,7 +217,7 @@ export default function WorkoutPlansTab({ studentId, studentFirstName }: Props) 
       ) : !plans ? (
         <PlansSkeleton />
       ) : plans.length === 0 ? (
-        <EmptyPlans firstName={studentFirstName} onCreate={() => startCreate()} />
+        <EmptyPlans firstName={studentFirstName} onCreate={() => startCreate()} onCreateWithAi={() => setAiFlow(true)} />
       ) : (
         <motion.ul
           variants={staggerContainer}
@@ -294,6 +337,15 @@ function PlanCard({
         </div>
       )}
 
+      {plan.aiAssisted && (
+        <p className="flex items-center gap-1.5 text-xs text-k-text-muted">
+          <Sparkles className="h-[13px] w-[13px] shrink-0" />
+          <span className="truncate">
+            Criada com IA · aprovada por {mine ? 'você' : plan.prescribedByName} em {approvedLabel(plan.createdAt)}
+          </span>
+        </p>
+      )}
+
       <div className="mt-auto flex items-center justify-between gap-3 border-t border-white/[0.05] pt-4">
         <span className="flex min-w-0 items-center gap-1.5 text-[12.5px] text-k-text-muted">
           <Clock className="h-3.5 w-3.5 shrink-0" />
@@ -348,26 +400,77 @@ function NewPlanButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-function EmptyPlans({ firstName, onCreate }: { firstName: string; onCreate: () => void }) {
+/** Entrada do fluxo com IA. Âmbar, como tudo que vem da IA no painel. */
+function AiPlanButton({ onClick, label = 'Criar com IA' }: { onClick: () => void; label?: string }) {
+  return (
+    <motion.button
+      type="button"
+      onClick={onClick}
+      whileTap={{ scale: 0.97 }}
+      className="flex h-11 items-center justify-center gap-2 rounded-xl border border-k-warn/35 bg-k-warn/10 px-[18px] text-sm font-bold text-k-warn transition-colors hover:bg-k-warn/[0.16]"
+    >
+      <Sparkles className="h-4 w-4" />
+      {label}
+    </motion.button>
+  );
+}
+
+function EmptyPlans({
+  firstName,
+  onCreate,
+  onCreateWithAi,
+}: {
+  firstName: string;
+  onCreate: () => void;
+  onCreateWithAi: () => void;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: EASE_OUT }}
-      className="flex flex-col items-center gap-4 rounded-[20px] border border-dashed border-white/10 px-6 py-14 text-center"
+      className="flex flex-col items-center gap-7 rounded-[20px] border border-dashed border-white/10 px-6 py-12 text-center"
     >
-      <span className="flex h-14 w-14 items-center justify-center rounded-[18px] bg-k-primary/[0.12] text-k-primary">
-        <Dumbbell className="h-6 w-6" />
-      </span>
       <div>
-        <p className="font-display text-lg font-extrabold font-stretch-semi-expanded">
+        <p className="font-display text-xl font-extrabold font-stretch-semi-expanded">
           {firstName} ainda não tem fichas
         </p>
-        <p className="mx-auto mt-1.5 max-w-sm text-[13px] leading-relaxed text-k-text-muted">
-          Monte a primeira ficha. Ela aparece na hora no app, pronta para {firstName} treinar e registrar as séries.
+        <p className="mx-auto mt-1.5 max-w-md text-[13.5px] leading-relaxed text-k-text-muted">
+          Escolha como começar. Com a IA, nada chega ao app antes da sua aprovação.
         </p>
       </div>
-      <NewPlanButton onClick={onCreate} />
+      <div className="grid w-full max-w-[760px] gap-4 text-left [grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))]">
+        <div className="flex flex-col gap-3.5 rounded-[18px] border border-k-warn/25 bg-k-warn/[0.05] p-[22px]">
+          <span className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-k-warn/[0.14] text-k-warn">
+            <Sparkles className="h-[21px] w-[21px]" />
+          </span>
+          <div>
+            <h3 className="font-display text-[17px] font-extrabold font-stretch-semi-expanded">Criar com IA</h3>
+            <p className="mt-1.5 text-[13.5px] leading-relaxed text-k-text-dim">
+              Descreva a ideia do treino. A IA monta as fichas completas com base no perfil de {firstName}, e você
+              revisa e aprova.
+            </p>
+          </div>
+          <div className="mt-auto [&>button]:w-full">
+            <AiPlanButton onClick={onCreateWithAi} label="Descrever o treino" />
+          </div>
+        </div>
+        <div className="flex flex-col gap-3.5 rounded-[18px] border border-k-ghost bg-k-surface1 p-[22px]">
+          <span className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-k-primary/[0.12] text-k-primary">
+            <Dumbbell className="h-[21px] w-[21px]" />
+          </span>
+          <div>
+            <h3 className="font-display text-[17px] font-extrabold font-stretch-semi-expanded">Montar do zero</h3>
+            <p className="mt-1.5 text-[13.5px] leading-relaxed text-k-text-dim">
+              Monte a ficha exercício por exercício, do seu jeito. Ela aparece na hora no app, pronta para {firstName}{' '}
+              treinar.
+            </p>
+          </div>
+          <div className="mt-auto [&>button]:w-full [&>button]:justify-center">
+            <NewPlanButton onClick={onCreate} />
+          </div>
+        </div>
+      </div>
     </motion.div>
   );
 }

@@ -183,7 +183,8 @@ public class SocialService {
         // anterior; normalizeKey aceita as duas formas e grava sempre a key.
         post.setImageUrl(storageService.normalizeKey(req.imageUrl()));
         post.setBadge(req.badge());
-        postRepository.save(post);
+        // saveAndFlush: created_at só é preenchido no INSERT (@CreationTimestamp).
+        postRepository.saveAndFlush(post);
 
         return toFeedPostDTO(post, Map.of(), Map.of(), Set.of(), signKeysOf(List.of(post)));
     }
@@ -199,7 +200,7 @@ public class SocialService {
         story.setImageUrl(storageService.normalizeKey(req.imageUrl()));
         story.setCaption(req.caption());
         story.setExpiresAt(LocalDateTime.now().plusHours(24));
-        postRepository.save(story);
+        postRepository.saveAndFlush(story);
         return new StoryDTO(story.getId(), storageService.signUrl(story.getImageUrl()),
                 story.getCaption(), story.getCreatedAt(), story.getExpiresAt());
     }
@@ -290,7 +291,7 @@ public class SocialService {
         comment.setPost(post);
         comment.setUser(me);
         comment.setBody(req.body());
-        commentRepository.save(comment);
+        commentRepository.saveAndFlush(comment);
         return new CommentDTO(comment.getId(), me.getId(), me.getNome(), avatarOf(me), comment.getBody(), comment.getCreatedAt());
     }
 

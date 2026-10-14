@@ -1,5 +1,7 @@
 package com.kinetic.exceptions;
 
+import com.kinetic.services.GeminiService.GeminiUnavailableException;
+import com.kinetic.services.GeminiService.InvalidGeminiResponseException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +34,23 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(TrainerManagedPlanException.class)
     public ResponseEntity<String> handleTrainerManagedPlan(TrainerManagedPlanException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(AiPlanPreviewException.class)
+    public ResponseEntity<String> handleAiPlanPreview(AiPlanPreviewException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
+
+    /** A IA respondeu fora do formato esperado (a mensagem orienta a gerar de novo). */
+    @ExceptionHandler(InvalidGeminiResponseException.class)
+    public ResponseEntity<String> handleInvalidGemini(InvalidGeminiResponseException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(ex.getMessage());
+    }
+
+    /** Todos os modelos de IA configurados falharam ou estão sem cota. */
+    @ExceptionHandler(GeminiUnavailableException.class)
+    public ResponseEntity<String> handleGeminiUnavailable(GeminiUnavailableException ex) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(ex.getMessage());
     }
 
     @ExceptionHandler(EntityNotFoundException.class)

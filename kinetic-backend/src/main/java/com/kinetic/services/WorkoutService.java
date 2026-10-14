@@ -17,19 +17,25 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
 @Service
 public class WorkoutService {
+
+    private static final Set<String> SECTIONS = Set.of("AQUECIMENTO", "PRINCIPAL", "FINALIZACAO");
+    private static final String DEFAULT_SECTION = "PRINCIPAL";
 
     private final GeminiService geminiService;
     private final WorkoutPlanRepository workoutPlanRepository;
@@ -116,7 +122,7 @@ public class WorkoutService {
             workoutPlan.setSubtitle(generatedDto.subtitle());
             workoutPlan.setTag(generatedDto.tag());
             workoutPlan.setLevel(request.level());
-            workoutPlan.setEstimatedDurationMinutes(generatedDto.estimatedDurationMinutes());
+            workoutPlan.setEstimatedDurationMinutes(normalizeDuration(generatedDto.estimatedDurationMinutes()));
             workoutPlan.setUser(user);
 
             int sortOrder = 0;
@@ -132,7 +138,7 @@ public class WorkoutService {
                 exercise.setReps(exDto.reps());
                 exercise.setWeight(exDto.weight());
                 exercise.setRestTime(exDto.restTime());
-                exercise.setSection(exDto.section());
+                exercise.setSection(normalizeSection(exDto.section()));
                 exercise.setSortOrder(sortOrder++);
                 exercise.setWorkoutPlan(workoutPlan);
                 workoutPlan.getExercises().add(exercise);
@@ -211,6 +217,23 @@ public class WorkoutService {
 
     private User findUserByEmail(String userEmail) {
         return userRepository.getByEmailOrThrow(userEmail);
+    }
+
+    /**
+     * A IA as vezes devolve a secao com acento ou em minusculas ("Finalização");
+     * o banco so aceita os tres valores canonicos (chk_exercises_section).
+     */
+    private static String normalizeSection(String raw) {
+        if (raw == null || raw.isBlank()) return DEFAULT_SECTION;
+        String section = Normalizer.normalize(raw.trim(), Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toUpperCase(Locale.ROOT);
+        return SECTIONS.contains(section) ? section : DEFAULT_SECTION;
+    }
+
+    /** Estimativa fora de 5–240 min e descartada: o DTO cai no fallback heuristico. */
+    private static Integer normalizeDuration(Integer minutes) {
+        return minutes != null && minutes >= 5 && minutes <= 240 ? minutes : null;
     }
 
     private void validateRequest(GenerateWorkoutRequestDto request) {

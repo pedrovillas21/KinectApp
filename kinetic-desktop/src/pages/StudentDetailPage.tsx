@@ -263,7 +263,7 @@ export default function StudentDetailPage() {
               aria-labelledby="student-tab-plans"
               hidden={tab !== 'plans'}
             >
-              <WorkoutPlansTab studentId={id} studentFirstName={firstName} />
+              <WorkoutPlansTab studentId={id} studentFirstName={firstName} studentName={peer.nome} />
             </div>
           )}
         </div>

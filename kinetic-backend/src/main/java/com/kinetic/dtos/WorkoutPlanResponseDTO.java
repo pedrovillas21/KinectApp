@@ -22,6 +22,8 @@ public record WorkoutPlanResponseDTO(
         LocalDateTime createdAt,
         // Nome do personal que montou a ficha; null quando foi gerada por IA no app.
         String prescribedByName,
+        // Ficha criada com IA pelo personal e aprovada por ele no painel.
+        boolean aiAssisted,
         List<ExerciseResponseDTO> data
 ) {
     /**
@@ -50,6 +52,7 @@ public record WorkoutPlanResponseDTO(
                 lastCompletedAt,
                 workoutPlan.getCreatedAt(),
                 prescribedByName,
+                workoutPlan.getAiGenerationId() != null,
                 exercises
         );
     }

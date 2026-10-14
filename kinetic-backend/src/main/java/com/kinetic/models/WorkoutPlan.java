@@ -57,6 +57,11 @@ public class WorkoutPlan {
     @com.fasterxml.jackson.annotation.JsonIgnore
     private User createdBy;
 
+    // Geração por IA de onde a ficha saiu, aprovada pelo personal (ai_plan_generations).
+    // Null = montada à mão ou gerada pela IA do app do aluno.
+    @Column(name = "ai_generation_id")
+    private UUID aiGenerationId;
+
     // Exercicios arquivados (removidos pelo personal) ficam fora da colecao, mas a linha
     // continua no banco para preservar os exercise_set_logs do aluno.
     @OneToMany(mappedBy = "workoutPlan", cascade = CascadeType.ALL, orphanRemoval = true)

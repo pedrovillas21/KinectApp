@@ -1,5 +1,9 @@
 import api from './api';
 import type {
+  AiPlanApproval,
+  AiPlanContext,
+  AiPlanPreview,
+  AiPlanRequest,
   MonthlyStatsResponseDTO,
   PlanEvolutionResponseDTO,
   StatsPeriodId,
@@ -94,4 +98,44 @@ export const updateStudentPlan = async (
 /** Tira a ficha do app do aluno (arquiva; o histórico de sessões é mantido). */
 export const archiveStudentPlan = async (studentId: string, planId: string): Promise<void> => {
   await api.delete(`/trainer/students/${studentId}/plans/${planId}`);
+};
+
+// ── Fichas com IA ────────────────────────────────────────────────────────────
+// A IA só gera a prévia; as fichas chegam ao aluno na aprovação do personal.
+// Erros esperados: 502 = a IA respondeu fora do formato; 503 = IA indisponível;
+// 409 = prévia já aprovada ou expirada. O corpo é a mensagem pronta para exibir.
+
+/** O que a IA vai considerar do aluno (anamnese do app). */
+export const getAiPlanContext = async (studentId: string): Promise<AiPlanContext> => {
+  const res = await api.get<AiPlanContext>(`/trainer/students/${studentId}/ai-plans/context`);
+  return res.data;
+};
+
+/**
+ * Gera a prévia. O backend tenta mais de um modelo do Gemini em sequência, então a
+ * resposta pode demorar bem mais que o timeout padrão do cliente.
+ */
+export const generateAiPlanPreview = async (
+  studentId: string,
+  request: AiPlanRequest,
+  signal?: AbortSignal,
+): Promise<AiPlanPreview> => {
+  const res = await api.post<AiPlanPreview>(`/trainer/students/${studentId}/ai-plans/preview`, request, {
+    timeout: 300000,
+    signal,
+  });
+  return res.data;
+};
+
+/** Aprova a prévia: as fichas aparecem no app do aluno, prescritas pelo personal. */
+export const approveAiPlans = async (
+  studentId: string,
+  generationId: string,
+  approval: AiPlanApproval,
+): Promise<WorkoutPlan[]> => {
+  const res = await api.post<WorkoutPlan[]>(
+    `/trainer/students/${studentId}/ai-plans/${generationId}/approve`,
+    approval,
+  );
+  return res.data;
 };

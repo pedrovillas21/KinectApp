@@ -165,6 +165,8 @@ export interface WorkoutPlan {
   createdAt: string;
   /** Nome do personal que montou a ficha; null = gerada por IA no app. */
   prescribedByName: string | null;
+  /** Criada com IA pelo personal e aprovada por ele no painel. */
+  aiAssisted: boolean;
   data: WorkoutExercise[];
 }
 
@@ -190,6 +192,71 @@ export interface WorkoutPlanInput {
   level: string | null;
   estimatedDurationMinutes: number | null;
   exercises: WorkoutExerciseInput[];
+}
+
+// ── Fichas com IA (pedido do personal → prévia → aprovação) ─────────────────
+
+/** Anamnese do aluno que vai para a IA — espelha AiPlanContextDTO. null = não informado. */
+export interface AiPlanContext {
+  goal: string | null;
+  level: string;
+  age: number | null;
+  weightKg: number | null;
+  heightCm: number | null;
+  frequency: number | null;
+  medicalConditions: string | null;
+  activePlanCount: number;
+}
+
+/** Corpo de POST /trainer/students/{id}/ai-plans/preview — espelha TrainerAiPlanRequestDTO. */
+export interface AiPlanRequest {
+  prompt: string;
+  planCount: number;
+  durationMinutes: number | null;
+  level: string | null;
+}
+
+export interface AiPlanNote {
+  title: string;
+  detail: string | null;
+}
+
+export interface AiDraftExercise {
+  name: string;
+  muscles: string | null;
+  type: string | null;
+  sets: number;
+  reps: string;
+  weight: string | null;
+  restTime: string | null;
+  section: string;
+  notes: string | null;
+  /** Motivo para o personal conferir o exercício; null quando não há. */
+  attention: string | null;
+}
+
+export interface AiDraftPlan {
+  title: string;
+  subtitle: string | null;
+  estimatedDurationMinutes: number | null;
+  exercises: AiDraftExercise[];
+}
+
+/** Prévia gerada pela IA (nada foi salvo no app do aluno) — espelha AiPlanPreviewDTO. */
+export interface AiPlanPreview {
+  generationId: string;
+  createdAt: string;
+  expiresAt: string;
+  understood: AiPlanNote[];
+  attentionPoints: AiPlanNote[];
+  plans: AiDraftPlan[];
+}
+
+/** Corpo de POST /trainer/students/{id}/ai-plans/{generationId}/approve. */
+export interface AiPlanApproval {
+  replaceCurrent: boolean;
+  declarationAccepted: boolean;
+  plans: WorkoutPlanInput[];
 }
 
 // ── Painel ROOT ──────────────────────────────────────────────────────────────

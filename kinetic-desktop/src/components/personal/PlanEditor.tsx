@@ -29,14 +29,18 @@ import type { ExerciseSection, WorkoutPlan, WorkoutPlanInput } from '../../types
 
 export type EditorMode =
   | { kind: 'create'; suggestedTag: string; source?: WorkoutPlan }
-  | { kind: 'edit'; plan: WorkoutPlan };
+  | { kind: 'edit'; plan: WorkoutPlan }
+  /** Ficha da prévia da IA: salvar devolve o conteúdo para a prévia, sem chamar a API. */
+  | { kind: 'draft'; input: WorkoutPlanInput };
 
 interface Props {
   studentId: string;
   studentFirstName: string;
   mode: EditorMode;
   onCancel: () => void;
-  onSaved: (plan: WorkoutPlan, created: boolean) => void;
+  onSaved?: (plan: WorkoutPlan, created: boolean) => void;
+  /** Obrigatório no modo 'draft'. */
+  onDraftSaved?: (input: WorkoutPlanInput) => void;
 }
 
 // ─── Rascunho ────────────────────────────────────────────────────────────────
@@ -141,7 +145,31 @@ function draftFromPlan(plan: WorkoutPlan, keepIds: boolean): Draft {
   };
 }
 
+function draftFromInput(input: WorkoutPlanInput): Draft {
+  return {
+    title: input.title,
+    subtitle: input.subtitle ?? '',
+    tag: input.tag ?? '',
+    level: input.level ?? '',
+    duration: input.estimatedDurationMinutes != null ? String(input.estimatedDurationMinutes) : '',
+    exercises: input.exercises.map((e) => ({
+      key: newKey(),
+      name: e.name,
+      muscles: (e.muscles ?? '').toUpperCase(),
+      type: e.type ?? '',
+      sets: String(e.sets),
+      reps: e.reps,
+      weight: e.weight ?? '',
+      restTime: e.restTime ?? '',
+      section: toSection(e.section),
+      notes: e.notes ?? '',
+      showNotes: !!e.notes,
+    })),
+  };
+}
+
 function initialDraft(mode: EditorMode): Draft {
+  if (mode.kind === 'draft') return draftFromInput(mode.input);
   if (mode.kind === 'edit') return draftFromPlan(mode.plan, true);
   if (mode.source) {
     const copy = draftFromPlan(mode.source, false);
@@ -234,7 +262,7 @@ const ICON_BTN =
 
 // ─── Editor ──────────────────────────────────────────────────────────────────
 
-export default function PlanEditor({ studentId, studentFirstName, mode, onCancel, onSaved }: Props) {
+export default function PlanEditor({ studentId, studentFirstName, mode, onCancel, onSaved, onDraftSaved }: Props) {
   const [initial] = useState(() => initialDraft(mode));
   const [draft, setDraft] = useState<Draft>(initial);
   const [submitted, setSubmitted] = useState(false);
@@ -248,7 +276,8 @@ export default function PlanEditor({ studentId, studentFirstName, mode, onCancel
   const shown = submitted ? errors : null;
 
   const isEdit = mode.kind === 'edit';
-  const editingAiPlan = isEdit && mode.plan.prescribedByName === null;
+  const isDraft = mode.kind === 'draft';
+  const editingAiPlan = mode.kind === 'edit' && mode.plan.prescribedByName === null;
 
   const totalSets = draft.exercises.reduce((sum, ex) => sum + (isInt(ex.sets) ? Number(ex.sets) : 0), 0);
   const duration = isInt(draft.duration) ? Number(draft.duration) : heuristicDurationMinutes(totalSets);
@@ -299,14 +328,19 @@ export default function PlanEditor({ studentId, studentFirstName, mode, onCancel
       });
       return;
     }
+    if (mode.kind === 'draft') {
+      onDraftSaved?.(toInput(draft));
+      return;
+    }
     setSaving(true);
     setBanner(null);
     try {
       const input = toInput(draft);
-      const saved = isEdit
-        ? await updateStudentPlan(studentId, mode.plan.id, input)
-        : await createStudentPlan(studentId, input);
-      onSaved(saved, !isEdit);
+      const saved =
+        mode.kind === 'edit'
+          ? await updateStudentPlan(studentId, mode.plan.id, input)
+          : await createStudentPlan(studentId, input);
+      onSaved?.(saved, !isEdit);
     } catch (err: unknown) {
       const response = (err as { response?: { status?: number; data?: unknown } }).response;
       if (response?.status === 400 && typeof response.data === 'string' && response.data) {
@@ -365,7 +399,7 @@ export default function PlanEditor({ studentId, studentFirstName, mode, onCancel
             </button>
             <div className="min-w-0">
               <h2 className="truncate font-display text-lg font-extrabold tracking-tight font-stretch-semi-expanded">
-                {isEdit ? 'Editar ficha' : `Nova ficha para ${studentFirstName}`}
+                {isDraft ? 'Editar ficha da prévia' : isEdit ? 'Editar ficha' : `Nova ficha para ${studentFirstName}`}
               </h2>
               <p className="truncate text-[12.5px] tabular-nums text-k-text-muted">
                 {draft.exercises.length} {draft.exercises.length === 1 ? 'exercício' : 'exercícios'} · {totalSets}{' '}
@@ -393,11 +427,13 @@ export default function PlanEditor({ studentId, studentFirstName, mode, onCancel
               <Save className="h-4 w-4" />
               {saving
                 ? 'Salvando…'
-                : editingAiPlan
-                  ? 'Salvar e assumir'
-                  : isEdit
-                    ? 'Salvar alterações'
-                    : 'Salvar ficha'}
+                : isDraft
+                  ? 'Aplicar na prévia'
+                  : editingAiPlan
+                    ? 'Salvar e assumir'
+                    : isEdit
+                      ? 'Salvar alterações'
+                      : 'Salvar ficha'}
             </motion.button>
           </div>
         </div>
@@ -419,6 +455,16 @@ export default function PlanEditor({ studentId, studentFirstName, mode, onCancel
             </motion.div>
           )}
         </AnimatePresence>
+
+        {isDraft && (
+          <div className="flex items-start gap-3 rounded-[16px] border border-k-warn/20 bg-k-warn/[0.06] px-4 py-3.5 text-[13px] leading-relaxed text-k-text-soft">
+            <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-k-warn" />
+            <span>
+              Você está editando uma ficha da prévia gerada pela IA. As mudanças voltam para a prévia, e nada vai para
+              o app de {studentFirstName} até você aprovar.
+            </span>
+          </div>
+        )}
 
         {editingAiPlan && (
           <div className="flex items-start gap-3 rounded-[16px] border border-k-warn/20 bg-k-warn/[0.06] px-4 py-3.5 text-[13px] leading-relaxed text-k-text-soft">
@@ -443,7 +489,7 @@ export default function PlanEditor({ studentId, studentFirstName, mode, onCancel
               placeholder="Ex.: Push Day, Treino A — Superiores"
               maxLength={LIMITS.title + 20}
               aria-invalid={!!shown?.title}
-              autoFocus={!isEdit && !mode.source}
+              autoFocus={mode.kind === 'create' && !mode.source}
               className={INPUT}
             />
           </Field>
@@ -557,7 +603,11 @@ export default function PlanEditor({ studentId, studentFirstName, mode, onCancel
       <ConfirmDialog
         open={confirmDiscard}
         title="Descartar alterações?"
-        description="O que você mudou nesta ficha ainda não foi salvo e será perdido."
+        description={
+          isDraft
+            ? 'O que você mudou nesta ficha não será aplicado na prévia.'
+            : 'O que você mudou nesta ficha ainda não foi salvo e será perdido.'
+        }
         confirmLabel="Descartar"
         destructive
         onConfirm={() => {

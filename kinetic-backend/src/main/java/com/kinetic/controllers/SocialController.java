@@ -209,7 +209,7 @@ public class SocialController extends BaseController {
                     + "upload primeiro em /api/social/media e envie a URL retornada dentro do post."
     )
     @PostMapping("/posts")
-    public ResponseEntity<FeedPostDTO> createPost(@RequestBody CreatePostRequest req) {
+    public ResponseEntity<FeedPostDTO> createPost(@Valid @RequestBody CreatePostRequest req) {
         FeedPostDTO dto = socialService.createPost(currentUserEmail(), req);
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
@@ -232,7 +232,7 @@ public class SocialController extends BaseController {
                     + "Assim como o post, se tiver mídia, faça o upload antes em /api/social/media."
     )
     @PostMapping("/stories")
-    public ResponseEntity<StoryDTO> createStory(@RequestBody CreateStoryRequest req) {
+    public ResponseEntity<StoryDTO> createStory(@Valid @RequestBody CreateStoryRequest req) {
         StoryDTO dto = socialService.createStory(currentUserEmail(), req);
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
