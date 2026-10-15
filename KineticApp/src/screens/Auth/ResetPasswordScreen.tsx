@@ -26,7 +26,7 @@ type Props = {
   // Nome de rota genérico (string) em vez do literal 'ResetPassword': o navigator
   // não é tipado, então fornece RouteProp<ParamListBase, string> — um literal aqui
   // o tornaria incompatível com Stack.Screen.
-  route: RouteProp<Record<string, { email?: string } | undefined>, string>;
+  route: RouteProp<Record<string, { email?: string; code?: string } | undefined>, string>;
 };
 
 export default function ResetPasswordScreen({ navigation, route }: Props) {
@@ -34,6 +34,7 @@ export default function ResetPasswordScreen({ navigation, route }: Props) {
   const { resetPassword } = useContext(AuthContext);
 
   const email = route?.params?.email ?? '';
+  const code = route?.params?.code ?? '';
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -62,12 +63,22 @@ export default function ResetPasswordScreen({ navigation, route }: Props) {
       return;
     }
 
+    if (!email || !code) {
+      Alert.alert('Código ausente', 'Solicite um código de recuperação primeiro.', [
+        { text: 'OK', onPress: () => navigation.navigate('ForgotPassword') },
+      ]);
+      return;
+    }
+
     setLoading(true);
-    const result = await resetPassword(email, newPassword);
+    const result = await resetPassword(email, code, newPassword);
     setLoading(false);
 
     if (!result.success) {
-      Alert.alert('Erro', result.error);
+      // Código errado/expirado: volta para a tela do código (lá dá para reenviar).
+      Alert.alert('Erro', result.error, [
+        { text: 'OK', onPress: () => navigation.navigate('VerifyCode', { email }) },
+      ]);
       return;
     }
 

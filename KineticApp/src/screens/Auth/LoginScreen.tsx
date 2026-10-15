@@ -174,6 +174,12 @@ export default function LoginScreen({ navigation, route }: Props) {
     const result = await signIn({ email: email.trim(), password });
     setLoading(false);
     if (!result.success) {
+      if (result.needsEmailVerification) {
+        Alert.alert('Confirme seu e-mail', result.error, [
+          { text: 'Digitar código', onPress: () => navigation.navigate('ConfirmEmail', { email: email.trim() }) },
+        ]);
+        return;
+      }
       Alert.alert('Erro ao entrar', result.error);
     }
   };

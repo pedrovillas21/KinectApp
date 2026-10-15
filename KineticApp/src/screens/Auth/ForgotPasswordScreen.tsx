@@ -25,7 +25,7 @@ type Props = {
 
 export default function ForgotPasswordScreen({ navigation }: Props) {
   const { isDarkMode } = useContext(ThemeContext);
-  const { verifyEmail } = useContext(AuthContext);
+  const { requestPasswordReset } = useContext(AuthContext);
 
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -38,11 +38,11 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
     }
 
     setLoading(true);
-    const result = await verifyEmail(trimmed);
+    const result = await requestPasswordReset(trimmed);
     setLoading(false);
 
     if (result.success) {
-      navigation.navigate('ResetPassword', { email: trimmed });
+      navigation.navigate('VerifyCode', { email: trimmed });
     } else {
       Alert.alert('Erro', result.error);
     }
@@ -79,7 +79,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
               { color: isDarkMode ? COLORS.textSecondaryDark : COLORS.textSecondaryLight },
             ]}
           >
-            Insira o e-mail associado à sua conta para redefinir sua senha.
+            Insira o e-mail associado à sua conta. Enviaremos um código para redefinir sua senha.
           </Text>
 
           <View style={styles.formContainer}>

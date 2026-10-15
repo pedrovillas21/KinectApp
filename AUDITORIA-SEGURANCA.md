@@ -1,259 +1,336 @@
 # Auditoria de segurança — KinectApp
 
-- **Commit auditado:** `b7447a3` (branch `implementacaoWeb`)
-- **Data:** 2026-10-14
-- **Método:** skill `security-audit` (Cloudflare), perfil *standard*, com o grafo do graphify como mapa do código.
-- **Artefatos completos:** `~/security-audit-skill/KinectApp/run-1/` (ledger de cobertura, candidatos em JSON, evidências).
+- **Commit auditado:** `b7447a3` (branch `implementacaoWeb`). O código da aplicação no HEAD atual (`2c0e374`) é idêntico; só mudaram `graphify-out/` e este arquivo.
+- **Datas:** sessão 1 e sessão 2 em 2026-10-14.
+- **Método:** skill `security-audit`, perfil *standard*, com o grafo do graphify como mapa do código.
+- **Artefatos completos:** `~/Downloads/security-audit-skill/KinectApp/run-1/`
+  - `REPORT.md`, `FINDINGS-DETAIL.md` e `NEEDS-VALIDATION.md`: relatórios em inglês, gerados a partir dos registros finais;
+  - `findings.json`: os 16 registros finais;
+  - `coverage-ledger.json`: 35 unidades de cobertura;
+  - `agents/`: prompts e resultados de cada agente.
 
-## ⚠️ Status: execução parcial
+## Status: validação concluída, cobertura ainda parcial
 
-A execução parou a pedido, **antes da validação independente** (fases 3 a 5 da skill).
+**Sessão 1 (já existia):**
+- reconhecimento com 4 agentes;
+- uma onda de caça com 13 caçadores, que gerou 16 candidatos.
 
-- **O que rodou:** reconhecimento (4 agentes) e uma onda de caça (13 caçadores, 26 unidades de cobertura, todas fechadas).
-- **O que não rodou:**
-  - os críticos de cobertura;
-  - a verificação independente de cada candidato.
-- **Consequência:** todos os itens abaixo são **candidatos propostos pelos caçadores**, não achados validados por um segundo revisor.
-- **Reprodução local:** os itens marcados como "reproduzido" foram demonstrados numa sandbox isolada:
-  - imagem do backend deste commit;
-  - Docker em rede `--internal`;
-  - apenas contas fictícias;
-  - sem contato com produção.
-- **Validação pendente:** os itens marcados como "pendente" dependem de fatos fora do código (configuração do Supabase, Gemini, deploy).
+**Sessão 2 (esta continuação):**
+- **Crítico de cobertura pós-onda:** rodou e aceitou 9 lacunas novas de cobertura, além de pedir que 1 unidade fosse revisada de novo.
+- **Fase 3 (validação independente):** os 16 candidatos passaram, cada um, por um verificador novo que não participou da caça.
+- **Fases 4 e 5:**
+  - `findings.json` validado;
+  - cada um dos 15 registros mantidos foi conferido de novo por outro verificador independente;
+  - uma correção material foi verificada por um terceiro agente.
+- **Fase 6:** relatórios gerados.
+
+**O que continua incompleto:**
+- A onda 2 de caça, para as 9 lacunas apontadas pelo crítico, **não rodou**.
+- O crítico final de cobertura limpa também não rodou.
+- Motivo: a sessão parou com 70% da janela de uso de 5h. Uma onda nova de caça, mais a validação dela, passaria do limite de 90% pedido.
+- Por isso, **não dá para afirmar cobertura completa** (lista na seção "Lacunas de cobertura").
+
+**Limite da sessão 2:**
+- Não havia sandbox, porque o Docker Desktop estava parado.
+- Os verificadores revisaram só o código-fonte e usaram como evidência local as execuções que a sessão 1 já tinha gravado.
+- A sessão 1 fez essas execuções em Docker `--internal`, com contas fictícias.
+- Nenhum ambiente real foi contatado (Supabase, Gemini, produção).
+
+**Uso de agentes:** 50 de 60 do orçamento. Na sessão 2, quase todos usaram o modelo Sonnet, para poupar a cota.
+
+**Validadores:** os scripts de validação da skill não rodam no Windows, porque exigem uma proteção de leitura de arquivo que só existe em POSIX. Usei um adaptador que chama a mesma função de validação deles; `findings.json` e o ledger passaram.
+
+---
+
+## Correções aplicadas depois da auditoria (2026-10-15)
+
+> **Atenção:** estas mudanças ainda **não foram commitadas nem colocadas em produção**.
+> - O backend compila e os dois front-ends passam na checagem de tipos (`tsc`).
+> - O fluxo **não foi testado de ponta a ponta**.
+> - O envio real de e-mail depende de `RESEND_API_KEY` e de um remetente de domínio verificado na Resend (ver `kinetic-backend/.env.example`).
+> - A próxima rodada da auditoria (run-2) deve **revalidar** os itens 1 e 9 sobre o código novo.
+
+### Item 1 (reset de senha sem prova de identidade): corrigido no código
+
+**Fluxo novo:**
+1. `POST /api/auth/forgot-password {email}` gera um código de 6 dígitos e envia por e-mail via Resend.
+2. A resposta é sempre igual, exista a conta ou não.
+3. `POST /api/auth/reset-password {email, code, newPassword}` só troca a senha se o código conferir.
+
+**Regras do código:**
+- vale 15 minutos;
+- é de uso único;
+- aceita no máximo 5 tentativas erradas;
+- um novo pedido só é atendido depois de 60 s;
+- só é gerado para contas ATIVAS;
+- no banco fica só o hash BCrypt (tabela `password_reset_codes`, migration `V26`, com RLS ligado e REVOKE para `anon`/`authenticated`).
+
+**Efeitos de uma troca bem-sucedida:**
+- revoga todas as sessões da conta;
+- marca o e-mail como confirmado, já que receber o código prova a posse da caixa.
+
+**App mobile:** a `VerifyCodeScreen`, que antes era só visual e ignorava o código, agora guarda o código e o envia junto com a nova senha.
+
+**Arquivos:**
+- `services/PasswordResetService.java`
+- `services/EmailService.java` (chave no header, não na URL; envio fora de transação)
+- `controllers/AuthController.java`
+- `dtos/ForgotPasswordDTO.java` e `dtos/ResetPasswordDTO.java` (com `code`)
+- `exceptions/InvalidCodeException.java`
+- `KineticApp/src/screens/Auth/{ForgotPassword,VerifyCode,ResetPassword}Screen.tsx`
+
+### Confirmação de e-mail no cadastro (nova)
+
+Era uma lacuna de produto e reforça os itens 9 e "e-mail como identidade".
+
+**Cadastro:**
+- `/register` e `/register-company` criam a conta com `email_verified = false` e enviam um código.
+- O código vale 30 min, aceita até 5 tentativas e o reenvio tem intervalo de 60 s.
+- Tabela `email_verification_codes`, migration `V27`, com RLS ligado e REVOKE.
+
+**Endpoints:**
+- `POST /api/auth/confirm-email {email, code}`
+- `POST /api/auth/resend-confirmation {email}` (resposta uniforme)
+
+**Login:**
+- Uma conta não confirmada **com a senha certa** recebe 403 `{code: "EMAIL_NOT_VERIFIED"}`, e o código é reenviado.
+- Com a senha errada, o erro é o normal, para não revelar quais contas existem.
+
+**Contas:**
+- As que já existiam antes da `V27` ficam como confirmadas.
+- As criadas pelo ROOT ou pela empresa também nascem não confirmadas e recebem o código no primeiro login.
+
+**Telas novas:**
+- mobile: `ConfirmEmailScreen`;
+- desktop: `/confirm-email`, com o e-mail passado via `state` do router e não pela URL.
+
+### Item 9 (seeder de ROOT): mitigado no código
+
+- O `RootUserSeeder` **não promove mais a ROOT uma conta com e-mail não confirmado**; ele só registra um aviso no log.
+- O ROOT criado pelo próprio seeder nasce confirmado.
+- Se alguém cadastrou o e-mail de outra pessoa, o dono real recupera a conta pelo "esqueci a senha".
+- **Continua valendo:** verificar em produção o `created_at` da conta ROOT atual e se a senha configurada funciona, porque uma conta promovida antes desta mudança continua ROOT.
+
+### Ainda em aberto, ligado a essas mudanças
+
+- **`/api/auth/verify-email`:** não é mais usado por nenhuma tela, mas continua público e revela se um e-mail existe. Recomendado remover.
+- **Contas não confirmadas abandonadas:** continuam ocupando o e-mail. Avaliar uma limpeza automática depois de X dias.
+- **Rate limit:** os limites são por conta (60 s e 5 tentativas). Ainda falta um rate limit por IP/rota em `/api/auth/**`.
+- **Domínio do remetente:** sem domínio verificado na Resend, o remetente `onboarding@resend.dev` só entrega para o e-mail dono da conta Resend. Não serve para usuários reais.
 
 ---
 
 ## Resumo
 
-| # | Severidade proposta | Achado | Estado |
+| # | Severidade | Achado | Estado final |
 |---|---|---|---|
-| 1 | **Crítica** | Reset de senha sem prova de identidade (tomada de qualquer conta, inclusive ROOT) | Reproduzido |
-| 2 | **Alta** | Empresa autocadastrada vincula qualquer aluno ao seu personal sem consentimento e lê dados de saúde | Reproduzido |
-| 3 | **Alta** | STOMP não autoriza SUBSCRIBE: qualquer usuário lê o chat privado de terceiros via assinatura curinga | Reproduzido |
-| 4 | **Média** | Curtidas e comentários ignoram a visibilidade por conexão (leitura e escrita, inclusive após desfazer amizade) | Reproduzido |
-| 5 | — | `DELETE /api/social/media` apaga qualquer objeto do bucket com a chave service-role | Pendente |
-| 6 | — | `imageUrl` de post/story aceita a chave de mídia de outro usuário e o backend reassina essa mídia | Pendente |
-| 7 | — | Uma empresa pode "roubar" o personal de outra empresa | Pendente |
-| 8 | — | O seeder de ROOT promove uma conta pré-existente e mantém a senha dela | Pendente |
-| 9 | — | Bucket `social-media` pode ter ficado público (nada no repo força privado) | Pendente |
-| 10 | — | `flyway_schema_history` ficou fora do REVOKE/RLS do V21 (exposta via PostgREST) | Pendente |
-| 11 | — | Anamnese do aluno entra sem delimitação no prompt do personal; a saída da IA é gravada sem sanitização | Pendente |
-| 12 | — | `/api/workouts/generate` sem limite de tamanho ou de chamadas (custo do Gemini) | Pendente |
-| 13 | — | Transação JPA aberta durante a chamada ao Gemini (pode esgotar o pool de conexões) | Pendente |
-| 14 | — | `size` do feed social sem limite máximo | Pendente |
-| 15 | — | Duração e data da sessão sem limite manipulam o ranking da Arena | Pendente |
-| 16 | — | `/docs.html` carrega script de CDN sem SRI na mesma origem da API | Pendente |
+| 1 | **Crítica** | Reset de senha sem prova de identidade (tomada de qualquer conta, inclusive ROOT) | **Confirmado** — corrigido no código em 2026-10-15 (falta commit, deploy e revalidação) |
+| 2 | **Alta** | Empresa autocadastrada vincula qualquer aluno ao seu personal sem consentimento e lê dados de saúde | **Confirmado** |
+| 3 | **Alta** | STOMP não autoriza SUBSCRIBE: assinatura curinga lê o chat privado de terceiros | **Confirmado** |
+| 4 | **Média** | Curtidas e comentários ignoram a visibilidade por conexão (leitura e escrita, mesmo após desfazer amizade) | **Confirmado** |
+| 5 | **Baixa** | Duração e data da sessão sem limite manipulam o ranking da Arena visto pelos amigos | **Confirmado** |
+| 6 | — | Uma empresa "rouba" o personal de outra empresa | Validação pendente (código completo, falta execução local) |
+| 7 | — | `DELETE /api/social/media` apaga qualquer objeto com a chave service-role | Validação pendente |
+| 8 | — | `imageUrl` de post/story aceita chave de mídia alheia e o backend reassina | Validação pendente |
+| 9 | — | O seeder de ROOT promove conta pré-existente e mantém a senha dela | Validação pendente — mitigado no código em 2026-10-15 (não promove conta sem e-mail confirmado) |
+| 10 | — | Bucket `social-media` pode estar público (nada no repo força privado) | Validação pendente |
+| 11 | — | `flyway_schema_history` fora do REVOKE/RLS do V21 | Validação pendente |
+| 12 | — | `/api/workouts/generate` sem limite de tamanho nem de chamadas (custo do Gemini) | Validação pendente |
+| 13 | — | Transação JPA aberta durante a chamada ao Gemini (risco de esgotar o pool) | Validação pendente |
+| 14 | — | `size` do feed social sem limite máximo | Validação pendente |
+| 15 | — | `/docs.html` carrega script de CDN sem SRI na origem da API | Validação pendente |
+| — | — | Injeção de prompt pela anamnese / saída da IA sem sanitização | **Rejeitado** (virou hardening) |
+
+**O que mudou em relação à versão anterior deste arquivo:**
+- **Ranking:** passou a ser achado confirmado, de severidade **baixa**.
+- **Injeção de prompt:** foi **rejeitada**. Os clientes renderizam tudo como texto escapado, e o aluno só influencia o próprio plano, que o personal revisa antes de aprovar.
+- **Troca de empresa:** foi corrigida. A resposta 201 **não** vaza o `company_id` anterior; ela devolve o novo. O endpoint ainda confirma quais e-mails pertencem a contas PERSONAL.
 
 ---
 
-## 1. Reset de senha sem prova de identidade — Crítica (reproduzido)
+## Achados confirmados
+
+### 1. Reset de senha sem prova de identidade — Crítica
 
 - **Onde:**
-  - `kinetic-backend/src/main/java/com/kinetic/controllers/AuthController.java:178`
-  - `services/AuthService.java:119-126`
-  - `dtos/ResetPasswordDTO.java`
-  - `config/SecurityConfig.java:46`
-- **O problema:**
-  - `POST /api/auth/reset-password` é público (`/api/auth/**` está em `permitAll`) e recebe só `{email, newPassword}`.
-  - O serviço busca o usuário pelo e-mail e sobrescreve a senha, sem token, OTP ou senha atual.
-  - Não existe nenhum fluxo de "esqueci a senha" com token no backend; o app mobile chama esse endpoint direto (`KineticApp/src/contexts/AuthContext.tsx:394-416`).
-- **Reprodução (sandbox):**
-  1. Cadastro → 201.
-  2. Login com a senha original → 200.
-  3. Reset anônimo → 200.
-  4. Login com a senha antiga → 403.
-  5. Login com a senha escolhida pelo atacante → 200 com JWT.
-- **Impacto:** tomada de qualquer conta (ALUNO, PERSONAL, EMPRESA, ROOT) conhecendo só o e-mail. O e-mail pode ser confirmado em `/api/auth/verify-email`.
+  - `AuthController.java:178` (rota de reset);
+  - `SecurityConfig.java:46` (`/api/auth/**` em `permitAll`);
+  - `AuthService.java:120-125`;
+  - `ResetPasswordDTO.java`.
+- **Problema:**
+  - `POST /api/auth/reset-password` aceita `{email, newPassword}` de qualquer pessoa anônima e sobrescreve a senha.
+  - Não existe fluxo de token ou OTP em nenhum lugar do backend.
+- **Evidência:** a reprodução da sessão 1 (`hunt-a-auth/artifacts/check-1.txt`) mostrou:
+  1. reset anônimo → 200;
+  2. login com a senha antiga → 403;
+  3. login com a senha escolhida pelo atacante → 200 com JWT.
 - **Correção:**
-  - Implementar um token de recuperação aleatório, de uso único, com expiração e guardado como hash, enviado por e-mail.
-  - `ResetPasswordDTO` passa a ter `token` + `newPassword`, e o serviço consome o token antes de trocar a senha.
-  - Até lá, **desabilitar o endpoint**.
+  - token aleatório, de uso único, com expiração, guardado como hash e enviado por e-mail;
+  - o DTO passa a ter `token` + `newPassword`;
+  - **até lá, desligar o endpoint**;
+  - também tornar o `verify-email` não enumerável e aplicar rate limit.
 
-## 2. Vínculo empresa → aluno sem consentimento — Alta (reproduzido)
+### 2. Vínculo empresa → aluno sem consentimento — Alta
 
 - **Onde:**
-  - `AuthController.java:63` (`/register-company` público)
-  - `services/CompanyService.java:77`
-  - `services/EmpresaService.java:70, 107`
-  - `services/TrainerLinkService.java:159-192`
-  - `controllers/TrainerController.java:176`
-- **O problema:**
-  - Qualquer pessoa cria uma EMPRESA pelo endpoint público e cadastra um PERSONAL próprio.
-  - Com `POST /api/empresa/alunos {studentEmail, trainerEmail}`, o link é criado **ATIVO** na hora (`source=COMPANY`), sem o aluno aceitar.
-  - Esse link passa no `resolveOwnedStudent`, e o personal do atacante lê a anamnese (peso, idade, condições médicas), as estatísticas e os planos, além de poder escrever planos para o aluno.
-  - A única limitação é que o aluno não pode ter personal ativo.
-- **Reprodução:**
-  - Antes do vínculo: `GET .../ai-plans/context` → 404.
-  - A empresa vincula o aluno → 201 ATIVO.
-  - Depois do vínculo: o mesmo GET → 200, com o `weightKg` privado da vítima.
+  - `AuthController.java:63` (`/register-company` público);
+  - `EmpresaService.java:70, 107`;
+  - `TrainerLinkService.java:174-183`, que cria o vínculo ATIVO na hora.
+- **Problema:**
+  - O `resolveOwnedStudent` (`:145`) só checa se o vínculo está ATIVO.
+  - Com isso, o personal do atacante lê a anamnese, o peso e as condições médicas do aluno (`TrainerController.java:176`).
+  - O aluno **não tem endpoint** para encerrar um vínculo COMPANY.
+- **Evidência (sessão 1):** antes do vínculo, 404; depois, 200 com o `weightKg` da vítima.
 - **Correção:**
-  - A atribuição pela empresa deve nascer `PENDENTE` e exigir aceite do aluno pelo fluxo de convite já existente.
-  - Também vale reavaliar se `/register-company` deve ser público. O próprio DTO diz que deveria ser provisionamento do ROOT.
+  - criar o vínculo como `PENDENTE` e exigir o aceite do aluno pelo fluxo de convite que já existe;
+  - dar ao aluno uma forma de encerrar o vínculo;
+  - reavaliar se `/register-company` deve ser público.
 
-## 3. STOMP sem autorização de SUBSCRIBE — Alta (reproduzido)
+### 3. STOMP sem autorização de SUBSCRIBE — Alta
 
 - **Onde:**
-  - `security/JwtChannelInterceptor.java:36-38`
-  - `config/WebSocketConfig.java:54`
-  - `services/ChatService.java:59-60`
-- **O problema:**
-  - O interceptor só trata o frame `CONNECT` e devolve SUBSCRIBE/SEND sem checagem.
-  - O simple broker usa o `AntPathMatcher` padrão.
-  - `convertAndSendToUser` publica em `/queue/chat-user{sessionId}`.
-  - Uma assinatura em `/queue/**` ou `/queue/chat*` recebe as mensagens de **todos** os usuários conectados.
-- **Reprodução:**
-  - Um ALUNO sem vínculo nenhum (o envio equivalente pela REST deu 403) assinou `/queue/**`.
-  - Ele recebeu na íntegra a mensagem privada personal→aluno, com conteúdo de saúde.
+  - `JwtChannelInterceptor.java:36-38`, que só trata o frame CONNECT;
+  - `WebSocketConfig.java:54`;
+  - `ChatService.java:59-60`.
+- **Problema:** uma assinatura em `/queue/**` ou `/queue/chat*` recebe as mensagens privadas de todos os usuários conectados.
+- **Evidência (sessão 1):** um aluno sem vínculo (o envio pela REST deu 403) recebeu a mensagem `medical:hypertension` de outro par.
 - **Correção:**
-  - No interceptor, em SUBSCRIBE aceitar só destinos `/user/...` sem curingas, e em SEND só `/app/...`.
-  - Ou adotar a autorização de mensagens do Spring Security.
-  - No CONNECT, checar também `userDetails.isEnabled()`: hoje um usuário suspenso com token válido ainda conecta.
+  - em SUBSCRIBE, aceitar só destinos `/user/...` sem curingas;
+  - em SEND, aceitar só `/app/...`;
+  - ou usar a autorização de mensagens do Spring Security;
+  - checar `isEnabled()` no CONNECT.
 
-## 4. Curtidas e comentários sem checagem de visibilidade — Média (reproduzido)
+### 4. Curtidas e comentários sem visibilidade — Média
+
+- **Onde:** `SocialService.java:252-296`, sendo que `listComments` nem recebe o usuário.
+- **Problema:** depois de a amizade ser desfeita, o ex-amigo ainda lê os comentários, curte e comenta.
+- **Correção:** criar `requireVisiblePost(me, postId)` (404 se o post não for meu nem de uma conexão ACCEPTED) e usá-lo nos 4 caminhos.
+
+### 5. Ranking manipulável — Baixa
 
 - **Onde:**
-  - `services/SocialService.java:249-296` (`listComments` nem recebe o usuário)
-  - `controllers/SocialController.java:270`
-- **O problema:**
-  - Feed e stories filtram por conexão aceita.
-  - Já `GET/POST /posts/{id}/comments` e `POST/DELETE /posts/{id}/like` aceitam qualquer `postId`.
-- **Reprodução:**
-  - Depois que a vítima desfez a conexão, o ex-amigo ainda leu os comentários (texto e autores).
-  - Ele também curtiu, descurtiu e comentou.
-- **Correção:** criar um `requireVisiblePost(me, postId)` (autor = eu ou conexão ACCEPTED, senão 404) e usá-lo nos quatro caminhos.
+  - `LogSessionRequestDTO`: só `@Positive` e `@NotNull`;
+  - `WorkoutSessionService.java:62-79`;
+  - `HomeAggregatorService.buildRanking` (`:213`).
+- **Problema:** uma sessão de 2.000.000.000 s, com data qualquer, passa na validação e coloca o usuário em 1º no ranking dos amigos.
+- **Correção:** `@Max(21600)` na duração, `@PastOrPresent` com janela curta de datas e um CHECK no banco.
 
 ---
 
-## Candidatos pendentes de validação (sem severidade atribuída)
+## Validação pendente (sem severidade; precisam de um fato fora do código)
 
-**5. Delete de mídia arbitrária.**
-- **Código:** `SocialController.java:66-70` → `StorageService.delete/normalizeKey/deleteByKey` (`:213-236`, `:294-304`).
-- **Problema:** qualquer chave enviada pelo cliente vira um DELETE com a chave service-role, sem checar dono, pasta ou referência.
-- **Por que está pendente:** o Supabase Storage não é acessível na sandbox.
-- **Correção:** exigir que a chave esteja em `posts/` ou `stories/`, que tenha sido enviada pelo próprio usuário (registro de upload) e que não esteja referenciada por nenhum post.
+Detalhes e planos de verificação em `NEEDS-VALIDATION.md`.
 
-**6. Reassinatura de mídia alheia.**
-- **Código:** `SocialService.java:184, 200` grava `normalizeKey(req.imageUrl())` sem vínculo com o autor.
-- **Problema:**
-  - Quem conhece a chave de uma mídia (ela aparece na URL assinada) cria um post com ela e passa a obter URLs assinadas novas indefinidamente.
-  - Isso anula a revogação por desfazer amizade e a expiração de stories.
-- **Correção:** só aceitar chaves de uploads do próprio autor.
-
-**7. Troca de empresa de um personal.**
-- **Código:** `EmpresaService.java:64-71` sobrescreve `companyId` sem verificar o valor atual nem pedir consentimento.
-- **Problema:** depois da troca, a empresa original não consegue mais desvincular o personal (404 em `:79`).
-- **Correção:** recusar se `companyId` já estiver preenchido com outra empresa, ou exigir aceite do personal.
-
-**8. Seeder de ROOT.**
-- **Código:** `config/RootUserSeeder.java:42-46`.
-- **Problema:**
-  - Se já existe uma conta com `ROOT_USER_EMAIL`, o seeder só troca o papel para ROOT e mantém a senha dela.
-  - Como o cadastro público não verifica e-mail, quem registrar esse e-mail antes vira ROOT no próximo boot.
-- **Correção:** só promover contas criadas pelo seeder, ou redefinir a senha para `ROOT_USER_PASSWORD`.
-- **Verificar em produção:** o `created_at` da conta ROOT e se a senha configurada funciona.
-
-**9. Bucket possivelmente público.**
-- **Evidência:**
-  - `Plan/FotoSave.md:18` manda criar o bucket como público.
-  - O V22 só migra as URLs e não altera `storage.buckets.public`.
-  - `.env.example:30` ainda diz "bucket PÚBLICO".
-- **Verificar:** `SELECT id, public FROM storage.buckets;`.
-- **Correção:** codificar `public=false` numa migration ou checar no startup.
-
-**10. `flyway_schema_history` fora do V21.**
-- **Código:** `V21__enable_rls_deny_all.sql:34` exclui a tabela do loop, inclusive do REVOKE.
-- **Verificar no SQL editor:**
-  - `information_schema.role_table_grants` para essa tabela;
-  - `relrowsecurity`.
-- **Correção:** `REVOKE ALL ON public.flyway_schema_history FROM anon, authenticated;` + `ENABLE ROW LEVEL SECURITY`.
-
-**11. Injeção de prompt e saída da IA.**
-- **Código:** em `TrainerAiPlanService.java:228/282`, `medicalConditions` e `goal` do aluno entram sem delimitação no prompt do personal (só o texto do personal fica cercado por `<<<PEDIDO`).
-- **Problema:** a saída do Gemini é gravada só com corte de tamanho (`:289-354`; `WorkoutService.java:120-145`).
-- **Situação nos clientes:** os clientes revisados renderizam como texto (sem `dangerouslySetInnerHTML`), então o risco atual é sobretudo manipular o rascunho que o personal aprova.
-- **Correção:** delimitar todos os campos de menor confiança e validar a saída.
-
-**12. Custo do Gemini sem limite.**
-- **Código:** `WorkoutController.java:46` (sem `@Valid`) e `GenerateWorkoutRequestDto` (sem `@Size`).
-- **Problema:**
-  - Qualquer conta autocadastrada faz chamadas ilimitadas, com textos enormes (50k caracteres foram aceitos).
-  - Cada chamada tenta até 3 modelos.
-- **Correção:** `@Valid` + `@Size` no DTO e cota ou cooldown por usuário.
-
-**13. Transação aberta durante a chamada à IA.**
-- **Código:** `WorkoutService.generateWorkoutForUser` é `@Transactional` e chama o Gemini (até 3×120 s) segurando uma conexão do pool Hikari (padrão de 10 conexões).
-- **Correção:** fazer como o `TrainerAiPlanService.generatePreview`: chamar a IA fora da transação.
-
-**14. Feed sem limite de página.**
-- **Código:** `SocialController.java:202-203` repassa `size` direto para `PageRequest.of`. Na sandbox, `size=2147483647` foi aceito.
-- **Correção:** `Math.min(size, 50)`, como o `ChatService` já faz.
-
-**15. Ranking manipulável.**
-- **Código:** `LogSessionRequestDTO` só tem limite inferior. `durationInSeconds=2000000000` e data em 2099 passaram na validação.
-- **Problema:** o ranking (`HomeAggregatorService.java:213`) soma a duração informada pelo próprio usuário e mostra o resultado aos amigos.
-- **Correção:** `@Max` na duração, janela de datas aceitas e um CHECK no banco.
-
-**16. Script de CDN sem SRI.**
-- **Código:** `static/docs.html:10` carrega `@scalar/api-reference@1.62.5` do jsDelivr sem `integrity`, sem CSP e na mesma origem do cookie de refresh.
-- **Correção:**
-  - adicionar `integrity` + `crossorigin`;
-  - ou hospedar o script localmente;
-  - ou desligar `/docs.html` e `/v3/api-docs` em produção.
+- **6. Troca de empresa do personal.**
+  - **Código:** `EmpresaService.java:64-71` sobrescreve `company_id` sem checar o valor atual. Depois disso, a empresa original recebe 404 ao tentar desvincular (`:79`).
+  - **Falta:** executar o cenário com duas empresas numa sandbox.
+  - **Correção:** responder 409 se o personal já for de outra empresa, ou exigir o aceite do personal.
+- **7. Delete de mídia arbitrária.**
+  - **Código:** `SocialController.java:67` → `StorageService.delete/normalizeKey/deleteByKey`. Não há checagem de dono nem de pasta.
+  - **Falta:** confirmar que o Supabase apaga o objeto (testar com um stub local ou num projeto que não seja de produção).
+- **8. Reassinatura de mídia alheia.**
+  - **Código:** `SocialService.java:184, 200, 204`.
+  - **Falta:** confirmar que o bucket é privado e que o endpoint `/object/sign` assina qualquer caminho.
+- **9. Seeder de ROOT.**
+  - **Código:** `RootUserSeeder.java:42-46`.
+  - **Verificar:** compare o `created_at` da conta ROOT com a data do primeiro deploy e teste o login com `ROOT_USER_PASSWORD`.
+- **10. Bucket público.**
+  - **Verificar:** `SELECT id, public FROM storage.buckets;` (deve ser `false`).
+  - **Correção:** codificar `public=false` numa migration ou checar no startup; corrigir `Plan/FotoSave.md` e `.env.example`.
+- **11. `flyway_schema_history`.**
+  - **Verificar no SQL editor:**
+    - `information_schema.role_table_grants` para essa tabela;
+    - `relrowsecurity`.
+  - **Correção:** `REVOKE ALL ... FROM anon, authenticated` + `ENABLE ROW LEVEL SECURITY`, rodado fora do Flyway.
+- **12. Custo do Gemini.**
+  - **Verificar:** cotas e limite de orçamento da chave no Google Cloud.
+  - **Correção:** `@Valid` + `@Size` no DTO e cota ou cooldown por usuário.
+- **13. Transação durante a IA.**
+  - **Verificar:** o tamanho real do pool Hikari em produção.
+  - **Correção:** chamar a IA fora do `@Transactional`, como o `TrainerAiPlanService.generatePreview` já faz.
+- **14. Feed sem limite de página.**
+  - **Verificar:** limites de heap e de proxy em produção.
+  - **Correção:** `Math.min(size, 50)`, como o `ChatService.getConversation` já faz.
+- **15. `docs.html` sem SRI.**
+  - **Verificar:** se `/docs.html` é servido em produção no mesmo host de `/api/auth`.
+  - **Correção:** hospedar o script localmente, adicionar `integrity`, ou desligar a página em produção.
 
 ---
+
+## Lacunas de cobertura (onda 2 adiada — revisar numa próxima rodada)
+
+O crítico de cobertura apontou superfícies que nenhuma unidade da onda 1 analisou:
+
+1. **E-mail como identidade.**
+   - `findByEmail` e `existsByEmail` comparam o e-mail exato, então `A@x` e `a@x` são contas distintas.
+   - Convites, vínculos da empresa e o seed do ROOT resolvem a conta pelo e-mail cru.
+2. **Ciclo de vida de status (BLOQUEADO / SUSPENSO / soft-delete).**
+   - Usuários bloqueados continuam na busca, no feed, no ranking e com vínculos ATIVOS.
+3. **Desvínculo de personal e encerramento de vínculo.**
+   - O `trainer_clients.company_id` fica com o valor antigo depois que o personal sai da empresa.
+   - Nem o aluno nem o personal conseguem encerrar um vínculo.
+4. **Chave do Gemini na URL (`?key=`).**
+   - Ela pode aparecer em logs e exceções (`GeminiService:85`, `WorkoutController:61`).
+5. **Escritas sem cota.**
+   - Uploads de até 10 MB, posts, comentários e pedidos de conexão não têm limite por usuário.
+6. **WebSocket sem limites de recurso.**
+   - Não há limite de tamanho de frame nem de número de assinaturas.
+   - O handshake é público.
+7. **Oráculo de CPF/CNPJ no cadastro.**
+   - As mensagens "CPF já está em uso" e "CNPJ já cadastrado" revelam documentos cadastrados.
+   - O CPF fica em texto puro.
+8. **Mobile fora do armazenamento de credenciais.**
+   - Ainda falta revisar o chat, o social, os uploads e o transporte.
+9. **Maven wrapper.**
+   - O `maven-wrapper.properties` não tem `distributionSha256Sum`.
+   - Há um `.jar` versionado no repositório.
+
+Além disso, o crítico pediu que a unidade de tenancy do `EmpresaService` fosse caçada de novo.
 
 ## Recomendações de hardening (não são achados)
 
-- **Enumeração de e-mail:** `verify-email` (200 vs 404), `register` (409) e `reset-password` (404) revelam se o e-mail existe. Use respostas uniformes e rate limit.
-- **Rate limit:** não existe em nenhum lugar (login, cadastro, register-company, IA).
-- **E-mail como identidade:** o e-mail não é normalizado. `A@x` e `a@x` geraram duas contas distintas. Normalize (trim + minúsculas) e crie um índice único em `lower(email)`.
-- **Revogação do access token:** o JWT não é revogável antes de expirar, nem depois de reset de senha ou suspensão. Considere uma versão de token por usuário ou uma expiração curta.
-- **Token do WebSocket:** o mobile envia o JWT na query `?token=` do WebSocket (`KineticApp/src/services/chatService.ts:72`), o que o expõe em logs de proxy. O desktop já usa só o header.
-- **Biometria no mobile:** o desbloqueio é só de interface. Guarde o refresh token com `requireAuthentication` no SecureStore.
-- **Logs no mobile:** há `console.error` com objetos Axios (incluindo o header Bearer) e um bloco de diagnóstico do FaceID. Remova os consoles no build de release.
-- **Avatar padrão:** usa `i.pravatar.cc` e vaza UUIDs de usuários para terceiros. Use um placeholder local.
-- **Upload:** confia no Content-Type do cliente (aceita `image/svg+xml`). Verifique os magic bytes.
-- **Comentários:** a listagem não tem paginação e não existe endpoint para apagar comentário.
-- **`logSession`:** não verifica se o `exerciseId` pertence ao usuário (efeito só sobre os dados do próprio usuário) e aceita uma lista `exercisesLog` sem limite de tamanho.
-- **Aprovação de IA:** `approve` não tem lock otimista. Em produção, quem protege contra duplicidade é o trigger do V25. Considere `SELECT ... FOR UPDATE`.
-- **Configuração:**
-  - `spring.jpa.show-sql=true` está ligado em produção;
-  - `/v3/api-docs` é público e expõe 63 rotas;
-  - o `Dockerfile` roda como root e usa tags sem digest;
-  - o `.gitignore` ignora `package-lock.json`.
-- **`UserController.updateWeight`:** devolve `e.getMessage()` com status 500.
+As da versão anterior continuam valendo:
+- enumeração de e-mail;
+- falta de rate limit;
+- e-mail sem normalização;
+- JWT não revogável;
+- token na query do WebSocket mobile;
+- biometria só de interface;
+- `console.error` com header Bearer;
+- `pravatar.cc`;
+- `Content-Type` do upload confiado ao cliente;
+- comentários sem paginação nem delete;
+- `approve` sem lock;
+- `show-sql=true`;
+- `/v3/api-docs` público;
+- Dockerfile rodando como root;
+- `updateWeight` devolvendo `e.getMessage()`.
+
+Acrescente uma: delimitar o `goal` e o `medicalConditions` do aluno como dados no prompt do personal e limitar o tamanho deles.
 
 ## Pontos positivos verificados
 
-- Todos os controllers derivam o usuário do JWT (`BaseController.currentUserEmail()`), nunca de um id vindo no body.
-- **Rotas do personal:** todas passam pelo `resolveOwnedStudent`, com link ATIVO. A aprovação de IA amarra personal + aluno + status + TTL de 24h.
-- **Chat REST:** exige vínculo ativo nos dois sentidos.
-- **JWT:**
-  - a assinatura é verificada, com algoritmo atrelado à chave;
-  - o papel e o status vêm do banco a cada requisição.
-- **Refresh token:**
-  - aleatório, guardado como hash SHA-256 e rotacionado a cada uso;
-  - revogado na troca de senha e na mudança de status.
-- **Banco:** só JPQL com parâmetros (nenhuma query nativa e nenhuma concatenação de strings).
-- **CORS:** usa lista fixa e não reflete a origem recebida.
-- **Erros:** as respostas não expõem stack trace.
-- **Segredos:** nenhum segredo versionado, nem no histórico do git.
-- **Lockfiles npm:** todos apontam para `registry.npmjs.org`.
-- **Clientes:** sem `dangerouslySetInnerHTML` ou `eval`; o mobile guarda tokens no SecureStore.
+Sem mudança em relação à versão anterior:
+- usuário sempre derivado do JWT;
+- `resolveOwnedStudent` em todas as rotas do personal;
+- chat REST exigindo vínculo ativo;
+- JWT com algoritmo fixo e role/status lidos do banco;
+- refresh token com hash e rotação;
+- só JPQL com parâmetros;
+- CORS fixo;
+- sem stack trace nas respostas;
+- sem segredos no git;
+- clientes renderizando texto escapado.
 
-## Cobertura e limites
+## Próximos passos
 
-- **Onda 1:**
-  - 26 unidades de cobertura (12 cobertas sem achado e 14 com candidato);
-  - escopo: `kinetic-backend`, `kinetic-desktop`, `KineticApp`, migrations, `supabase/` e manifests.
-- **Não executado:**
-  - críticos de cobertura;
-  - onda 2, que incluiria a unidade proposta sobre canonicalização de e-mail em convites, vínculos e seed;
-  - verificação independente (fases 3 a 5).
-- **Limites da sandbox:**
-  - o schema foi criado pelo Hibernate, sem os controles de banco do V21/V25;
-  - Storage e Gemini não estavam disponíveis.
-- **Próximo passo sugerido:**
-  1. Corrigir os itens 1 a 4 primeiro (o item 1 é urgente).
-  2. Validar os itens 8, 9 e 10 direto no painel do Supabase.
-  3. Rodar uma nova execução da auditoria para a validação independente.
+1. ~~Corrigir já o item 1~~ — feito no código em 2026-10-15 (ver "Correções aplicadas"). Falta:
+   - configurar a Resend com um domínio verificado;
+   - testar, commitar e fazer o deploy.
+
+   Depois, corrigir os itens 2, 3 e 4.
+2. **Verificar no painel do Supabase** os itens 9, 10 e 11 (só consultas de leitura) e, no Google Cloud, a cota do item 12.
+3. **Nova rodada da auditoria (run-2)** com o Docker ligado. Ela também deve revalidar os itens 1 e 9 e os fluxos novos de código por e-mail:
+   - executar a onda 2 nas 9 lacunas;
+   - executar o crítico final;
+   - reproduzir localmente os itens 6, 7 e 8.

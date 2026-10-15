@@ -225,8 +225,8 @@ export default function RegisterScreen({ navigation }: Props) {
 
     Alert.alert(
       'Cadastro realizado!',
-      `Bem-vindo, ${name.trim()}! Agora faça login com suas credenciais.`,
-      [{ text: 'Fazer Login', onPress: () => navigation.navigate('Login') }],
+      `Bem-vindo, ${name.trim()}! Enviamos um código para ${email.trim()}. Confirme seu e-mail para entrar.`,
+      [{ text: 'Confirmar e-mail', onPress: () => navigation.navigate('ConfirmEmail', { email: email.trim() }) }],
     );
   };
 

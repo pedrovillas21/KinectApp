@@ -5,6 +5,7 @@ import { useAuth } from './contexts/AuthContext';
 import { homeForRole } from './config/nav';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import ConfirmEmailPage from './pages/ConfirmEmailPage';
 import StudentsListPage from './pages/StudentsListPage';
 import StudentDetailPage from './pages/StudentDetailPage';
 import ComingSoonPage from './pages/ComingSoonPage';
@@ -31,6 +32,7 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/confirm-email" element={<ConfirmEmailPage />} />
 
       {/* PERSONAL — telas atuais preservadas (header próprio), sem regressão. */}
       <Route

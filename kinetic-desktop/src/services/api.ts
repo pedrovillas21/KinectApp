@@ -81,8 +81,11 @@ const PUBLIC_ROUTES = [
   '/auth/login',
   '/auth/refresh',
   '/auth/logout',
+  '/auth/register-company',
   '/auth/verify-email',
   '/auth/reset-password',
+  '/auth/confirm-email',
+  '/auth/resend-confirmation',
 ];
 
 api.interceptors.request.use(

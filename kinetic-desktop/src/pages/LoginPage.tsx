@@ -1,11 +1,14 @@
 import { useState, type FormEvent } from 'react';
-import { Navigate, Link } from 'react-router-dom';
+import { Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { homeForRole } from '../config/nav';
 import { Eye, EyeOff, Lock, Mail, Activity } from 'lucide-react';
 
 export default function LoginPage() {
   const { signIn, isLoggedIn, isLoadingAuth, currentUser } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const emailConfirmed = (location.state as { emailConfirmed?: boolean } | null)?.emailConfirmed ?? false;
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -27,6 +30,11 @@ export default function LoginPage() {
     try {
       const result = await signIn({ email, password });
       if (!result.success) {
+        if (result.needsEmailVerification) {
+          // O backend já reenviou o código; a página de confirmação recebe o e-mail via state.
+          navigate('/confirm-email', { state: { email: email.trim() } });
+          return;
+        }
         setError(result.error);
       }
       // Em caso de sucesso, o <Navigate> acima assume o redirect por papel.
@@ -117,6 +125,16 @@ export default function LoginPage() {
               </div>
             </div>
           </div>
+
+          {emailConfirmed && !error && (
+            <div
+              className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-k-success/10 border border-k-success/30 text-k-success text-xs leading-relaxed"
+              role="status"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-k-success shrink-0" />
+              <span>E-mail confirmado. Agora é só entrar.</span>
+            </div>
+          )}
 
           {/* Error Message */}
           {error && (

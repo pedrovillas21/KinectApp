@@ -70,7 +70,7 @@ interface CompleteOnboardingData {
 
 type AuthResult =
   | { success: true }
-  | { success: false; error: string };
+  | { success: false; error: string; needsEmailVerification?: boolean };
 
 interface AuthContextValue {
   isLoggedIn: boolean;
@@ -93,9 +93,12 @@ interface AuthContextValue {
     password: string;
   }) => Promise<AuthResult>;
   completeOnboarding: (data: CompleteOnboardingData) => Promise<void>;
-  verifyEmail: (email: string) => Promise<AuthResult>;
+  confirmEmail: (email: string, code: string) => Promise<AuthResult>;
+  resendConfirmation: (email: string) => Promise<AuthResult>;
+  requestPasswordReset: (email: string) => Promise<AuthResult>;
   resetPassword: (
     email: string,
+    code: string,
     newPassword: string,
   ) => Promise<AuthResult>;
   changePassword: (
@@ -321,7 +324,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       return { success: true };
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { message?: string } | string } };
+      const err = e as {
+        response?: { status?: number; data?: { message?: string; code?: string } | string };
+      };
       const message =
         (err.response?.data as { message?: string })?.message ||
         err.response?.data ||
@@ -329,6 +334,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return {
         success: false,
         error: typeof message === 'string' ? message : 'E-mail ou senha incorretos.',
+        // Senha certa, e-mail ainda não confirmado: a tela abre a confirmação.
+        needsEmailVerification:
+          err.response?.status === 403 &&
+          (err.response?.data as { code?: string })?.code === 'EMAIL_NOT_VERIFIED',
+      };
+    }
+  };
+
+  const confirmEmail = async (email: string, code: string): Promise<AuthResult> => {
+    try {
+      await api.post('/auth/confirm-email', { email: email.trim(), code });
+      return { success: true };
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: unknown } };
+      const message = err.response?.data || 'Não foi possível confirmar o e-mail.';
+      return {
+        success: false,
+        error: typeof message === 'string' ? message : JSON.stringify(message),
+      };
+    }
+  };
+
+  // O backend responde igual exista a conta ou não; só falha por rede ou e-mail malformado.
+  const resendConfirmation = async (email: string): Promise<AuthResult> => {
+    try {
+      await api.post('/auth/resend-confirmation', { email: email.trim() });
+      return { success: true };
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: unknown } };
+      const message = err.response?.data || 'Não foi possível reenviar o código. Tente novamente.';
+      return {
+        success: false,
+        error: typeof message === 'string' ? message : JSON.stringify(message),
       };
     }
   };
@@ -391,13 +429,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setHasOnboarded(isOnboardedFromUser(updatedUser));
   };
 
-  const verifyEmail = async (email: string): Promise<AuthResult> => {
+  // O backend responde igual exista a conta ou não; só falha por rede ou e-mail malformado.
+  const requestPasswordReset = async (email: string): Promise<AuthResult> => {
     try {
-      await api.post('/auth/verify-email', { email: email.trim() });
+      await api.post('/auth/forgot-password', { email: email.trim() });
       return { success: true };
     } catch (e: unknown) {
       const err = e as { response?: { data?: unknown } };
-      const message = err.response?.data || 'E-mail não encontrado.';
+      const message = err.response?.data || 'Não foi possível enviar o código. Tente novamente.';
       return {
         success: false,
         error: typeof message === 'string' ? message : JSON.stringify(message),
@@ -407,11 +446,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const resetPassword = async (
     email: string,
+    code: string,
     newPassword: string,
   ): Promise<AuthResult> => {
     try {
       await api.post('/auth/reset-password', {
         email: email.trim(),
+        code,
         newPassword,
       });
       return { success: true };
@@ -459,7 +500,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         forgetRememberedUser,
         register,
         completeOnboarding,
-        verifyEmail,
+        confirmEmail,
+        resendConfirmation,
+        requestPasswordReset,
         resetPassword,
         changePassword,
       }}

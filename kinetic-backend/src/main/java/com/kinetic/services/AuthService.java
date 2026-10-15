@@ -8,8 +8,8 @@ import com.kinetic.dtos.RegisterDTO;
 import com.kinetic.dtos.LoginDTO;
 import com.kinetic.dtos.AuthResponseDTO;
 import com.kinetic.dtos.RefreshResponseDTO;
-import com.kinetic.dtos.ResetPasswordDTO;
 import com.kinetic.exceptions.EmailAlreadyInUseException;
+import com.kinetic.exceptions.EmailNotVerifiedException;
 import com.kinetic.security.JwtUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +28,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenService refreshTokenService;
     private final UserService userService;
+    private final EmailVerificationService emailVerificationService;
 
     public User register(RegisterDTO dto) {
         if (userRepository.existsByEmail(dto.getEmail())) {
@@ -67,6 +68,14 @@ public class AuthService {
 
         User user = userRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));
+
+        // Só depois da senha conferir: não revela a ninguém quais contas existem.
+        // Já reenvia o código (respeitando o intervalo mínimo entre envios).
+        if (!user.isEmailVerified()) {
+            emailVerificationService.sendCode(user);
+            throw new EmailNotVerifiedException(
+                    "Confirme seu e-mail para entrar. Enviamos um código para " + user.getEmail() + ".");
+        }
 
         // Registro de streak é best-effort: uma falha aqui (ex.: corrida no
         // insert diário) jamais deve impedir um login com credenciais válidas.
@@ -114,14 +123,5 @@ public class AuthService {
 
     public boolean checkEmailExists(String email) {
         return userRepository.existsByEmail(email);
-    }
-
-    public void resetPassword(ResetPasswordDTO dto) {
-        User user = userRepository.findByEmail(dto.getEmail())
-                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));
-
-        refreshTokenService.revokeAllForUser(user);
-        user.setSenha(passwordEncoder.encode(dto.getNewPassword()));
-        userRepository.save(user);
     }
 }

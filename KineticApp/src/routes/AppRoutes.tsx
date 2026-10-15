@@ -12,6 +12,7 @@ import RegisterScreen from '../screens/Auth/RegisterScreen';
 import ForgotPasswordScreen from '../screens/Auth/ForgotPasswordScreen';
 import VerifyCodeScreen from '../screens/Auth/VerifyCodeScreen';
 import ResetPasswordScreen from '../screens/Auth/ResetPasswordScreen';
+import ConfirmEmailScreen from '../screens/Auth/ConfirmEmailScreen';
 
 import OnboardingScreen from '../screens/Onboarding/OnboardingScreen';
 
@@ -73,6 +74,7 @@ export default function AppRoutes(): React.ReactElement | null {
         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
         <Stack.Screen name="VerifyCode" component={VerifyCodeScreen} />
         <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+        <Stack.Screen name="ConfirmEmail" component={ConfirmEmailScreen} />
       </Stack.Navigator>
     );
   }

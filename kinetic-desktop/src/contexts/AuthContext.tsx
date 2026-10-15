@@ -29,7 +29,9 @@ export interface KineticWebUser {
   role: string;
 }
 
-type AuthResult = { success: true } | { success: false; error: string };
+type AuthResult =
+  | { success: true }
+  | { success: false; error: string; needsEmailVerification?: boolean };
 
 interface AuthContextValue {
   isLoggedIn: boolean;
@@ -51,6 +53,8 @@ interface AuthContextValue {
     ownerEmail: string;
     ownerPassword: string;
   }) => Promise<AuthResult>;
+  confirmEmail: (email: string, code: string) => Promise<AuthResult>;
+  resendConfirmation: (email: string) => Promise<AuthResult>;
 }
 
 interface LoginResponse {
@@ -153,7 +157,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setIsLoggedIn(true);
       return { success: true };
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { message?: string } | string } };
+      const err = e as {
+        response?: { status?: number; data?: { message?: string; code?: string } | string };
+      };
       const message =
         (err.response?.data as { message?: string })?.message ||
         err.response?.data ||
@@ -161,6 +167,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return {
         success: false,
         error: typeof message === 'string' ? message : 'E-mail ou senha incorretos.',
+        // Senha certa, e-mail ainda não confirmado: a página leva à confirmação.
+        needsEmailVerification:
+          err.response?.status === 403 &&
+          (err.response?.data as { code?: string })?.code === 'EMAIL_NOT_VERIFIED',
+      };
+    }
+  };
+
+  const confirmEmail = async (email: string, code: string): Promise<AuthResult> => {
+    try {
+      await api.post('/auth/confirm-email', { email: email.trim(), code });
+      return { success: true };
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: unknown } };
+      const message = err.response?.data || 'Não foi possível confirmar o e-mail.';
+      return {
+        success: false,
+        error: typeof message === 'string' ? message : JSON.stringify(message),
+      };
+    }
+  };
+
+  // O backend responde igual exista a conta ou não; só falha por rede ou e-mail malformado.
+  const resendConfirmation = async (email: string): Promise<AuthResult> => {
+    try {
+      await api.post('/auth/resend-confirmation', { email: email.trim() });
+      return { success: true };
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: unknown } };
+      const message = err.response?.data || 'Não foi possível reenviar o código. Tente novamente.';
+      return {
+        success: false,
+        error: typeof message === 'string' ? message : JSON.stringify(message),
       };
     }
   };
@@ -258,7 +297,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ isLoggedIn, currentUser, isLoadingAuth, signIn, signOut, register, registerCompany }}
+      value={{
+        isLoggedIn,
+        currentUser,
+        isLoadingAuth,
+        signIn,
+        signOut,
+        register,
+        registerCompany,
+        confirmEmail,
+        resendConfirmation,
+      }}
     >
       {children}
     </AuthContext.Provider>

@@ -88,6 +88,9 @@ const PUBLIC_ROUTES = [
   '/auth/refresh',
   '/auth/logout',
   '/auth/verify-email',
+  '/auth/forgot-password',
+  '/auth/confirm-email',
+  '/auth/resend-confirmation',
   '/auth/reset-password',
 ];
 

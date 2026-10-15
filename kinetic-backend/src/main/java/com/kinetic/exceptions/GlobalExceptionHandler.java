@@ -13,6 +13,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.Map;
+
 /**
  * Tradução centralizada de exceções de negócio em respostas HTTP. Mantém os
  * controllers limpos e evita que mensagens/stack traces internos vazem como
@@ -51,6 +53,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(GeminiUnavailableException.class)
     public ResponseEntity<String> handleGeminiUnavailable(GeminiUnavailableException ex) {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidCodeException.class)
+    public ResponseEntity<String> handleInvalidCode(InvalidCodeException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    /**
+     * Login de conta com e-mail não confirmado. Corpo em JSON com um código fixo
+     * para os clientes reconhecerem o caso e abrirem a tela de confirmação.
+     */
+    @ExceptionHandler(EmailNotVerifiedException.class)
+    public ResponseEntity<Map<String, String>> handleEmailNotVerified(EmailNotVerifiedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("code", "EMAIL_NOT_VERIFIED", "message", ex.getMessage()));
     }
 
     @ExceptionHandler(EntityNotFoundException.class)

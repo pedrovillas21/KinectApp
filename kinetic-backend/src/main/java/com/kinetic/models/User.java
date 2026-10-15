@@ -44,6 +44,11 @@ public class User {
     @Column(nullable = false, columnDefinition = "VARCHAR(16) DEFAULT 'ATIVO'")
     private UserStatus status = UserStatus.ATIVO;
 
+    // Só vira true quando o dono digita o código enviado ao e-mail (ou troca a
+    // senha por código, que também prova a posse da caixa). Sem isso, não loga.
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified = false;
+
     @Column(name = "company_id")
     private UUID companyId;
 

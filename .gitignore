@@ -127,3 +127,4 @@ graphify-out/obsidian/
 # Ignorar todos os arquivos de estado intermediário (arquivos ocultos .json)
 graphify-out/.*.json
 graphify-out/.graphify_root
+security-audit-skill

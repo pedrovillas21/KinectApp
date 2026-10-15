@@ -195,14 +195,16 @@ export default function RegisterPage() {
               <p className="text-sm text-k-text-dim mt-2 leading-relaxed">
                 {activeTab === 'personal'
                   ? 'Sua conta de Personal Trainer foi criada com sucesso.'
-                  : 'Sua empresa e conta de administrador foram criadas com sucesso.'}
+                  : 'Sua empresa e conta de administrador foram criadas com sucesso.'}{' '}
+                Enviamos um código para <span className="font-semibold text-white">{email.trim()}</span>.
+                Confirme seu e-mail para entrar no painel.
               </p>
             </div>
             <button
-              onClick={() => navigate('/login')}
+              onClick={() => navigate('/confirm-email', { state: { email: email.trim() } })}
               className="w-full py-3.5 rounded-xl bg-k-primary hover:bg-k-primary-deep text-k-on-primary font-extrabold text-sm tracking-wide shadow-lg hover:shadow-[0_0_20px_rgba(0,229,255,0.4)] transition-all duration-200 cursor-pointer"
             >
-              Ir para o Login
+              Confirmar e-mail
             </button>
           </div>
         </div>
