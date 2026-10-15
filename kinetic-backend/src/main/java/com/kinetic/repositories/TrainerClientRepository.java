@@ -36,14 +36,6 @@ public interface TrainerClientRepository extends JpaRepository<TrainerClient, UU
     List<TrainerClient> findByTrainerAndStatusFetchStudent(@Param("trainerId") UUID trainerId,
                                                            @Param("status") TrainerLinkStatus status);
 
-    /** Vínculo ATIVO entre o par (em qualquer papel) — guard de posse do chat. */
-    @Query("""
-            SELECT COUNT(tc) > 0 FROM TrainerClient tc
-            WHERE tc.status = com.kinetic.enums.TrainerLinkStatus.ATIVO
-              AND ((tc.trainer.id = :a AND tc.student.id = :b) OR (tc.trainer.id = :b AND tc.student.id = :a))
-            """)
-    boolean existsActiveLinkBetween(@Param("a") UUID a, @Param("b") UUID b);
-
     // ── Painel EMPRESA: vínculos corporativos (source=COMPANY) ──────────────
 
     /** Vínculos da empresa num dado status, com aluno e personal carregados (evita N+1). */

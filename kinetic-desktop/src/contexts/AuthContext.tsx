@@ -45,6 +45,7 @@ interface AuthContextValue {
     email: string;
     password: string;
     cpf: string;
+    phone: string;
   }) => Promise<AuthResult>;
   registerCompany: (args: {
     companyName: string;
@@ -210,13 +211,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     email,
     password,
     cpf,
+    phone,
   }: {
     name: string;
     email: string;
     password: string;
     cpf: string;
+    phone: string;
   }): Promise<AuthResult> => {
-    if (!name || !email || !password || !cpf) {
+    if (!name || !email || !password || !cpf || !phone) {
       return { success: false, error: 'Preencha todos os campos.' };
     }
 
@@ -227,6 +230,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         senha: password,
         role: 'PERSONAL',
         cpf: cpf.trim(),
+        phone: phone.replace(/\D/g, ''),
       });
       return { success: true };
     } catch (e: unknown) {

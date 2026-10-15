@@ -1,30 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import { ArrowLeft, BarChart3, Dumbbell, MessageSquare, Target, UserX } from 'lucide-react';
+import { ArrowLeft, BarChart3, Dumbbell, MessageCircle, Target, UserX } from 'lucide-react';
 import { listStudents } from '../services/trainerService';
+import { useAuth } from '../contexts/AuthContext';
 import Avatar from '../components/Avatar';
-import ChatPanel from '../components/ChatPanel';
 import DashboardTab from '../components/DashboardTab';
 import WorkoutPlansTab from '../components/personal/WorkoutPlansTab';
 import { EASE_OUT, SPRING_PILL } from '../components/motion/primitives';
 import type { TrainerLink } from '../types';
-
-/** A partir desta largura, dashboard e conversa ficam lado a lado. */
-const SPLIT_QUERY = '(min-width: 1100px)';
-const CHAT_WIDTH = 400;
-
-function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
-  useEffect(() => {
-    const mql = window.matchMedia(query);
-    const onChange = () => setMatches(mql.matches);
-    onChange();
-    mql.addEventListener('change', onChange);
-    return () => mql.removeEventListener('change', onChange);
-  }, [query]);
-  return matches;
-}
+import { whatsappUrl } from '../utils/whatsapp';
 
 type TabId = 'dashboard' | 'plans';
 
@@ -41,7 +26,7 @@ const sinceLabel = (iso: string): string => {
 
 export default function StudentDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const split = useMediaQuery(SPLIT_QUERY);
+  const { currentUser } = useAuth();
   // A aba fica na URL (?aba=treinos): sobrevive a recarregar e ao voltar do navegador.
   const [searchParams, setSearchParams] = useSearchParams();
   const tab: TabId = searchParams.get('aba') === 'treinos' ? 'plans' : 'dashboard';
@@ -52,9 +37,6 @@ export default function StudentDetailPage() {
   const [link, setLink] = useState<TrainerLink | null>(null);
   const [loading, setLoading] = useState(true);
   const [goal, setGoal] = useState<string | null>(null);
-  // Em tela larga a conversa já abre ao lado; em tela estreita ela substitui
-  // o dashboard enquanto aberta.
-  const [chatOpen, setChatOpen] = useState(() => window.matchMedia(SPLIT_QUERY).matches);
 
   useEffect(() => {
     let cancelled = false;
@@ -124,19 +106,14 @@ export default function StudentDetailPage() {
 
   const peer = link.peer;
   const firstName = peer.nome.trim().split(/\s+/)[0] ?? peer.nome;
-  const showMain = split || !chatOpen;
-  const activeTab = TABS.find((t) => t.id === tab) ?? TABS[0];
-  const toggleLabel = chatOpen
-    ? split
-      ? 'Ocultar conversa'
-      : `Ver ${activeTab.label.toLowerCase()}`
-    : 'Abrir conversa';
+  const trainerFirstName = currentUser?.nome.trim().split(/\s+/)[0];
+  const whatsappHref = peer.phone
+    ? whatsappUrl(peer.phone, `Oi, ${firstName}!${trainerFirstName ? ` Aqui é ${trainerFirstName}, seu personal.` : ''}`)
+    : null;
 
   const selectTab = (next: TabId) => {
     setVisited((v) => (v.has(next) ? v : new Set(v).add(next)));
     setSearchParams(next === 'plans' ? { aba: 'treinos' } : {}, { replace: true });
-    // Em tela estreita a conversa ocupa o lugar do conteúdo: escolher uma aba volta a ele.
-    if (!split) setChatOpen(false);
   };
 
   return (
@@ -193,7 +170,7 @@ export default function StudentDetailPage() {
             className="flex rounded-[14px] border border-k-ghost bg-k-surface1 p-1"
           >
             {TABS.map((t) => {
-              const active = t.id === tab && showMain;
+              const active = t.id === tab;
               const Icon = t.icon;
               return (
                 <button
@@ -222,87 +199,49 @@ export default function StudentDetailPage() {
             })}
           </div>
 
-          <button
-            type="button"
-            aria-pressed={chatOpen}
-            onClick={() => setChatOpen((open) => !open)}
-            className={`flex h-11 items-center gap-2 rounded-xl border px-4 text-sm font-semibold transition-colors active:scale-[0.97] ${
-              chatOpen
-                ? 'border-k-primary/30 bg-k-primary/[0.12] text-k-primary'
-                : 'border-white/10 bg-k-surface1 text-k-text-dim hover:bg-k-surface2 hover:text-k-text'
-            }`}
-          >
-            {chatOpen && !split ? (
-              <activeTab.icon className="h-[17px] w-[17px]" />
-            ) : (
-              <MessageSquare className="h-[17px] w-[17px]" />
-            )}
-            {toggleLabel}
-          </button>
+          {whatsappHref ? (
+            <a
+              href={whatsappHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-11 items-center gap-2 rounded-xl border border-k-success/30 bg-k-success/10 px-4 text-sm font-semibold text-k-success transition-colors hover:bg-k-success/[0.18] active:scale-[0.97]"
+            >
+              <MessageCircle className="h-[17px] w-[17px]" />
+              Chamar no WhatsApp
+            </a>
+          ) : (
+            <span
+              title="O aluno não tem celular cadastrado."
+              className="flex h-11 cursor-not-allowed items-center gap-2 rounded-xl border border-white/10 bg-k-surface1 px-4 text-sm font-semibold text-k-text-muted opacity-60"
+            >
+              <MessageCircle className="h-[17px] w-[17px]" />
+              Sem WhatsApp
+            </span>
+          )}
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1">
-        {/* Oculto (não desmontado) enquanto a conversa ocupa a tela estreita: um
-            rascunho de ficha em edição não pode se perder ao abrir o chat. */}
-        <div className={`min-w-0 flex-1 overflow-y-auto ${showMain ? '' : 'hidden'}`}>
-          {visited.has('dashboard') && (
-            <div
-              role="tabpanel"
-              id="student-panel-dashboard"
-              aria-labelledby="student-tab-dashboard"
-              hidden={tab !== 'dashboard'}
-            >
-              <DashboardTab studentId={id} studentFirstName={firstName} onGoal={setGoal} />
-            </div>
-          )}
-          {visited.has('plans') && (
-            <div
-              role="tabpanel"
-              id="student-panel-plans"
-              aria-labelledby="student-tab-plans"
-              hidden={tab !== 'plans'}
-            >
-              <WorkoutPlansTab studentId={id} studentFirstName={firstName} studentName={peer.nome} />
-            </div>
-          )}
-        </div>
-
-        <AnimatePresence initial={false}>
-          {chatOpen &&
-            (split ? (
-              // Lado a lado: a coluna abre/fecha pela largura e o dashboard
-              // acompanha suavemente, sem salto de layout.
-              <motion.aside
-                key="chat-split"
-                aria-label={`Conversa com ${peer.nome}`}
-                initial={{ width: 0, opacity: 0 }}
-                animate={{ width: CHAT_WIDTH + 16, opacity: 1 }}
-                exit={{ width: 0, opacity: 0 }}
-                transition={{ duration: 0.5, ease: EASE_OUT }}
-                className="shrink-0 overflow-hidden py-4 pr-4"
-              >
-                <div
-                  className="h-full overflow-hidden rounded-[20px] border border-k-ghost"
-                  style={{ width: CHAT_WIDTH }}
-                >
-                  <ChatPanel peerId={id} peerName={peer.nome} onClose={() => setChatOpen(false)} />
-                </div>
-              </motion.aside>
-            ) : (
-              <motion.aside
-                key="chat-full"
-                aria-label={`Conversa com ${peer.nome}`}
-                initial={{ opacity: 0, x: 32 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 32 }}
-                transition={{ duration: 0.45, ease: EASE_OUT }}
-                className="m-4 min-w-0 flex-1 overflow-hidden rounded-[20px] border border-k-ghost"
-              >
-                <ChatPanel peerId={id} peerName={peer.nome} onClose={() => setChatOpen(false)} />
-              </motion.aside>
-            ))}
-        </AnimatePresence>
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        {visited.has('dashboard') && (
+          <div
+            role="tabpanel"
+            id="student-panel-dashboard"
+            aria-labelledby="student-tab-dashboard"
+            hidden={tab !== 'dashboard'}
+          >
+            <DashboardTab studentId={id} studentFirstName={firstName} onGoal={setGoal} />
+          </div>
+        )}
+        {visited.has('plans') && (
+          <div
+            role="tabpanel"
+            id="student-panel-plans"
+            aria-labelledby="student-tab-plans"
+            hidden={tab !== 'plans'}
+          >
+            <WorkoutPlansTab studentId={id} studentFirstName={firstName} studentName={peer.nome} />
+          </div>
+        )}
       </div>
     </div>
   );

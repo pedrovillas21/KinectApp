@@ -35,10 +35,16 @@ public class AuthService {
             throw new EmailAlreadyInUseException("Email já está em uso.");
         }
 
+        String phone = DocumentValidator.normalizeCellPhone(dto.getPhone());
+        if (phone == null) {
+            throw new IllegalArgumentException("Celular inválido. Informe DDD + número, ex.: (11) 98765-4321.");
+        }
+
         User user = new User();
         user.setNome(dto.getNome());
         user.setEmail(dto.getEmail());
         user.setSenha(passwordEncoder.encode(dto.getSenha()));
+        user.setPhone(phone);
         // Auto-cadastro só produz ALUNO ou PERSONAL (whitelist no DTO);
         // EMPRESA e ROOT nascem por outros caminhos (ROOT: seed no boot).
         boolean isPersonal = "PERSONAL".equals(dto.getRole());

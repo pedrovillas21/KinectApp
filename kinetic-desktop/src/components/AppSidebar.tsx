@@ -1,5 +1,6 @@
+import { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Activity, LogOut } from 'lucide-react';
+import { Activity, LogOut, MessageCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   NAV_BY_ROLE,
@@ -19,6 +20,9 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { Badge } from '@/components/ui/badge';
+import PhoneDialog from './PhoneDialog';
+import { getMyPhone } from '../services/userService';
+import { maskCellPhone } from '../utils/whatsapp';
 
 const ROLE_SUBTITLE: Record<PanelRole, string> = {
   PERSONAL: 'Painel do Personal',
@@ -29,6 +33,7 @@ const ROLE_SUBTITLE: Record<PanelRole, string> = {
 /**
  * Sidebar do painel, alimentada por config/nav.ts conforme o papel logado.
  * Item ativo via casamento de rota; rodapé com usuário logado + logout.
+ * O PERSONAL também edita ali o próprio celular (atalho de WhatsApp dos alunos).
  */
 export default function AppSidebar() {
   const { currentUser, signOut } = useAuth();
@@ -39,6 +44,17 @@ export default function AppSidebar() {
   const homePath = isPanelRole(role) ? ROLE_HOME[role] : '/';
 
   const initial = (currentUser?.nome.trim().charAt(0) || '?').toUpperCase();
+
+  const isPersonal = role === 'PERSONAL';
+  const [phone, setPhone] = useState<string | null>(null);
+  const [phoneOpen, setPhoneOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isPersonal) return;
+    getMyPhone()
+      .then(setPhone)
+      .catch(() => setPhone(null));
+  }, [isPersonal]);
 
   return (
     <Sidebar collapsible="icon">
@@ -100,6 +116,24 @@ export default function AppSidebar() {
               </div>
             </div>
           </SidebarMenuItem>
+          {isPersonal && (
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltip="Meu WhatsApp" onClick={() => setPhoneOpen(true)}>
+                <MessageCircle />
+                <span className="flex-1 truncate">
+                  {phone ? maskCellPhone(phone) : 'Cadastrar WhatsApp'}
+                </span>
+                {!phone && (
+                  <Badge
+                    variant="outline"
+                    className="text-[9px] px-1.5 py-0 h-4 border-k-warn/40 text-k-warn group-data-[collapsible=icon]:hidden"
+                  >
+                    pendente
+                  </Badge>
+                )}
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
           <SidebarMenuItem>
             <SidebarMenuButton
               tooltip="Sair"
@@ -112,6 +146,10 @@ export default function AppSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
+
+      {isPersonal && (
+        <PhoneDialog open={phoneOpen} onOpenChange={setPhoneOpen} phone={phone} onSaved={setPhone} />
+      )}
     </Sidebar>
   );
 }

@@ -167,7 +167,7 @@ public class EmpresaService {
     }
 
     private PeerDTO peer(User u) {
-        return new PeerDTO(u.getId(), u.getNome(), u.getEmail(), u.getAvatarUrl());
+        return new PeerDTO(u.getId(), u.getNome(), u.getEmail(), u.getAvatarUrl(), null);
     }
 
     private LocalDate periodStartDate(String period) {

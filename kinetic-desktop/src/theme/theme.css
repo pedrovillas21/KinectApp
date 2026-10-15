@@ -165,7 +165,7 @@
   }
 
   /* Reset de SPA desktop: a página nunca rola — o scroll vive nos painéis
-     internos (lista de alunos, mensagens do chat, conteúdo das abas). */
+     internos (lista de alunos, conteúdo das abas). */
   html,
   body,
   #root {

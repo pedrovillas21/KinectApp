@@ -79,7 +79,7 @@ public class WorkoutService {
         if (trainerClientRepository.existsByStudentIdAndStatus(user.getId(), TrainerLinkStatus.ATIVO)
                 && workoutPlanRepository.existsByUserIdAndStatusAndCreatedByIsNotNull(user.getId(), "active")) {
             throw new TrainerManagedPlanException(
-                    "Seu treino é montado pelo seu personal. Fale com ele pelo chat para ajustar a ficha.");
+                    "Seu treino é montado pelo seu personal. Fale com ele pelo WhatsApp para ajustar a ficha.");
         }
 
         log.info("Usuário encontrado. Atualizando perfil... (Idade calculada com data {}: {} anos)", request.birthDate(), age);

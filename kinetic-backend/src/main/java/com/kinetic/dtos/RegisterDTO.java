@@ -26,4 +26,8 @@ public class RegisterDTO {
     private String role;
 
     private String cpf;
+
+    /** Celular com DDD; usado no atalho de WhatsApp entre personal e aluno. */
+    @NotBlank(message = "Celular é obrigatório")
+    private String phone;
 }

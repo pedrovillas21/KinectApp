@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/table';
 import { createPersonal, listCompanies, listPersonais } from '../../services/rootService';
 import type { Company, UserAdmin } from '../../types';
+import { isValidCellPhone, maskCellPhone } from '../../utils/whatsapp';
 
 const NO_COMPANY = 'none';
 
@@ -48,7 +49,7 @@ export default function PersonaisPage() {
 
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState({ nome: '', email: '', senha: '', companyId: NO_COMPANY });
+  const [form, setForm] = useState({ nome: '', email: '', senha: '', phone: '', companyId: NO_COMPANY });
 
   const companyName = useMemo(() => {
     const map = new Map(companies.map((c) => [c.id, c.nome]));
@@ -73,17 +74,22 @@ export default function PersonaisPage() {
     void load();
   }, []);
 
-  const resetForm = () => setForm({ nome: '', email: '', senha: '', companyId: NO_COMPANY });
+  const resetForm = () => setForm({ nome: '', email: '', senha: '', phone: '', companyId: NO_COMPANY });
 
   const handleCreate = async (e: FormEvent) => {
     e.preventDefault();
     if (submitting) return;
+    if (!isValidCellPhone(form.phone)) {
+      toast.error('Celular inválido. Informe DDD + número, ex.: (11) 98765-4321.');
+      return;
+    }
     setSubmitting(true);
     try {
       const created = await createPersonal({
         nome: form.nome,
         email: form.email,
         senha: form.senha,
+        phone: form.phone,
         companyId: form.companyId === NO_COMPANY ? null : form.companyId,
       });
       toast.success(`Personal "${created.nome}" provisionado.`);
@@ -94,7 +100,10 @@ export default function PersonaisPage() {
       const status = (err as { response?: { status?: number } }).response?.status;
       if (status === 409) toast.error('Já existe um usuário com este e-mail.');
       else if (status === 404) toast.error('Empresa não encontrada.');
-      else if (status === 400) toast.error('Dados inválidos. Revise os campos.');
+      else if (status === 400) {
+        const data = (err as { response?: { data?: unknown } }).response?.data;
+        toast.error(typeof data === 'string' && data ? data : 'Dados inválidos. Revise os campos.');
+      }
       else toast.error('Não foi possível provisionar o personal.');
     } finally {
       setSubmitting(false);
@@ -142,6 +151,21 @@ export default function PersonaisPage() {
                       onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
                       required
                     />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="phone">Celular (WhatsApp)</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      inputMode="numeric"
+                      placeholder="(11) 98765-4321"
+                      value={form.phone}
+                      onChange={(e) => setForm((f) => ({ ...f, phone: maskCellPhone(e.target.value) }))}
+                      required
+                    />
+                    {form.phone.length > 0 && !isValidCellPhone(form.phone) && (
+                      <span className="text-xs text-k-error">Informe DDD + número, ex.: (11) 98765-4321.</span>
+                    )}
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <Label htmlFor="senha">Senha inicial</Label>

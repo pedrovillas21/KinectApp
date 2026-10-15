@@ -118,11 +118,16 @@ public class CompanyService {
         if (dto.companyId() != null && !companyRepository.existsById(dto.companyId())) {
             throw new EntityNotFoundException("Empresa não encontrada.");
         }
+        String phone = DocumentValidator.normalizeCellPhone(dto.phone());
+        if (phone == null) {
+            throw new IllegalArgumentException("Celular inválido. Informe DDD + número, ex.: (11) 98765-4321.");
+        }
 
         User personal = new User();
         personal.setNome(dto.nome());
         personal.setEmail(dto.email());
         personal.setSenha(passwordEncoder.encode(dto.senha()));
+        personal.setPhone(phone);
         personal.setRole(Role.PERSONAL);
         personal.setStatus(UserStatus.ATIVO);
         personal.setCompanyId(dto.companyId());

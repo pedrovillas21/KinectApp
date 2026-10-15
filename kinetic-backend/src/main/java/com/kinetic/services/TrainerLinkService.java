@@ -220,9 +220,11 @@ public class TrainerLinkService {
     }
 
     private TrainerLinkDTO toDto(TrainerClient link, User peer) {
+        // Celular só circula entre quem já tem vínculo ativo — convite pendente não expõe.
+        String phone = link.getStatus() == TrainerLinkStatus.ATIVO ? peer.getPhone() : null;
         return new TrainerLinkDTO(
                 link.getId(),
-                new TrainerLinkDTO.PeerDTO(peer.getId(), peer.getNome(), peer.getEmail(), peer.getAvatarUrl()),
+                new TrainerLinkDTO.PeerDTO(peer.getId(), peer.getNome(), peer.getEmail(), peer.getAvatarUrl(), phone),
                 link.getStatus().name(),
                 link.getSource().name(),
                 link.getCreatedAt(),

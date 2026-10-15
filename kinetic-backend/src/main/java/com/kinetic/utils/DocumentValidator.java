@@ -33,6 +33,19 @@ public class DocumentValidator {
         }
     }
 
+    /**
+     * Normaliza um celular brasileiro para DDD + número (11 dígitos), aceitando
+     * máscara e o prefixo +55. Retorna null se não for um celular válido.
+     */
+    public static String normalizeCellPhone(String phone) {
+        if (phone == null) return null;
+        String digits = phone.replaceAll("\\D", "");
+        if (digits.length() == 13 && digits.startsWith("55")) {
+            digits = digits.substring(2);
+        }
+        return digits.matches("[1-9]{2}9\\d{8}") ? digits : null;
+    }
+
     public static boolean isValidCNPJ(String cnpj) {
         if (cnpj == null) return false;
         // Remove non-digits

@@ -5,6 +5,8 @@ import java.time.LocalDate;
 public record UserProfileResponseDTO(
         String fullName,
         String email,
+        // Celular (DDD + número, sem +55); null em contas antigas. Atalho de WhatsApp.
+        String phone,
         LocalDate memberSince,
         int consecutiveDaysLogged,
         int totalWorkoutsDone,

@@ -91,6 +91,7 @@ interface AuthContextValue {
     name: string;
     email: string;
     password: string;
+    phone: string;
   }) => Promise<AuthResult>;
   completeOnboarding: (data: CompleteOnboardingData) => Promise<void>;
   confirmEmail: (email: string, code: string) => Promise<AuthResult>;
@@ -217,12 +218,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     name,
     email,
     password,
+    phone,
   }: {
     name: string;
     email: string;
     password: string;
+    phone: string;
   }): Promise<AuthResult> => {
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !phone) {
       return { success: false, error: 'Preencha todos os campos.' };
     }
 
@@ -231,6 +234,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         nome: name.trim(),
         email: email.trim(),
         senha: password,
+        phone: phone.replace(/\D/g, ''),
       });
       return { success: true };
     } catch (e: unknown) {

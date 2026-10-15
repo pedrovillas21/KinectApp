@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
+  Linking,
   Modal,
   Platform,
   Pressable,
@@ -28,6 +29,7 @@ import {
 } from '../services/trainerService';
 import TrainerInvitesModal from '../components/TrainerInvitesModal';
 import { formatMemberSince, formatProfileName } from '../utils/formatters';
+import { isValidCellPhone, maskCellPhone, whatsappUrl } from '../utils/whatsapp';
 import {
   ageFromBirthDate,
   goalLabel,
@@ -106,6 +108,12 @@ const Icons = {
     <Svg width={16} height={16} viewBox="0 0 24 24">
       <Rect x="2" y="4" width="20" height="16" rx="2" {...stroke2} />
       <Path d="M2 7l10 7 10-7" {...stroke2} />
+    </Svg>
+  ),
+  phone: (
+    <Svg width={16} height={16} viewBox="0 0 24 24">
+      <Rect x="6" y="2" width="12" height="20" rx="2" {...stroke2} />
+      <Path d="M11 18h2" {...stroke2} />
     </Svg>
   ),
   lock: (
@@ -612,17 +620,26 @@ function AnamnesisModal({ visible, value, onSave, onClose }: AnamnesisModalProps
 // ─── Conta ────────────────────────────────────────────────────
 interface AccountSectionProps {
   email: string;
+  phone: string | null;
   plan: 'free' | 'pro';
+  onEditPhone: () => void;
   onChangePassword: () => void;
 }
 
-function AccountSection({ email, plan, onChangePassword }: AccountSectionProps) {
+function AccountSection({ email, phone, plan, onEditPhone, onChangePassword }: AccountSectionProps) {
   const isPro = plan === 'pro';
   return (
     <View>
       <SectionTitle>Conta</SectionTitle>
       <RowGroup>
         <Row icon={Icons.mail} label="Email" value={email} />
+        <Row
+          icon={Icons.phone}
+          label="Celular (WhatsApp)"
+          value={phone ? maskCellPhone(phone) : 'Cadastrar'}
+          sub={phone ? undefined : 'Para seu personal falar com você'}
+          onPress={onEditPhone}
+        />
         <Row icon={Icons.lock} label="Alterar senha" onPress={onChangePassword} />
         <Row
           icon={Icons.crown}
@@ -659,10 +676,10 @@ interface TrainerSectionProps {
   trainer: TrainerLink | null;
   inviteCount: number;
   onOpenInvites: () => void;
-  onOpenChat: () => void;
+  onOpenWhatsApp: () => void;
 }
 
-function TrainerSection({ trainer, inviteCount, onOpenInvites, onOpenChat }: TrainerSectionProps) {
+function TrainerSection({ trainer, inviteCount, onOpenInvites, onOpenWhatsApp }: TrainerSectionProps) {
   return (
     <View>
       <SectionTitle sub="Acompanhamento profissional">Seu Personal</SectionTitle>
@@ -671,8 +688,12 @@ function TrainerSection({ trainer, inviteCount, onOpenInvites, onOpenChat }: Tra
           <Row
             icon={Icons.users}
             label={trainer.peer.nome}
-            sub="Toque para conversar com seu personal"
-            onPress={onOpenChat}
+            sub={
+              trainer.peer.phone
+                ? 'Toque para chamar no WhatsApp'
+                : 'Seu personal ainda não cadastrou o WhatsApp'
+            }
+            onPress={trainer.peer.phone ? onOpenWhatsApp : undefined}
             accent
           />
         ) : (
@@ -896,6 +917,92 @@ function ChangePasswordModal({ visible, onClose, onSubmit, onSuccess }: ChangePa
   );
 }
 
+// ─── Celular (WhatsApp) ───────────────────────────────────────
+interface PhoneModalProps {
+  visible: boolean;
+  value: string | null;
+  onClose: () => void;
+  onSaved: (phone: string) => void;
+}
+
+function PhoneModal({ visible, value, onClose, onSaved }: PhoneModalProps) {
+  const [phone, setPhone] = useState('');
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (visible) {
+      setPhone(value ? maskCellPhone(value) : '');
+      setError('');
+      setSubmitting(false);
+    }
+  }, [visible, value]);
+
+  const handleSubmit = async () => {
+    if (!isValidCellPhone(phone)) {
+      return setError('Informe um celular válido com DDD, ex.: (11) 98765-4321.');
+    }
+
+    setError('');
+    setSubmitting(true);
+    try {
+      const response = await api.put<{ phone: string }>('/users/phone', { phone });
+      onSaved(response.data.phone);
+      onClose();
+    } catch (e) {
+      const raw = (e as { response?: { data?: unknown } }).response?.data;
+      setError(typeof raw === 'string' && raw ? raw : 'Não foi possível salvar o celular.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.sheetKAV}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+        <View style={s.sheetPanel}>
+          <View style={s.sheetHandle} />
+          <Text style={s.sheetTitle}>Celular (WhatsApp)</Text>
+
+          <Text style={s.inputLabel}>CELULAR COM DDD</Text>
+          <TextInput
+            style={s.input}
+            value={phone}
+            onChangeText={(text) => setPhone(maskCellPhone(text))}
+            placeholder="(11) 98765-4321"
+            placeholderTextColor={KINETIC.textMuted}
+            keyboardType="phone-pad"
+            maxLength={15}
+            autoFocus
+          />
+          <Text style={s.inputHint}>Só aparece para o seu personal enquanto o vínculo estiver ativo.</Text>
+
+          {!!error && <Text style={s.inputError}>{error}</Text>}
+
+          <View style={s.sheetButtons}>
+            <TouchableOpacity style={s.sheetCancel} onPress={onClose} activeOpacity={0.8} disabled={submitting}>
+              <Text style={s.sheetCancelText}>Cancelar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[s.sheetSave, submitting && s.regenBtnDisabled]}
+              onPress={handleSubmit}
+              activeOpacity={0.8}
+              disabled={submitting}
+            >
+              {submitting ? (
+                <ActivityIndicator size="small" color="#001a1f" />
+              ) : (
+                <Text style={s.sheetSaveText}>Salvar</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
 // ─── Screen ───────────────────────────────────────────────────
 interface ProfileNavigationProp {
   navigate: (screen: string, params?: Record<string, unknown>) => void;
@@ -911,6 +1018,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const { signOut, currentUser, changePassword } = useContext(AuthContext);
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [passwordOpen, setPasswordOpen] = useState(false);
+  const [phoneOpen, setPhoneOpen] = useState(false);
   const [profileData, setProfileData] = useState<UserProfileResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [protocolForm, setProtocolForm] = useState<ProtocolForm | null>(null);
@@ -1116,21 +1224,21 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             trainer={trainer}
             inviteCount={trainerInvites.length}
             onOpenInvites={() => setInvitesOpen(true)}
-            onOpenChat={() => {
-              if (trainer) {
-                navigation.navigate('TrainerChat', {
-                  peerId: trainer.peer.id,
-                  peerName: trainer.peer.nome,
-                  peerAvatarUrl: trainer.peer.avatarUrl,
-                });
-              }
+            onOpenWhatsApp={() => {
+              if (!trainer?.peer.phone) return;
+              const firstName = trainer.peer.nome.trim().split(/\s+/)[0];
+              Linking.openURL(whatsappUrl(trainer.peer.phone, `Oi, ${firstName}!`)).catch(() =>
+                Alert.alert('WhatsApp', 'Não foi possível abrir o WhatsApp neste aparelho.'),
+              );
             }}
           />
         </View>
         <View style={s.section}>
           <AccountSection
             email={accountEmail}
+            phone={profileData?.phone ?? null}
             plan={DEFAULT_PLAN}
+            onEditPhone={() => setPhoneOpen(true)}
             onChangePassword={() => setPasswordOpen(true)}
           />
         </View>
@@ -1188,6 +1296,13 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         onClose={() => setInvitesOpen(false)}
         onAccept={handleAcceptInvite}
         onDecline={handleDeclineInvite}
+      />
+
+      <PhoneModal
+        visible={phoneOpen}
+        value={profileData?.phone ?? null}
+        onClose={() => setPhoneOpen(false)}
+        onSaved={(phone) => setProfileData((prev) => (prev ? { ...prev, phone } : prev))}
       />
 
       <ChangePasswordModal

@@ -19,7 +19,7 @@ import java.time.temporal.ChronoUnit;
  * 3h adiantado no Brasil. Os LocalDateTime da aplicação estão no fuso da JVM
  * (o Hibernate converte as colunas TIMESTAMPTZ para ele), então a conversão usa
  * o fuso da JVM. Milissegundos: é o formato de data do JavaScript, aceito por
- * todos os motores (navegador e Hermes no app). Vale para REST e WebSocket.
+ * todos os motores (navegador e Hermes no app). Vale para toda a API REST.
  */
 @Configuration
 public class JacksonConfig {

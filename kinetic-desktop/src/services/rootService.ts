@@ -46,6 +46,8 @@ export interface CreatePersonalPayload {
   nome: string;
   email: string;
   senha: string;
+  /** Celular com ou sem máscara; obrigatório (atalho de WhatsApp com os alunos). */
+  phone: string;
   companyId?: string | null;
 }
 

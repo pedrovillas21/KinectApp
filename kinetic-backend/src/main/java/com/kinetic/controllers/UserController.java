@@ -1,6 +1,7 @@
 package com.kinetic.controllers;
 
 import com.kinetic.dtos.ChangePasswordDTO;
+import com.kinetic.dtos.UpdatePhoneRequestDTO;
 import com.kinetic.dtos.UpdateWeightRequestDTO;
 import com.kinetic.dtos.UserProfileResponseDTO;
 import com.kinetic.services.UserService;
@@ -12,15 +13,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
 @Tag(
         name = "Usuário",
-        description = "Dados de perfil, senha e peso do usuário logado (dados pessoais, não de treino)."
+        description = "Dados de perfil, senha, celular e peso do usuário logado (dados pessoais, não de treino)."
 )
 public class UserController extends BaseController {
 
@@ -80,6 +84,23 @@ public class UserController extends BaseController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @Operation(
+            summary = "Cadastrar ou trocar o celular do usuário logado",
+            description = "Aceita o celular com ou sem máscara e +55; grava só DDD + número. É o número usado "
+                    + "no atalho de WhatsApp entre aluno e personal (só exposto com vínculo ativo)."
+    )
+    @PutMapping("/phone")
+    public ResponseEntity<?> updatePhone(@Valid @RequestBody UpdatePhoneRequestDTO request) {
+        String userEmail = currentUserEmail();
+        try {
+            return ResponseEntity.ok(Map.of("phone", userService.updatePhone(userEmail, request)));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 }

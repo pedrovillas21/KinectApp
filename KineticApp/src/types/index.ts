@@ -283,6 +283,8 @@ export interface Page<T> {
 export interface UserProfileResponse {
   fullName: string;
   email: string;
+  /** Celular (DDD + número, sem +55); null em contas antigas. Usado no atalho de WhatsApp. */
+  phone: string | null;
   memberSince: string;
   consecutiveDaysLogged: number;
   totalWorkoutsDone: number;
@@ -320,6 +322,8 @@ export interface TrainerPeer {
   nome: string;
   email: string;
   avatarUrl: string | null;
+  /** Celular (DDD + número) — só vem com vínculo ATIVO; null se não cadastrado. */
+  phone: string | null;
 }
 
 /** Vínculo personal↔aluno — espelha TrainerLinkDTO do backend. */
@@ -330,14 +334,4 @@ export interface TrainerLink {
   source: 'INVITE' | 'COMPANY';
   createdAt: string;
   respondedAt: string | null;
-}
-
-/** Mensagem do chat personal↔aluno — espelha ChatMessageDTO do backend. */
-export interface ChatMessage {
-  id: string;
-  senderId: string;
-  recipientId: string;
-  content: string;
-  sentAt: string;
-  readAt: string | null;
 }

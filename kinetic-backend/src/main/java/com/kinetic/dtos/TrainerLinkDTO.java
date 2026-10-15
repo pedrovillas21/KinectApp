@@ -6,6 +6,7 @@ import java.util.UUID;
 /**
  * Visão de um vínculo personal↔aluno. O campo {@code peer} é o "outro lado"
  * da relação: para o aluno é o personal; para o personal é o aluno.
+ * {@code peer.phone} só vem preenchido com vínculo ATIVO (atalho de WhatsApp).
  */
 public record TrainerLinkDTO(
         UUID id,
@@ -15,5 +16,5 @@ public record TrainerLinkDTO(
         LocalDateTime createdAt,
         LocalDateTime respondedAt
 ) {
-    public record PeerDTO(UUID id, String nome, String email, String avatarUrl) {}
+    public record PeerDTO(UUID id, String nome, String email, String avatarUrl, String phone) {}
 }

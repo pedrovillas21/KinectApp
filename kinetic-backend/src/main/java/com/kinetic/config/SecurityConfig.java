@@ -44,10 +44,6 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
-                // Handshake do WebSocket: o HTTP upgrade é liberado aqui, mas a
-                // conexão STOMP só se estabelece com JWT válido no frame CONNECT
-                // (JwtChannelInterceptor) — navegador não manda header Authorization.
-                .requestMatchers("/ws/**").permitAll()
                 // Documentação da API (Scalar UI + spec OpenAPI gerada pelo springdoc)
                 .requestMatchers("/docs.html", "/v3/api-docs/**").permitAll()
                 .anyRequest().authenticated()

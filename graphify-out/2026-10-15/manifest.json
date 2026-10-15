@@ -1,0 +1,2037 @@
+{
+  "html/activeScreen/treino-sessao.jsx": {
+    "mtime": 1783345928.4776523,
+    "ast_hash": "15617041866b46c51f2c2e88da1bc299",
+    "semantic_hash": ""
+  },
+  "html/AuthScreen/auth.jsx": {
+    "mtime": 1781185842.4666076,
+    "ast_hash": "51ecca4c93c49ce0fcb881ace3c558fc",
+    "semantic_hash": ""
+  },
+  "html/fichaScreen/treino-detalhe.jsx": {
+    "mtime": 1783345928.478959,
+    "ast_hash": "d7b676c55670a3d386f4fcf35e8d1a42",
+    "semantic_hash": ""
+  },
+  "html/homeScreen/home.jsx": {
+    "mtime": 1779198860.1460893,
+    "ast_hash": "cadbd3717d7aec46b76a4f91608c2a2b",
+    "semantic_hash": ""
+  },
+  "html/homeScreen/tweaks-panel.jsx": {
+    "mtime": 1779198860.1480885,
+    "ast_hash": "c1b67f30e13be5788ed2b7ffe2d4c573",
+    "semantic_hash": ""
+  },
+  "html/onboardingScreen/onboarding.jsx": {
+    "mtime": 1778763606.7579312,
+    "ast_hash": "17f2376a9cc8c7ccb0da6bfb9139be6e",
+    "semantic_hash": ""
+  },
+  "html/profileScreen/profile.jsx": {
+    "mtime": 1779209182.824733,
+    "ast_hash": "bd2537c85da2d5fdd5c09fc6516f7cfc",
+    "semantic_hash": ""
+  },
+  "html/SocialScreen/tweaks-panel (1).jsx": {
+    "mtime": 1781185842.4686096,
+    "ast_hash": "96a33b1d511aafe78d36c66f905b0196",
+    "semantic_hash": ""
+  },
+  "html/StatsScreen/ios-frame.jsx": {
+    "mtime": 1778763606.75752,
+    "ast_hash": "7da227d5b99de542b6848b576e6c73ff",
+    "semantic_hash": ""
+  },
+  "html/StatsScreen/stats.jsx": {
+    "mtime": 1778763606.7579312,
+    "ast_hash": "ea7af9d4ef3fcefe6274fbea5979dab5",
+    "semantic_hash": ""
+  },
+  "html/trainScreen/treinar.jsx": {
+    "mtime": 1783345928.4807374,
+    "ast_hash": "edc8e933a7d33aa754ffa2b121636aa4",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/KineticApplication.java": {
+    "mtime": 1778503370.8394818,
+    "ast_hash": "7294f1e7359be21575031b00a0a0f8f6",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/config/LastActiveInterceptor.java": {
+    "mtime": 1781185842.4726088,
+    "ast_hash": "edd35d9c80f437ebb2e20222429bedcc",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/config/OpenApiConfig.java": {
+    "mtime": 1783602755.4622343,
+    "ast_hash": "768b8ed55bfebd8f816ea10ad68ff929",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/config/RootUserSeeder.java": {
+    "mtime": 1792081063.173388,
+    "ast_hash": "81bff9d029a7049b91a3f92ad577250b",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/config/SecurityConfig.java": {
+    "mtime": 1792083739.530908,
+    "ast_hash": "effdf92f85a7e7c5bf2b7057f7409969",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/config/WebMvcConfig.java": {
+    "mtime": 1781185842.4746082,
+    "ast_hash": "ee5b5ad1d2444aac535179085764576f",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/controllers/AuthController.java": {
+    "mtime": 1792081063.1746373,
+    "ast_hash": "8c4af3ef5073420e732838d6f3028ab4",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/controllers/BaseController.java": {
+    "mtime": 1781538381.2356591,
+    "ast_hash": "af7edf820eafe5436c7e5ee11d569765",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/controllers/EmpresaController.java": {
+    "mtime": 1783695511.9165113,
+    "ast_hash": "bff93537132071bfb3f96c603a129068",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/controllers/HomeController.java": {
+    "mtime": 1783604259.7893994,
+    "ast_hash": "eb11a4089874604e6e4ea25a9b2c8cf2",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/controllers/RootController.java": {
+    "mtime": 1783695140.7152333,
+    "ast_hash": "05588558d63f0af7cf93db6290633c18",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/controllers/SocialController.java": {
+    "mtime": 1791978696.0879018,
+    "ast_hash": "01ded57cf150032d16686f418c0b1f39",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/controllers/StatsController.java": {
+    "mtime": 1783604250.7756498,
+    "ast_hash": "8ec0302b0e92f57ac342b99523c62c50",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/controllers/StudentTrainerController.java": {
+    "mtime": 1783604392.2934554,
+    "ast_hash": "1ea1910f38781cf562cd37b988d2655c",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/controllers/TrainerController.java": {
+    "mtime": 1791978696.0879018,
+    "ast_hash": "35ae58dd53a411ccfa0aa39953dba7e7",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/controllers/UserController.java": {
+    "mtime": 1783604302.3071737,
+    "ast_hash": "740d5c1fc3ec399a8673acd272beef8f",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/controllers/WorkoutController.java": {
+    "mtime": 1791978696.0879018,
+    "ast_hash": "f40ca309cfff0c951dfb015735ef3138",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/controllers/WorkoutSessionController.java": {
+    "mtime": 1783604282.6537492,
+    "ast_hash": "1cc11cafc86f90669e4bcf7a34942710",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/AddCommentRequest.java": {
+    "mtime": 1791978696.0879018,
+    "ast_hash": "8b37caa057ef0d7b97f7c56573b5992c",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/AuthResponseDTO.java": {
+    "mtime": 1783611752.4434764,
+    "ast_hash": "99bf7aeaaee368cc80dc911b61d7dc7f",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/ChangePasswordDTO.java": {
+    "mtime": 1780923968.4941154,
+    "ast_hash": "52209debf5ae4516b96ea027b89c4e46",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/CommentDTO.java": {
+    "mtime": 1781185842.478609,
+    "ast_hash": "ecefd98a4a302077a7d6cfaa3e187619",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/CommunityComparisonDTO.java": {
+    "mtime": 1778503370.8394818,
+    "ast_hash": "55cd038ea99eff4108fd59e278749047",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/CompanyDTO.java": {
+    "mtime": 1783695044.665378,
+    "ast_hash": "008c14674d20bde84ece99fa67d3238a",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/CreateCompanyRequestDTO.java": {
+    "mtime": 1783700818.3599243,
+    "ast_hash": "f784f2bfe6bf777a2351d3b93e69be59",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/CreatePersonalRequestDTO.java": {
+    "mtime": 1783695053.0900443,
+    "ast_hash": "3ca7a5cbcccbf174e60cd58ab7659b7e",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/CreatePostRequest.java": {
+    "mtime": 1791978696.0879018,
+    "ast_hash": "429daaba558f3798e653b828bfe3d1ef",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/CreateStoryRequest.java": {
+    "mtime": 1791978696.0879018,
+    "ast_hash": "90029ef874da4b7f09ba714347ed5edf",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/EmpresaAnalyticsDTO.java": {
+    "mtime": 1783695417.7599542,
+    "ast_hash": "20bf149a3b127aaec282f83b5fbb7ec6",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/EmpresaStudentLinkDTO.java": {
+    "mtime": 1783695403.292804,
+    "ast_hash": "de54f79b6628e74319e90b760d03c237",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/ExerciseResponseDTO.java": {
+    "mtime": 1791978696.0879018,
+    "ast_hash": "a2bd7c5925f06e072bb4db26b0dc2f9b",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/FeedAuthorDTO.java": {
+    "mtime": 1781185842.481621,
+    "ast_hash": "a2b80672db811a2036e5cbaed73ccb8c",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/FeedbackDTO.java": {
+    "mtime": 1783695421.1295447,
+    "ast_hash": "3488ee2b56c17fda050ae8d5dc1dfe34",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/FeedPostDTO.java": {
+    "mtime": 1781185842.48261,
+    "ast_hash": "da55fe0f82e8d0020d8be37159dd1bf6",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/GeminiRequestDto.java": {
+    "mtime": 1777897184.3717158,
+    "ast_hash": "22119c623558944fbd0dbb17fc975e1d",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/GeminiResponseDto.java": {
+    "mtime": 1777897184.3717158,
+    "ast_hash": "7dd268f19b267e4b16afa1f81f859531",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/GeneratedExerciseDto.java": {
+    "mtime": 1783345928.4837298,
+    "ast_hash": "7d0ef6f31fd8479b81b8e399ab4820f7",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/GeneratedWorkoutPlanDto.java": {
+    "mtime": 1783345928.4837298,
+    "ast_hash": "94c49319184e37eb41c41d79b2e856ac",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/GenerateWorkoutRequestDto.java": {
+    "mtime": 1778763606.7579312,
+    "ast_hash": "731730e8d3753c98fc268f330a1cfae6",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/HomeDashboardResponseDTO.java": {
+    "mtime": 1779198860.1520884,
+    "ast_hash": "47c348cb2c4eb436e432153f81b1c095",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/LoginDTO.java": {
+    "mtime": 1777897184.3737135,
+    "ast_hash": "6fdbbb5a85109a35f76a75b909e0119e",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/LogSessionRequestDTO.java": {
+    "mtime": 1779198860.1540885,
+    "ast_hash": "59b87eb63d6927befad939facdc1c8c8",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/MediaUploadResponse.java": {
+    "mtime": 1782825199.8874822,
+    "ast_hash": "2c9e219b4de83d1ebd2cd3c2da517658",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/MetricDeltaDTO.java": {
+    "mtime": 1781185842.483612,
+    "ast_hash": "365f854d1220f4d662c722071f761110",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/MonthlyStatsResponseDTO.java": {
+    "mtime": 1778073025.3574216,
+    "ast_hash": "4644f6039ac401feb8477aa16260cd0c",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/NextWorkoutResponseDTO.java": {
+    "mtime": 1779198860.1550887,
+    "ast_hash": "84387290ed6992a4eeb6adfb43fb464e",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/PendingRequestDTO.java": {
+    "mtime": 1781185842.4846115,
+    "ast_hash": "fae9a6cf9077607a31b6fe3e34c5b4fc",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/PlanEvolutionResponseDTO.java": {
+    "mtime": 1781185842.4846115,
+    "ast_hash": "b1536f5da349a46642a53361f1719b95",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/RankingEntryDTO.java": {
+    "mtime": 1779198860.1550887,
+    "ast_hash": "6d2d4059045eefc690f3fcca2c8fa375",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/RefreshResponseDTO.java": {
+    "mtime": 1780505690.2386181,
+    "ast_hash": "8ffb86dee753964dc16df6ea6dc61127",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/RefreshTokenDTO.java": {
+    "mtime": 1783687196.757052,
+    "ast_hash": "4838ec1a373ebc06df0f4efd53a827cd",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/RegisterDTO.java": {
+    "mtime": 1792083695.1623435,
+    "ast_hash": "a962a67fd784a6365237a64b378f714a",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/ResetPasswordDTO.java": {
+    "mtime": 1792081063.1765246,
+    "ast_hash": "4d88563d58cbd82c80552f460b2337e0",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/RootMetricsDTO.java": {
+    "mtime": 1783695064.713788,
+    "ast_hash": "c3e386a2ed17f9eaa2a74afb2f18c6bc",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/SetLogDto.java": {
+    "mtime": 1778503370.8394818,
+    "ast_hash": "8885c7d4e9be4343db13e8d506251fbd",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/SquadMemberDTO.java": {
+    "mtime": 1781185842.4856083,
+    "ast_hash": "e545c96e7ece3b1320a8722d2e6cbe4d",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/StartSessionResponseDTO.java": {
+    "mtime": 1781185842.4866116,
+    "ast_hash": "db0f1b8cf49a8885eb9938b59daf1d3c",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/StatsInsightDTO.java": {
+    "mtime": 1778503370.8394818,
+    "ast_hash": "4dad879f3c189639f0f98eb5cc1a5ba6",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/StatsSummaryResponseDTO.java": {
+    "mtime": 1778503370.8394818,
+    "ast_hash": "37321177a416c8c2d47cc865a3f8ab55",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/StoryDTO.java": {
+    "mtime": 1781185842.4866116,
+    "ast_hash": "f3d0aaf464dcf055e1de36987246be14",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/StoryGroupDTO.java": {
+    "mtime": 1781185842.4876082,
+    "ast_hash": "134cf414838ec836c5b7b3c561930694",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/TrainerInviteRequestDTO.java": {
+    "mtime": 1783441848.205251,
+    "ast_hash": "8ab074a668fed24e80fa4a850ff65398",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/TrainerLinkDTO.java": {
+    "mtime": 1792083739.5823407,
+    "ast_hash": "cecc06c530f0a5356b4b9ee5b85632d9",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/UpdateUserStatusRequestDTO.java": {
+    "mtime": 1783695066.5754626,
+    "ast_hash": "eab8009325c7f6dde912bdeabe304951",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/UpdateWeightRequestDTO.java": {
+    "mtime": 1778161791.7233582,
+    "ast_hash": "76901b88e4dda4f9e687a8f2d3c9a385",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/UserAdminDTO.java": {
+    "mtime": 1783695055.8536565,
+    "ast_hash": "dea5c9f1368640975683f6205da64edc",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/UserCardDTO.java": {
+    "mtime": 1781185842.4876082,
+    "ast_hash": "524462cc2cd82c7d6314830240691a3f",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/UserProfileResponseDTO.java": {
+    "mtime": 1780505690.2396183,
+    "ast_hash": "745c708282adb1bbda5056227e01cc15",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/VerifyEmailDTO.java": {
+    "mtime": 1777989865.9922378,
+    "ast_hash": "20fa93e672e88373374ec98ae7cf2284",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/VincularAlunoRequestDTO.java": {
+    "mtime": 1783695406.2429247,
+    "ast_hash": "b99e69c6f5a495da6f8bbd6479d3bb4f",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/VincularFuncionarioRequestDTO.java": {
+    "mtime": 1783695408.191939,
+    "ast_hash": "3a7022e240d81e966437173da6d28ce0",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/VolumeByMuscleGroupDTO.java": {
+    "mtime": 1778503370.8394818,
+    "ast_hash": "1e2cef63b45eec568033347d684355f2",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/VolumeSummaryDTO.java": {
+    "mtime": 1778503370.8394818,
+    "ast_hash": "0be12c5ac0783f4f1188c709f217cf59",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/WeeklyActivityDayDTO.java": {
+    "mtime": 1779198860.1560893,
+    "ast_hash": "0e06fec8495e8b2ddf23398cd376b3bd",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/WeeklyActivityPointDTO.java": {
+    "mtime": 1779198860.1570885,
+    "ast_hash": "2e85eba06490401d34ee646c18f458d0",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/WeeklyActivityResponseDTO.java": {
+    "mtime": 1779198860.1570885,
+    "ast_hash": "ebe4a3dc38fccc06730cdd1654e593d7",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/WeightPointDTO.java": {
+    "mtime": 1778503370.8394818,
+    "ast_hash": "30526c2bead3cce75760fb342aed1fe8",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/WeightSummaryDTO.java": {
+    "mtime": 1778503370.8394818,
+    "ast_hash": "9c4137dfcbb3d238d7a586042241558a",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/WorkoutPlanResponseDTO.java": {
+    "mtime": 1791978696.1035278,
+    "ast_hash": "88ebd2719f855868801c16d95dbfa6cf",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/WorkoutSessionLogRequestDTO.java": {
+    "mtime": 1778073025.3594253,
+    "ast_hash": "8eabd0c231c4ae37143753d009123fd0",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/enums/ConnectionStatus.java": {
+    "mtime": 1781185842.4886076,
+    "ast_hash": "45f07e70833b9fd1f7eb2cf0ec99d689",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/enums/PostIntensity.java": {
+    "mtime": 1781185842.4896078,
+    "ast_hash": "8b547c95fbd4f1e87cfd163711f52d1f",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/enums/PresenceStatus.java": {
+    "mtime": 1781185842.4896078,
+    "ast_hash": "cd6cc1c1ad8fb1db0251b0c044607ee7",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/enums/Role.java": {
+    "mtime": 1783441715.6312704,
+    "ast_hash": "713f54b37aa265a780fcef077b184774",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/enums/StatsPeriodParam.java": {
+    "mtime": 1778503370.8394818,
+    "ast_hash": "0224fc1303f5d8cc4b1f8bcbc0806a92",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/enums/TrainerLinkSource.java": {
+    "mtime": 1783441814.2665095,
+    "ast_hash": "d005da8065bf8a372b5b2fa2ca55d3a4",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/enums/TrainerLinkStatus.java": {
+    "mtime": 1783441812.4109108,
+    "ast_hash": "f00f703c77e33150c66e4aad3ae8edc8",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/enums/UserStatus.java": {
+    "mtime": 1783694987.0466676,
+    "ast_hash": "7a3f939f712791e4a102741a97693cc4",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/exceptions/ActiveTrainerConflictException.java": {
+    "mtime": 1783441847.1138291,
+    "ast_hash": "f42ca4656fde1f6d2387668a9b68c288",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/exceptions/EmailAlreadyInUseException.java": {
+    "mtime": 1781538514.4951098,
+    "ast_hash": "842296a83b1131f27b4f81118b30dfde",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/exceptions/GlobalExceptionHandler.java": {
+    "mtime": 1792081063.17791,
+    "ast_hash": "cc94b32198ddc1428d8e765a6bb0eb47",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/models/Company.java": {
+    "mtime": 1783700802.4767544,
+    "ast_hash": "53c6bb65e8368a82b36ab488008cf2fb",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/models/Exercise.java": {
+    "mtime": 1791978696.1072989,
+    "ast_hash": "09f9d3bb548ddc4dea51b1ab31a24272",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/models/ExerciseSetLog.java": {
+    "mtime": 1778161704.8282447,
+    "ast_hash": "0b72814c528817effe3fe091ebe6fbcf",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/models/Feedback.java": {
+    "mtime": 1783695373.3848038,
+    "ast_hash": "1a6c68bf1eb4aa3b1751e2ed2e78b9a6",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/models/PlanCycleSnapshot.java": {
+    "mtime": 1781185842.4906113,
+    "ast_hash": "9c6ba17fa0ff59d557f81881f344e2f4",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/models/PostComment.java": {
+    "mtime": 1781185842.4916081,
+    "ast_hash": "306bab72700814212752574c92392c5f",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/models/PostLike.java": {
+    "mtime": 1781185842.4916081,
+    "ast_hash": "09ba54c16e044edba22e342f90743f78",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/models/RefreshToken.java": {
+    "mtime": 1780505690.240619,
+    "ast_hash": "794ed36a84fec6990ba8ac9a81b7d70d",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/models/SocialPost.java": {
+    "mtime": 1781185842.4926069,
+    "ast_hash": "2c22fb7f8685b01498c3f4f0ea664397",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/models/TrainerClient.java": {
+    "mtime": 1783441820.8791668,
+    "ast_hash": "839d858b28ca96ac7562fedb20c01f65",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/models/User.java": {
+    "mtime": 1792083694.9986844,
+    "ast_hash": "9035cc7d17479c605d9de64e0b3ed17f",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/models/UserConnection.java": {
+    "mtime": 1781185842.4936092,
+    "ast_hash": "23c864508ebecad5762475417a699635",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/models/UserLoginStreak.java": {
+    "mtime": 1780505690.24162,
+    "ast_hash": "0bc6a72be6f43e396bd62f269e2355a5",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/models/WeightHistory.java": {
+    "mtime": 1778161755.9413288,
+    "ast_hash": "a2e3055e305ec65790c4a664027ca00c",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/models/WorkoutExecutionLog.java": {
+    "mtime": 1779198860.1590884,
+    "ast_hash": "4d7bfbf517307f6b5710a4e4302146da",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/models/WorkoutPlan.java": {
+    "mtime": 1791978696.1072989,
+    "ast_hash": "f6c67d0d0e779125a25d2416d28e372b",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/models/WorkoutSession.java": {
+    "mtime": 1778161741.3267243,
+    "ast_hash": "74551125d407abd613545f9d2f3c50b2",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/repositories/CompanyRepository.java": {
+    "mtime": 1783700844.8488164,
+    "ast_hash": "6020b7eb89ef228deebea787ba998581",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/repositories/ExerciseRepository.java": {
+    "mtime": 1791978696.1092994,
+    "ast_hash": "1ab45c07a94eda85ab9abbd61dc706a1",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/repositories/ExerciseSetLogRepository.java": {
+    "mtime": 1778503370.8394818,
+    "ast_hash": "e32599b923dee91ccb7d8d521656e6b2",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/repositories/FeedbackRepository.java": {
+    "mtime": 1783695384.7004044,
+    "ast_hash": "01ca1a8d8833c60cf0f94c9ca6a1046a",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/repositories/PlanCycleSnapshotRepository.java": {
+    "mtime": 1781185842.4946086,
+    "ast_hash": "e7ab65c42260d22e21f940b0aafff4bf",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/repositories/PostCommentRepository.java": {
+    "mtime": 1781185842.4946086,
+    "ast_hash": "fd0ba86ae0057783e67566c29ad5132a",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/repositories/PostLikeRepository.java": {
+    "mtime": 1781185842.4976273,
+    "ast_hash": "4ec2e65aa61732ca89c7132b17beb6b1",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/repositories/RefreshTokenRepository.java": {
+    "mtime": 1780505690.2436185,
+    "ast_hash": "1cad81af44e8b537e55d075d6792177c",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/repositories/SocialPostRepository.java": {
+    "mtime": 1783345928.48673,
+    "ast_hash": "1996317340b045520284ea64c40c2c4f",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/repositories/TrainerClientRepository.java": {
+    "mtime": 1792083739.649311,
+    "ast_hash": "42698fa6648f88c2df122dbae2302a7c",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/repositories/UserConnectionRepository.java": {
+    "mtime": 1781185842.5006084,
+    "ast_hash": "6c6d8cb8685b40253854a81a1eb80f59",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/repositories/UserLoginStreakRepository.java": {
+    "mtime": 1780505690.2446194,
+    "ast_hash": "1e4cb72824036fb693493e639c107020",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/repositories/UserRepository.java": {
+    "mtime": 1783700832.5459206,
+    "ast_hash": "e29f863fe5a2c6f40d9064463662d0b4",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/repositories/WeightHistoryRepository.java": {
+    "mtime": 1781185842.5026097,
+    "ast_hash": "678034da7ffd672038e69149f0d1fba3",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutExecutionLogRepository.java": {
+    "mtime": 1783345928.4877295,
+    "ast_hash": "e20d77e2bd2df57784dfad7400d96382",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutPlanRepository.java": {
+    "mtime": 1791978696.1102993,
+    "ast_hash": "e573745deea099c833797dc8672fc9fa",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/repositories/WorkoutSessionRepository.java": {
+    "mtime": 1783695393.277322,
+    "ast_hash": "742d21e7b70d33280922ff03579143ca",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/security/CustomUserDetailsService.java": {
+    "mtime": 1783695161.7194438,
+    "ast_hash": "3de80849db8536da60dd6d3153911ef0",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/security/JwtAuthenticationFilter.java": {
+    "mtime": 1783695173.9260194,
+    "ast_hash": "e747e1a4709178762b3f0d2e22b1a465",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/security/JwtUtil.java": {
+    "mtime": 1783441743.3634608,
+    "ast_hash": "a7d941fdf79e6a07931c4d4063210c8f",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/services/AuthService.java": {
+    "mtime": 1792083695.2859297,
+    "ast_hash": "0055b27fa9656c2f412d42c80f4182ab",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/services/CommunityStatsService.java": {
+    "mtime": 1778503370.8583357,
+    "ast_hash": "b84ba543a8e69f794fbd811f8101ab23",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/services/CompanyService.java": {
+    "mtime": 1783700859.473817,
+    "ast_hash": "4534a34fc4f51621e59b266070f41ffc",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/services/EmpresaService.java": {
+    "mtime": 1792083739.705389,
+    "ast_hash": "b3895a00ce07f63b256348dbf589cb74",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/services/FeedbackService.java": {
+    "mtime": 1783695439.3390787,
+    "ast_hash": "a678cf6d68943e3e0a57f17fc0d8d435",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/services/GeminiService.java": {
+    "mtime": 1791978696.1112998,
+    "ast_hash": "410388de41bea7166423befa4b3cf80a",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/services/HomeAggregatorService.java": {
+    "mtime": 1783345928.4897301,
+    "ast_hash": "70c4fed43a7fe89054334070720b23fd",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/services/InvalidRefreshTokenException.java": {
+    "mtime": 1780505690.2516253,
+    "ast_hash": "92b629caede83e004aa0994d4c36fb25",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/services/OrphanMediaCleanupService.java": {
+    "mtime": 1785506567.285326,
+    "ast_hash": "5bb304a1ad68749d04b7ed0bf97fca68",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/services/PlanCycleSnapshotService.java": {
+    "mtime": 1782825420.6686542,
+    "ast_hash": "e08fb9c6cfdf4ea606c43aeb15720039",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/services/PresenceService.java": {
+    "mtime": 1781185842.5046074,
+    "ast_hash": "4920707925a9c732a5129f63a4792aea",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/services/RefreshTokenService.java": {
+    "mtime": 1783441747.066446,
+    "ast_hash": "e9d89c6d5cb6f7743737078604713fe9",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/services/SocialService.java": {
+    "mtime": 1791978696.1122992,
+    "ast_hash": "b4416fcbf948087c64ba2d738ecb585b",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/services/StatsService.java": {
+    "mtime": 1783345928.4920366,
+    "ast_hash": "48a2767a5ed54278e20197068caaf7ff",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/services/StorageService.java": {
+    "mtime": 1785506559.3186643,
+    "ast_hash": "4178c0b02548313f1fae0691451ea256",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/services/TrainerLinkService.java": {
+    "mtime": 1792083695.596731,
+    "ast_hash": "0c4dc9efd04e7c5fbb8ad28d4210020f",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/services/UserService.java": {
+    "mtime": 1781538709.9004953,
+    "ast_hash": "4e26efc3ec79a6c31fd12f93b195a4cf",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/services/WorkoutService.java": {
+    "mtime": 1792083739.767501,
+    "ast_hash": "c0d6ec91b610797620e72e8da5da0c2b",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/services/WorkoutSessionService.java": {
+    "mtime": 1781538689.9655733,
+    "ast_hash": "e833b7e9b488affecc22c77ff70bb863",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/utils/DocumentValidator.java": {
+    "mtime": 1792083739.8279905,
+    "ast_hash": "d9467e7836834102e14ce8dd7ee5f75b",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/resources/db/migration/V10__create_social_posts.sql": {
+    "mtime": 1781185842.50961,
+    "ast_hash": "",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/resources/db/migration/V11__create_post_interactions.sql": {
+    "mtime": 1781185842.5106094,
+    "ast_hash": "",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/resources/db/migration/V12__index_active_stories.sql": {
+    "mtime": 1781185842.5106094,
+    "ast_hash": "",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/resources/db/migration/V13__add_estimated_duration_to_workout_plans.sql": {
+    "mtime": 1783345928.4950378,
+    "ast_hash": "",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/resources/db/migration/V14__add_section_to_exercises.sql": {
+    "mtime": 1783345928.4950378,
+    "ast_hash": "",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/resources/db/migration/V15__add_roles_and_companies.sql": {
+    "mtime": 1783441722.5615966,
+    "ast_hash": "",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/resources/db/migration/V16__create_trainer_clients.sql": {
+    "mtime": 1783441827.9599447,
+    "ast_hash": "",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/resources/db/migration/V17__create_chat_messages.sql": {
+    "mtime": 1783441918.0106018,
+    "ast_hash": "",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/resources/db/migration/V18__add_user_status.sql": {
+    "mtime": 1783694988.150008,
+    "ast_hash": "",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/resources/db/migration/V19__create_feedbacks.sql": {
+    "mtime": 1783695378.1546063,
+    "ast_hash": "",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/resources/db/migration/V20__add_cpf_and_cnpj.sql": {
+    "mtime": 1783700798.5305479,
+    "ast_hash": "",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/resources/db/migration/V21__enable_rls_deny_all.sql": {
+    "mtime": 1785505608.4562254,
+    "ast_hash": "",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/resources/db/migration/V22__social_media_store_storage_key.sql": {
+    "mtime": 1785506645.4896564,
+    "ast_hash": "",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/resources/db/migration/V3__create_user_login_streaks_table.sql": {
+    "mtime": 1780505690.2576199,
+    "ast_hash": "",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/resources/db/migration/V4__add_created_at_to_users.sql": {
+    "mtime": 1780505690.2576199,
+    "ast_hash": "",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/resources/db/migration/V5__add_status_to_workout_plans.sql": {
+    "mtime": 1780505690.2586198,
+    "ast_hash": "",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/resources/db/migration/V6__create_refresh_tokens_table.sql": {
+    "mtime": 1780505690.25962,
+    "ast_hash": "",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/resources/db/migration/V7__create_plan_cycle_snapshots.sql": {
+    "mtime": 1781185842.5116117,
+    "ast_hash": "",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/resources/db/migration/V8__social_user_columns.sql": {
+    "mtime": 1781185842.5116117,
+    "ast_hash": "",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/resources/db/migration/V9__create_user_connections.sql": {
+    "mtime": 1781185842.5136237,
+    "ast_hash": "",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/vite.config.ts": {
+    "mtime": 1783694229.0979338,
+    "ast_hash": "e1eb7ee9175f2ad19875dbae2585038b",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/App.tsx": {
+    "mtime": 1792081063.188268,
+    "ast_hash": "d9f75926469b080da062f6999390c516",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/main.tsx": {
+    "mtime": 1791978696.1340408,
+    "ast_hash": "fafe9b3b5f5160bdf4dc01f67c8ae511",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/vite-env.d.ts": {
+    "mtime": 1783611878.6028974,
+    "ast_hash": "0352474ba2918efe13895edbc3780d94",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/AppSidebar.tsx": {
+    "mtime": 1783694759.099861,
+    "ast_hash": "28a910914b13e725c4706362e60fd8b9",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/Avatar.tsx": {
+    "mtime": 1791978696.1220427,
+    "ast_hash": "83c29704ce3b316f5c3eb52302379645",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/DashboardTab.tsx": {
+    "mtime": 1791978696.1240404,
+    "ast_hash": "2e5f218d057571fd110b5c6ea96865ea",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/empresa-charts.tsx": {
+    "mtime": 1783695966.320849,
+    "ast_hash": "0d43cb86058aee5d80e2659aff40ea90",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/InviteStudentModal.tsx": {
+    "mtime": 1791978696.12504,
+    "ast_hash": "b5b6c73d88416063416e1af8897541a0",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/PageHeader.tsx": {
+    "mtime": 1783695675.0501957,
+    "ast_hash": "ac6d0adb1f39c19a133242c93fcecf3f",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/PeriodTabs.tsx": {
+    "mtime": 1783695682.3541958,
+    "ast_hash": "1238d956491319ed90f3c66f5d8c8386",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/stat-primitives.tsx": {
+    "mtime": 1783694794.0801284,
+    "ast_hash": "11f627009ef6f19e43f590a3f417315c",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/StatusBadge.tsx": {
+    "mtime": 1783695830.3258028,
+    "ast_hash": "6539d107d32226a83c1db0ed5bb04c75",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/ui/avatar.tsx": {
+    "mtime": 1783694378.0570955,
+    "ast_hash": "23c0e53ff74677d65021ad08e4b802a5",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/ui/badge.tsx": {
+    "mtime": 1783694377.8329415,
+    "ast_hash": "15ab787a7b1f00d73b4e1f4e13ef3861",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/ui/button.tsx": {
+    "mtime": 1783694377.4231534,
+    "ast_hash": "317a0ac2cf14667755e24c9d8928a710",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/ui/card.tsx": {
+    "mtime": 1783694377.4822636,
+    "ast_hash": "1534071a8ea78f86f2afb6c527ab80e9",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/ui/dialog.tsx": {
+    "mtime": 1783694377.5651405,
+    "ast_hash": "2946146642fa5a584cbee6f5d20cec1e",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/ui/dropdown-menu.tsx": {
+    "mtime": 1783694377.9021468,
+    "ast_hash": "8aafb4e1ea9fcee1acebe4dd725d6140",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/ui/input.tsx": {
+    "mtime": 1783694377.6315033,
+    "ast_hash": "6b2ce0661ff0cd7d59ee6fabf844006b",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/ui/label.tsx": {
+    "mtime": 1783694377.6829834,
+    "ast_hash": "569ae3db25b09f62e1ab2d6eeb4ba4ba",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/ui/select.tsx": {
+    "mtime": 1783694378.2838035,
+    "ast_hash": "ba3c4cdcb5c41cb368f9cb14775b7c72",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/ui/separator.tsx": {
+    "mtime": 1783694378.3475876,
+    "ast_hash": "168afbbba243becc1de5942dc8e68dee",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/ui/sheet.tsx": {
+    "mtime": 1783694378.4827878,
+    "ast_hash": "c75f368eb9bbf2bbd900d70ee10cf8e0",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/ui/sidebar.tsx": {
+    "mtime": 1783694378.6790187,
+    "ast_hash": "89c8f2cf5750f0c47cb25b484c2f3a56",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/ui/skeleton.tsx": {
+    "mtime": 1783694378.21612,
+    "ast_hash": "0bd76b263b30bfcb08502fe2d43cbc9b",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/ui/sonner.tsx": {
+    "mtime": 1783694462.090559,
+    "ast_hash": "85a16314004f2ad47e50a44537738562",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/ui/table.tsx": {
+    "mtime": 1783694377.7580936,
+    "ast_hash": "456ede9a4edbc1ded65d06287a6f756b",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/ui/tabs.tsx": {
+    "mtime": 1783694377.9650996,
+    "ast_hash": "3a38d845226a118b08d3e806299dc6d6",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/ui/tooltip.tsx": {
+    "mtime": 1783694378.4140704,
+    "ast_hash": "98c50da90671eea56fea3cc81e5b47d9",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/config/nav.ts": {
+    "mtime": 1783694645.3257468,
+    "ast_hash": "ddab2b5e3270742acb9b2b9d04cf6341",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/contexts/AuthContext.tsx": {
+    "mtime": 1792083869.6035411,
+    "ast_hash": "1ed9e529118a58808e60ff4bdedffd17",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/hooks/use-mobile.ts": {
+    "mtime": 1783694378.5471857,
+    "ast_hash": "209b5193af16624cdd89d3591480dd48",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/layouts/AppShell.tsx": {
+    "mtime": 1783694768.2947094,
+    "ast_hash": "983731b964370a1cc7c13b2c89986cba",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/pages/ComingSoonPage.tsx": {
+    "mtime": 1783695751.2944374,
+    "ast_hash": "b9e1a4513e99742b8a21cba76752baa8",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/pages/LoginPage.tsx": {
+    "mtime": 1792081063.191028,
+    "ast_hash": "d0c322b141fcae8cd7d48148523f9ae0",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/pages/RegisterPage.tsx": {
+    "mtime": 1792083869.6035411,
+    "ast_hash": "a413bc508ad3cc4150a92caacbc97c59",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/pages/StudentDetailPage.tsx": {
+    "mtime": 1792083827.3040237,
+    "ast_hash": "f1255d634c1c6bca5d477c6466d8e882",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/pages/StudentsListPage.tsx": {
+    "mtime": 1792083853.4216475,
+    "ast_hash": "3dfae78e0b8396371ed8ff444e53d052",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/pages/empresa/AnalyticsPage.tsx": {
+    "mtime": 1783696102.3861916,
+    "ast_hash": "502457eab643c8b7e45e73597c617373",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/pages/empresa/ClientesPage.tsx": {
+    "mtime": 1783696054.7665534,
+    "ast_hash": "78f2bd1973d7529c45ba616e700751c5",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/pages/empresa/EmpresaHomePage.tsx": {
+    "mtime": 1783695987.906117,
+    "ast_hash": "49c47562b9ccb8e96f60cacf268f30d8",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/pages/empresa/FeedbacksPage.tsx": {
+    "mtime": 1783696082.5347805,
+    "ast_hash": "cf0e53386e68bf570725a30ee3aa4308",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/pages/empresa/FuncionariosPage.tsx": {
+    "mtime": 1783696018.529339,
+    "ast_hash": "44aee76758c9c214c34a8efc4008c745",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/pages/root/CompaniesPage.tsx": {
+    "mtime": 1783695816.263668,
+    "ast_hash": "f75a084157e76fbd981e521de64fbf45",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/pages/root/CompliancePage.tsx": {
+    "mtime": 1783695902.4242284,
+    "ast_hash": "281cf9f557153b4368ba64c788827431",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/pages/root/PersonaisPage.tsx": {
+    "mtime": 1783695861.9464822,
+    "ast_hash": "3716fbdcf29e4016c08de3cd1c9582d8",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/pages/root/RootHomePage.tsx": {
+    "mtime": 1783695782.8993354,
+    "ast_hash": "e6329d44e0f3a08b0a71045bbbe0ddb5",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/routes/ProtectedRoute.tsx": {
+    "mtime": 1783694686.4591777,
+    "ast_hash": "9e6623f87da8328e8aa70cecf4fdccec",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/services/api.ts": {
+    "mtime": 1792081063.193162,
+    "ast_hash": "fc05427a16d741cfb7e8df7171833734",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/services/empresaService.ts": {
+    "mtime": 1783695649.0855398,
+    "ast_hash": "aa03783bf6b0a2087aec6b437b2994be",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/services/feedbackService.ts": {
+    "mtime": 1783695651.6181026,
+    "ast_hash": "db64c5aeba4f67f32032fec68e734611",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/services/rootService.ts": {
+    "mtime": 1783695636.08288,
+    "ast_hash": "da8fb8699c49e87d418e69b03e8fc0e5",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/services/tokenStorage.ts": {
+    "mtime": 1783687249.240713,
+    "ast_hash": "07fec318d52dfe468cbda5519e61c6c6",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/services/trainerService.ts": {
+    "mtime": 1791978696.1360404,
+    "ast_hash": "afdc7a01072a12983985488bc9dd195d",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/theme/colors.ts": {
+    "mtime": 1783611967.4721222,
+    "ast_hash": "2936f66a17bd87ddc4d101b434e41271",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/theme/kinetic.ts": {
+    "mtime": 1791978696.1370406,
+    "ast_hash": "20065c6b9f1a0f5b947c5a33fe5a4393",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/types/index.ts": {
+    "mtime": 1792083809.1316316,
+    "ast_hash": "fc25b76dcb680e70cf9a48e238fba854",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/utils/cn.ts": {
+    "mtime": 1783614561.7523713,
+    "ast_hash": "8595c2f874aa1ff8c7cc28df2999f354",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/utils/jwt.ts": {
+    "mtime": 1783611927.2156904,
+    "ast_hash": "36d2782d6e14717f7fd26b6a693d81fc",
+    "semantic_hash": ""
+  },
+  "KineticApp/App.js": {
+    "mtime": 1776861254.7383795,
+    "ast_hash": "757d32da4afed6aea4b99c78244d270e",
+    "semantic_hash": ""
+  },
+  "KineticApp/App.tsx": {
+    "mtime": 1781185842.396755,
+    "ast_hash": "ddc465b85b4cdb89da8ba87f2d96869b",
+    "semantic_hash": ""
+  },
+  "KineticApp/index.js": {
+    "mtime": 1776859227.1964042,
+    "ast_hash": "b7e518b41e4e8caf95b01ee70d7745f2",
+    "semantic_hash": ""
+  },
+  "KineticApp/metro.config.js": {
+    "mtime": 1779295734.5925446,
+    "ast_hash": "141ccc9bfbe22569dd297a08429691de",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/AppHeader.tsx": {
+    "mtime": 1779198860.1210902,
+    "ast_hash": "e051d851b1accca97672fd1f0191b06e",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/BottomTabBar.tsx": {
+    "mtime": 1779198860.1220913,
+    "ast_hash": "32d7639448ff6e64808e2a3c41801c87",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/CommentsSheet.tsx": {
+    "mtime": 1782825199.8245935,
+    "ast_hash": "c38129657b85c7b35a0d66a15b0180c5",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/ConnectionRequestsModal.tsx": {
+    "mtime": 1782825199.8245935,
+    "ast_hash": "4a8439303a148156dd413b554b299013",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/CustomButton.tsx": {
+    "mtime": 1781185842.4123724,
+    "ast_hash": "6055b4dd7865d449b3c9ff6c64dea0d8",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/CustomInput.tsx": {
+    "mtime": 1783345928.4473736,
+    "ast_hash": "afd25cbdbf9d20f2e312b32a028e0648",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/EvolutionModal.tsx": {
+    "mtime": 1778503370.8264923,
+    "ast_hash": "e68ae05637b85dc001aa8c2db95e36ee",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/ExerciseCard.tsx": {
+    "mtime": 1781185842.4123724,
+    "ast_hash": "164bc49d182855fc04121dcd1db25c64",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/FeedPost.tsx": {
+    "mtime": 1782825199.8342183,
+    "ast_hash": "a87a184e5ece3f731f8e73e664a9b342",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/HeaderLogo.tsx": {
+    "mtime": 1781185842.4123724,
+    "ast_hash": "75941bea9d30e94dc1b5f6e5a0eb36cb",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/Icon.tsx": {
+    "mtime": 1782825199.8342183,
+    "ast_hash": "1688896b76373d91a4f9a1b2dd8ed852",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/NewPostModal.tsx": {
+    "mtime": 1782825199.8342183,
+    "ast_hash": "765233a71d5e7cdaad28e971090c8b83",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/NewStoryModal.tsx": {
+    "mtime": 1782825199.8342183,
+    "ast_hash": "70661c5ce7df9eabb192e0ea679a1d1f",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/PasswordRequirements.tsx": {
+    "mtime": 1782825199.8404684,
+    "ast_hash": "699b43a8170c29bd7e627cc17a50d7b1",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/PlanEvolutionCard.tsx": {
+    "mtime": 1782825199.8414605,
+    "ast_hash": "631f5313e2a6b043caeb88936706546d",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/PrimaryButton.tsx": {
+    "mtime": 1781185842.4123724,
+    "ast_hash": "6f1e2b5b880260a8469fb16c272c8be9",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/SerieCard.tsx": {
+    "mtime": 1783345928.4473736,
+    "ast_hash": "1a4643cb28468c761941964df8e34b90",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/SquadBar.tsx": {
+    "mtime": 1791978696.055227,
+    "ast_hash": "c059aa3f939e06d5ab5e3d0a24081153",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/StoryViewer.tsx": {
+    "mtime": 1791978696.055227,
+    "ast_hash": "1f539a21540c9c237c43bc2492e92095",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/ThemeToggle.tsx": {
+    "mtime": 1782825199.84446,
+    "ast_hash": "9c33070cf3fc5503b2398cf1aa57b13a",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/TrainerInvitesModal.tsx": {
+    "mtime": 1783442259.9205134,
+    "ast_hash": "58ae51e857542e63dbabd5650b087ea2",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/UserSearchModal.tsx": {
+    "mtime": 1782825199.846463,
+    "ast_hash": "21d9498694faf41dcc56165bb4697f94",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/home/AdherenceCard.tsx": {
+    "mtime": 1779198860.1230898,
+    "ast_hash": "1091beaaf050e3f88bb43f6c8e965182",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/home/HomeGreeting.tsx": {
+    "mtime": 1780923968.4715128,
+    "ast_hash": "6ed3ba35b3f320fe4ab8acc380ce3bc0",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/home/NextWorkoutCard.tsx": {
+    "mtime": 1779198860.1260874,
+    "ast_hash": "79c33ff85a047ff51912bcf9bc69e92b",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/home/OnboardingPrompt.tsx": {
+    "mtime": 1779198860.1270888,
+    "ast_hash": "73b6602048f60fb3aafcca52c18d4d59",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/home/RankingCard.tsx": {
+    "mtime": 1782825199.8474638,
+    "ast_hash": "d73736d20d1fc5a4c5d920554674a5f8",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/components/home/WeeklyChart.tsx": {
+    "mtime": 1779198860.12909,
+    "ast_hash": "134359d3d81cb63890a0378e50e9e053",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/constants/protocol.ts": {
+    "mtime": 1780505690.20262,
+    "ast_hash": "d30529afeca69f71ea40fac94e769b5c",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/contexts/AuthContext.tsx": {
+    "mtime": 1792084008.4230673,
+    "ast_hash": "e1847f01e4f9c7bd8277db53f78c7a05",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/contexts/ThemeContext.tsx": {
+    "mtime": 1781185842.4123724,
+    "ast_hash": "7f76335b53138573dae9710c50ccef14",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/hooks/useSquadStatus.ts": {
+    "mtime": 1781185842.4279964,
+    "ast_hash": "07eba24c539bce1c3272debc6844ecc2",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/hooks/useWorkoutPresence.ts": {
+    "mtime": 1781185842.42961,
+    "ast_hash": "c85664135f083f0a85064a45c84c56b7",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/routes/AppRoutes.tsx": {
+    "mtime": 1792084000.0508633,
+    "ast_hash": "d77c6fe50a7ef201d017f715617a8b58",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/screens/ActiveSessionScreen.tsx": {
+    "mtime": 1791978696.058226,
+    "ast_hash": "2e81d75eb83b1ef732396240681ea0cc",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/screens/HomeScreen.tsx": {
+    "mtime": 1780505690.2046194,
+    "ast_hash": "4e089c3feb5965e598222a2cdbe93629",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/screens/ProfileScreen.tsx": {
+    "mtime": 1792084000.0508633,
+    "ast_hash": "c8e9b5196e7164e93f4560238e80d061",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/screens/SocialScreen.tsx": {
+    "mtime": 1782825199.8595064,
+    "ast_hash": "bd8ee39bf9ca3e33f244fea015cc2c88",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/screens/StatsScreen.tsx": {
+    "mtime": 1783345928.4592092,
+    "ast_hash": "e4bbbf655a65e412388609084585f568",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/screens/WorkoutScreen.tsx": {
+    "mtime": 1791978696.0602262,
+    "ast_hash": "cbe99f50586e7b47d8eea8cf6b6b04d0",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/screens/Auth/ForgotPasswordScreen.tsx": {
+    "mtime": 1792081063.120087,
+    "ast_hash": "0c0ed5a07b90f114701a73946f9efa8c",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/screens/Auth/LoginScreen.tsx": {
+    "mtime": 1792081063.1214144,
+    "ast_hash": "7160e1e04b6c92dbff9769efb03f0a0d",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/screens/Auth/RecurringUserScreen.tsx": {
+    "mtime": 1792081063.122563,
+    "ast_hash": "d83052ec8cbe606a71478c8f42faf9d6",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/screens/Auth/RegisterScreen.tsx": {
+    "mtime": 1792084022.0085118,
+    "ast_hash": "8729e3d4191646c58c142189fbc0fddf",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/screens/Auth/ResetPasswordScreen.tsx": {
+    "mtime": 1792081063.1250896,
+    "ast_hash": "b74caeb60a97479afe75691391d942f4",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/screens/Auth/VerifyCodeScreen.tsx": {
+    "mtime": 1792081063.1260948,
+    "ast_hash": "1b53da11969f28bcb46be763450e258e",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/screens/Auth/WelcomeScreen.tsx": {
+    "mtime": 1781185842.4376087,
+    "ast_hash": "7a81fbb46da78add380dba90ee2e8c66",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/screens/Onboarding/OnboardingScreen.tsx": {
+    "mtime": 1783345928.4574952,
+    "ast_hash": "181c0216bb976e9677de75bf9136306a",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/services/api.ts": {
+    "mtime": 1792081063.1271958,
+    "ast_hash": "3edf612d34cad62caf04c684ae0dc2ff",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/services/socialService.ts": {
+    "mtime": 1785506721.5947585,
+    "ast_hash": "063a15a429b6cb56170baa38c1b5f017",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/services/tokenStorage.ts": {
+    "mtime": 1781185842.4426076,
+    "ast_hash": "95b9c0e3e2a00d074cd7f3605f621d8a",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/services/trainerService.ts": {
+    "mtime": 1783442215.9482152,
+    "ast_hash": "701e1a47ae20be9266975c9346611c50",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/theme/colors.ts": {
+    "mtime": 1781185842.443609,
+    "ast_hash": "42c57f44198baca7200f259525eabfc6",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/theme/kinetic.ts": {
+    "mtime": 1781185842.444607,
+    "ast_hash": "85a1f44305d313c857c773f86fb70907",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/theme/statsTokens.ts": {
+    "mtime": 1781538834.9669907,
+    "ast_hash": "c80b1abc532e512c1202a53b40275cd4",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/types/index.ts": {
+    "mtime": 1792084000.0508633,
+    "ast_hash": "c99d41803961c4c0d9304b3b1cd5f2b5",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/utils/dateRelative.ts": {
+    "mtime": 1783345928.4592092,
+    "ast_hash": "a179abf68e5439f5cb4f7aad5cf17ec6",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/utils/formatters.ts": {
+    "mtime": 1780505690.210618,
+    "ast_hash": "47ca5ffd3ee657cf742480bcce77d501",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/utils/jwt.ts": {
+    "mtime": 1780505690.2116184,
+    "ast_hash": "b8d03da4cc44972725634ea305419a6b",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/utils/statsUtils.ts": {
+    "mtime": 1778503370.8322258,
+    "ast_hash": "7dbe6257498492fb2b29a27682ffd7e8",
+    "semantic_hash": ""
+  },
+  "CLAUDE.md": {
+    "mtime": 1778682156.2791133,
+    "ast_hash": "747e73a5e1af4b72c0d65c9169c23199",
+    "semantic_hash": ""
+  },
+  "GEMINI.md": {
+    "mtime": 1778682156.2801094,
+    "ast_hash": "747e73a5e1af4b72c0d65c9169c23199",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1782825199.8675075,
+    "ast_hash": "fc0dd7604fd596718cfdf0b8cc1940ba",
+    "semantic_hash": ""
+  },
+  "html/activeScreen/treino-sessao.html": {
+    "mtime": 1783345928.4766521,
+    "ast_hash": "a235836864b5bf0c0e772570e0fad401",
+    "semantic_hash": ""
+  },
+  "html/AuthScreen/auth.html": {
+    "mtime": 1781185842.4656105,
+    "ast_hash": "f0183775f21d3723dc7b0a2ac770e67e",
+    "semantic_hash": ""
+  },
+  "html/fichaScreen/treino-detalhe.html": {
+    "mtime": 1783345928.4779518,
+    "ast_hash": "3fdbbc765c582a411acd3853aede2655",
+    "semantic_hash": ""
+  },
+  "html/homeScreen/home.html": {
+    "mtime": 1779198860.1450887,
+    "ast_hash": "fefd46a1e58380497c8bb06f07ecfd5d",
+    "semantic_hash": ""
+  },
+  "html/onboardingScreen/onboarding.html": {
+    "mtime": 1778763606.7579312,
+    "ast_hash": "2837a8ab46917b1c86d664004d275d70",
+    "semantic_hash": ""
+  },
+  "html/profileScreen/profile.html": {
+    "mtime": 1779209182.0774956,
+    "ast_hash": "85ab18a3f9c7302dc2bed23dffe8b583",
+    "semantic_hash": ""
+  },
+  "html/SocialScreen/KINETIC Social.html": {
+    "mtime": 1781185842.4676094,
+    "ast_hash": "6e9944c7e451a510ce1f35a799a99da8",
+    "semantic_hash": ""
+  },
+  "html/StatsScreen/index.html": {
+    "mtime": 1778763606.7560053,
+    "ast_hash": "deb8172c0497155e15fecfd3abf85222",
+    "semantic_hash": ""
+  },
+  "html/trainScreen/treinar.html": {
+    "mtime": 1783345928.4807374,
+    "ast_hash": "c2cd491e5999b7bad9bc0aba13e06f10",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/API_CHEATSHEET.txt": {
+    "mtime": 1781185842.4716094,
+    "ast_hash": "65047649ebc0592a97914a7c33baee8d",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/docker-compose.yml": {
+    "mtime": 1781627206.0572214,
+    "ast_hash": "1bb28ecaa9b00fa5bb2d5859bdb8cee8",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/todo.md": {
+    "mtime": 1777897184.3844,
+    "ast_hash": "7dc3aba487a07923cee6d072c2a64e3a",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/resources/static/docs.html": {
+    "mtime": 1783687042.481811,
+    "ast_hash": "97f7d7ba3772575656c9f69280244c4a",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/index.html": {
+    "mtime": 1791978696.1182988,
+    "ast_hash": "320890c5f9726a50df5dd1d4be3a935c",
+    "semantic_hash": ""
+  },
+  "Plan/Altera\u00e7\u00e3oAuthScreen.md": {
+    "mtime": 1781185842.4476144,
+    "ast_hash": "050e26ec276dd93d7d9205a95a821db2",
+    "semantic_hash": ""
+  },
+  "Plan/BackendPlan.md": {
+    "mtime": 1777897184.358039,
+    "ast_hash": "b15269a89c459c4c482b5d1aacacfed2",
+    "semantic_hash": ""
+  },
+  "Plan/design.md": {
+    "mtime": 1776859227.2120285,
+    "ast_hash": "97c5e8bd598893a8924f85bf837e5e13",
+    "semantic_hash": ""
+  },
+  "Plan/DESIGN1.md": {
+    "mtime": 1778503370.8322258,
+    "ast_hash": "e6f0b72221888a14e0a4cac4489a0a6f",
+    "semantic_hash": ""
+  },
+  "Plan/FotoSave.md": {
+    "mtime": 1781542597.355061,
+    "ast_hash": "1b5c53041d3289dd0749349a96791105",
+    "semantic_hash": ""
+  },
+  "Plan/IMPLEMENTA\u00c7\u00c3O_PERFIL.md": {
+    "mtime": 1780505690.2126188,
+    "ast_hash": "5262cd132a7d3686040df96361b4c452",
+    "semantic_hash": ""
+  },
+  "Plan/melhoraDesktop.md": {
+    "mtime": 1783693724.1853774,
+    "ast_hash": "b50a1cd63f3f828cce95e512ad6d67ad",
+    "semantic_hash": ""
+  },
+  "Plan/orfaoPlan.md": {
+    "mtime": 1783345928.4592092,
+    "ast_hash": "71c800652e99ca0fb84b9f3bc7f5f257",
+    "semantic_hash": ""
+  },
+  "Plan/PainelPersonalPlan.md": {
+    "mtime": 1783439982.7288127,
+    "ast_hash": "bd17510a7f3c01b164b8f001f09addb4",
+    "semantic_hash": ""
+  },
+  "Plan/PerfilLogoffButton.md": {
+    "mtime": 1780505690.2136185,
+    "ast_hash": "61ba14f0295942739f22e0951a3d5515",
+    "semantic_hash": ""
+  },
+  "Plan/perfilScreen.md": {
+    "mtime": 1780505690.2186184,
+    "ast_hash": "1b8dba13236df41c8002be062987ae9e",
+    "semantic_hash": ""
+  },
+  "Plan/perfilScreenFront.md": {
+    "mtime": 1780505690.2196214,
+    "ast_hash": "f27ed186efa624f13fa4408fcb715143",
+    "semantic_hash": ""
+  },
+  "Plan/PLAN.md": {
+    "mtime": 1778503370.8322258,
+    "ast_hash": "820201a7a7a5b57fb002d818211c1a4a",
+    "semantic_hash": ""
+  },
+  "Plan/PLANO.md": {
+    "mtime": 1778073025.3524234,
+    "ast_hash": "71e9b5a9fadeb5a8c59de2d1647a0bcf",
+    "semantic_hash": ""
+  },
+  "Plan/PLANONBOARDING.md": {
+    "mtime": 1778682156.281174,
+    "ast_hash": "b33cd713157be04908d1446cc26188f3",
+    "semantic_hash": ""
+  },
+  "Plan/PLANOREFATORA\u00c7\u00c3O.md": {
+    "mtime": 1778763606.7540028,
+    "ast_hash": "8ec007fa433fc432f1ee38903809de59",
+    "semantic_hash": ""
+  },
+  "Plan/planoWebImplementation.md": {
+    "mtime": 1783611551.5366256,
+    "ast_hash": "c9b5564ec95a97dffb3d378d985fc512",
+    "semantic_hash": ""
+  },
+  "Plan/REFACTOR_HOME_PLAN.md": {
+    "mtime": 1779198860.1420894,
+    "ast_hash": "2941418ef0dbcbb00a0d05d5321815aa",
+    "semantic_hash": ""
+  },
+  "Plan/repaginacaoWorkoutScreen.md": {
+    "mtime": 1783345928.4592092,
+    "ast_hash": "5fea8e3f70b15050b82f65e6538ff6bd",
+    "semantic_hash": ""
+  },
+  "Plan/SocialRepaginate.md": {
+    "mtime": 1781185842.4486096,
+    "ast_hash": "4d7690d4e6498191552496b4e1754977",
+    "semantic_hash": ""
+  },
+  "Plan/SOLUCAO.md": {
+    "mtime": 1778086746.5165863,
+    "ast_hash": "e7234ea51837c912422fad012c5c9419",
+    "semantic_hash": ""
+  },
+  "Plan/STATEFULLPLAN.md": {
+    "mtime": 1780505690.2146237,
+    "ast_hash": "d1b1cbbb6f4de8373e527071b7fb445c",
+    "semantic_hash": ""
+  },
+  "Plan/StatsReformula\u00e7\u00e3o.md": {
+    "mtime": 1781185842.4496095,
+    "ast_hash": "0785fa96af4f82e8284fee3a20750812",
+    "semantic_hash": ""
+  },
+  "Plan/StoryPlan.md": {
+    "mtime": 1782825199.866521,
+    "ast_hash": "9e8df6fa8e8e88ee88d957670decd105",
+    "semantic_hash": ""
+  },
+  "Plan/TREINOS.md": {
+    "mtime": 1779198860.1430886,
+    "ast_hash": "f9e6e97f897b0f8f45ea413380ac553d",
+    "semantic_hash": ""
+  },
+  "resume/implementacaoFinalWeb.md": {
+    "mtime": 1783612960.6153321,
+    "ast_hash": "bec321568ff49abb90707239a09f117e",
+    "semantic_hash": ""
+  },
+  "resume/implementacaoWeb.md": {
+    "mtime": 1783442926.1713765,
+    "ast_hash": "e331a0ed216707bbdbae095c72f4bb4b",
+    "semantic_hash": ""
+  },
+  "html/foto_erros.png": {
+    "mtime": 1783698729.8267722,
+    "ast_hash": "f2314f6069d09c9ad7a36b974de771bc",
+    "semantic_hash": ""
+  },
+  "KineticApp/assets/adaptive-icon.png": {
+    "mtime": 1781197192.4645603,
+    "ast_hash": "97dae5a0e62ad8551d8a31897b425e63",
+    "semantic_hash": ""
+  },
+  "KineticApp/assets/favicon.png": {
+    "mtime": 1781197192.4655375,
+    "ast_hash": "4f1cb2cac2370cd5050681232e8575a8",
+    "semantic_hash": ""
+  },
+  "KineticApp/assets/icon.png": {
+    "mtime": 1781197192.4665394,
+    "ast_hash": "4e3f888fc8475f69fd5fa32f1ad5216a",
+    "semantic_hash": ""
+  },
+  "KineticApp/assets/splash-icon.png": {
+    "mtime": 1781197192.4675393,
+    "ast_hash": "97dae5a0e62ad8551d8a31897b425e63",
+    "semantic_hash": ""
+  },
+  "Plan/image.png": {
+    "mtime": 1780505690.2176194,
+    "ast_hash": "552f1d9913f91a7375f28babf071c798",
+    "semantic_hash": ""
+  },
+  "KineticApp/app.json": {
+    "mtime": 1791978696.0486836,
+    "ast_hash": "f197a91a72d7ab0621b4db9cac624805",
+    "semantic_hash": ""
+  },
+  "KineticApp/package.json": {
+    "mtime": 1792084107.788804,
+    "ast_hash": "a4485486f6ec186a02218b9fd936ee41",
+    "semantic_hash": ""
+  },
+  "KineticApp/tsconfig.json": {
+    "mtime": 1778160544.3686106,
+    "ast_hash": "7dc90378d8236278da59b744aba14645",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/pom.xml": {
+    "mtime": 1792083739.4078057,
+    "ast_hash": "45532d37f795bb378ca7c5f32b55163f",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/config/JacksonConfig.java": {
+    "mtime": 1792083739.4692707,
+    "ast_hash": "0ad8002102a0d3a829f8dbb65c2791ae",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/AiPlanContextDTO.java": {
+    "mtime": 1791978696.0879018,
+    "ast_hash": "d66af7f65b457b8e02844d8c4c08a883",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/AiPlanDraftDTO.java": {
+    "mtime": 1791978696.0879018,
+    "ast_hash": "796dcf84078ee516be17ea3c3bafd7bb",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/AiPlanPreviewDTO.java": {
+    "mtime": 1791978696.0879018,
+    "ast_hash": "b5b6bedac943f322791a155372aefbc1",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/TrainerAiPlanApproveRequestDTO.java": {
+    "mtime": 1791978696.0879018,
+    "ast_hash": "620f9ccf98bcaa47038497088a8f71aa",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/TrainerAiPlanRequestDTO.java": {
+    "mtime": 1791978696.0879018,
+    "ast_hash": "68a86e7f25da68f6de2c315df446fa79",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/TrainerExerciseRequestDTO.java": {
+    "mtime": 1791978696.0879018,
+    "ast_hash": "bfd3ccaba063b3be2750cf8bbc745e29",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/TrainerWorkoutPlanRequestDTO.java": {
+    "mtime": 1791978696.0879018,
+    "ast_hash": "8630aeb153dd7cc3d7ddc291c7bc370e",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/exceptions/AiPlanPreviewException.java": {
+    "mtime": 1791978696.1042986,
+    "ast_hash": "7e22bfe153c2ce46cb63924bdf29bdf9",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/exceptions/TrainerManagedPlanException.java": {
+    "mtime": 1791978696.1052997,
+    "ast_hash": "7af407b5e40a2c5c4ada2e230a7cd4af",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/models/AiPlanGeneration.java": {
+    "mtime": 1791978696.1062994,
+    "ast_hash": "31a167f57b2072f59a2d856169575f20",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/repositories/AiPlanGenerationRepository.java": {
+    "mtime": 1791978696.1082997,
+    "ast_hash": "57fca6fe3cdab0bbbac4d3c7cb6b28b9",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/services/TrainerAiPlanService.java": {
+    "mtime": 1791978696.113299,
+    "ast_hash": "cf4d0bb294f4bfb911b250a13282e4d0",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/services/TrainerPlanService.java": {
+    "mtime": 1791978696.1152992,
+    "ast_hash": "91f2b8dd5db4ca6c7a91a91898182e0b",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/components.json": {
+    "mtime": 1783694238.3844066,
+    "ast_hash": "11fce971e6fcdb43b562f9cd985ad60d",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/package.json": {
+    "mtime": 1792083881.633198,
+    "ast_hash": "924698fa948784054cc5291b7bcf012c",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/KineticSelect.tsx": {
+    "mtime": 1791978696.12504,
+    "ast_hash": "f6551cce7c2f7e570943db5b780f6e3a",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/motion/primitives.tsx": {
+    "mtime": 1791978696.1260402,
+    "ast_hash": "cfb5547bf9857fc823f40b544f4a569f",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/personal/ConfirmDialog.tsx": {
+    "mtime": 1791978696.1270401,
+    "ast_hash": "0e3f50eb533035923a8d6c6e38462b40",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/personal/ListStates.tsx": {
+    "mtime": 1791978696.1270401,
+    "ast_hash": "be37e76b84fcbb403c144f0239704abb",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/personal/PlanEditor.tsx": {
+    "mtime": 1791978696.1280403,
+    "ast_hash": "3c3e91a3861daed4d540158cd2987353",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/personal/StudentCard.tsx": {
+    "mtime": 1791978696.1280403,
+    "ast_hash": "83cf80bb2f3504172c0242f2b75ac877",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/personal/WorkoutPlansTab.tsx": {
+    "mtime": 1791978696.1290407,
+    "ast_hash": "26c724b1ecbf91e99a3f5cb27804187d",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/personal/adherence.ts": {
+    "mtime": 1791978696.1300418,
+    "ast_hash": "990bc9dbaa662b8418445f7d5ae41749",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/personal/ai/AiPlanComposer.tsx": {
+    "mtime": 1791978696.1300418,
+    "ast_hash": "7600ac6d2f2c8d8f1a5a1b7ac1c69856",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/personal/ai/AiPlanFlow.tsx": {
+    "mtime": 1791978696.1310408,
+    "ast_hash": "20d24b173cbe94a2042a460d304a4f90",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/personal/ai/AiPlanGenerating.tsx": {
+    "mtime": 1791978696.1310408,
+    "ast_hash": "5cca02351d872643a00bfb9846a4648b",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/personal/ai/AiPlanPreview.tsx": {
+    "mtime": 1791978696.1320405,
+    "ast_hash": "0c1a482140dc97ebb833cf7e9752fab7",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/personal/ai/aiDraft.ts": {
+    "mtime": 1791978696.1330416,
+    "ast_hash": "9f80f5079e909b8b794e7f5862d309e0",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/components/personal/workoutVocab.ts": {
+    "mtime": 1791978696.1330416,
+    "ast_hash": "c35359d4c8a2423e0e0ad9c6346698f0",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/tsconfig.app.json": {
+    "mtime": 1783701087.3522823,
+    "ast_hash": "4fc5919a6cff3ee80063165d9ee136e0",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/tsconfig.json": {
+    "mtime": 1783694464.589011,
+    "ast_hash": "7b5e29df8aa966a4f53eeb1d92c1c602",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/tsconfig.node.json": {
+    "mtime": 1783694537.5625882,
+    "ast_hash": "895349e8fb8bb75fa408dfe3a4f05d2f",
+    "semantic_hash": ""
+  },
+  "resume/banco-de-dados.md": {
+    "mtime": 1785514053.4904988,
+    "ast_hash": "1509f9694bbf5e2db80c727b1d7a8c0b",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/screens/Auth/ConfirmEmailScreen.tsx": {
+    "mtime": 1792081063.1189017,
+    "ast_hash": "d3f90ffa8d55cc7a6a4dc44536445111",
+    "semantic_hash": ""
+  },
+  "KineticApp/src/utils/whatsapp.ts": {
+    "mtime": 1792083999.9802828,
+    "ast_hash": "85926cd3656aa8b46c2e9b10c54fb18c",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/ConfirmEmailDTO.java": {
+    "mtime": 1792081063.1752694,
+    "ast_hash": "a1d9fab13f8de316302620e11483c8b8",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/dtos/ForgotPasswordDTO.java": {
+    "mtime": 1792081063.1753912,
+    "ast_hash": "26ec718e2ff4b71aa475db01df438e0a",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/exceptions/EmailNotVerifiedException.java": {
+    "mtime": 1792081063.1771483,
+    "ast_hash": "8a90a12c1c46b52930be39f039b1cc76",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/exceptions/InvalidCodeException.java": {
+    "mtime": 1792081063.178578,
+    "ast_hash": "028d56c563295be898fc18060646f2bc",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/models/EmailVerificationCode.java": {
+    "mtime": 1792081063.179236,
+    "ast_hash": "5db4b239c8110f9635be0c542ea55a3e",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/models/PasswordResetCode.java": {
+    "mtime": 1792081063.179869,
+    "ast_hash": "c4a7affdf02aa122bb0b7c2e1f256d72",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/repositories/EmailVerificationCodeRepository.java": {
+    "mtime": 1792081063.1816492,
+    "ast_hash": "381869fbb7fac062f0e8ff5cbc4240f2",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/repositories/PasswordResetCodeRepository.java": {
+    "mtime": 1792081063.182331,
+    "ast_hash": "458ed42bce640802f2f4b7e06002ddf5",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/services/EmailService.java": {
+    "mtime": 1792081063.183736,
+    "ast_hash": "6febe5439e9c66eca23f0088bfd11142",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/services/EmailVerificationService.java": {
+    "mtime": 1792081063.1843457,
+    "ast_hash": "7f951da7792a066417de563f852f6572",
+    "semantic_hash": ""
+  },
+  "kinetic-backend/src/main/java/com/kinetic/services/PasswordResetService.java": {
+    "mtime": 1792081063.1851041,
+    "ast_hash": "cbd6bf34a30ad0c279d6333db3fdc9e1",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/pages/ConfirmEmailPage.tsx": {
+    "mtime": 1792081063.190113,
+    "ast_hash": "0ada27477664c203580877b172014e91",
+    "semantic_hash": ""
+  },
+  "kinetic-desktop/src/utils/whatsapp.ts": {
+    "mtime": 1792083808.9877903,
+    "ast_hash": "85926cd3656aa8b46c2e9b10c54fb18c",
+    "semantic_hash": ""
+  },
+  "AUDITORIA-SEGURANCA.md": {
+    "mtime": 1792081063.1147232,
+    "ast_hash": "86a1602d78a3362dcabb5a3dc9c914e1",
+    "semantic_hash": ""
+  }
+}

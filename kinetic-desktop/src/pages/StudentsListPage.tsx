@@ -6,7 +6,6 @@ import {
   AlertTriangle,
   Award,
   LogOut,
-  MessageSquare,
   Plus,
   Search,
   UserPlus,
@@ -14,7 +13,6 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getStudentMonthlyStats, listStudents } from '../services/trainerService';
-import { getUnreadCount } from '../services/chatService';
 import InviteStudentModal from '../components/InviteStudentModal';
 import { initialsOf } from '../components/Avatar';
 import StudentCard from '../components/personal/StudentCard';
@@ -72,7 +70,6 @@ export default function StudentsListPage() {
 
   const [students, setStudents] = useState<TrainerLink[]>([]);
   const [stats, setStats] = useState<StatsMap>({});
-  const [unread, setUnread] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -94,11 +91,8 @@ export default function StudentsListPage() {
     setStats({});
     setLoading(false);
 
-    // Aderência e não lidas chegam depois: os cards aparecem já e o anel
-    // anima quando o dado do mês chega. Falha individual não derruba a lista.
-    getUnreadCount()
-      .then(setUnread)
-      .catch(() => setUnread(null));
+    // Aderência chega depois: os cards aparecem já e o anel anima quando o
+    // dado do mês chega. Falha individual não derruba a lista.
     const results = await Promise.allSettled(
       links.map((l) => getStudentMonthlyStats(l.peer.id)),
     );
@@ -224,7 +218,6 @@ export default function StudentsListPage() {
                   ready={!loading && !loadError && (statsReady || students.length === 0)}
                   total={students.length}
                   attention={counts.low}
-                  unread={unread}
                 />
               </p>
             </div>
@@ -270,12 +263,6 @@ export default function StudentsListPage() {
               value={statsReady ? counts.low : null}
               foot="Aderência abaixo de 40% no mês"
               onClick={() => setFilter('low')}
-            />
-            <KpiTile
-              label="Mensagens não lidas"
-              icon={<MessageSquare className="h-[18px] w-[18px]" />}
-              value={unread}
-              foot="Somando todas as conversas"
             />
           </motion.section>
 
@@ -417,36 +404,26 @@ function HeroSummary({
   ready,
   total,
   attention,
-  unread,
 }: {
   ready: boolean;
   total: number;
   attention: number;
-  unread: number | null;
 }) {
   if (!ready) return <>Preparando o resumo da sua carteira…</>;
-  if (total === 0) return <>Convide seus alunos para acompanhar treinos e conversar por aqui.</>;
-
-  const unreadPart =
-    unread && unread > 0 ? (
-      <strong className="font-semibold text-k-primary">
-        {plural(unread, 'mensagem não lida', 'mensagens não lidas')}
-      </strong>
-    ) : null;
+  if (total === 0) return <>Convide seus alunos para acompanhar os treinos deles por aqui.</>;
 
   if (attention > 0) {
     return (
       <>
         Você tem{' '}
         <strong className="font-semibold text-k-alert">{plural(attention, 'aluno', 'alunos')}</strong>{' '}
-        precisando de atenção{unreadPart ? <> e {unreadPart}</> : null}.
+        precisando de atenção.
       </>
     );
   }
   return (
     <>
-      Nenhum aluno abaixo de 40% de aderência este mês
-      {unreadPart ? <>, e você tem {unreadPart}</> : null}.
+      Nenhum aluno abaixo de 40% de aderência este mês.
     </>
   );
 }

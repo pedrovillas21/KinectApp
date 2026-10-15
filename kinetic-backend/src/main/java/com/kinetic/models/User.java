@@ -55,6 +55,10 @@ public class User {
     @Column(unique = true)
     private String cpf;
 
+    /** Celular (DDD + número, só dígitos) — alimenta o atalho de WhatsApp. */
+    @Column(length = 11)
+    private String phone;
+
     @Column(nullable = true)
     private String level;
 

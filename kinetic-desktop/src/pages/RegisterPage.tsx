@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Eye, EyeOff, Lock, Mail, Activity, Building2, User, ArrowLeft, CheckCircle2, FileText, CreditCard, Check, X } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, Activity, Building2, User, ArrowLeft, CheckCircle2, FileText, CreditCard, Check, X, Phone } from 'lucide-react';
+import { isValidCellPhone, maskCellPhone } from '../utils/whatsapp';
 
 // Math validation for CPF
 function isValidCPF(cpf: string): boolean {
@@ -86,6 +87,7 @@ export default function RegisterPage() {
 
   // Conditional Fields
   const [cpf, setCpf] = useState('');
+  const [phone, setPhone] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [companyCnpj, setCompanyCnpj] = useState('');
 
@@ -136,6 +138,10 @@ export default function RegisterPage() {
         setError('CPF inválido.');
         return;
       }
+      if (!isValidCellPhone(phone)) {
+        setError('Celular inválido. Informe DDD + número, ex.: (11) 98765-4321.');
+        return;
+      }
     } else {
       if (!isValidCNPJ(companyCnpj)) {
         setError('CNPJ inválido.');
@@ -153,6 +159,7 @@ export default function RegisterPage() {
           email,
           password,
           cpf,
+          phone,
         });
       } else {
         result = await registerCompany({
@@ -359,6 +366,34 @@ export default function RegisterPage() {
                     className="w-full pl-12 pr-4 py-3 bg-k-surface2/60 border border-k-ghost rounded-xl outline-none focus:border-k-primary focus:ring-1 focus:ring-k-primary/30 transition-all text-sm placeholder:text-k-text-muted"
                   />
                 </div>
+              </div>
+            )}
+
+            {/* Celular (WhatsApp) for Professionals */}
+            {activeTab === 'personal' && (
+              <div className="flex flex-col gap-1.5 transition-all">
+                <label htmlFor="phone" className="text-xs font-bold text-k-text-dim uppercase tracking-wider">
+                  Celular (WhatsApp)
+                </label>
+                <div className="relative flex items-center">
+                  <span className="absolute left-4 text-k-text-muted">
+                    <Phone className="w-4 h-4" />
+                  </span>
+                  <input
+                    id="phone"
+                    type="tel"
+                    inputMode="numeric"
+                    autoComplete="tel-national"
+                    placeholder="(11) 98765-4321"
+                    value={phone}
+                    onChange={(e) => setPhone(maskCellPhone(e.target.value))}
+                    required
+                    className="w-full pl-12 pr-4 py-3 bg-k-surface2/60 border border-k-ghost rounded-xl outline-none focus:border-k-primary focus:ring-1 focus:ring-k-primary/30 transition-all text-sm placeholder:text-k-text-muted"
+                  />
+                </div>
+                <p className="text-[11px] text-k-text-muted">
+                  Seus alunos usam este número para falar com você pelo WhatsApp.
+                </p>
               </div>
             )}
 

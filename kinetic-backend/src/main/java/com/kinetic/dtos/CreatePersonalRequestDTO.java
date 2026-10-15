@@ -22,6 +22,10 @@ public record CreatePersonalRequestDTO(
         @Size(min = 6, message = "A senha deve ter ao menos 6 caracteres.")
         String senha,
 
+        /** Celular (DDD + número); validado/normalizado no service. Usado no atalho de WhatsApp. */
+        @NotBlank(message = "O celular é obrigatório.")
+        String phone,
+
         /** Opcional: empresa a que o personal fica vinculado. */
         UUID companyId
 ) {

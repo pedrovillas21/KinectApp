@@ -122,6 +122,8 @@ export interface TrainerPeer {
   nome: string;
   email: string;
   avatarUrl: string | null;
+  /** Celular (DDD + número) — só vem com vínculo ATIVO; null se não cadastrado. */
+  phone: string | null;
 }
 
 /** Vínculo personal↔aluno — espelha TrainerLinkDTO do backend. */
@@ -328,16 +330,4 @@ export interface Feedback {
   studentName: string | null;
   personalName: string;
   corporate: boolean;
-}
-
-// ── Chat ───────────────────────────────────────────────────────────────────
-
-/** Mensagem do chat personal↔aluno — espelha ChatMessageDTO do backend. */
-export interface ChatMessage {
-  id: string;
-  senderId: string;
-  recipientId: string;
-  content: string;
-  sentAt: string;
-  readAt: string | null;
 }
