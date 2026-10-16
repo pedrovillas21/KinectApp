@@ -511,3 +511,41 @@ export interface Feedback {
   personalName: string;
   corporate: boolean;
 }
+
+/** Item de formação do perfil profissional (espelha TrainerProfileDTOs.Education). */
+export interface TrainerEducation {
+  title: string;
+  detail: string | null;
+}
+
+/**
+ * Perfil profissional do personal (espelha TrainerProfileDTOs.Response).
+ * updatedAt null = ainda não salvo (textos nulos, listas vazias).
+ */
+export interface TrainerProfile {
+  trainerId: string;
+  nome: string;
+  avatarUrl: string | null;
+  phone: string | null;
+  cref: string | null;
+  /** Só o Kinetic verifica; trocar o CREF volta para false. */
+  crefVerified: boolean;
+  bio: string | null;
+  specialties: string[];
+  education: TrainerEducation[];
+  modality: string | null;
+  schedule: string | null;
+  location: string | null;
+  updatedAt: string | null;
+}
+
+/** Corpo do PUT /trainer/profile (substitui o perfil inteiro). */
+export interface TrainerProfileInput {
+  cref: string | null;
+  bio: string | null;
+  specialties: string[];
+  education: TrainerEducation[];
+  modality: string | null;
+  schedule: string | null;
+  location: string | null;
+}

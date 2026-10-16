@@ -49,4 +49,12 @@ public interface WorkoutPlanRepository extends JpaRepository<WorkoutPlan, UUID> 
     // Ficha vigente mais nova de cada aluno — caixa "Hoje" sugere renovar fichas antigas.
     @Query("SELECT w.user.id, MAX(w.createdAt) FROM WorkoutPlan w WHERE w.user.id IN :userIds AND w.status = 'active' GROUP BY w.user.id")
     List<Object[]> findNewestActiveCreatedAtPerUser(@Param("userIds") Collection<UUID> userIds);
+
+    // Fichas do aluno montadas por um personal específico — tela "Seu personal" do app.
+    @EntityGraph(attributePaths = "exercises")
+    List<WorkoutPlan> findByUserIdAndCreatedByIdAndStatusOrderByCreatedAtAsc(UUID userId, UUID createdById, String status);
+
+    // Ficha mais recente que o personal montou para o aluno (arquivadas inclusive) — "Última revisão".
+    @Query("SELECT MAX(w.createdAt) FROM WorkoutPlan w WHERE w.user.id = :userId AND w.createdBy.id = :trainerId")
+    Optional<LocalDateTime> findLatestCreatedAtByTrainer(@Param("userId") UUID userId, @Param("trainerId") UUID trainerId);
 }

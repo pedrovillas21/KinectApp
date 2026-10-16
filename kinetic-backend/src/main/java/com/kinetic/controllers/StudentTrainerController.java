@@ -2,8 +2,10 @@ package com.kinetic.controllers;
 
 import com.kinetic.dtos.InviteCodeRedeemRequestDTO;
 import com.kinetic.dtos.TrainerLinkDTO;
+import com.kinetic.dtos.TrainerProfileDTOs;
 import com.kinetic.services.TrainerInviteCodeService;
 import com.kinetic.services.TrainerLinkService;
+import com.kinetic.services.TrainerProfileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -29,6 +31,7 @@ public class StudentTrainerController extends BaseController {
 
     private final TrainerLinkService trainerLinkService;
     private final TrainerInviteCodeService trainerInviteCodeService;
+    private final TrainerProfileService trainerProfileService;
 
     @Operation(
             summary = "Listar convites de personal recebidos",
@@ -78,5 +81,28 @@ public class StudentTrainerController extends BaseController {
     @GetMapping("/trainer")
     public ResponseEntity<TrainerLinkDTO> myTrainer() {
         return ResponseEntity.ok(trainerLinkService.getMyTrainer(currentUserEmail()));
+    }
+
+    @Operation(
+            summary = "Ver o perfil profissional do meu personal",
+            description = "Tela \"Seu personal\" do app: perfil público do personal vinculado (CREF, bio, "
+                    + "especialidades, formação, atendimento, WhatsApp), desde quando é o personal do aluno, "
+                    + "fichas vigentes que ele montou e a data da última ficha montada. 404 = sem personal ativo."
+    )
+    @GetMapping("/trainer/profile")
+    public ResponseEntity<TrainerProfileDTOs.StudentView> myTrainerProfile() {
+        return ResponseEntity.ok(trainerProfileService.getMyTrainerProfile(currentUserEmail()));
+    }
+
+    @Operation(
+            summary = "Encerrar o vínculo com o meu personal",
+            description = "O aluno deixa de ser acompanhado pelo personal: o personal perde o acesso aos dados "
+                    + "dele e o aluno volta a controlar as próprias fichas. O histórico de treinos não é apagado. "
+                    + "404 = sem personal ativo; 400 = vínculo atribuído pela empresa."
+    )
+    @DeleteMapping("/trainer")
+    public ResponseEntity<Void> endMyTrainerLink() {
+        trainerLinkService.endLinkByStudent(currentUserEmail());
+        return ResponseEntity.noContent().build();
     }
 }

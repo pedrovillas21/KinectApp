@@ -249,15 +249,21 @@ export default function StudentsListPage() {
             Financeiro
           </Link>
           {billing && <PlanChip billing={billing} />}
-          <div className="hidden items-center gap-2.5 border-r border-k-ghost pr-4 sm:flex">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-k-surface2 font-display text-[13px] font-extrabold text-k-primary">
+          <Link
+            to="/perfil"
+            title="Meu perfil profissional"
+            className="group hidden items-center gap-2.5 border-r border-k-ghost pr-4 sm:flex"
+          >
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-k-surface2 font-display text-[13px] font-extrabold text-k-primary transition-shadow group-hover:shadow-[0_0_0_2px_rgba(0,229,255,0.45)]">
               {initialsOf(currentUser?.nome ?? '')}
             </div>
             <div className="leading-tight">
-              <p className="text-[13.5px] font-semibold">{shortName(currentUser?.nome ?? '')}</p>
-              <p className="text-xs text-k-text-muted">Personal Trainer</p>
+              <p className="text-[13.5px] font-semibold transition-colors group-hover:text-k-primary">
+                {shortName(currentUser?.nome ?? '')}
+              </p>
+              <p className="text-xs text-k-text-muted">Meu perfil</p>
             </div>
-          </div>
+          </Link>
           <motion.button
             type="button"
             onClick={() => setInviteOpen(true)}
