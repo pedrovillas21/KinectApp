@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -44,4 +45,8 @@ public interface WorkoutPlanRepository extends JpaRepository<WorkoutPlan, UUID> 
     // arquivadas inclusive — base da cota de IA do aluno.
     @Query("SELECT MAX(w.createdAt) FROM WorkoutPlan w WHERE w.user.id = :userId AND w.createdBy IS NULL")
     Optional<LocalDateTime> findLatestAiCreatedAt(@Param("userId") UUID userId);
+
+    // Ficha vigente mais nova de cada aluno — caixa "Hoje" sugere renovar fichas antigas.
+    @Query("SELECT w.user.id, MAX(w.createdAt) FROM WorkoutPlan w WHERE w.user.id IN :userIds AND w.status = 'active' GROUP BY w.user.id")
+    List<Object[]> findNewestActiveCreatedAtPerUser(@Param("userIds") Collection<UUID> userIds);
 }

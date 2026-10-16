@@ -30,8 +30,7 @@ export const confirmDemoPayment = async (): Promise<BillingOverview> => {
   return res.data;
 };
 
-export const formatBRL = (cents: number): string =>
-  (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+export { formatBRL } from '../utils/money';
 
 export const formatDate = (iso: string | null): string =>
   iso ? new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' }) : '';

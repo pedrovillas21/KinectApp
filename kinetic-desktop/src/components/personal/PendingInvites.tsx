@@ -63,7 +63,7 @@ export default function PendingInvites({
     });
 
   return (
-    <section aria-label="Convites pendentes" className="flex flex-col gap-3">
+    <section id="convites-pendentes" aria-label="Convites pendentes" className="flex scroll-mt-24 flex-col gap-3">
       <div className="flex items-baseline gap-2.5">
         <h3 className="font-display text-lg font-extrabold tracking-tight font-stretch-semi-expanded">
           Convites por link aguardando o aluno

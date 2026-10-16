@@ -7,6 +7,7 @@ import {
   AlertTriangle,
   Award,
   CreditCard,
+  Wallet,
   LogOut,
   MessageCircle,
   Plus,
@@ -15,7 +16,13 @@ import {
   Users,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { getEngagement, getStudentMonthlyStats, listInviteCodes, listStudents } from '../services/trainerService';
+import {
+  getEngagement,
+  getStudentMonthlyStats,
+  getToday,
+  listInviteCodes,
+  listStudents,
+} from '../services/trainerService';
 import InviteStudentModal from '../components/InviteStudentModal';
 import PhoneDialog from '../components/PhoneDialog';
 import { usePersonalPhone } from '../layouts/PhoneGate';
@@ -24,6 +31,7 @@ import { initialsOf } from '../components/Avatar';
 import StudentCard from '../components/personal/StudentCard';
 import PendingInvites from '../components/personal/PendingInvites';
 import RiskAlerts from '../components/personal/RiskAlerts';
+import TodayInbox from '../components/personal/TodayInbox';
 import { daysUntil, getBilling } from '../services/billingService';
 import { StudentsEmpty, StudentsError, StudentsSkeleton } from '../components/personal/ListStates';
 import {
@@ -38,6 +46,7 @@ import type {
   BillingOverview,
   MonthlyStatsResponseDTO,
   StudentEngagement,
+  TodayItem,
   TrainerInviteCode,
   TrainerLink,
 } from '../types';
@@ -95,6 +104,8 @@ export default function StudentsListPage() {
   const [billing, setBilling] = useState<BillingOverview | null>(null);
   /** Painel de aderência por aluno; null = carregando. */
   const [engagement, setEngagement] = useState<Record<string, StudentEngagement> | null>(null);
+  /** Caixa "Hoje"; null = carregando ou falhou (a seção some). */
+  const [today, setToday] = useState<TodayItem[] | null>(null);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
   // Relógio da saudação/data: atualiza com o painel aberto (virada de turno ou de dia).
@@ -121,6 +132,9 @@ export default function StudentsListPage() {
     getEngagement()
       .then((list) => setEngagement(Object.fromEntries(list.map((e) => [e.studentId, e]))))
       .catch(() => setEngagement({}));
+    getToday()
+      .then(setToday)
+      .catch(() => setToday(null));
     let links: TrainerLink[];
     try {
       links = await listStudents();
@@ -227,6 +241,13 @@ export default function StudentsListPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          <Link
+            to="/financeiro"
+            className="hidden h-11 items-center gap-2 rounded-xl border border-white/10 bg-k-surface1 px-3 text-[13px] font-semibold text-k-text-dim transition-colors hover:border-k-primary/45 hover:text-k-primary md:flex"
+          >
+            <Wallet className="h-4 w-4" />
+            Financeiro
+          </Link>
           {billing && <PlanChip billing={billing} />}
           <div className="hidden items-center gap-2.5 border-r border-k-ghost pr-4 sm:flex">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-k-surface2 font-display text-[13px] font-extrabold text-k-primary">
@@ -301,6 +322,9 @@ export default function StudentsListPage() {
               </button>
             )}
           </motion.section>
+
+          {/* Caixa de entrada: o que pede ação hoje */}
+          {!loadError && today && <TodayInbox items={today} />}
 
           {/* Indicadores da carteira */}
           <motion.section

@@ -59,6 +59,10 @@ public class User {
     @Column(length = 11)
     private String phone;
 
+    /** Chave Pix do personal, usada no lembrete de cobrança enviado ao aluno. */
+    @Column(name = "pix_key", length = 140)
+    private String pixKey;
+
     @Column(nullable = true)
     private String level;
 

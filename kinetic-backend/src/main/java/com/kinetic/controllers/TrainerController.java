@@ -7,6 +7,7 @@ import com.kinetic.dtos.MonthlyStatsResponseDTO;
 import com.kinetic.dtos.PlanEvolutionResponseDTO;
 import com.kinetic.dtos.StatsSummaryResponseDTO;
 import com.kinetic.dtos.StudentEngagementDTO;
+import com.kinetic.dtos.TodayItemDTO;
 import com.kinetic.dtos.TrainerAiPlanApproveRequestDTO;
 import com.kinetic.dtos.TrainerAiPlanRequestDTO;
 import com.kinetic.dtos.TrainerInviteCodeDTO;
@@ -17,6 +18,7 @@ import com.kinetic.dtos.WorkoutPlanResponseDTO;
 import com.kinetic.services.StatsService;
 import com.kinetic.services.TrainerAiPlanService;
 import com.kinetic.services.TrainerEngagementService;
+import com.kinetic.services.TrainerTodayService;
 import com.kinetic.services.TrainerInviteCodeService;
 import com.kinetic.services.TrainerLinkService;
 import com.kinetic.services.TrainerPlanService;
@@ -54,6 +56,7 @@ public class TrainerController extends BaseController {
     private final TrainerAiPlanService trainerAiPlanService;
     private final TrainerInviteCodeService trainerInviteCodeService;
     private final TrainerEngagementService trainerEngagementService;
+    private final TrainerTodayService trainerTodayService;
 
     @Operation(
             summary = "Convidar um aluno pelo e-mail",
@@ -109,6 +112,17 @@ public class TrainerController extends BaseController {
     public ResponseEntity<Void> revokeInviteCode(@PathVariable @NonNull UUID inviteId) {
         trainerInviteCodeService.revoke(currentUserEmail(), inviteId);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Caixa de entrada \"Hoje\"",
+            description = "Pendências que pedem ação, da mais urgente para a menos: cobranças atrasadas ou "
+                    + "vencendo, alunos em risco, prévias de IA esperando revisão, reavaliações, fichas antigas e "
+                    + "convites vencendo. Cada item traz a rota do painel onde se resolve."
+    )
+    @GetMapping("/today")
+    public ResponseEntity<List<TodayItemDTO>> today() {
+        return ResponseEntity.ok(trainerTodayService.today(currentUserEmail()));
     }
 
     @Operation(

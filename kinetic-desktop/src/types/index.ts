@@ -130,6 +130,103 @@ export interface StudentEngagement {
   alerts: RiskAlert[];
 }
 
+// ── Financeiro do personal (GET /api/trainer/finance) ──────────────────────
+
+export type PaymentMethod = 'PIX' | 'DINHEIRO' | 'CARTAO' | 'TRANSFERENCIA' | 'OUTRO';
+
+/** ATRASADO = pendente com vencimento no passado (derivado no backend). */
+export type ChargeStatus = 'PENDENTE' | 'ATRASADO' | 'PAGO' | 'CANCELADO';
+
+export interface StudentChargeItem {
+  id: string;
+  studentId: string;
+  studentName: string;
+  studentAvatarUrl: string | null;
+  /** null quando o aluno saiu da carteira. */
+  studentPhone: string | null;
+  activeStudent: boolean;
+  referenceMonth: string;
+  dueDate: string;
+  amountCents: number;
+  status: ChargeStatus;
+  paidAt: string | null;
+  paymentMethod: PaymentMethod | null;
+}
+
+export interface StudentPlanItem {
+  studentId: string;
+  studentName: string;
+  studentAvatarUrl: string | null;
+  amountCents: number;
+  dueDay: number;
+}
+
+export interface FinanceOverview {
+  /** AAAA-MM */
+  month: string;
+  pixKey: string | null;
+  expectedCents: number;
+  receivedCents: number;
+  pendingCents: number;
+  overdueCents: number;
+  overdueCount: number;
+  /** Cobranças do mês + atrasadas de meses anteriores (atrasadas primeiro). */
+  charges: StudentChargeItem[];
+  plans: StudentPlanItem[];
+  studentsWithoutPlan: { studentId: string; studentName: string; studentAvatarUrl: string | null }[];
+}
+
+// ── Avaliação física (/api/trainer/students/{id}/assessments) ──────────────
+
+/** Medidas editáveis da avaliação (todas opcionais; ao menos uma exigida). */
+export interface AssessmentMeasures {
+  weightKg: number | null;
+  heightCm: number | null;
+  bodyFatPct: number | null;
+  muscleMassKg: number | null;
+  restingHr: number | null;
+  chestCm: number | null;
+  waistCm: number | null;
+  abdomenCm: number | null;
+  hipCm: number | null;
+  armRightCm: number | null;
+  armLeftCm: number | null;
+  thighRightCm: number | null;
+  thighLeftCm: number | null;
+  calfRightCm: number | null;
+  calfLeftCm: number | null;
+}
+
+export interface AssessmentInput extends AssessmentMeasures {
+  /** AAAA-MM-DD */
+  assessedOn: string;
+  notes: string | null;
+}
+
+export interface PhysicalAssessment extends AssessmentInput {
+  id: string;
+  /** Calculados no backend. */
+  bmi: number | null;
+  fatMassKg: number | null;
+  leanMassKg: number | null;
+  trainerName: string | null;
+}
+
+// ── Caixa de entrada "Hoje" (GET /api/trainer/today) ───────────────────────
+
+export type TodayItemType = 'PAGAMENTO' | 'RISCO' | 'PREVIA_IA' | 'REAVALIACAO' | 'FICHA_ANTIGA' | 'CONVITE';
+
+export interface TodayItem {
+  type: TodayItemType;
+  severity: 'ALTO' | 'MEDIO' | 'INFO';
+  studentId: string | null;
+  studentName: string | null;
+  title: string;
+  detail: string;
+  /** Rota do painel ("/financeiro") ou âncora da carteira ("#alertas-de-risco"). */
+  actionPath: string;
+}
+
 // ── Paginação genérica (Spring Page<T>) ────────────────────────────────────
 
 export interface Page<T> {

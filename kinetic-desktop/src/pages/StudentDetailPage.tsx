@@ -2,23 +2,28 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { toast } from 'sonner';
-import { ArrowLeft, BarChart3, Dumbbell, MessageCircle, Target, UserMinus, UserX } from 'lucide-react';
+import { ArrowLeft, BarChart3, Dumbbell, MessageCircle, Ruler, Target, UserMinus, UserX } from 'lucide-react';
 import { endStudentLink, listStudents } from '../services/trainerService';
 import { useAuth } from '../contexts/AuthContext';
 import Avatar from '../components/Avatar';
 import DashboardTab from '../components/DashboardTab';
 import WorkoutPlansTab from '../components/personal/WorkoutPlansTab';
+import AssessmentsTab from '../components/personal/AssessmentsTab';
 import ConfirmDialog from '../components/personal/ConfirmDialog';
 import { EASE_OUT, SPRING_PILL } from '../components/motion/primitives';
 import type { TrainerLink } from '../types';
 import { whatsappUrl } from '../utils/whatsapp';
 
-type TabId = 'dashboard' | 'plans';
+type TabId = 'dashboard' | 'plans' | 'assessments';
 
 const TABS: { id: TabId; label: string; icon: typeof BarChart3 }[] = [
   { id: 'dashboard', label: 'Desempenho', icon: BarChart3 },
   { id: 'plans', label: 'Treinos', icon: Dumbbell },
+  { id: 'assessments', label: 'Avaliações', icon: Ruler },
 ];
+
+/** Valor de ?aba= na URL de cada aba (a de desempenho é a padrão, sem parâmetro). */
+const TAB_PARAM: Record<TabId, string | null> = { dashboard: null, plans: 'treinos', assessments: 'avaliacoes' };
 
 const sinceLabel = (iso: string): string => {
   const d = new Date(iso);
@@ -31,7 +36,8 @@ export default function StudentDetailPage() {
   const { currentUser } = useAuth();
   // A aba fica na URL (?aba=treinos): sobrevive a recarregar e ao voltar do navegador.
   const [searchParams, setSearchParams] = useSearchParams();
-  const tab: TabId = searchParams.get('aba') === 'treinos' ? 'plans' : 'dashboard';
+  const abaParam = searchParams.get('aba');
+  const tab: TabId = (Object.keys(TAB_PARAM) as TabId[]).find((t) => TAB_PARAM[t] === abaParam) ?? 'dashboard';
   // Aba visitada continua montada (só oculta): trocar de aba não perde um
   // rascunho de ficha em edição nem refaz as buscas do desempenho.
   const [visited, setVisited] = useState<Set<TabId>>(() => new Set([tab]));
@@ -141,7 +147,8 @@ export default function StudentDetailPage() {
 
   const selectTab = (next: TabId) => {
     setVisited((v) => (v.has(next) ? v : new Set(v).add(next)));
-    setSearchParams(next === 'plans' ? { aba: 'treinos' } : {}, { replace: true });
+    const param = TAB_PARAM[next];
+    setSearchParams(param ? { aba: param } : {}, { replace: true });
   };
 
   return (
@@ -300,6 +307,16 @@ export default function StudentDetailPage() {
             hidden={tab !== 'plans'}
           >
             <WorkoutPlansTab studentId={id} studentFirstName={firstName} studentName={peer.nome} />
+          </div>
+        )}
+        {visited.has('assessments') && (
+          <div
+            role="tabpanel"
+            id="student-panel-assessments"
+            aria-labelledby="student-tab-assessments"
+            hidden={tab !== 'assessments'}
+          >
+            <AssessmentsTab studentId={id} studentFirstName={firstName} />
           </div>
         )}
       </div>

@@ -9,6 +9,7 @@ import type {
   StatsPeriodId,
   StatsSummaryResponseDTO,
   StudentEngagement,
+  TodayItem,
   TrainerInviteCode,
   TrainerLink,
   WorkoutPlan,
@@ -66,6 +67,12 @@ export const regenerateInviteCode = async (inviteId: string): Promise<TrainerInv
 
 export const revokeInviteCode = async (inviteId: string): Promise<void> => {
   await api.delete(`/trainer/invite-codes/${inviteId}`);
+};
+
+/** Caixa "Hoje": pendências da mais urgente para a menos, cada uma com a rota onde se resolve. */
+export const getToday = async (): Promise<TodayItem[]> => {
+  const res = await api.get<TodayItem[]>('/trainer/today');
+  return res.data;
 };
 
 /** Painel de aderência: último treino, aderência recente e alertas de risco de cada aluno ativo. */
