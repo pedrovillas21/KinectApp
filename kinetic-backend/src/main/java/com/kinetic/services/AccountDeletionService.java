@@ -101,6 +101,14 @@ public class AccountDeletionService {
         execute("DELETE FROM workout_plans WHERE user_id = :id", userId);
         execute("DELETE FROM weight_history WHERE user_id = :id", userId);
 
+        // Gerações de IA (como aluno ou como personal): a linha fica para a auditoria da
+        // V24 (id, modelo, status, datas), mas sem o texto. O pedido, a resposta, as fichas
+        // aprovadas e a declaração (que cita o nome do aluno) são dados pessoais. Precisa vir
+        // antes do DELETE final, que zera trainer_id/student_id e deixa de achar as linhas.
+        execute("UPDATE ai_plan_generations SET prompt = '', ai_output = '', options = NULL, "
+                + "approved_plans = NULL, declaration_text = NULL "
+                + "WHERE trainer_id = :id OR student_id = :id", userId);
+
         // Assinatura do personal: cancelada no provedor antes do DELETE final. Se o
         // provedor falhar, a exclusão inteira volta (502) e nada fica cobrando uma
         // conta que não existe mais.

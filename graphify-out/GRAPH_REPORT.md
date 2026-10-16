@@ -1,16 +1,16 @@
 # Graph Report - frosty-poincare-ed58db  (2026-10-16)
 
 ## Corpus Check
-- 471 files · ~229,156 words
+- 471 files · ~229,265 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 5694 nodes · 12739 edges · 342 communities (260 shown, 82 thin omitted)
+- 5694 nodes · 12739 edges · 343 communities (258 shown, 85 thin omitted)
 - Extraction: 91% EXTRACTED · 9% INFERRED · 0% AMBIGUOUS · INFERRED: 1107 edges (avg confidence: 0.79)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `6ca386c7`
+- Built from commit: `60ec79fa`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -165,10 +165,10 @@
 - [[_COMMUNITY_Community 149|Community 149]]
 - [[_COMMUNITY_Community 150|Community 150]]
 - [[_COMMUNITY_Community 151|Community 151]]
-- [[_COMMUNITY_Community 152|Community 152]]
 - [[_COMMUNITY_Community 153|Community 153]]
-- [[_COMMUNITY_Community 155|Community 155]]
+- [[_COMMUNITY_Community 154|Community 154]]
 - [[_COMMUNITY_Community 156|Community 156]]
+- [[_COMMUNITY_Community 157|Community 157]]
 - [[_COMMUNITY_Community 158|Community 158]]
 - [[_COMMUNITY_Community 159|Community 159]]
 - [[_COMMUNITY_Community 160|Community 160]]
@@ -179,7 +179,7 @@
 - [[_COMMUNITY_Community 165|Community 165]]
 - [[_COMMUNITY_Community 166|Community 166]]
 - [[_COMMUNITY_Community 167|Community 167]]
-- [[_COMMUNITY_Community 168|Community 168]]
+- [[_COMMUNITY_Community 169|Community 169]]
 - [[_COMMUNITY_Community 170|Community 170]]
 - [[_COMMUNITY_Community 171|Community 171]]
 - [[_COMMUNITY_Community 172|Community 172]]
@@ -200,7 +200,7 @@
 - [[_COMMUNITY_Community 187|Community 187]]
 - [[_COMMUNITY_Community 188|Community 188]]
 - [[_COMMUNITY_Community 189|Community 189]]
-- [[_COMMUNITY_Community 191|Community 191]]
+- [[_COMMUNITY_Community 190|Community 190]]
 - [[_COMMUNITY_Community 192|Community 192]]
 - [[_COMMUNITY_Community 193|Community 193]]
 - [[_COMMUNITY_Community 194|Community 194]]
@@ -246,9 +246,10 @@
 - [[_COMMUNITY_Community 234|Community 234]]
 - [[_COMMUNITY_Community 235|Community 235]]
 - [[_COMMUNITY_Community 236|Community 236]]
-- [[_COMMUNITY_Community 325|Community 325]]
-- [[_COMMUNITY_Community 340|Community 340]]
+- [[_COMMUNITY_Community 237|Community 237]]
+- [[_COMMUNITY_Community 326|Community 326]]
 - [[_COMMUNITY_Community 341|Community 341]]
+- [[_COMMUNITY_Community 342|Community 342]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `User` - 152 edges
@@ -269,418 +270,422 @@
   kinetic-backend/src/main/java/com/kinetic/dtos/WorkoutPlanResponseDTO.java → kinetic-desktop/src/pages/StudentsListPage.tsx
 - `ExerciseRow()` --calls--> `id()`  [INFERRED]
   kinetic-desktop/src/components/personal/PlanEditor.tsx → kinetic-backend/src/main/java/com/kinetic/enums/StatsPeriodParam.java
-- `WorkoutPlansTab()` --calls--> `useAuth()`  [EXTRACTED]
-  kinetic-desktop/src/components/personal/WorkoutPlansTab.tsx → kinetic-desktop/src/contexts/AuthContext.tsx
-- `SheetOverlay()` --calls--> `cn()`  [EXTRACTED]
-  kinetic-desktop/src/components/ui/sheet.tsx → kinetic-desktop/src/utils/cn.ts
+- `PlanCard()` --calls--> `formatBRL()`  [INFERRED]
+  kinetic-desktop/src/pages/BillingPage.tsx → kinetic-desktop/src/utils/money.ts
+- `DemoCheckoutPage()` --calls--> `formatBRL()`  [INFERRED]
+  kinetic-desktop/src/pages/DemoCheckoutPage.tsx → kinetic-desktop/src/utils/money.ts
 
-## Communities (342 total, 82 thin omitted)
+## Communities (343 total, 85 thin omitted)
 
 ### Community 0 - "Community 0"
-Cohesion: 0.05
-Nodes (84): class-variance-authority, Props, class-variance-authority, Props, Props, RoleFilter, createCompany(), CreateCompanyPayload (+76 more)
+Cohesion: 0.03
+Nodes (80): Props, SKELETON_ACCENTS, STEPS, Avatar(), initialsOf(), Charts(), CycleComparison(), DeltaPill() (+72 more)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.03
-Nodes (91): AiRequestForm, attentionFor(), autoSubtitle(), bareTag(), dayLabel(), joinPt(), nameKey(), PreviewPlan (+83 more)
+Nodes (81): AiRequestForm, attentionFor(), autoSubtitle(), bareTag(), dayLabel(), joinPt(), nameKey(), PreviewPlan (+73 more)
 
 ### Community 2 - "Community 2"
 Cohesion: 0.04
-Nodes (89): Avatar(), initialsOf(), Props, Charts(), CycleComparison(), DashboardTab(), DeltaPill(), formatShortDate() (+81 more)
+Nodes (81): AppSidebar(), ROLE_SUBTITLE, Avatar(), AvatarBadge(), AvatarFallback(), AvatarGroup(), AvatarGroupCount(), AvatarImage() (+73 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.04
-Nodes (42): com.fasterxml.jackson.core.type.TypeReference, com.fasterxml.jackson.databind.ObjectMapper, io.jsonwebtoken.Claims, jakarta.servlet.FilterChain, jakarta.servlet.http.HttpServletRequest, java.security.SecureRandom, javax.crypto.SecretKey, Override (+34 more)
+Nodes (78): ROLE_SUBTITLE, useIsMobile(), Avatar(), AvatarBadge(), AvatarFallback(), AvatarGroup(), AvatarGroupCount(), AvatarImage() (+70 more)
 
 ### Community 4 - "Community 4"
-Cohesion: 0.03
-Nodes (70): Props, SKELETON_ACCENTS, STEPS, Avatar(), initialsOf(), Charts(), CycleComparison(), DeltaPill() (+62 more)
+Cohesion: 0.06
+Nodes (38): jakarta.persistence.EntityNotFoundException, EmpresaAnalyticsDTO, InstructorPerf, VolumePoint, EmpresaStudentLinkDTO, ChargeDTO, PeerDTO, TrainerLinkDTO (+30 more)
 
 ### Community 5 - "Community 5"
-Cohesion: 0.06
-Nodes (32): jakarta.persistence.EntityNotFoundException, EmpresaAnalyticsDTO, InstructorPerf, VolumePoint, EmpresaStudentLinkDTO, FeedbackDTO, PeerDTO, TrainerLinkDTO (+24 more)
+Cohesion: 0.05
+Nodes (77): CommentsSheet(), Props, styles, ConnectionRequestsModal(), Props, styles, FeedPost(), Props (+69 more)
 
 ### Community 6 - "Community 6"
 Cohesion: 0.05
-Nodes (53): jakarta.persistence.Entity, jakarta.persistence.Table, ExerciseResponseDTO, LogSessionRequestDTO, SetLogDto, EmailVerificationCode, Entity, Table (+45 more)
+Nodes (77): Avatar(), initialsOf(), Props, InviteStudentModal(), Mode, MODES, Props, CountUp() (+69 more)
 
 ### Community 7 - "Community 7"
-Cohesion: 0.04
-Nodes (34): GenerateWorkoutRequestDto, UserProfileResponseDTO, AllArgsConstructor, Entity, Getter, NoArgsConstructor, Setter, Table (+26 more)
+Cohesion: 0.07
+Nodes (51): class-variance-authority, Props, Props, Props, radix-ui, RoleFilter, desvincularAluno(), desvincularFuncionario() (+43 more)
 
 ### Community 8 - "Community 8"
-Cohesion: 0.06
-Nodes (36): io.swagger.v3.oas.annotations.Operation, EmpresaController, DeleteMapping, GetMapping, PostMapping, RequestMapping, RestController, CreatePostRequest (+28 more)
+Cohesion: 0.05
+Nodes (25): CreatePostRequest, CreateStoryRequest, DeleteMapping, GetMapping, PostMapping, RequestMapping, RestController, SocialController (+17 more)
 
 ### Community 9 - "Community 9"
 Cohesion: 0.04
-Nodes (79): AppSidebar(), ROLE_SUBTITLE, Avatar(), AvatarBadge(), AvatarFallback(), AvatarGroup(), AvatarGroupCount(), AvatarImage() (+71 more)
+Nodes (20): TodayItemDTO, UpdateUserStatusRequestDTO, UserProfileResponseDTO, UserStatus, ATIVO, BLOQUEADO, SUSPENSO, EmailAlreadyInUseException (+12 more)
 
 ### Community 10 - "Community 10"
-Cohesion: 0.05
-Nodes (74): CommentsSheet(), Props, styles, ConnectionRequestsModal(), Props, styles, FeedPost(), Props (+66 more)
+Cohesion: 0.06
+Nodes (48): jakarta.persistence.Entity, jakarta.persistence.Table, ExerciseResponseDTO, LogSessionRequestDTO, SetLogDto, Company, Entity, Table (+40 more)
 
 ### Community 11 - "Community 11"
-Cohesion: 0.04
-Nodes (60): Props, styles, Props, styles, Props, styles, IconName, IconProps (+52 more)
+Cohesion: 0.06
+Nodes (34): com.fasterxml.jackson.databind.ObjectMapper, AllArgsConstructor, Entity, Getter, NoArgsConstructor, Setter, Table, PlanCycleSnapshot (+26 more)
 
 ### Community 12 - "Community 12"
 Cohesion: 0.04
-Nodes (60): cardS, chipS, DeltaChip(), emptyS, insightS, PlanEvolutionCardProps, rowS, CardHeaderProps (+52 more)
+Nodes (61): cardS, chipS, DeltaChip(), emptyS, insightS, PlanEvolutionCardProps, rowS, CardHeaderProps (+53 more)
 
 ### Community 13 - "Community 13"
 Cohesion: 0.04
-Nodes (57): ageFromBirthDate(), DAYS_LABELS, FREQUENCY_OPTIONS, GOAL_API_MAP, GOAL_OPTIONS, GoalDef, goalLabel(), GOALS (+49 more)
+Nodes (60): Props, styles, Props, styles, Props, styles, IconName, IconProps (+52 more)
 
 ### Community 14 - "Community 14"
-Cohesion: 0.09
-Nodes (55): PageHeader(), Props, Props, EmptyCard(), MAP, StatusBadge(), Button(), buttonVariants (+47 more)
+Cohesion: 0.05
+Nodes (18): TrainerInviteCodeDTO, Entity, Table, TrainerInviteCode, EmailVerificationCodeRepository, PhysicalAssessmentRepository, SocialPostRepository, StudentChargeRepository (+10 more)
 
 ### Community 15 - "Community 15"
+Cohesion: 0.06
+Nodes (33): io.swagger.v3.oas.annotations.Operation, GetMapping, RequestMapping, RestController, StatsController, GetMapping, PostMapping, RequestMapping (+25 more)
+
+### Community 16 - "Community 16"
+Cohesion: 0.09
+Nodes (56): Props, MAP, StatusBadge(), Button(), buttonVariants, Dialog(), DialogContent(), DialogDescription() (+48 more)
+
+### Community 17 - "Community 17"
 Cohesion: 0.04
 Nodes (58): Props, ageFromBirthDate(), DAYS_LABELS, FREQUENCY_OPTIONS, GOAL_API_MAP, GOAL_OPTIONS, GoalDef, goalLabel() (+50 more)
 
-### Community 16 - "Community 16"
-Cohesion: 0.05
-Nodes (23): UpdateUserStatusRequestDTO, Role, ALUNO, EMPRESA, PERSONAL, ROOT, UserStatus, ATIVO (+15 more)
-
-### Community 17 - "Community 17"
-Cohesion: 0.07
-Nodes (21): java.util.regex.Pattern, AiPlanDraftDTO, Exercise, Note, Plan, AiPlanPreviewDTO, TrainerAiPlanRequestDTO, TrainerExerciseRequestDTO (+13 more)
-
 ### Community 18 - "Community 18"
-Cohesion: 0.05
-Nodes (41): AppHeaderProps, styles, Props, Props, styles, Props, styles, AdherenceCardProps (+33 more)
+Cohesion: 0.04
+Nodes (44): AppHeaderProps, styles, Props, Props, styles, Props, SerieStatus, styles (+36 more)
 
 ### Community 19 - "Community 19"
 Cohesion: 0.06
-Nodes (53): recharts, PlanCard(), DemoCheckoutPage(), EvolutionReportPage(), HIGHLIGHTS, TABLE_COLUMNS, ChargeRow(), FinancePage() (+45 more)
+Nodes (55): recharts, PlanCard(), DemoCheckoutPage(), EvolutionReportPage(), HIGHLIGHTS, TABLE_COLUMNS, ChargeRow(), FinancePage() (+47 more)
 
 ### Community 20 - "Community 20"
+Cohesion: 0.07
+Nodes (55): src/App.tsx, App(), RoleAwareRedirect(), PhoneDialog(), PhoneDialogProps, Toaster(), homeForRole(), isPanelRole() (+47 more)
+
+### Community 21 - "Community 21"
+Cohesion: 0.04
+Nodes (47): ageFromBirthDate(), DAYS_LABELS, FREQUENCY_OPTIONS, GOAL_API_MAP, GOAL_OPTIONS, GoalDef, goalLabel(), GOALS (+39 more)
+
+### Community 22 - "Community 22"
 Cohesion: 0.06
 Nodes (13): AsaasPaymentGateway, AsaasWebhookController, json(), of(), getText(), config, { getDefaultConfig }, path (+5 more)
 
-### Community 21 - "Community 21"
-Cohesion: 0.06
-Nodes (18): GetMapping, AddCommentRequest, CommentDTO, FeedAuthorDTO, FeedPostDTO, PendingRequestDTO, SquadMemberDTO, StoryDTO (+10 more)
-
-### Community 22 - "Community 22"
-Cohesion: 0.08
-Nodes (52): delta(), DERIVED_FIELDS, firstAndLast(), formatMeasure(), MEASURE_FIELDS, MeasureField, nf(), AssessmentsTab() (+44 more)
-
 ### Community 23 - "Community 23"
-Cohesion: 0.07
-Nodes (52): src/App.tsx, App(), RoleAwareRedirect(), PhoneDialog(), PhoneDialogProps, Toaster(), homeForRole(), isPanelRole() (+44 more)
+Cohesion: 0.06
+Nodes (38): AppSidebar(), PhoneDialogProps, homeForRole(), isPanelRole(), NAV_BY_ROLE, NavItem, PANEL_ROLES, PanelRole (+30 more)
 
 ### Community 24 - "Community 24"
 Cohesion: 0.07
-Nodes (32): Props, styles, Props, styles, styles, Props, styles, Props (+24 more)
+Nodes (20): java.time.YearMonth, PlanDTO, FeedbackDTO, FinanceOverviewDTO, PlanDTO, StudentRefDTO, Entity, Table (+12 more)
 
 ### Community 25 - "Community 25"
+Cohesion: 0.07
+Nodes (55): BillingPage(), openCheckout(), PlanCard(), StatusCard(), DemoCheckoutPage(), ChargeRow(), errorText(), FinancePage() (+47 more)
+
+### Community 26 - "Community 26"
+Cohesion: 0.07
+Nodes (32): Props, styles, Props, styles, styles, Props, styles, Props (+24 more)
+
+### Community 27 - "Community 27"
 Cohesion: 0.05
 Nodes (50): cardS, chipS, DeltaChip(), emptyS, insightS, PlanEvolutionCard(), PlanEvolutionCardProps, rowS (+42 more)
 
-### Community 26 - "Community 26"
-Cohesion: 0.05
-Nodes (49): AppSidebar(), ROLE_SUBTITLE, isPanelRole(), NAV_BY_ROLE, NavItem, PANEL_ROLES, PanelRole, ROLE_HOME (+41 more)
-
-### Community 27 - "Community 27"
-Cohesion: 0.04
-Nodes (12): DemoPaymentGateway, PaymentGateway, fromEntity(), PaymentGateway, EmailVerificationCodeRepository, PasswordResetCodeRepository, UserLoginStreakRepository, KineticUserDetails (+4 more)
-
 ### Community 28 - "Community 28"
-Cohesion: 0.09
-Nodes (13): EmailVerificationCodeRepository, FeedbackRepository, PasswordResetCodeRepository, PostCommentRepository, PostLikeRepository, RefreshTokenRepository, StudentChargeRepository, TrainerInviteCodeRepository (+5 more)
+Cohesion: 0.05
+Nodes (17): endDate(), fromString(), id(), insightTag(), previousEndDate(), previousStartDate(), startDate(), targetSessions() (+9 more)
 
 ### Community 29 - "Community 29"
-Cohesion: 0.07
-Nodes (24): jakarta.servlet.http.HttpServletResponse, jakarta.validation.constraints.Pattern, AuthController, PostMapping, RequestMapping, RestController, SuppressWarnings, RequestMapping (+16 more)
+Cohesion: 0.08
+Nodes (20): com.fasterxml.jackson.core.type.TypeReference, AiPlanDraftDTO, Exercise, Note, Plan, AiPlanPreviewDTO, TrainerAiPlanRequestDTO, TrainerExerciseRequestDTO (+12 more)
 
 ### Community 30 - "Community 30"
-Cohesion: 0.05
-Nodes (5): RootController, CompanyRepository, UserRepository, CompanyService, DocumentValidator
+Cohesion: 0.07
+Nodes (20): java.security.SecureRandom, Override, RootUserSeeder, RefreshResponseDTO, InvalidCodeException, Entity, Table, PasswordResetCode (+12 more)
 
 ### Community 31 - "Community 31"
 Cohesion: 0.07
-Nodes (5): PostCommentRepository, PostLikeRepository, SocialPostRepository, UserConnectionRepository, SocialService
+Nodes (23): jakarta.servlet.http.HttpServletResponse, jakarta.validation.constraints.Pattern, AuthController, PostMapping, RequestMapping, RestController, SuppressWarnings, AuthResponseDTO (+15 more)
 
 ### Community 32 - "Community 32"
-Cohesion: 0.06
-Nodes (47): CHART, InstructorBarChart(), nf, shortDate(), tooltipStyle, VolumeLineChart(), PERIODS, PeriodTabs() (+39 more)
+Cohesion: 0.04
+Nodes (13): DemoPaymentGateway, PaymentGateway, CommandLineRunner, RootUserSeeder, fromEntity(), KineticApplication, PaymentGateway, EmailVerificationCodeRepository (+5 more)
 
 ### Community 33 - "Community 33"
-Cohesion: 0.07
-Nodes (5): FeedbackRepository, TrainerClientRepository, EmpresaService, FeedbackService, TrainerLinkService
+Cohesion: 0.05
+Nodes (5): RootController, CompanyRepository, UserRepository, CompanyService, DocumentValidator
 
 ### Community 34 - "Community 34"
 Cohesion: 0.08
-Nodes (24): io.swagger.v3.oas.annotations.tags.Tag, BaseController, HomeController, PublicInviteController, RequestMapping, RestController, StatsController, UserController (+16 more)
+Nodes (40): AppContent(), KineticApp/App.tsx, App(), CustomInput(), Props, styles, EvolutionModal(), EvolutionModalProps (+32 more)
 
 ### Community 35 - "Community 35"
 Cohesion: 0.07
-Nodes (41): AppHeader(), AppHeaderProps, styles, AdherenceCard(), AdherenceCardProps, styles, getGreeting(), HomeGreeting() (+33 more)
+Nodes (5): PostCommentRepository, PostLikeRepository, SocialPostRepository, UserConnectionRepository, SocialService
 
 ### Community 36 - "Community 36"
-Cohesion: 0.05
-Nodes (29): BottomTabBar(), GRADIENT_COLORS, GRADIENT_LOCATIONS, IconName, ROUTE_META, styles, T, Stack (+21 more)
+Cohesion: 0.07
+Nodes (5): FeedbackRepository, TrainerClientRepository, EmpresaService, FeedbackService, TrainerLinkService
 
 ### Community 37 - "Community 37"
 Cohesion: 0.07
-Nodes (15): endDate(), fromString(), id(), insightTag(), previousEndDate(), previousStartDate(), startDate(), targetSessions() (+7 more)
+Nodes (41): AppHeader(), AppHeaderProps, styles, AdherenceCard(), AdherenceCardProps, styles, getGreeting(), HomeGreeting() (+33 more)
 
 ### Community 38 - "Community 38"
-Cohesion: 0.12
-Nodes (32): CustomInput(), Props, styles, HeaderLogo(), Props, styles, Icon(), IconName (+24 more)
+Cohesion: 0.08
+Nodes (21): io.swagger.v3.oas.annotations.tags.Tag, BaseController, HomeController, PublicInviteController, UserController, WorkoutController, WorkoutSessionController, ChangePasswordDTO (+13 more)
 
 ### Community 39 - "Community 39"
 Cohesion: 0.08
-Nodes (27): CHART, InstructorBarChart(), nf, tooltipStyle, VolumeLineChart(), PERIODS, Props, EmptyCard() (+19 more)
+Nodes (27): jakarta.servlet.FilterChain, jakarta.servlet.http.HttpServletRequest, Override, LastActiveInterceptor, SecurityConfig, Override, WebMvcConfig, CustomUserDetailsService (+19 more)
 
 ### Community 40 - "Community 40"
 Cohesion: 0.05
-Nodes (40): expo, expo-secure-store, expo-splash-screen, expo-status-bar, dependencies, axios, expo, expo-secure-store (+32 more)
+Nodes (25): BottomTabBar(), GRADIENT_COLORS, GRADIENT_LOCATIONS, IconName, ROUTE_META, styles, T, Stack (+17 more)
 
 ### Community 41 - "Community 41"
-Cohesion: 0.1
-Nodes (36): AppContent(), KineticApp/App.tsx, App(), EvolutionModal(), EvolutionModalProps, styles, KineticApp/src/contexts/AuthContext.tsx, AuthContextValue (+28 more)
+Cohesion: 0.05
+Nodes (40): expo, expo-secure-store, expo-splash-screen, expo-status-bar, dependencies, axios, expo, expo-secure-store (+32 more)
 
 ### Community 42 - "Community 42"
-Cohesion: 0.08
-Nodes (11): BillingGatewayException, AiQuotaExceededException, EmailNotVerifiedException, GlobalExceptionHandler, TrainerManagedPlanException, GeminiUnavailableException, InvalidGeminiResponseException, org.springframework.http.converter.HttpMessageNotReadableException (+3 more)
+Cohesion: 0.13
+Nodes (32): delta(), DERIVED_FIELDS, firstAndLast(), formatMeasure(), MEASURE_FIELDS, MeasureField, nf(), AssessmentsTab() (+24 more)
 
 ### Community 43 - "Community 43"
 Cohesion: 0.09
 Nodes (6): LastActiveInterceptor, HandlerInterceptor, StudentBillingPlanRepository, StudentChargeRepository, PresenceService, StudentFinanceService
 
 ### Community 44 - "Community 44"
-Cohesion: 0.06
-Nodes (13): BillingGatewayException, AiPlanPreviewException, AiQuotaExceededException, DuplicateWorkoutSessionException, EmailAlreadyInUseException, EmailNotVerifiedException, InvalidCodeException, PhoneAlreadyInUseException (+5 more)
+Cohesion: 0.08
+Nodes (4): WorkoutSessionRepository, CommunityStatsService, HomeAggregatorService, WorkoutSessionService
 
 ### Community 45 - "Community 45"
 Cohesion: 0.09
-Nodes (4): WorkoutSessionRepository, CommunityStatsService, HomeAggregatorService, WorkoutSessionService
+Nodes (22): CHART, InstructorBarChart(), nf, tooltipStyle, VolumeLineChart(), PERIODS, Props, EmptyCard() (+14 more)
 
 ### Community 46 - "Community 46"
-Cohesion: 0.07
-Nodes (33): Banco de dados do Kinetic, Chat, `chat_messages`, code:mermaid (erDiagram), code:sql (CREATE UNIQUE INDEX uq_trainer_clients_one_active_per_studen), code:sql (CREATE INDEX idx_social_posts_active_stories), code:sql (ALTER TABLE public.<t> ENABLE ROW LEVEL SECURITY;), Como evoluir o schema (+25 more)
+Cohesion: 0.11
+Nodes (28): CHART, InstructorBarChart(), nf, shortDate(), tooltipStyle, VolumeLineChart(), PageHeader(), Props (+20 more)
 
 ### Community 47 - "Community 47"
 Cohesion: 0.1
-Nodes (18): Override, LastActiveInterceptor, SecurityConfig, Override, WebMvcConfig, PresenceService, org.springframework.context.annotation.Bean, org.springframework.context.annotation.Configuration (+10 more)
+Nodes (10): java.util.regex.Pattern, GeneratedExerciseDto, GeneratedWorkoutPlanDto, GenerateWorkoutRequestDto, WorkoutPlanResponseDTO, Entity, Table, WorkoutPlan (+2 more)
 
 ### Community 48 - "Community 48"
-Cohesion: 0.12
-Nodes (15): java.time.YearMonth, PlanDTO, ChargeDTO, FinanceOverviewDTO, PlanDTO, StudentRefDTO, Entity, Table (+7 more)
+Cohesion: 0.11
+Nodes (11): BillingGatewayException, AiQuotaExceededException, GlobalExceptionHandler, TrainerManagedPlanException, GeminiUnavailableException, InvalidGeminiResponseException, org.springframework.http.converter.HttpMessageNotReadableException, org.springframework.http.ResponseEntity (+3 more)
 
 ### Community 49 - "Community 49"
-Cohesion: 0.11
-Nodes (31): autoSubtitle(), blankExercise(), Draft, DraftExercise, draftFromInput(), draftFromPlan(), Errors, ExerciseField (+23 more)
+Cohesion: 0.06
+Nodes (13): BillingGatewayException, ActiveTrainerConflictException, AiPlanPreviewException, AiQuotaExceededException, DuplicateWorkoutSessionException, EmailNotVerifiedException, InvalidCodeException, PlanLimitExceededException (+5 more)
 
 ### Community 50 - "Community 50"
 Cohesion: 0.07
-Nodes (21): GRADIENT_COLORS, GRADIENT_LOCATIONS, IconName, ROUTE_META, styles, T, Props, SerieStatus (+13 more)
+Nodes (33): Banco de dados do Kinetic, Chat, `chat_messages`, code:mermaid (erDiagram), code:sql (CREATE UNIQUE INDEX uq_trainer_clients_one_active_per_studen), code:sql (CREATE INDEX idx_social_posts_active_stories), code:sql (ALTER TABLE public.<t> ENABLE ROW LEVEL SECURITY;), Como evoluir o schema (+25 more)
 
 ### Community 51 - "Community 51"
+Cohesion: 0.11
+Nodes (31): autoSubtitle(), blankExercise(), Draft, DraftExercise, draftFromInput(), draftFromPlan(), Errors, ExerciseField (+23 more)
+
+### Community 52 - "Community 52"
 Cohesion: 0.1
 Nodes (13): endDate(), fromString(), Override, previousEndDate(), previousStartDate(), startDate(), StatsPeriodParam, MONTH (+5 more)
 
-### Community 52 - "Community 52"
+### Community 53 - "Community 53"
 Cohesion: 0.06
 Nodes (21): AuthContextValue, DAYS_LABELS, GEN_STEPS, GOAL_API_MAP, GoalDef, GOALS, GoalType, LEVEL_API_MAP (+13 more)
 
-### Community 53 - "Community 53"
-Cohesion: 0.1
-Nodes (15): DeleteMapping, GetMapping, PostMapping, RequestMapping, RestController, RootController, CompanyDTO, CreateCompanyRequestDTO (+7 more)
-
 ### Community 54 - "Community 54"
+Cohesion: 0.1
+Nodes (9): HomeDashboardResponseDTO, NextWorkoutResponseDTO, RankingEntryDTO, WeeklyActivityPointDTO, HomeAggregatorService, HomeDashboardResponseDTO, RankingEntryDTO, SuppressWarnings (+1 more)
+
+### Community 55 - "Community 55"
 Cohesion: 0.15
 Nodes (7): getAiGenerationsPerMonth(), getDisplayName(), getMaxStudents(), getPriceCents(), isComingSoon(), TrainerSubscriptionRepository, BillingService
 
-### Community 56 - "Community 56"
-Cohesion: 0.08
-Nodes (18): WorkoutPlanItem, Accent, ACCENTS, DAY_LETTERS, Exercise, firstName(), formatVolumeKg(), groupSections() (+10 more)
-
 ### Community 57 - "Community 57"
 Cohesion: 0.07
-Nodes (23): AuthContextValue, buildMedicalValue(), DAYS_LABELS, GEN_STEPS, GOAL_API_MAP, GoalDef, GOALS, GoalType (+15 more)
+Nodes (15): A, Props, styles, A, FEATURES, Props, styles, GRADIENT_COLORS (+7 more)
 
 ### Community 58 - "Community 58"
 Cohesion: 0.07
-Nodes (10): AGES, DAYS, DEFAULT_FORM, GOALS, HEIGHTS, K, LEVELS, STEPS (+2 more)
+Nodes (23): AuthContextValue, buildMedicalValue(), DAYS_LABELS, GEN_STEPS, GOAL_API_MAP, GoalDef, GOALS, GoalType (+15 more)
 
 ### Community 59 - "Community 59"
+Cohesion: 0.13
+Nodes (14): DeleteMapping, GetMapping, PostMapping, PutMapping, RequestMapping, RestController, TrainerAssessmentController, PhysicalAssessmentDTOs (+6 more)
+
+### Community 60 - "Community 60"
+Cohesion: 0.07
+Nodes (10): AGES, DAYS, DEFAULT_FORM, GOALS, HEIGHTS, K, LEVELS, STEPS (+2 more)
+
+### Community 61 - "Community 61"
 Cohesion: 0.08
 Nodes (15): Accent, ACCENTS, DAY_LETTERS, Exercise, formatVolumeKg(), groupSections(), Props, RenderSection (+7 more)
 
-### Community 60 - "Community 60"
+### Community 62 - "Community 62"
 Cohesion: 0.16
 Nodes (23): AuthContextValue, AuthResult, CompleteOnboardingData, KineticUser, KineticWebUser, LoginResponse, RememberedUser, WorkoutPlanItem (+15 more)
 
-### Community 61 - "Community 61"
+### Community 63 - "Community 63"
+Cohesion: 0.08
+Nodes (17): Accent, ACCENTS, DAY_LETTERS, Exercise, firstName(), formatVolumeKg(), groupSections(), Props (+9 more)
+
+### Community 64 - "Community 64"
 Cohesion: 0.07
 Nodes (10): AGES, DAYS, DEFAULT_FORM, GOALS, HEIGHTS, K, LEVELS, STEPS (+2 more)
 
-### Community 62 - "Community 62"
-Cohesion: 0.08
-Nodes (13): AiPlanContextDTO, CommunityComparisonDTO, MetricDeltaDTO, MonthlyStatsResponseDTO, PlanEvolutionResponseDTO, StatsInsightDTO, StatsSummaryResponseDTO, TrainerAiPlanApproveRequestDTO (+5 more)
-
-### Community 63 - "Community 63"
-Cohesion: 0.13
-Nodes (21): InviteStudentModal(), Mode, MODES, Props, APP_STORE_URL, InvitePage(), PLAY_STORE_URL, State (+13 more)
-
-### Community 64 - "Community 64"
-Cohesion: 0.12
-Nodes (9): HomeDashboardResponseDTO, NextWorkoutResponseDTO, RankingEntryDTO, WeeklyActivityPointDTO, HomeAggregatorService, HomeDashboardResponseDTO, RankingEntryDTO, SuppressWarnings (+1 more)
-
 ### Community 65 - "Community 65"
-Cohesion: 0.07
-Nodes (26): 1.1. Configurar variáveis de ambiente, 1.2. Rodar a aplicação, 1.3. Rodar o backend com Docker, 1. Subindo o backend (`kinetic-backend`), 2.1. Instalar dependências, 2.2. Configurar a URL da API, 2.3. Rodar o app, 2. Subindo o app mobile (`KineticApp`) (+18 more)
+Cohesion: 0.08
+Nodes (16): A, Props, reqStyles, Requirement, styles, usePendingInviteRedeem(), AppRoutes(), acceptInvite() (+8 more)
 
 ### Community 66 - "Community 66"
-Cohesion: 0.07
-Nodes (26): kinetic-desktop/package.json, devDependencies, tailwindcss, @tailwindcss/vite, @types/node, @types/react, @types/react-dom, typescript (+18 more)
+Cohesion: 0.15
+Nodes (28): KineticApp/src/contexts/AuthContext.tsx, AuthContextValue, AuthProvider(), AuthResult, CompleteOnboardingData, KineticUser, RememberedUser, WorkoutPlanItem (+20 more)
 
 ### Community 67 - "Community 67"
-Cohesion: 0.11
-Nodes (21): joinPt(), LETTERS, tagsFor(), AiPlanComposer(), CHIPS, LEVEL_OPTIONS, nf1, PROMPT_MAX (+13 more)
+Cohesion: 0.14
+Nodes (9): io.jsonwebtoken.Claims, javax.crypto.SecretKey, Entity, Table, RefreshToken, RefreshTokenRepository, JwtUtil, RefreshTokenService (+1 more)
 
 ### Community 68 - "Community 68"
 Cohesion: 0.09
-Nodes (25): 10. Caixa de entrada "Hoje", 1. Pesquisa de mercado, 2. Link de convite para aluno sem conta, 3. Celular único, 3. Celular único, 4. Encerrar vínculo com aluno, 4. Encerrar vínculo com aluno, 5. Cobrança do personal (assinatura do Kinetic) (+17 more)
+Nodes (18): Charts(), CycleComparison(), DashboardTab(), DeltaPill(), formatShortDate(), groupLabel(), nf0, nf1 (+10 more)
 
 ### Community 69 - "Community 69"
+Cohesion: 0.07
+Nodes (26): 1.1. Configurar variáveis de ambiente, 1.2. Rodar a aplicação, 1.3. Rodar o backend com Docker, 1. Subindo o backend (`kinetic-backend`), 2.1. Instalar dependências, 2.2. Configurar a URL da API, 2.3. Rodar o app, 2. Subindo o app mobile (`KineticApp`) (+18 more)
+
+### Community 70 - "Community 70"
+Cohesion: 0.18
+Nodes (7): Entity, Table, TrainerSubscription, TrainerSubscriptionRepository, AiAllowance, BillingService, SuppressWarnings
+
+### Community 71 - "Community 71"
+Cohesion: 0.07
+Nodes (26): kinetic-desktop/package.json, devDependencies, tailwindcss, @tailwindcss/vite, @types/node, @types/react, @types/react-dom, typescript (+18 more)
+
+### Community 72 - "Community 72"
+Cohesion: 0.15
+Nodes (25): AiRequestForm, attentionFor(), autoSubtitle(), bareTag(), dayLabel(), LETTERS, nameKey(), PreviewPlan (+17 more)
+
+### Community 73 - "Community 73"
+Cohesion: 0.09
+Nodes (25): 10. Caixa de entrada "Hoje", 1. Pesquisa de mercado, 2. Link de convite para aluno sem conta, 3. Celular único, 3. Celular único, 4. Encerrar vínculo com aluno, 4. Encerrar vínculo com aluno, 5. Cobrança do personal (assinatura do Kinetic) (+17 more)
+
+### Community 74 - "Community 74"
 Cohesion: 0.08
 Nodes (21): OpenApiConfig, io.swagger.v3.oas.models.OpenAPI, OpenApiConfig, aliases, components, hooks, lib, ui (+13 more)
 
-### Community 70 - "Community 70"
-Cohesion: 0.15
-Nodes (13): homeForRole(), useAuth(), PhoneGate(), PhoneGateContext, PhoneState, ConfirmEmailPage(), LoginPage(), RegisterPage() (+5 more)
-
-### Community 71 - "Community 71"
-Cohesion: 0.16
-Nodes (12): PostMapping, PutMapping, RequestMapping, RestController, TrainerAssessmentController, PhysicalAssessmentDTOs, Request, Response (+4 more)
-
-### Community 72 - "Community 72"
-Cohesion: 0.17
-Nodes (20): InviteStudentModal(), Mode, MODES, InviteShare(), PendingInvites(), APP_STORE_URL, InvitePage(), PLAY_STORE_URL (+12 more)
-
-### Community 73 - "Community 73"
-Cohesion: 0.16
-Nodes (24): AiRequestForm, attentionFor(), autoSubtitle(), bareTag(), dayLabel(), nameKey(), PreviewPlan, setsByMuscle() (+16 more)
-
-### Community 74 - "Community 74"
+### Community 75 - "Community 75"
 Cohesion: 0.11
 Nodes (3): WorkoutExecutionLogRepository, WorkoutPlanRepository, WorkoutService
 
-### Community 75 - "Community 75"
+### Community 76 - "Community 76"
+Cohesion: 0.13
+Nodes (12): DeleteMapping, GetMapping, PostMapping, RequestMapping, RestController, RootController, CompanyDTO, CreatePersonalRequestDTO (+4 more)
+
+### Community 77 - "Community 77"
 Cohesion: 0.08
 Nodes (24): compilerOptions, allowImportingTsExtensions, jsx, lib, module, moduleDetection, moduleResolution, noEmit (+16 more)
 
-### Community 76 - "Community 76"
+### Community 78 - "Community 78"
 Cohesion: 0.09
 Nodes (22): 1. Visão Geral, 1. Visão Geral, 2. Refatoração Back-end: Blindagem de Dados (Java), 2. Refatoração Back-end: Blindagem de Dados (Java), 3. Refatoração Front-end: ActiveSessionScreen.tsx (UX e Validações), 3. Refatoração Front-end: ActiveSessionScreen.tsx (UX e Validações), 4. StatsScreen e Evolução Mensal (TypeScript & Gifted Charts), 4. StatsScreen e Evolução Mensal (TypeScript & Gifted Charts) (+14 more)
 
-### Community 77 - "Community 77"
+### Community 79 - "Community 79"
+Cohesion: 0.12
+Nodes (14): PhoneRequiredScreen(), styles, A, Props, RegisterScreen(), reqStyles, Requirement, styles (+6 more)
+
+### Community 80 - "Community 80"
 Cohesion: 0.09
 Nodes (21): code:block1 (App Mobile (aluno)  ─┐), code:sql (CREATE UNIQUE INDEX uq_trainer_clients_one_active_per_studen), 📌 Decisão de Arquitetura (fechada), 📌 Decisão de Arquitetura (fechada), 🧭 Diretrizes de Execução, 🧭 Diretrizes de Execução, 📎 Estado atual do código (âncoras), 📎 Estado atual do código (âncoras) (+13 more)
 
-### Community 78 - "Community 78"
-Cohesion: 0.2
-Nodes (4): GatewayEvent, AiAllowance, BillingService, SuppressWarnings
-
-### Community 79 - "Community 79"
+### Community 81 - "Community 81"
 Cohesion: 0.13
 Nodes (8): com.fasterxml.jackson.annotation.JsonIgnoreProperties, MediaUploadResponse, SuppressWarnings, RemoteObject, SignedItem, StorageService, SupabaseListItem, org.springframework.web.multipart.MultipartFile
 
-### Community 82 - "Community 82"
-Cohesion: 0.12
-Nodes (13): PhoneRequiredScreen(), A, Props, RegisterScreen(), reqStyles, Requirement, styles, AccountSection() (+5 more)
+### Community 84 - "Community 84"
+Cohesion: 0.09
+Nodes (22): clsx, dependencies, axios, class-variance-authority, clsx, lucide-react, motion, next-themes (+14 more)
 
-### Community 83 - "Community 83"
+### Community 85 - "Community 85"
+Cohesion: 0.14
+Nodes (17): Props, SerieCard(), SerieStatus, styles, useWorkoutPresence(), ActiveSessionScreen(), localDateString(), requiresWeight() (+9 more)
+
+### Community 86 - "Community 86"
 Cohesion: 0.2
 Nodes (5): Alert, StudentEngagementDTO, StudentRiskRules, StudentRiskRulesTest, org.junit.jupiter.api.Test
 
-### Community 84 - "Community 84"
+### Community 87 - "Community 87"
 Cohesion: 0.22
 Nodes (3): MAP, SecurityConfig, DataExportService
 
-### Community 85 - "Community 85"
-Cohesion: 0.1
-Nodes (21): clsx, dependencies, axios, clsx, lucide-react, motion, next-themes, radix-ui (+13 more)
-
-### Community 86 - "Community 86"
+### Community 88 - "Community 88"
 Cohesion: 0.1
 Nodes (19): 1. Visão Geral, 1. Visão Geral, 2. Regras de Negócio e Lógica Matemática, 2. Regras de Negócio e Lógica Matemática, 3. Back-end (Spring Boot 3.2.x - Java 17), 4. Front-end (React Native), A. Gerenciamento de Estado (useState), A. Nova Entidade e Tabela (`WorkoutSession`) (+11 more)
 
-### Community 87 - "Community 87"
-Cohesion: 0.15
-Nodes (16): Props, SerieCard(), SerieStatus, styles, useWorkoutPresence(), ActiveSessionScreen(), localDateString(), requiresWeight() (+8 more)
-
-### Community 88 - "Community 88"
-Cohesion: 0.18
-Nodes (6): TodayItemDTO, Entity, Table, PhysicalAssessment, PhysicalAssessmentRepository, TrainerTodayService
-
 ### Community 89 - "Community 89"
-Cohesion: 0.22
-Nodes (17): BillingPage(), openCheckout(), PlanCard(), StatusCard(), DemoCheckoutPage(), MoneyTile(), PlanChip(), billingErrorMessage() (+9 more)
-
-### Community 90 - "Community 90"
 Cohesion: 0.1
 Nodes (20): compilerOptions, allowImportingTsExtensions, lib, module, moduleDetection, moduleResolution, noEmit, noFallthroughCasesInSwitch (+12 more)
 
-### Community 92 - "Community 92"
+### Community 91 - "Community 91"
 Cohesion: 0.1
 Nodes (19): 1. Reset de senha sem prova de identidade — Crítica, 2. Vínculo empresa → aluno sem consentimento — Alta, 3. STOMP sem autorização de SUBSCRIBE — Alta, 4. Curtidas e comentários sem visibilidade — Média, 5. Ranking manipulável — Baixa, Achados confirmados, Ainda em aberto, ligado a essas mudanças, Auditoria de segurança — KinectApp (+11 more)
 
-### Community 93 - "Community 93"
+### Community 92 - "Community 92"
 Cohesion: 0.23
 Nodes (4): com.fasterxml.jackson.databind.JsonNode, AsaasPaymentGateway, Override, PostMapping
 
-### Community 94 - "Community 94"
-Cohesion: 0.19
-Nodes (7): TrainerInviteCodeDTO, Entity, Table, TrainerInviteCode, SuppressWarnings, TrainerInviteCode, TrainerInviteCodeService
+### Community 93 - "Community 93"
+Cohesion: 0.22
+Nodes (15): InviteShare(), PendingInvites(), APP_STORE_URL, InvitePage(), PLAY_STORE_URL, State, getInvitePreview(), regenerateInviteCode() (+7 more)
 
-### Community 95 - "Community 95"
+### Community 94 - "Community 94"
 Cohesion: 0.1
 Nodes (19): 1. Reset de senha sem prova de identidade — Crítica, 2. Vínculo empresa → aluno sem consentimento — Alta, 3. STOMP sem autorização de SUBSCRIBE — Alta, 4. Curtidas e comentários sem visibilidade — Média, 5. Ranking manipulável — Baixa, Achados confirmados, Ainda em aberto, ligado a essas mudanças, Auditoria de segurança — KinectApp (+11 more)
 
-### Community 96 - "Community 96"
+### Community 95 - "Community 95"
 Cohesion: 0.11
 Nodes (7): DAY_ACCENT, FICHA, HKT, SECOES, TOTAL_EXERCICIOS, TOTAL_VOLUME_KG, TTAB_ICONS
 
-### Community 97 - "Community 97"
+### Community 96 - "Community 96"
 Cohesion: 0.11
 Nodes (3): Ic, PF, USER
 
-### Community 99 - "Community 99"
+### Community 97 - "Community 97"
 Cohesion: 0.15
 Nodes (3): AiPlanGenerationRepository, PhysicalAssessmentRepository, TrainerTodayService
 
-### Community 100 - "Community 100"
+### Community 99 - "Community 99"
 Cohesion: 0.11
 Nodes (17): 1. Overview & Creative North Star: "The Digital Kineticist", 2. Colors: Tonal Depth & The Neon Pulse, 3. Typography: Editorial Authority, 4. Elevation & Depth: Tonal Layering, 5. Components: The Athletic Kit, 6. Do’s and Don’ts, Buttons (The Kinetic Drivers), Cards & Lists (The Performance Modules) (+9 more)
 
-### Community 101 - "Community 101"
+### Community 100 - "Community 100"
 Cohesion: 0.11
 Nodes (18): backgroundColor, foregroundImage, adaptiveIcon, expo, android, icon, ios, name (+10 more)
 
-### Community 102 - "Community 102"
+### Community 101 - "Community 101"
 Cohesion: 0.11
 Nodes (7): DAY_ACCENT, FICHA, HKT, SECOES, TOTAL_EXERCICIOS, TOTAL_VOLUME_KG, TTAB_ICONS
 
-### Community 103 - "Community 103"
+### Community 102 - "Community 102"
 Cohesion: 0.11
 Nodes (3): Ic, PF, USER
 
-### Community 104 - "Community 104"
+### Community 103 - "Community 103"
 Cohesion: 0.16
 Nodes (10): DemoPaymentGateway, Override, GatewaySubscription, PaymentGateway, BillingPlan, BUSINESS, MAX, PLUS (+2 more)
 
+### Community 104 - "Community 104"
+Cohesion: 0.15
+Nodes (8): EmpresaController, DeleteMapping, GetMapping, PostMapping, RequestMapping, RestController, VincularAlunoRequestDTO, VincularFuncionarioRequestDTO
+
 ### Community 105 - "Community 105"
+Cohesion: 0.13
+Nodes (12): KineticSelect(), KineticSelectOption, Props, toRadix(), joinPt(), tagsFor(), AiPlanComposer(), CHIPS (+4 more)
+
+### Community 106 - "Community 106"
 Cohesion: 0.12
 Nodes (17): 1. Back-end: Ajuste na Entidade `User` (JPA/Hibernate), 1. Visão Geral, 1. Visão Geral, 2. Refatoração Back-end (Java Spring Boot), 2. Refatoração Back-end (Java Spring Boot), 3. Refatoração Front-end (React Native / TypeScript), 3. Refatoração Front-end (React Native / TypeScript), 4. Diretrizes (+9 more)
 
-### Community 106 - "Community 106"
+### Community 107 - "Community 107"
 Cohesion: 0.11
 Nodes (4): ACCENTS, FICHAS_DATA, HKT, TTAB_ICONS
 
@@ -689,28 +694,32 @@ Cohesion: 0.11
 Nodes (5): DATA, Icons, INSIGHTS, PERIODS, T
 
 ### Community 109 - "Community 109"
-Cohesion: 0.19
-Nodes (12): staggerContainer, StatusCard(), PlanChip(), billingErrorMessage(), cancelSubscription(), confirmDemoPayment(), daysUntil(), formatDate() (+4 more)
-
-### Community 110 - "Community 110"
 Cohesion: 0.11
 Nodes (5): DATA, Icons, INSIGHTS, PERIODS, T
 
-### Community 111 - "Community 111"
+### Community 110 - "Community 110"
 Cohesion: 0.11
 Nodes (4): ACCENTS, FICHAS_DATA, HKT, TTAB_ICONS
 
-### Community 112 - "Community 112"
+### Community 111 - "Community 111"
 Cohesion: 0.16
 Nodes (13): EditorMode, ACCENTS, approvedLabel(), bareTag(), dayLabel(), lastDoneLabel(), nextTag(), nf0 (+5 more)
 
+### Community 112 - "Community 112"
+Cohesion: 0.21
+Nodes (3): OncePerRequestFilter, JwtAuthenticationFilter, JwtUtil
+
 ### Community 113 - "Community 113"
+Cohesion: 0.22
+Nodes (13): InviteStudentModal(), APP_STORE_URL, InvitePage(), PLAY_STORE_URL, State, InviteShare(), getInvitePreview(), InviteCodePreview (+5 more)
+
+### Community 114 - "Community 114"
 Cohesion: 0.12
 Nodes (16): 1.1. Configurar variáveis de ambiente, 1.2. Rodar a aplicação, 1.3. Rodar o backend com Docker, 1. Subindo o backend (`kinetic-backend`), 2.1. Instalar dependências, 2.2. Configurar a URL da API, 2.3. Rodar o app, 2. Subindo o app mobile (`KineticApp`) (+8 more)
 
 ### Community 115 - "Community 115"
-Cohesion: 0.12
-Nodes (6): A, Props, reqStyles, Requirement, styles, savePendingInviteCode()
+Cohesion: 0.16
+Nodes (10): useWorkoutPresence(), ActiveSessionScreen(), requiresWeight(), SetData, styles, endWorkoutPresence(), startWorkoutPresence(), LogSessionRequestDTO (+2 more)
 
 ### Community 116 - "Community 116"
 Cohesion: 0.13
@@ -744,25 +753,25 @@ Nodes (13): 1. Armazenamento seguro de tokens — novo módulo `tokenStorage`, 2
 Cohesion: 0.15
 Nodes (5): HK, MOCK, PosColor(), RankingSection(), TAB_ICONS
 
-### Community 133 - "Community 133"
-Cohesion: 0.15
-Nodes (7): A, BiometricState, Props, SecurityState, styles, expo-local-authentication, expo-local-authentication
+### Community 131 - "Community 131"
+Cohesion: 0.22
+Nodes (7): GetMapping, PostMapping, RequestMapping, RestController, TrainerBillingController, BillingOverviewDTO, SubscribeRequestDTO
 
 ### Community 134 - "Community 134"
-Cohesion: 0.14
-Nodes (7): A, FEATURES, Props, styles, Exercise, Props, styles
+Cohesion: 0.15
+Nodes (7): A, BiometricState, Props, SecurityState, styles, expo-local-authentication, expo-local-authentication
 
 ### Community 135 - "Community 135"
 Cohesion: 0.15
 Nodes (13): KineticApp/package.json, main, name, overrides, glob, rimraf, private, scripts (+5 more)
 
 ### Community 136 - "Community 136"
-Cohesion: 0.18
-Nodes (10): SubscriptionStatus, ATIVA, ATRASADA, CANCELADA, PENDENTE, TRIAL, Entity, Table (+2 more)
-
-### Community 137 - "Community 137"
 Cohesion: 0.19
 Nodes (8): Content, GeminiRequestDto, GenerationConfig, Part, Candidate, Content, GeminiResponseDto, Part
+
+### Community 137 - "Community 137"
+Cohesion: 0.23
+Nodes (12): Props, AiPlanFlow(), bodyText(), HttpError, Props, Step, approveAiPlans(), generateAiPlanPreview() (+4 more)
 
 ### Community 138 - "Community 138"
 Cohesion: 0.15
@@ -772,21 +781,13 @@ Nodes (12): 1. Armazenamento seguro de tokens — novo módulo `tokenStorage`, 2
 Cohesion: 0.18
 Nodes (11): 1.1. Alterações na Entidade `User`, 1.1. Alterações na Entidade `User`, 1.2. Entidade de Log: `WorkoutExecutionLog`, 1. Persistência de Dados (JPA/Hibernate), 1. Persistência de Dados (JPA/Hibernate), 2.1. Lógica do Algoritmo "Próxima Ficha Pendente", 2.1. Lógica do Algoritmo "Próxima Ficha Pendente", 2. Motor de Busca de Treinos (`WorkoutService`) (+3 more)
 
-### Community 140 - "Community 140"
+### Community 141 - "Community 141"
 Cohesion: 0.21
 Nodes (10): 1. Contexto do Problema, 2. Suspeitos Principais, 3. Ações Exigidas para a IA (Passo a Passo do Debug), 3. Ações Exigidas para a IA (Passo a Passo do Debug), A. Adicionar Logs de Rastreamento (Tracing), B. Blindar o Recebimento da Data, C. Expor a Exceção Raiz, C. Expor a Exceção Raiz (+2 more)
 
-### Community 142 - "Community 142"
-Cohesion: 0.18
-Nodes (3): A, Props, styles
-
-### Community 143 - "Community 143"
-Cohesion: 0.27
-Nodes (7): com.fasterxml.jackson.core.JsonGenerator, com.fasterxml.jackson.databind.ser.std.StdSerializer, com.fasterxml.jackson.databind.SerializerProvider, JacksonConfig, Override, LocalDateTimeAsUtcSerializer, org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
-
 ### Community 144 - "Community 144"
 Cohesion: 0.27
-Nodes (4): OncePerRequestFilter, CustomUserDetailsService, JwtAuthenticationFilter, UserDetailsService
+Nodes (7): com.fasterxml.jackson.core.JsonGenerator, com.fasterxml.jackson.databind.ser.std.StdSerializer, com.fasterxml.jackson.databind.SerializerProvider, JacksonConfig, Override, LocalDateTimeAsUtcSerializer, org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
 
 ### Community 146 - "Community 146"
 Cohesion: 0.2
@@ -797,111 +798,103 @@ Cohesion: 0.2
 Nodes (9): 1.1. Status de Onboarding do Usuário, 1.2. Lógica de "Próxima Ficha Disponível", 1. Back-end: Inteligência e Persistência (Java Spring Boot), 2.1. Reestruturação da Navegação, 2.2. Lógica de Redirecionamento (Conditional Rendering), 2.3. Refatoração Visual do Dashboard (Design Premium), 2. Front-end: UI/UX e Navegação (React Native + TS), 3. Checklist de Implementação (+1 more)
 
 ### Community 148 - "Community 148"
-Cohesion: 0.27
-Nodes (5): PostMapping, RequestMapping, RestController, StudentTrainerController, InviteCodeRedeemRequestDTO
-
-### Community 149 - "Community 149"
 Cohesion: 0.2
 Nodes (9): 1.1. Status de Onboarding do Usuário, 1.2. Lógica de "Próxima Ficha Disponível", 1. Back-end: Inteligência e Persistência (Java Spring Boot), 2.1. Reestruturação da Navegação, 2.2. Lógica de Redirecionamento (Conditional Rendering), 2.3. Refatoração Visual do Dashboard (Design Premium), 2. Front-end: UI/UX e Navegação (React Native + TS), 3. Checklist de Implementação (+1 more)
 
-### Community 152 - "Community 152"
+### Community 151 - "Community 151"
 Cohesion: 0.28
 Nodes (7): 1. Front-end: Camada de Contexto (`AuthContext.tsx`), 2.1. Tokens de Estilização e Specs Visuais (Image Reference), 2.1. Tokens de Estilização e Specs Visuais (Image Reference), 2. Front-end: UI do Modal (ProfileScreen.tsx), 3.1. Controle de Estado do Modal, 3. Lógica de Integração e Fluxo, 3. Lógica de Integração e Fluxo
 
-### Community 153 - "Community 153"
-Cohesion: 0.39
-Nodes (6): Badge(), badgeVariants, FeedbacksPage(), formatDate(), listCompanyFeedbacks(), Feedback
-
-### Community 156 - "Community 156"
+### Community 154 - "Community 154"
 Cohesion: 0.54
 Nodes (7): computeTotalVolumeKg(), fromEntity(), heuristicDurationMinutes(), parseAvgReps(), parseWeightKg(), resolveDuration(), visibleExercises()
 
-### Community 158 - "Community 158"
-Cohesion: 0.33
-Nodes (3): CommandLineRunner, RootUserSeeder, KineticApplication
-
-### Community 159 - "Community 159"
+### Community 156 - "Community 156"
 Cohesion: 0.62
 Nodes (5): base64Decode(), base64UrlDecode(), decodeJwt(), isJwtExpired(), JwtPayload
 
-### Community 160 - "Community 160"
+### Community 157 - "Community 157"
 Cohesion: 0.29
 Nodes (6): Diretrizes de Tipagem (Strict TypeScript), Objetivo, Plano de Refatoração: Onboarding Flow (React -> TSX Estrito), Tarefa 1: Substituição de "Idade" por "Data de Nascimento", Tarefa 2: Criação da Etapa de Anamnese, Tarefa 3: Atualização do Controlador Principal (`OnboardingFlow`)
 
-### Community 161 - "Community 161"
+### Community 158 - "Community 158"
 Cohesion: 0.29
 Nodes (7): KineticApp/tsconfig.json, compilerOptions, allowJs, jsx, strict, extends, expo/tsconfig.base
 
-### Community 162 - "Community 162"
+### Community 159 - "Community 159"
+Cohesion: 0.29
+Nodes (6): SubscriptionStatus, ATIVA, ATRASADA, CANCELADA, PENDENTE, TRIAL
+
+### Community 160 - "Community 160"
+Cohesion: 0.29
+Nodes (6): GatewayEvent, Type, IGNORED, PAYMENT_OVERDUE, PAYMENT_PAID, SUBSCRIPTION_ENDED
+
+### Community 161 - "Community 161"
 Cohesion: 0.38
 Nodes (4): FinanceRequestDTOs, PaymentRequest, SettingsRequest, StudentPlanRequest
 
-### Community 163 - "Community 163"
+### Community 162 - "Community 162"
 Cohesion: 0.29
 Nodes (6): Diretrizes de Tipagem (Strict TypeScript), Objetivo, Plano de Refatoração: Onboarding Flow (React -> TSX Estrito), Tarefa 1: Substituição de "Idade" por "Data de Nascimento", Tarefa 2: Criação da Etapa de Anamnese, Tarefa 3: Atualização do Controlador Principal (`OnboardingFlow`)
 
-### Community 170 - "Community 170"
-Cohesion: 0.4
-Nodes (4): KineticSelect(), KineticSelectOption, Props, toRadix()
-
-### Community 171 - "Community 171"
+### Community 169 - "Community 169"
 Cohesion: 0.53
 Nodes (6): kinetic-desktop/src/utils/jwt.ts, base64Decode(), base64UrlDecode(), decodeJwt(), isJwtExpired(), JwtPayload
 
-### Community 172 - "Community 172"
+### Community 170 - "Community 170"
 Cohesion: 0.33
 Nodes (6): kinetic-desktop/tsconfig.json, compilerOptions, baseUrl, paths, files, references
 
-### Community 173 - "Community 173"
+### Community 171 - "Community 171"
 Cohesion: 0.47
 Nodes (3): KineticUserDetails, org.springframework.security.core.GrantedAuthority, org.springframework.security.core.userdetails.User
 
-### Community 175 - "Community 175"
+### Community 173 - "Community 173"
 Cohesion: 0.4
 Nodes (3): Exercise, Props, styles
 
-### Community 176 - "Community 176"
+### Community 174 - "Community 174"
 Cohesion: 0.4
-Nodes (5): Type, IGNORED, PAYMENT_OVERDUE, PAYMENT_PAID, SUBSCRIPTION_ENDED
+Nodes (3): Exercise, Props, styles
 
-### Community 177 - "Community 177"
+### Community 175 - "Community 175"
 Cohesion: 0.4
 Nodes (4): PostIntensity, ALTA, LEVE, MODERADO
 
-### Community 178 - "Community 178"
+### Community 176 - "Community 176"
 Cohesion: 0.4
 Nodes (3): 1. Tipagem Estrita (TypeScript), Plano de Implementação: Integração do Perfil Dinâmico (ProfileScreen), Plano de Implementação: Integração do Perfil Dinâmico (ProfileScreen)
 
-### Community 179 - "Community 179"
+### Community 177 - "Community 177"
 Cohesion: 0.6
 Nodes (3): KineticApplication, org.springframework.boot.autoconfigure.SpringBootApplication, org.springframework.scheduling.annotation.EnableScheduling
 
-### Community 182 - "Community 182"
+### Community 181 - "Community 181"
 Cohesion: 0.5
 Nodes (4): AsaasWebhookController, RequestMapping, RestController, org.springframework.beans.factory.ObjectProvider
 
-### Community 183 - "Community 183"
+### Community 182 - "Community 182"
 Cohesion: 0.5
 Nodes (3): ConnectionStatus, ACCEPTED, PENDING
 
 ## Knowledge Gaps
 - **1059 isolated node(s):** `HKT`, `EXERCICIOS`, `A`, `Ic`, `FAKE_USER` (+1054 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **82 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **85 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Filter` connect `Community 20` to `Community 4`, `Community 37`, `Community 74`, `Community 43`, `Community 45`, `Community 84`, `Community 55`, `Community 27`, `Community 156`, `Community 31`?**
+- **Why does `Filter` connect `Community 22` to `Community 0`, `Community 32`, `Community 35`, `Community 43`, `Community 44`, `Community 75`, `Community 87`, `Community 56`, `Community 154`, `Community 28`?**
   _High betweenness centrality (0.146) - this node is a cross-community bridge._
-- **Why does `AppContent()` connect `Community 41` to `Community 24`?**
+- **Why does `AppContent()` connect `Community 34` to `Community 26`?**
   _High betweenness centrality (0.134) - this node is a cross-community bridge._
-- **Why does `KineticApp/App.tsx` connect `Community 41` to `Community 36`, `Community 38`?**
+- **Why does `KineticApp/App.tsx` connect `Community 34` to `Community 40`, `Community 66`?**
   _High betweenness centrality (0.134) - this node is a cross-community bridge._
 - **What connects `HKT`, `EXERCICIOS`, `A` to the rest of the system?**
   _1059 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
-  _Cohesion score 0.05 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.03 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
   _Cohesion score 0.03 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**

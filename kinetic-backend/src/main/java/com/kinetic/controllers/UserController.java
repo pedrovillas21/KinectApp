@@ -136,7 +136,8 @@ public class UserController extends BaseController {
             summary = "Excluir a própria conta (imediato, irreversível)",
             description = "Confere a senha e apaga na hora a conta e todos os dados dela. Vínculos com personal "
                     + "ou alunos são encerrados e as fichas que o personal montou continuam com os alunos, sem "
-                    + "autor. Senha errada → 400 e nada é apagado."
+                    + "autor. Das gerações de treino por IA fica só o registro (sem pedido nem resposta). "
+                    + "Senha errada → 400 e nada é apagado."
     )
     @DeleteMapping("/me")
     public ResponseEntity<Void> deleteMyAccount(@Valid @RequestBody DeleteAccountRequestDTO request) {
