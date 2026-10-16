@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import { ArrowLeft, BarChart3, Dumbbell, MessageCircle, Target, UserX } from 'lucide-react';
-import { listStudents } from '../services/trainerService';
+import { toast } from 'sonner';
+import { ArrowLeft, BarChart3, Dumbbell, MessageCircle, Target, UserMinus, UserX } from 'lucide-react';
+import { endStudentLink, listStudents } from '../services/trainerService';
 import { useAuth } from '../contexts/AuthContext';
 import Avatar from '../components/Avatar';
 import DashboardTab from '../components/DashboardTab';
 import WorkoutPlansTab from '../components/personal/WorkoutPlansTab';
+import ConfirmDialog from '../components/personal/ConfirmDialog';
 import { EASE_OUT, SPRING_PILL } from '../components/motion/primitives';
 import type { TrainerLink } from '../types';
 import { whatsappUrl } from '../utils/whatsapp';
@@ -37,6 +39,9 @@ export default function StudentDetailPage() {
   const [link, setLink] = useState<TrainerLink | null>(null);
   const [loading, setLoading] = useState(true);
   const [goal, setGoal] = useState<string | null>(null);
+  const [endOpen, setEndOpen] = useState(false);
+  const [ending, setEnding] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     let cancelled = false;
@@ -110,6 +115,29 @@ export default function StudentDetailPage() {
   const whatsappHref = peer.phone
     ? whatsappUrl(peer.phone, `Oi, ${firstName}!${trainerFirstName ? ` Aqui é ${trainerFirstName}, seu personal.` : ''}`)
     : null;
+
+  // Vínculo atribuído pela empresa só a empresa encerra (o backend também barra).
+  const companyManaged = link.source === 'COMPANY';
+
+  const handleEndLink = async () => {
+    setEnding(true);
+    try {
+      await endStudentLink(id);
+      toast.success(`${firstName} saiu da sua carteira`, {
+        description: 'O histórico de treinos dele continua salvo no app.',
+      });
+      navigate('/students', { replace: true });
+    } catch (err: unknown) {
+      const res = (err as { response?: { status?: number; data?: unknown } }).response;
+      toast.error(
+        res?.status === 400 && typeof res.data === 'string' && res.data
+          ? res.data
+          : 'Não foi possível encerrar o vínculo. Tente novamente.',
+      );
+      setEnding(false);
+      setEndOpen(false);
+    }
+  };
 
   const selectTab = (next: TabId) => {
     setVisited((v) => (v.has(next) ? v : new Set(v).add(next)));
@@ -218,8 +246,40 @@ export default function StudentDetailPage() {
               Sem WhatsApp
             </span>
           )}
+
+          <button
+            type="button"
+            onClick={() => setEndOpen(true)}
+            disabled={companyManaged}
+            aria-label="Encerrar vínculo com o aluno"
+            title={
+              companyManaged
+                ? 'Aluno atribuído pela sua empresa: só a empresa pode desvincular.'
+                : 'Encerrar vínculo com o aluno'
+            }
+            className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-k-surface1 text-k-text-dim transition-colors hover:border-k-alert/40 hover:bg-k-alert/10 hover:text-k-alert disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-white/10 disabled:hover:bg-k-surface1 disabled:hover:text-k-text-dim"
+          >
+            <UserMinus className="h-[18px] w-[18px]" />
+          </button>
         </div>
       </header>
+
+      <ConfirmDialog
+        open={endOpen}
+        title={`Encerrar vínculo com ${firstName}?`}
+        description={
+          <>
+            {peer.nome} sai da sua carteira e você deixa de ver os treinos e o desempenho dele. As fichas
+            que você montou continuam no app do aluno, que passa a poder editá-las. Para voltar a acompanhá-lo,
+            será preciso enviar um novo convite.
+          </>
+        }
+        confirmLabel={ending ? 'Encerrando…' : 'Encerrar vínculo'}
+        destructive
+        busy={ending}
+        onConfirm={() => void handleEndLink()}
+        onCancel={() => setEndOpen(false)}
+      />
 
       <div className="min-h-0 flex-1 overflow-y-auto">
         {visited.has('dashboard') && (

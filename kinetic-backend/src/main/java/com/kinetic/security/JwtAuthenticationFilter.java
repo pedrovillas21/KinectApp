@@ -19,6 +19,10 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    /** Mesmo formato do EMAIL_NOT_VERIFIED: código fixo para os clientes reconhecerem o caso. */
+    private static final String PHONE_REQUIRED_BODY =
+            "{\"code\":\"PHONE_REQUIRED\",\"message\":\"Cadastre seu celular (WhatsApp) para continuar.\"}";
+
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService customUserDetailsService;
 
@@ -61,6 +65,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             userDetails.getAuthorities()
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                    // Conta antiga sem celular: só passa o necessário para cadastrá-lo.
+                    if (userDetails instanceof KineticUserDetails details
+                            && details.isPhoneRequired()
+                            && !allowedWithoutPhone(request)) {
+                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        response.setContentType("application/json");
+                        response.setCharacterEncoding("UTF-8");
+                        response.getWriter().write(PHONE_REQUIRED_BODY);
+                        return;
+                    }
+
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
@@ -71,5 +87,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * O que uma conta sem celular ainda pode chamar: sessão (refresh/logout), leitura do
+     * perfil (os clientes checam o celular por ele) e o próprio cadastro do celular.
+     */
+    private static boolean allowedWithoutPhone(HttpServletRequest request) {
+        String path = request.getRequestURI().substring(request.getContextPath().length());
+        String method = request.getMethod();
+        return path.startsWith("/api/auth/")
+                || ("GET".equals(method) && "/api/users/profile".equals(path))
+                || ("PUT".equals(method) && "/api/users/phone".equals(path));
     }
 }

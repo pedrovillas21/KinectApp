@@ -39,6 +39,7 @@ public class AuthService {
         if (phone == null) {
             throw new IllegalArgumentException("Celular inválido. Informe DDD + número, ex.: (11) 98765-4321.");
         }
+        userRepository.ensurePhoneAvailable(phone, null);
 
         User user = new User();
         user.setNome(dto.getNome());
@@ -64,7 +65,7 @@ public class AuthService {
             user.setCpf(cleanCpf);
         }
 
-        return userRepository.save(user);
+        return userRepository.saveCheckingPhone(user);
     }
 
     public AuthResponseDTO login(LoginDTO dto) {
@@ -95,6 +96,7 @@ public class AuthService {
                 user.getId(),
                 user.getNome(),
                 user.getEmail(),
+                user.getPhone(),
                 user.getLevel(),
                 user.getBirthDate(),
                 user.getWeight(),

@@ -97,8 +97,9 @@ public class UserService {
         }
 
         User user = userRepository.getByEmailOrThrow(userEmail);
+        userRepository.ensurePhoneAvailable(phone, user.getId());
         user.setPhone(phone);
-        userRepository.save(user);
+        userRepository.saveCheckingPhone(user);
         return phone;
     }
 

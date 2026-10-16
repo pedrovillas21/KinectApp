@@ -1,21 +1,30 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
   Activity,
   AlertTriangle,
   Award,
+  CreditCard,
   LogOut,
+  MessageCircle,
   Plus,
   Search,
   UserPlus,
   Users,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { getStudentMonthlyStats, listStudents } from '../services/trainerService';
+import { getEngagement, getStudentMonthlyStats, listInviteCodes, listStudents } from '../services/trainerService';
 import InviteStudentModal from '../components/InviteStudentModal';
+import PhoneDialog from '../components/PhoneDialog';
+import { usePersonalPhone } from '../layouts/PhoneGate';
+import { maskCellPhone } from '../utils/whatsapp';
 import { initialsOf } from '../components/Avatar';
 import StudentCard from '../components/personal/StudentCard';
+import PendingInvites from '../components/personal/PendingInvites';
+import RiskAlerts from '../components/personal/RiskAlerts';
+import { daysUntil, getBilling } from '../services/billingService';
 import { StudentsEmpty, StudentsError, StudentsSkeleton } from '../components/personal/ListStates';
 import {
   CountUp,
@@ -25,7 +34,13 @@ import {
   staggerContainer,
 } from '../components/motion/primitives';
 import { adherenceTone, toneRank, type AdherenceTone } from '../components/personal/adherence';
-import type { MonthlyStatsResponseDTO, TrainerLink } from '../types';
+import type {
+  BillingOverview,
+  MonthlyStatsResponseDTO,
+  StudentEngagement,
+  TrainerInviteCode,
+  TrainerLink,
+} from '../types';
 
 type Filter = 'all' | 'low' | 'mid' | 'ok';
 
@@ -47,15 +62,16 @@ interface Row {
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
+// Madrugada ainda é "boa noite" (00:30 com "bom dia" soa errado).
 const greetingFor = (hour: number) =>
-  hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
+  hour < 5 ? 'Boa noite' : hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
 
-const todayLabel = () => {
+const todayLabel = (now: Date) => {
   const raw = new Intl.DateTimeFormat('pt-BR', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
-  }).format(new Date());
+  }).format(now);
   return raw.charAt(0).toUpperCase() + raw.slice(1);
 };
 
@@ -67,18 +83,44 @@ const shortName = (nome: string) => {
 
 export default function StudentsListPage() {
   const { currentUser, signOut } = useAuth();
+  const { phone, setPhone } = usePersonalPhone();
+  const [phoneOpen, setPhoneOpen] = useState(false);
 
   const [students, setStudents] = useState<TrainerLink[]>([]);
   const [stats, setStats] = useState<StatsMap>({});
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteCodes, setInviteCodes] = useState<TrainerInviteCode[]>([]);
+  const [billing, setBilling] = useState<BillingOverview | null>(null);
+  /** Painel de aderência por aluno; null = carregando. */
+  const [engagement, setEngagement] = useState<Record<string, StudentEngagement> | null>(null);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
+  // Relógio da saudação/data: atualiza com o painel aberto (virada de turno ou de dia).
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(interval);
+  }, []);
 
   const load = async () => {
     setLoading(true);
     setLoadError(false);
+    // Convites por link são secundários: falha aqui não derruba a carteira.
+    listInviteCodes()
+      .then(setInviteCodes)
+      .catch(() => setInviteCodes([]));
+    // Plano também é secundário: sem ele só some o selo do cabeçalho.
+    getBilling()
+      .then(setBilling)
+      .catch(() => setBilling(null));
+    // Alertas de risco: falha aqui só esconde os alertas, não derruba a carteira.
+    setEngagement(null);
+    getEngagement()
+      .then((list) => setEngagement(Object.fromEntries(list.map((e) => [e.studentId, e]))))
+      .catch(() => setEngagement({}));
     let links: TrainerLink[];
     try {
       links = await listStudents();
@@ -128,6 +170,12 @@ export default function StudentsListPage() {
     ok: rows.filter((r) => r.tone === 'ok').length,
   };
 
+  const riskCount = engagement
+    ? students.filter((l) => (engagement[l.peer.id]?.risk ?? 'OK') !== 'OK').length
+    : null;
+  const scrollToAlerts = () =>
+    document.getElementById('alertas-de-risco')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
   const withPlan = rows.filter((r) => r.stats && r.stats.targetSessions > 0);
   const avgAdherence = withPlan.length
     ? withPlan.reduce((sum, r) => sum + (r.stats?.efficiency ?? 0), 0) / withPlan.length
@@ -139,6 +187,16 @@ export default function StudentsListPage() {
     if (!q) return true;
     return r.link.peer.nome.toLowerCase().includes(q) || r.link.peer.email.toLowerCase().includes(q);
   });
+
+  const handleLinkCreated = (invite: TrainerInviteCode) => {
+    setInviteCodes((list) => [invite, ...list]);
+  };
+
+  const handleInviteCodeChange = (id: string, next: TrainerInviteCode | null) => {
+    setInviteCodes((list) =>
+      next ? list.map((i) => (i.id === id ? next : i)) : list.filter((i) => i.id !== id),
+    );
+  };
 
   const handleInvited = (link: TrainerLink) => {
     toast.success(`Convite enviado para ${link.peer.nome}`, {
@@ -169,6 +227,7 @@ export default function StudentsListPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          {billing && <PlanChip billing={billing} />}
           <div className="hidden items-center gap-2.5 border-r border-k-ghost pr-4 sm:flex">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-k-surface2 font-display text-[13px] font-extrabold text-k-primary">
               {initialsOf(currentUser?.nome ?? '')}
@@ -187,6 +246,16 @@ export default function StudentsListPage() {
             <UserPlus className="h-[18px] w-[18px]" />
             Convidar aluno
           </motion.button>
+          <button
+            type="button"
+            onClick={() => setPhoneOpen(true)}
+            aria-label="Trocar meu WhatsApp"
+            title="Trocar meu WhatsApp"
+            className="flex h-11 items-center gap-2 rounded-xl border border-white/10 bg-k-surface1 px-3 text-sm font-semibold text-k-text-dim transition-colors hover:border-k-primary/45 hover:text-k-primary active:scale-95"
+          >
+            <MessageCircle className="h-[18px] w-[18px]" />
+            <span className="hidden md:inline">{phone ? maskCellPhone(phone) : 'Meu WhatsApp'}</span>
+          </button>
           <button
             type="button"
             onClick={() => void signOut()}
@@ -208,23 +277,23 @@ export default function StudentsListPage() {
             className="flex flex-wrap items-end justify-between gap-6"
           >
             <div className="min-w-0">
-              <p className="text-[13px] text-k-text-muted">{todayLabel()}</p>
+              <p className="text-[13px] text-k-text-muted">{todayLabel(now)}</p>
               <h1 className="mt-1.5 font-display text-[40px] font-extrabold leading-[1.08] tracking-[-0.02em] font-stretch-semi-expanded">
-                {greetingFor(new Date().getHours())}
+                {greetingFor(now.getHours())}
                 {firstName ? `, ${firstName}` : ''}
               </h1>
               <p className="mt-2.5 max-w-[640px] text-[15.5px] text-k-text-dim">
                 <HeroSummary
-                  ready={!loading && !loadError && (statsReady || students.length === 0)}
+                  ready={!loading && !loadError && (riskCount !== null || students.length === 0)}
                   total={students.length}
-                  attention={counts.low}
+                  attention={riskCount ?? 0}
                 />
               </p>
             </div>
-            {counts.low > 0 && (
+            {(riskCount ?? 0) > 0 && (
               <button
                 type="button"
-                onClick={() => setFilter('low')}
+                onClick={scrollToAlerts}
                 className="flex h-11 items-center gap-2 rounded-xl border border-white/10 bg-k-surface1 px-4 text-sm font-semibold text-k-text-dim transition-colors hover:bg-k-surface2 hover:text-k-text"
               >
                 <AlertTriangle className="h-[17px] w-[17px] text-k-alert" />
@@ -260,11 +329,16 @@ export default function StudentsListPage() {
               label="Precisam de atenção"
               icon={<AlertTriangle className="h-[18px] w-[18px]" />}
               tone="alert"
-              value={statsReady ? counts.low : null}
-              foot="Aderência abaixo de 40% no mês"
-              onClick={() => setFilter('low')}
+              value={riskCount}
+              foot="Inativos, sem treinar ou com queda"
+              onClick={scrollToAlerts}
             />
           </motion.section>
+
+          {/* Alertas de risco de abandono */}
+          {!loading && !loadError && students.length > 0 && engagement && (
+            <RiskAlerts students={students} engagement={engagement} trainerFirstName={firstName} />
+          )}
 
           {/* Lista */}
           <section aria-label="Lista de alunos" className="flex flex-col gap-5">
@@ -364,6 +438,7 @@ export default function StudentsListPage() {
                       <StudentCard
                         key={row.link.id}
                         link={row.link}
+                        engagement={engagement?.[row.link.peer.id]}
                         stats={row.stats}
                         tone={row.tone}
                         index={i}
@@ -388,6 +463,12 @@ export default function StudentsListPage() {
               </>
             )}
           </section>
+
+          <PendingInvites
+            invites={inviteCodes}
+            onChange={handleInviteCodeChange}
+            trainerFirstName={firstName}
+          />
         </div>
       </main>
 
@@ -395,8 +476,55 @@ export default function StudentsListPage() {
         open={inviteOpen}
         onClose={() => setInviteOpen(false)}
         onInvited={handleInvited}
+        onLinkCreated={handleLinkCreated}
+        trainerFirstName={firstName}
       />
+      <PhoneDialog open={phoneOpen} onOpenChange={setPhoneOpen} phone={phone} onSaved={setPhone} />
     </div>
+  );
+}
+
+/** Selo do plano no cabeçalho: leva para "Meu plano". */
+function PlanChip({ billing }: { billing: BillingOverview }) {
+  const trialDays = daysUntil(billing.trialEndsAt);
+  let text: string;
+  let alert = false;
+  switch (billing.status) {
+    case 'TRIAL':
+      text = trialDays > 0 ? `Teste grátis · ${trialDays}d` : 'Teste encerrado';
+      alert = trialDays <= 3;
+      break;
+    case 'PENDENTE':
+      text = 'Pagamento pendente';
+      alert = true;
+      break;
+    case 'ATIVA':
+      text = `Plano ${billing.planName}`;
+      break;
+    case 'ATRASADA':
+      text = 'Pagamento atrasado';
+      alert = true;
+      break;
+    default:
+      text = daysUntil(billing.currentPeriodEnd) > 0 ? `Plano ${billing.planName} · cancelado` : 'Sem plano';
+      alert = true;
+  }
+  return (
+    <Link
+      to="/assinatura"
+      title={`${billing.activeStudents} de ${billing.studentLimit} alunos ativos`}
+      className={`hidden h-11 items-center gap-2 rounded-xl border px-3 text-[13px] font-semibold transition-colors md:flex ${
+        alert
+          ? 'border-k-warn/35 bg-k-warn/10 text-k-warn hover:bg-k-warn/[0.16]'
+          : 'border-white/10 bg-k-surface1 text-k-text-dim hover:border-k-primary/45 hover:text-k-primary'
+      }`}
+    >
+      <CreditCard className="h-4 w-4" />
+      {text}
+      <span className="text-k-text-muted">
+        {billing.activeStudents}/{billing.studentLimit}
+      </span>
+    </Link>
   );
 }
 
@@ -423,7 +551,7 @@ function HeroSummary({
   }
   return (
     <>
-      Nenhum aluno abaixo de 40% de aderência este mês.
+      Nenhum aluno em risco de abandono agora.
     </>
   );
 }

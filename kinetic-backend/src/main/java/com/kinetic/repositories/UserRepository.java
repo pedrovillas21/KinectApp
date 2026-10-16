@@ -2,8 +2,10 @@ package com.kinetic.repositories;
 
 import com.kinetic.enums.Role;
 import com.kinetic.enums.UserStatus;
+import com.kinetic.exceptions.PhoneAlreadyInUseException;
 import com.kinetic.models.User;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -26,6 +28,38 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     boolean existsByEmail(String email);
     boolean existsByCpf(String cpf);
+
+    boolean existsByPhone(String phone);
+    boolean existsByPhoneAndIdNot(String phone, UUID id);
+
+    String PHONE_IN_USE_MESSAGE = "Este celular já está cadastrado em outra conta.";
+
+    /**
+     * Celular é único entre todas as contas. {@code userId} é a própria conta
+     * (null no cadastro), para que regravar o mesmo número não conte como conflito.
+     */
+    default void ensurePhoneAvailable(String phone, UUID userId) {
+        boolean taken = userId == null ? existsByPhone(phone) : existsByPhoneAndIdNot(phone, userId);
+        if (taken) {
+            throw new PhoneAlreadyInUseException(PHONE_IN_USE_MESSAGE);
+        }
+    }
+
+    /**
+     * Grava já fazendo flush, traduzindo a violação do índice único de celular
+     * (corrida entre dois cadastros com o mesmo número) em 409.
+     */
+    default User saveCheckingPhone(User user) {
+        try {
+            return saveAndFlush(user);
+        } catch (DataIntegrityViolationException e) {
+            String detail = e.getMostSpecificCause().getMessage();
+            if (detail != null && detail.contains("uq_users_phone")) {
+                throw new PhoneAlreadyInUseException(PHONE_IN_USE_MESSAGE);
+            }
+            throw e;
+        }
+    }
 
     /** Par (userId, frequency) de todos os usuários com frequência definida — usado pelo CommunityStatsService. */
     @Query("SELECT u.id, u.frequency FROM User u WHERE u.frequency IS NOT NULL AND u.frequency > 0")

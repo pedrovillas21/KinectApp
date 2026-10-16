@@ -34,6 +34,7 @@ public class TrainerLinkService {
 
     private final TrainerClientRepository trainerClientRepository;
     private final UserRepository userRepository;
+    private final BillingService billingService;
 
     @Transactional
     public TrainerLinkDTO invite(String trainerEmail, String studentEmail) {
@@ -55,6 +56,7 @@ public class TrainerLinkService {
                 trainer.getId(), student.getId(), TrainerLinkStatus.PENDENTE)) {
             throw new ActiveTrainerConflictException("Já existe um convite pendente para este aluno.");
         }
+        billingService.assertCanAddStudent(trainer, false);
 
         TrainerClient link = new TrainerClient();
         link.setTrainer(trainer);
@@ -88,6 +90,7 @@ public class TrainerLinkService {
         if (trainerClientRepository.existsByStudentIdAndStatus(student.getId(), TrainerLinkStatus.ATIVO)) {
             throw new ActiveTrainerConflictException("Você já possui um personal ativo.");
         }
+        billingService.assertCanAddStudent(link.getTrainer(), true);
 
         link.setStatus(TrainerLinkStatus.ATIVO);
         link.setRespondedAt(LocalDateTime.now());
@@ -191,6 +194,28 @@ public class TrainerLinkService {
         }
     }
 
+    /**
+     * O personal encerra o vínculo com um aluno da carteira (ex.: o aluno
+     * cancelou o serviço). O personal perde o acesso aos dados do aluno, e as
+     * fichas montadas por ele voltam a ser editáveis pelo aluno (ver
+     * WorkoutService). Vínculo atribuído pela empresa só a empresa encerra.
+     */
+    @Transactional
+    public void endLinkByTrainer(String trainerEmail, @NonNull UUID studentId) {
+        User trainer = userRepository.getByEmailOrThrow(trainerEmail);
+        TrainerClient link = trainerClientRepository
+                .findByTrainerIdAndStudentIdAndStatus(trainer.getId(), studentId, TrainerLinkStatus.ATIVO)
+                // 404 (e não 403) para não revelar a existência do aluno.
+                .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado."));
+        if (link.getSource() == TrainerLinkSource.COMPANY) {
+            throw new IllegalArgumentException(
+                    "Este aluno foi atribuído pela sua empresa. Peça à empresa para desvinculá-lo.");
+        }
+        link.setStatus(TrainerLinkStatus.ENCERRADO);
+        link.setEndedAt(LocalDateTime.now());
+        trainerClientRepository.save(link);
+    }
+
     /** Encerra um vínculo corporativo da empresa (desvincular aluno). */
     @Transactional
     public void endCompanyLink(UUID companyId, @NonNull UUID linkId) {
@@ -202,6 +227,7 @@ public class TrainerLinkService {
         }
         link.setStatus(TrainerLinkStatus.ENCERRADO);
         link.setRespondedAt(LocalDateTime.now());
+        link.setEndedAt(LocalDateTime.now());
         trainerClientRepository.save(link);
     }
 
@@ -219,7 +245,7 @@ public class TrainerLinkService {
         return link;
     }
 
-    private TrainerLinkDTO toDto(TrainerClient link, User peer) {
+    TrainerLinkDTO toDto(TrainerClient link, User peer) {
         // Celular só circula entre quem já tem vínculo ativo — convite pendente não expõe.
         String phone = link.getStatus() == TrainerLinkStatus.ATIVO ? peer.getPhone() : null;
         return new TrainerLinkDTO(

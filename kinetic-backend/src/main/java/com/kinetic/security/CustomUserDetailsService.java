@@ -1,5 +1,6 @@
 package com.kinetic.security;
 
+import com.kinetic.enums.Role;
 import com.kinetic.enums.UserStatus;
 import com.kinetic.models.User;
 import com.kinetic.repositories.UserRepository;
@@ -28,14 +29,17 @@ public class CustomUserDetailsService implements UserDetailsService {
         boolean enabled = user.getStatus() == UserStatus.ATIVO;
         boolean accountNonLocked = user.getStatus() != UserStatus.BLOQUEADO;
 
-        return new org.springframework.security.core.userdetails.User(
+        // Celular é obrigatório para quem usa o atalho de WhatsApp (aluno e personal).
+        boolean phoneRequired = (user.getRole() == Role.ALUNO || user.getRole() == Role.PERSONAL)
+                && (user.getPhone() == null || user.getPhone().isBlank());
+
+        return new KineticUserDetails(
                 user.getEmail(),
                 user.getSenha(),
                 enabled,
-                true,
-                true,
                 accountNonLocked,
-                List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+                List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())),
+                phoneRequired
         );
     }
 }

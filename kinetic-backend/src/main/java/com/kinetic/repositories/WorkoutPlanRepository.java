@@ -39,4 +39,9 @@ public interface WorkoutPlanRepository extends JpaRepository<WorkoutPlan, UUID> 
     // Retorna a data de criação do plano ativo mais antigo — define o início do ciclo atual.
     @Query("SELECT MIN(w.createdAt) FROM WorkoutPlan w WHERE w.user.id = :userId AND w.status = 'active'")
     Optional<LocalDateTime> findEarliestActiveCreatedAt(@Param("userId") UUID userId);
+
+    // Última ficha que a IA montou para o próprio aluno (sem personal: createdBy nulo),
+    // arquivadas inclusive — base da cota de IA do aluno.
+    @Query("SELECT MAX(w.createdAt) FROM WorkoutPlan w WHERE w.user.id = :userId AND w.createdBy IS NULL")
+    Optional<LocalDateTime> findLatestAiCreatedAt(@Param("userId") UUID userId);
 }

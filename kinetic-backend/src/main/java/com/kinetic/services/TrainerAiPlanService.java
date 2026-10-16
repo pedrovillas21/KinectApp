@@ -47,7 +47,6 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@SuppressWarnings("null")
 public class TrainerAiPlanService {
 
     /** Texto aceito pelo personal na aprovação. Mudou o texto? Mude também o painel (AiPlanPreview). */
@@ -67,6 +66,7 @@ public class TrainerAiPlanService {
 
     private final TrainerLinkService trainerLinkService;
     private final TrainerPlanService trainerPlanService;
+    private final BillingService billingService;
     private final GeminiService geminiService;
     private final PlanCycleSnapshotService planCycleSnapshotService;
     private final AiPlanGenerationRepository generationRepository;
@@ -98,6 +98,8 @@ public class TrainerAiPlanService {
                                             TrainerAiPlanRequestDTO request) {
         User student = trainerLinkService.resolveOwnedStudent(trainerEmail, studentId);
         User trainer = userRepository.getByEmailOrThrow(trainerEmail);
+        // Antes de chamar a IA: com a cota esgotada não se gasta token nenhum.
+        billingService.assertCanGenerateAi(trainer);
         String level = TrainerPlanService.resolveLevel(request.level(), null, student.getLevel());
 
         String prompt = buildPrompt(student, request, level);

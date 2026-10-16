@@ -331,7 +331,7 @@ export interface TrainerLink {
   id: string;
   peer: TrainerPeer;
   status: 'PENDENTE' | 'ATIVO' | 'RECUSADO' | 'ENCERRADO';
-  source: 'INVITE' | 'COMPANY';
+  source: 'INVITE' | 'COMPANY' | 'INVITE_CODE';
   createdAt: string;
   respondedAt: string | null;
 }

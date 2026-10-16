@@ -4,7 +4,7 @@ import { ChevronRight } from 'lucide-react';
 import Avatar from '../Avatar';
 import { CountUp, EASE_OUT, ProgressRing } from '../motion/primitives';
 import { TONE_META, type AdherenceTone } from './adherence';
-import type { MonthlyStatsResponseDTO, TrainerLink } from '../../types';
+import type { MonthlyStatsResponseDTO, StudentEngagement, TrainerLink } from '../../types';
 
 interface Props {
   link: TrainerLink;
@@ -12,6 +12,8 @@ interface Props {
   stats: MonthlyStatsResponseDTO | null | undefined;
   tone: AdherenceTone | null;
   index: number;
+  /** Painel de aderência (último treino, risco); undefined enquanto carrega. */
+  engagement?: StudentEngagement;
 }
 
 const sinceLabel = (iso: string): string => {
@@ -27,8 +29,16 @@ const sessionsLabel = (stats: MonthlyStatsResponseDTO | null): string => {
   return `${stats.completedSessions} de ${stats.targetSessions} treinos no mês`;
 };
 
+const lastSessionShort = (e: StudentEngagement): string => {
+  const d = e.daysSinceLastSession;
+  if (d === null) return 'Nunca treinou';
+  if (d === 0) return 'Treinou hoje';
+  if (d === 1) return 'Treinou ontem';
+  return `Há ${d} dias sem treinar`;
+};
+
 /** Card do aluno na carteira: anel de aderência do mês + status em texto. */
-export default function StudentCard({ link, stats, tone, index }: Props) {
+export default function StudentCard({ link, stats, tone, index, engagement }: Props) {
   const meta = tone ? TONE_META[tone] : null;
   const hasPlan = !!stats && stats.targetSessions > 0;
   const pct = hasPlan ? stats.efficiency : 0;
@@ -92,9 +102,22 @@ export default function StudentCard({ link, stats, tone, index }: Props) {
             )}
           </div>
 
-          <p className="whitespace-nowrap text-right text-xs text-k-text-muted">
-            {sinceLabel(link.respondedAt ?? link.createdAt)}
-          </p>
+          <div className="flex flex-col items-end gap-0.5 whitespace-nowrap text-right text-xs">
+            {engagement && (
+              <span
+                className={
+                  engagement.risk === 'ALTO'
+                    ? 'font-semibold text-k-alert'
+                    : engagement.risk === 'MEDIO'
+                      ? 'font-semibold text-k-warn'
+                      : 'text-k-text-dim'
+                }
+              >
+                {lastSessionShort(engagement)}
+              </span>
+            )}
+            <span className="text-k-text-muted">{sinceLabel(link.respondedAt ?? link.createdAt)}</span>
+          </div>
         </div>
       </Link>
     </motion.div>

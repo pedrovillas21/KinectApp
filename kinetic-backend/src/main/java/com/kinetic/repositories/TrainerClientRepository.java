@@ -1,5 +1,6 @@
 package com.kinetic.repositories;
 
+import com.kinetic.enums.TrainerLinkSource;
 import com.kinetic.enums.TrainerLinkStatus;
 import com.kinetic.models.TrainerClient;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,6 +26,11 @@ public interface TrainerClientRepository extends JpaRepository<TrainerClient, UU
     boolean existsByTrainerIdAndStudentIdAndStatus(UUID trainerId, UUID studentId, TrainerLinkStatus status);
 
     Optional<TrainerClient> findByStudentIdAndStatus(UUID studentId, TrainerLinkStatus status);
+
+    /** Alunos que contam no plano do personal (vínculos atribuídos pela empresa não entram). */
+    long countByTrainerIdAndStatusAndSourceNot(UUID trainerId, TrainerLinkStatus status, TrainerLinkSource source);
+
+    Optional<TrainerClient> findByTrainerIdAndStudentIdAndStatus(UUID trainerId, UUID studentId, TrainerLinkStatus status);
 
     /** Convites/vínculos do aluno com o personal já carregado (evita N+1). */
     @Query("SELECT tc FROM TrainerClient tc JOIN FETCH tc.trainer WHERE tc.student.id = :studentId AND tc.status = :status ORDER BY tc.createdAt DESC")

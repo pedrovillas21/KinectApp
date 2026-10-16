@@ -6,6 +6,7 @@ import {
   Image,
   FlatList,
   TouchableOpacity,
+  TextInput,
   StyleSheet,
   ListRenderItem,
 } from 'react-native';
@@ -23,6 +24,8 @@ interface Props {
   onAccept: (inviteId: string) => Promise<void>;
   /** Recusar o convite `inviteId`. */
   onDecline: (inviteId: string) => Promise<void>;
+  /** Usar o código do link de convite; devolve a mensagem de erro, ou null se deu certo. */
+  onRedeemCode: (code: string) => Promise<string | null>;
 }
 
 /** Convites de personal recebidos pelo aluno (vínculo profissional, Fase 1). */
@@ -32,9 +35,26 @@ export default function TrainerInvitesModal({
   onClose,
   onAccept,
   onDecline,
+  onRedeemCode,
 }: Props) {
   // Ids em processamento — desabilita os botões para evitar toque duplo.
   const [busy, setBusy] = useState<Record<string, boolean>>({});
+  const [code, setCode] = useState('');
+  const [codeError, setCodeError] = useState<string | null>(null);
+  const [redeeming, setRedeeming] = useState(false);
+
+  const handleRedeem = async () => {
+    if (!code.trim() || redeeming) return;
+    setRedeeming(true);
+    setCodeError(null);
+    const error = await onRedeemCode(code);
+    setRedeeming(false);
+    if (error) {
+      setCodeError(error);
+    } else {
+      setCode('');
+    }
+  };
 
   const handle = async (id: string, action: (id: string) => Promise<void>) => {
     if (busy[id]) return;
@@ -92,6 +112,32 @@ export default function TrainerInvitesModal({
               <Icon name="close" size={20} color={KINETIC.textMuted} />
             </TouchableOpacity>
           </View>
+
+          <Text style={styles.codeLabel}>Recebeu um link do seu personal?</Text>
+          <View style={styles.codeRow}>
+            <TextInput
+              style={styles.codeInput}
+              placeholder="Código de convite"
+              placeholderTextColor={KINETIC.textMuted}
+              value={code}
+              onChangeText={(v) => {
+                setCode(v.toUpperCase());
+                setCodeError(null);
+              }}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              maxLength={16}
+              onSubmitEditing={handleRedeem}
+            />
+            <TouchableOpacity
+              style={[styles.acceptBtn, styles.codeBtn, (!code.trim() || redeeming) && styles.btnDisabled]}
+              onPress={handleRedeem}
+              disabled={!code.trim() || redeeming}
+            >
+              <Text style={styles.acceptText}>{redeeming ? 'Usando…' : 'Usar'}</Text>
+            </TouchableOpacity>
+          </View>
+          {codeError && <Text style={styles.codeError}>{codeError}</Text>}
 
           <FlatList
             data={invites}
@@ -151,5 +197,19 @@ const styles = StyleSheet.create({
   },
   declineText: { color: KINETIC.textMuted, fontSize: 13, fontWeight: 'bold' },
   btnDisabled: { opacity: 0.5 },
+  codeLabel: { color: KINETIC.textMuted, fontSize: 13, marginBottom: 8 },
+  codeRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
+  codeInput: {
+    flex: 1,
+    backgroundColor: KINETIC.surface2,
+    color: KINETIC.text,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    fontSize: 15,
+    letterSpacing: 1.5,
+  },
+  codeBtn: { paddingVertical: 10 },
+  codeError: { color: KINETIC.warn, fontSize: 12, marginTop: 6 },
   empty: { color: KINETIC.textMuted, textAlign: 'center', marginTop: 24 },
 });

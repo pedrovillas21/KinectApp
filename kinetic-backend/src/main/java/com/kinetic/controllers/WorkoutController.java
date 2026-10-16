@@ -2,6 +2,7 @@ package com.kinetic.controllers;
 
 import com.kinetic.dtos.GenerateWorkoutRequestDto;
 import com.kinetic.dtos.WorkoutPlanResponseDTO;
+import com.kinetic.exceptions.AiQuotaExceededException;
 import com.kinetic.exceptions.TrainerManagedPlanException;
 import com.kinetic.services.GeminiService.InvalidGeminiResponseException;
 import com.kinetic.services.WorkoutService;
@@ -53,6 +54,8 @@ public class WorkoutController extends BaseController {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (TrainerManagedPlanException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        } catch (AiQuotaExceededException e) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(e.getMessage());
         } catch (InvalidGeminiResponseException e) {
             return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(e.getMessage());
         } catch (EntityNotFoundException e) {

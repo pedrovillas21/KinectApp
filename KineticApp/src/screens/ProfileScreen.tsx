@@ -26,6 +26,8 @@ import {
   declineInvite,
   getMyTrainer,
   getPendingInvites,
+  redeemErrorMessage,
+  redeemInviteCode,
 } from '../services/trainerService';
 import TrainerInvitesModal from '../components/TrainerInvitesModal';
 import { formatMemberSince, formatProfileName } from '../utils/formatters';
@@ -700,7 +702,7 @@ function TrainerSection({ trainer, inviteCount, onOpenInvites, onOpenWhatsApp }:
           <Row
             icon={Icons.users}
             label="Nenhum personal ativo"
-            sub="Aceite um convite para ser acompanhado"
+            sub="Aceite um convite ou use o código do seu personal"
           />
         )}
         <Row
@@ -926,6 +928,8 @@ interface PhoneModalProps {
 }
 
 function PhoneModal({ visible, value, onClose, onSaved }: PhoneModalProps) {
+  // Pelo AuthContext para o usuário em memória também ficar com o número novo.
+  const { updatePhone } = useContext(AuthContext);
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -945,16 +949,13 @@ function PhoneModal({ visible, value, onClose, onSaved }: PhoneModalProps) {
 
     setError('');
     setSubmitting(true);
-    try {
-      const response = await api.put<{ phone: string }>('/users/phone', { phone });
-      onSaved(response.data.phone);
-      onClose();
-    } catch (e) {
-      const raw = (e as { response?: { data?: unknown } }).response?.data;
-      setError(typeof raw === 'string' && raw ? raw : 'Não foi possível salvar o celular.');
-    } finally {
-      setSubmitting(false);
+    const result = await updatePhone(phone);
+    setSubmitting(false);
+    if (!result.success) {
+      return setError(result.error);
     }
+    onSaved(phone.replace(/\D/g, ''));
+    onClose();
   };
 
   return (
@@ -1055,6 +1056,18 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     }
   };
 
+  const handleRedeemCode = async (code: string): Promise<string | null> => {
+    try {
+      const link = await redeemInviteCode(code);
+      setInvitesOpen(false);
+      await refreshTrainerData();
+      Alert.alert('Personal conectado', `Agora ${link.peer.nome} acompanha seus treinos.`);
+      return null;
+    } catch (e) {
+      return redeemErrorMessage(e);
+    }
+  };
+
   const handleDeclineInvite = async (inviteId: string) => {
     try {
       await declineInvite(inviteId);
@@ -1152,8 +1165,13 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         typeof raw === 'string' && raw
           ? raw
           : 'Não foi possível regenerar o treino agora. Tente novamente.';
-      // 409 = a ficha vigente foi montada pelo personal (regra de negócio, não falha).
-      Alert.alert(err.response?.status === 409 ? 'Treino do seu personal' : 'Erro', message);
+      // 409 = a ficha vigente foi montada pelo personal; 429 = cota de IA (1 ficha a cada 30 dias).
+      // Ambos são regra de negócio, não falha.
+      const status = err.response?.status;
+      Alert.alert(
+        status === 409 ? 'Treino do seu personal' : status === 429 ? 'Nova ficha em breve' : 'Erro',
+        message,
+      );
     } finally {
       setIsRegenerating(false);
     }
@@ -1296,6 +1314,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         onClose={() => setInvitesOpen(false)}
         onAccept={handleAcceptInvite}
         onDecline={handleDeclineInvite}
+        onRedeemCode={handleRedeemCode}
       />
 
       <PhoneModal

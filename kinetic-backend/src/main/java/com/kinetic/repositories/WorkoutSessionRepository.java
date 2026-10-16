@@ -62,6 +62,27 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
             @Param("endDate")   LocalDate endDate
     );
 
+    /** Último dia com treino de cada usuário (de todos os tempos) — painel de aderência do personal. */
+    @Query("""
+            SELECT ws.user.id, MAX(ws.sessionDate)
+            FROM WorkoutSession ws
+            WHERE ws.user.id IN :userIds
+            GROUP BY ws.user.id
+            """)
+    List<Object[]> findLastSessionDatePerUser(@Param("userIds") Collection<UUID> userIds);
+
+    /** Dias distintos com treino de cada usuário desde {@code since} — janelas do alerta de risco. */
+    @Query("""
+            SELECT DISTINCT ws.user.id, ws.sessionDate
+            FROM WorkoutSession ws
+            WHERE ws.user.id IN :userIds
+              AND ws.sessionDate >= :since
+            """)
+    List<Object[]> findSessionDaysForUsersSince(
+            @Param("userIds") Collection<UUID> userIds,
+            @Param("since")   LocalDate since
+    );
+
     /** Soma de segundos treinados por usuário no intervalo — alimenta o Ranking da Arena da Home. */
     @Query("""
             SELECT ws.user.id, COALESCE(SUM(ws.durationInSeconds), 0)

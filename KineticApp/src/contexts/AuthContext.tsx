@@ -28,6 +28,9 @@ export interface KineticUser {
   id: string | number;
   nome: string;
   email: string;
+  // Celular (DDD + número). null em contas criadas antes de ele ser obrigatório:
+  // o roteamento barra o app até o cadastro (PhoneRequiredScreen).
+  phone: string | null;
   level: string | null;
   birthDate: string | null;
   weight: number | null;
@@ -106,6 +109,7 @@ interface AuthContextValue {
     currentPassword: string,
     newPassword: string,
   ) => Promise<AuthResult>;
+  updatePhone: (phone: string) => Promise<AuthResult>;
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -137,6 +141,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (e) {
       console.warn('Falha ao verificar treinos existentes:', e);
       return [];
+    }
+  };
+
+  const fetchPhone = async (): Promise<string | null> => {
+    try {
+      const res = await api.get<{ phone: string | null }>('/users/profile');
+      return res.data.phone ?? null;
+    } catch (e) {
+      console.warn('Falha ao verificar o celular cadastrado:', e);
+      return null;
     }
   };
 
@@ -178,6 +192,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const user = JSON.parse(userJson) as KineticUser;
+      // Cache salvo antes do celular existir (ou cadastrado em outro aparelho): confirma no backend.
+      if (!user.phone) {
+        user.phone = await fetchPhone();
+        await AsyncStorage.setItem(USER_KEY, JSON.stringify(user));
+      }
       setCurrentUser(user);
       setJustLoggedOut(false);
       setIsLoggedIn(true);
@@ -265,6 +284,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         id: string | number;
         nome: string;
         email: string;
+        phone: string | null;
         level: string | null;
         birthDate: string | null;
         weight: number | null;
@@ -282,6 +302,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         id,
         nome,
         email: userEmail,
+        phone,
         level,
         birthDate,
         weight,
@@ -294,6 +315,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         id,
         nome,
         email: userEmail,
+        phone: phone ?? null,
         level,
         birthDate,
         weight,
@@ -487,6 +509,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Cadastro/troca do celular; o backend devolve só DDD + número.
+  const updatePhone = async (phone: string): Promise<AuthResult> => {
+    if (!currentUser) return { success: false, error: 'Sessão expirada. Entre novamente.' };
+    try {
+      const response = await api.put<{ phone: string }>('/users/phone', { phone });
+      const updatedUser: KineticUser = { ...currentUser, phone: response.data.phone };
+
+      // Sem celular o backend barra /workouts/my-plans (PHONE_REQUIRED), então a checagem
+      // de fichas existentes feita no login falhou; refaz antes de liberar o roteamento
+      // para não cair no onboarding à toa.
+      if (!hasOnboarded) {
+        const plans = await fetchExistingPlans();
+        if (plans.length > 0) {
+          setWorkoutPlans(plans);
+          setHasOnboarded(true);
+        }
+      }
+
+      await AsyncStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
+      setCurrentUser(updatedUser);
+      return { success: true };
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: unknown } };
+      const message = err.response?.data;
+      return {
+        success: false,
+        error: typeof message === 'string' && message ? message : 'Não foi possível salvar o celular.',
+      };
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -509,6 +562,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         requestPasswordReset,
         resetPassword,
         changePassword,
+        updatePhone,
       }}
     >
       {children}

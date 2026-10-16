@@ -66,7 +66,7 @@ public record WorkoutPlanResponseDTO(
         // Sort estavel: fichas antigas (sortOrder null) mantem a ordem em que vieram do banco.
         return plan.getExercises().stream()
                 .filter(e -> !e.isArchived())
-                .sorted(Comparator.comparing(Exercise::getSortOrder,
+                .sorted(Comparator.comparing((Exercise e) -> e.getSortOrder(),
                         Comparator.nullsLast(Comparator.naturalOrder())))
                 .toList();
     }

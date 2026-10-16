@@ -14,6 +14,7 @@ import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Envio de e-mails transacionais pela API HTTP da Resend (https://resend.com).
@@ -37,11 +38,11 @@ public class EmailService {
         HttpClient httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(5))
                 .build();
-        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
-        requestFactory.setReadTimeout(Duration.ofSeconds(10));
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(Objects.requireNonNull(httpClient));
+        requestFactory.setReadTimeout(Objects.requireNonNull(Duration.ofSeconds(10)));
 
         this.restClient = RestClient.builder()
-                .baseUrl(baseUrl)
+                .baseUrl(Objects.requireNonNull(baseUrl))
                 .requestFactory(requestFactory)
                 .build();
     }
@@ -69,8 +70,8 @@ public class EmailService {
             restClient.post()
                     .uri("/emails")
                     .header("Authorization", "Bearer " + apiKey)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(body)
+                    .contentType(Objects.requireNonNull(MediaType.APPLICATION_JSON))
+                    .body(Objects.requireNonNull(body))
                     .retrieve()
                     .toBodilessEntity();
         } catch (RestClientResponseException e) {

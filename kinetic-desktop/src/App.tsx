@@ -1,11 +1,15 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import ProtectedRoute from './routes/ProtectedRoute';
 import AppShell from './layouts/AppShell';
+import PhoneGate from './layouts/PhoneGate';
 import { useAuth } from './contexts/AuthContext';
 import { homeForRole } from './config/nav';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ConfirmEmailPage from './pages/ConfirmEmailPage';
+import InvitePage from './pages/InvitePage';
+import BillingPage from './pages/BillingPage';
+import DemoCheckoutPage from './pages/DemoCheckoutPage';
 import StudentsListPage from './pages/StudentsListPage';
 import StudentDetailPage from './pages/StudentDetailPage';
 import ComingSoonPage from './pages/ComingSoonPage';
@@ -33,24 +37,23 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/confirm-email" element={<ConfirmEmailPage />} />
+      {/* Link de convite do personal: público, aberto pelo aluno no celular. */}
+      <Route path="/convite/:code" element={<InvitePage />} />
 
-      {/* PERSONAL — telas atuais preservadas (header próprio), sem regressão. */}
+      {/* PERSONAL — telas atuais preservadas (header próprio), sem regressão.
+          PhoneGate exige o celular (WhatsApp) antes de liberar o painel. */}
       <Route
-        path="/students"
         element={
           <ProtectedRoute allowedRoles={['PERSONAL']}>
-            <StudentsListPage />
+            <PhoneGate />
           </ProtectedRoute>
         }
-      />
-      <Route
-        path="/students/:id"
-        element={
-          <ProtectedRoute allowedRoles={['PERSONAL']}>
-            <StudentDetailPage />
-          </ProtectedRoute>
-        }
-      />
+      >
+        <Route path="/students" element={<StudentsListPage />} />
+        <Route path="/students/:id" element={<StudentDetailPage />} />
+        <Route path="/assinatura" element={<BillingPage />} />
+        <Route path="/assinatura/checkout-demo" element={<DemoCheckoutPage />} />
+      </Route>
 
       {/* ROOT — app-shell com sidebar + rotas filhas. */}
       <Route

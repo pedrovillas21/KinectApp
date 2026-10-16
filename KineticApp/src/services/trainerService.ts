@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from './api';
 import type { TrainerLink } from '../types';
 
@@ -31,3 +32,38 @@ export const getMyTrainer = async (): Promise<TrainerLink | null> => {
     throw e;
   }
 };
+
+// ── Código de convite (link do personal) ─────────────────────────────────────
+
+/**
+ * Resgata o código do link de convite. Digitar o código é o aceite: o vínculo
+ * já volta ATIVO. Erros: 402 = plano do personal cheio; 404 = código
+ * inválido/vencido/usado; 409 = já tem personal.
+ */
+export const redeemInviteCode = async (code: string): Promise<TrainerLink> => {
+  const res = await api.post<TrainerLink>('/me/invite-codes/redeem', { code: code.trim() });
+  return res.data;
+};
+
+/** Mensagem amigável para uma falha de resgate (o backend manda o texto no corpo em 404/409). */
+export const redeemErrorMessage = (e: unknown): string => {
+  const err = e as { response?: { status?: number; data?: unknown } };
+  const raw = err.response?.data;
+  const status = err.response?.status;
+  // 402 = o plano do personal está cheio (o código continua valendo para depois).
+  if ((status === 400 || status === 402 || status === 404 || status === 409) && typeof raw === 'string' && raw) {
+    return raw;
+  }
+  return 'Não foi possível usar o código agora. Tente novamente em instantes.';
+};
+
+// Código digitado no cadastro: guardado até o primeiro login (o cadastro exige
+// confirmar o e-mail antes, então ainda não há sessão para resgatar na hora).
+const PENDING_INVITE_KEY = '@kinetic_pending_invite_code';
+
+export const savePendingInviteCode = (code: string) =>
+  AsyncStorage.setItem(PENDING_INVITE_KEY, code.trim());
+
+export const getPendingInviteCode = () => AsyncStorage.getItem(PENDING_INVITE_KEY);
+
+export const clearPendingInviteCode = () => AsyncStorage.removeItem(PENDING_INVITE_KEY);

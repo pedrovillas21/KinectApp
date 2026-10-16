@@ -53,4 +53,7 @@ public class TrainerClient {
 
     @Column(name = "responded_at")
     private LocalDateTime respondedAt;
+
+    @Column(name = "ended_at")
+    private LocalDateTime endedAt;
 }

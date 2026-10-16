@@ -9,6 +9,8 @@ interface HomeGreetingProps {
 
 function getGreeting(): string {
   const hour = new Date().getHours();
+  // Madrugada ainda é "boa noite" (00:30 com "bom dia" soa errado).
+  if (hour < 5) return 'Boa noite';
   if (hour < 12) return 'Bom dia';
   if (hour < 18) return 'Boa tarde';
   return 'Boa noite';

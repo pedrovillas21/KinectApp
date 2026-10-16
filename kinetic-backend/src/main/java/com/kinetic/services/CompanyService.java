@@ -122,6 +122,7 @@ public class CompanyService {
         if (phone == null) {
             throw new IllegalArgumentException("Celular inválido. Informe DDD + número, ex.: (11) 98765-4321.");
         }
+        userRepository.ensurePhoneAvailable(phone, null);
 
         User personal = new User();
         personal.setNome(dto.nome());
@@ -132,7 +133,7 @@ public class CompanyService {
         personal.setStatus(UserStatus.ATIVO);
         personal.setCompanyId(dto.companyId());
 
-        return UserAdminDTO.fromEntity(userRepository.save(personal));
+        return UserAdminDTO.fromEntity(userRepository.saveCheckingPhone(personal));
     }
 
     @Transactional(readOnly = true)

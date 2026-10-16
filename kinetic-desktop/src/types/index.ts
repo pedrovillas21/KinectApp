@@ -104,6 +104,32 @@ export interface MonthlyStatsResponseDTO {
   efficiency: number;
 }
 
+// ── Painel de aderência (GET /api/trainer/students/engagement) ─────────────
+
+export type RiskLevel = 'ALTO' | 'MEDIO' | 'OK';
+
+export interface RiskAlert {
+  type: 'NUNCA_TREINOU' | 'INATIVO' | 'QUEDA' | 'BAIXA_ADERENCIA';
+  severity: 'ALTO' | 'MEDIO';
+  /** Frase pronta, ex.: "Não treina há 12 dias". */
+  message: string;
+}
+
+export interface StudentEngagement {
+  studentId: string;
+  /** null = nunca treinou. */
+  lastSessionDate: string | null;
+  daysSinceLastSession: number | null;
+  weeklyTarget: number | null;
+  /** Aderência na janela móvel (0–100); null sem meta semanal. */
+  adherencePercent: number | null;
+  adherenceWindowDays: number;
+  sessionsLast7Days: number;
+  risk: RiskLevel;
+  /** Do mais grave para o mais leve. */
+  alerts: RiskAlert[];
+}
+
 // ── Paginação genérica (Spring Page<T>) ────────────────────────────────────
 
 export interface Page<T> {
@@ -131,9 +157,66 @@ export interface TrainerLink {
   id: string;
   peer: TrainerPeer;
   status: 'PENDENTE' | 'ATIVO' | 'RECUSADO' | 'ENCERRADO';
-  source: 'INVITE' | 'COMPANY';
+  source: 'INVITE' | 'COMPANY' | 'INVITE_CODE';
   createdAt: string;
   respondedAt: string | null;
+}
+
+/**
+ * Convite por link (aluno ainda sem conta). `code` só vem na criação/renovação:
+ * o servidor guarda apenas o hash, então para reenviar gera-se um código novo.
+ */
+export interface TrainerInviteCode {
+  id: string;
+  code: string | null;
+  label: string | null;
+  expiresAt: string;
+  createdAt: string;
+  expired: boolean;
+}
+
+// ── Assinatura do personal ─────────────────────────────────────────────────
+
+export type SubscriptionStatus = 'TRIAL' | 'PENDENTE' | 'ATIVA' | 'ATRASADA' | 'CANCELADA';
+
+export interface BillingPlanOption {
+  code: string;
+  name: string;
+  /** null no plano "em breve". */
+  maxStudents: number | null;
+  priceCents: number | null;
+  /** Gerações de prévia por IA por mês (somadas na conta). */
+  aiGenerationsPerMonth: number | null;
+  comingSoon: boolean;
+}
+
+export interface BillingOverview {
+  /** DEMO = nenhuma cobrança real; ASAAS = cobrança de verdade. */
+  gatewayMode: 'DEMO' | 'ASAAS';
+  status: SubscriptionStatus;
+  plan: string | null;
+  planName: string | null;
+  studentLimit: number;
+  activeStudents: number;
+  canAddStudents: boolean;
+  trialEndsAt: string;
+  currentPeriodEnd: string | null;
+  canceledAt: string | null;
+  /** Página da cobrança em aberto (caminho do painel no modo demo). */
+  checkoutUrl: string | null;
+  aiGenerationsUsed: number;
+  /** null = sem cota (personal de empresa). */
+  aiGenerationsLimit: number | null;
+  /** Quando a cota renova; null no teste grátis (total único). */
+  aiResetsAt: string | null;
+  plans: BillingPlanOption[];
+}
+
+/** Prévia pública do link de convite: só nome e foto do personal. */
+export interface InviteCodePreview {
+  trainerName: string;
+  trainerAvatarUrl: string | null;
+  expiresAt: string;
 }
 
 // ── Fichas de treino (prescrição pelo personal) ─────────────────────────────

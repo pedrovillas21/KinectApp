@@ -2,17 +2,22 @@ package com.kinetic.controllers;
 
 import com.kinetic.dtos.AiPlanContextDTO;
 import com.kinetic.dtos.AiPlanPreviewDTO;
+import com.kinetic.dtos.InviteCodeCreateRequestDTO;
 import com.kinetic.dtos.MonthlyStatsResponseDTO;
 import com.kinetic.dtos.PlanEvolutionResponseDTO;
 import com.kinetic.dtos.StatsSummaryResponseDTO;
+import com.kinetic.dtos.StudentEngagementDTO;
 import com.kinetic.dtos.TrainerAiPlanApproveRequestDTO;
 import com.kinetic.dtos.TrainerAiPlanRequestDTO;
+import com.kinetic.dtos.TrainerInviteCodeDTO;
 import com.kinetic.dtos.TrainerInviteRequestDTO;
 import com.kinetic.dtos.TrainerLinkDTO;
 import com.kinetic.dtos.TrainerWorkoutPlanRequestDTO;
 import com.kinetic.dtos.WorkoutPlanResponseDTO;
 import com.kinetic.services.StatsService;
 import com.kinetic.services.TrainerAiPlanService;
+import com.kinetic.services.TrainerEngagementService;
+import com.kinetic.services.TrainerInviteCodeService;
 import com.kinetic.services.TrainerLinkService;
 import com.kinetic.services.TrainerPlanService;
 import com.kinetic.services.WorkoutSessionService;
@@ -47,6 +52,8 @@ public class TrainerController extends BaseController {
     private final WorkoutSessionService workoutSessionService;
     private final TrainerPlanService trainerPlanService;
     private final TrainerAiPlanService trainerAiPlanService;
+    private final TrainerInviteCodeService trainerInviteCodeService;
+    private final TrainerEngagementService trainerEngagementService;
 
     @Operation(
             summary = "Convidar um aluno pelo e-mail",
@@ -58,6 +65,73 @@ public class TrainerController extends BaseController {
     public ResponseEntity<TrainerLinkDTO> invite(@Valid @RequestBody TrainerInviteRequestDTO dto) {
         TrainerLinkDTO link = trainerLinkService.invite(currentUserEmail(), dto.getStudentEmail());
         return ResponseEntity.status(HttpStatus.CREATED).body(link);
+    }
+
+    // ── Convite por link (aluno sem conta) ───────────────────────────────────
+
+    @Operation(
+            summary = "Gerar um link de convite",
+            description = "Cria um código de uso único, válido por 7 dias, para o personal mandar ao aluno (ex.: "
+                    + "pelo WhatsApp). O código em claro só vem nesta resposta; o servidor guarda apenas o hash. "
+                    + "Quando o aluno resgata o código no app, o vínculo já nasce ATIVO."
+    )
+    @PostMapping("/invite-codes")
+    public ResponseEntity<TrainerInviteCodeDTO> createInviteCode(@Valid @RequestBody InviteCodeCreateRequestDTO dto) {
+        TrainerInviteCodeDTO invite = trainerInviteCodeService.create(currentUserEmail(), dto.getLabel());
+        return ResponseEntity.status(HttpStatus.CREATED).body(invite);
+    }
+
+    @Operation(
+            summary = "Listar links de convite em aberto",
+            description = "Convites por link ainda não usados pelo aluno, inclusive os vencidos (para renovar). "
+                    + "Não traz o código: para reenviar, gere um novo."
+    )
+    @GetMapping("/invite-codes")
+    public ResponseEntity<List<TrainerInviteCodeDTO>> listInviteCodes() {
+        return ResponseEntity.ok(trainerInviteCodeService.listOpen(currentUserEmail()));
+    }
+
+    @Operation(
+            summary = "Gerar um novo código para um convite",
+            description = "Troca o código do convite (o link antigo para de funcionar) e renova a validade por "
+                    + "mais 7 dias. O código novo só vem nesta resposta."
+    )
+    @PostMapping("/invite-codes/{inviteId}/regenerate")
+    public ResponseEntity<TrainerInviteCodeDTO> regenerateInviteCode(@PathVariable @NonNull UUID inviteId) {
+        return ResponseEntity.ok(trainerInviteCodeService.regenerate(currentUserEmail(), inviteId));
+    }
+
+    @Operation(
+            summary = "Cancelar um link de convite",
+            description = "Apaga o convite ainda não usado; o link enviado deixa de funcionar."
+    )
+    @DeleteMapping("/invite-codes/{inviteId}")
+    public ResponseEntity<Void> revokeInviteCode(@PathVariable @NonNull UUID inviteId) {
+        trainerInviteCodeService.revoke(currentUserEmail(), inviteId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Painel de aderência da carteira",
+            description = "Para cada aluno ativo: último treino, aderência recente (janela móvel de até 28 dias) e "
+                    + "alertas de risco de abandono (nunca treinou, inativo, queda de aderência, aderência baixa), "
+                    + "com o risco geral ALTO, MEDIO ou OK."
+    )
+    @GetMapping("/students/engagement")
+    public ResponseEntity<List<StudentEngagementDTO>> engagement() {
+        return ResponseEntity.ok(trainerEngagementService.engagement(currentUserEmail()));
+    }
+
+    @Operation(
+            summary = "Encerrar o vínculo com um aluno",
+            description = "Tira o aluno da carteira do personal (ex.: o aluno cancelou o serviço). O personal perde "
+                    + "o acesso aos dados dele e o aluno volta a controlar as próprias fichas. O histórico de treinos "
+                    + "do aluno não é apagado. 404 = aluno fora da carteira; 400 = vínculo atribuído pela empresa."
+    )
+    @DeleteMapping("/students/{studentId}")
+    public ResponseEntity<Void> endStudentLink(@PathVariable @NonNull UUID studentId) {
+        trainerLinkService.endLinkByTrainer(currentUserEmail(), studentId);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(

@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import { AuthContext } from '../contexts/AuthContext';
+import usePendingInviteRedeem from '../hooks/usePendingInviteRedeem';
 import BottomTabBar from '../components/BottomTabBar';
 
 import WelcomeScreen from '../screens/Auth/WelcomeScreen';
@@ -13,6 +14,7 @@ import ForgotPasswordScreen from '../screens/Auth/ForgotPasswordScreen';
 import VerifyCodeScreen from '../screens/Auth/VerifyCodeScreen';
 import ResetPasswordScreen from '../screens/Auth/ResetPasswordScreen';
 import ConfirmEmailScreen from '../screens/Auth/ConfirmEmailScreen';
+import PhoneRequiredScreen from '../screens/Auth/PhoneRequiredScreen';
 
 import OnboardingScreen from '../screens/Onboarding/OnboardingScreen';
 
@@ -42,8 +44,9 @@ function MainTabs(): React.ReactElement {
 }
 
 export default function AppRoutes(): React.ReactElement | null {
-  const { isLoggedIn, hasOnboarded, isLoadingAuth, rememberedUser, justLoggedOut } =
+  const { isLoggedIn, hasOnboarded, isLoadingAuth, rememberedUser, justLoggedOut, currentUser } =
     useContext(AuthContext);
+  usePendingInviteRedeem(isLoggedIn);
 
   if (isLoadingAuth) {
     return null;
@@ -74,6 +77,16 @@ export default function AppRoutes(): React.ReactElement | null {
         <Stack.Screen name="VerifyCode" component={VerifyCodeScreen} />
         <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
         <Stack.Screen name="ConfirmEmail" component={ConfirmEmailScreen} />
+      </Stack.Navigator>
+    );
+  }
+
+  // Celular virou obrigatório (atalho de WhatsApp com o personal): conta antiga sem ele
+  // não passa daqui até cadastrar.
+  if (!currentUser?.phone) {
+    return (
+      <Stack.Navigator key="phone-stack" screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="PhoneRequired" component={PhoneRequiredScreen} />
       </Stack.Navigator>
     );
   }

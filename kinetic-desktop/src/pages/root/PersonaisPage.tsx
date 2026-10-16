@@ -98,7 +98,11 @@ export default function PersonaisPage() {
       await load();
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } }).response?.status;
-      if (status === 409) toast.error('Já existe um usuário com este e-mail.');
+      if (status === 409) {
+        // E-mail ou celular já usados: o backend diz qual.
+        const data = (err as { response?: { data?: unknown } }).response?.data;
+        toast.error(typeof data === 'string' && data ? data : 'Já existe um usuário com estes dados.');
+      }
       else if (status === 404) toast.error('Empresa não encontrada.');
       else if (status === 400) {
         const data = (err as { response?: { data?: unknown } }).response?.data;

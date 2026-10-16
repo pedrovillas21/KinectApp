@@ -8,6 +8,8 @@ import type {
   PlanEvolutionResponseDTO,
   StatsPeriodId,
   StatsSummaryResponseDTO,
+  StudentEngagement,
+  TrainerInviteCode,
   TrainerLink,
   WorkoutPlan,
   WorkoutPlanInput,
@@ -25,12 +27,50 @@ export const listStudents = async (): Promise<TrainerLink[]> => {
 };
 
 /**
+ * Tira o aluno da carteira (ex.: ele cancelou o serviço). O personal perde o
+ * acesso aos dados dele. Erros: 404 = fora da carteira; 400 = atribuído pela empresa.
+ */
+export const endStudentLink = async (studentId: string): Promise<void> => {
+  await api.delete(`/trainer/students/${studentId}`);
+};
+
+/**
  * Convida um aluno pelo e-mail. Erros esperados do backend:
  * 404 = aluno não cadastrado; 409 = aluno já tem personal ativo (ou convite
  * pendente duplicado). Trate-os na UI com mensagens amigáveis.
  */
 export const inviteStudent = async (studentEmail: string): Promise<TrainerLink> => {
   const res = await api.post<TrainerLink>('/trainer/invites', { studentEmail });
+  return res.data;
+};
+
+// ── Convite por link (aluno sem conta) ───────────────────────────────────────
+
+/** Gera um código de uso único (7 dias). O código em claro só vem nesta resposta. */
+export const createInviteCode = async (label?: string): Promise<TrainerInviteCode> => {
+  const res = await api.post<TrainerInviteCode>('/trainer/invite-codes', { label: label || null });
+  return res.data;
+};
+
+/** Convites por link ainda não usados (inclui vencidos, para renovar). Sem o código. */
+export const listInviteCodes = async (): Promise<TrainerInviteCode[]> => {
+  const res = await api.get<TrainerInviteCode[]>('/trainer/invite-codes');
+  return res.data;
+};
+
+/** Troca o código (o link antigo para de funcionar) e renova a validade. */
+export const regenerateInviteCode = async (inviteId: string): Promise<TrainerInviteCode> => {
+  const res = await api.post<TrainerInviteCode>(`/trainer/invite-codes/${inviteId}/regenerate`);
+  return res.data;
+};
+
+export const revokeInviteCode = async (inviteId: string): Promise<void> => {
+  await api.delete(`/trainer/invite-codes/${inviteId}`);
+};
+
+/** Painel de aderência: último treino, aderência recente e alertas de risco de cada aluno ativo. */
+export const getEngagement = async (): Promise<StudentEngagement[]> => {
+  const res = await api.get<StudentEngagement[]>('/trainer/students/engagement');
   return res.data;
 };
 

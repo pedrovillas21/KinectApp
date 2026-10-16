@@ -1,9 +1,12 @@
 package com.kinetic.controllers;
 
+import com.kinetic.dtos.InviteCodeRedeemRequestDTO;
 import com.kinetic.dtos.TrainerLinkDTO;
+import com.kinetic.services.TrainerInviteCodeService;
 import com.kinetic.services.TrainerLinkService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
@@ -25,6 +28,7 @@ import java.util.UUID;
 public class StudentTrainerController extends BaseController {
 
     private final TrainerLinkService trainerLinkService;
+    private final TrainerInviteCodeService trainerInviteCodeService;
 
     @Operation(
             summary = "Listar convites de personal recebidos",
@@ -54,6 +58,17 @@ public class StudentTrainerController extends BaseController {
     public ResponseEntity<Void> decline(@PathVariable @NonNull UUID id) {
         trainerLinkService.decline(currentUserEmail(), id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Usar um código de convite de personal",
+            description = "Resgata o código do link de convite enviado pelo personal. Digitar o código é o aceite: "
+                    + "o vínculo já nasce ATIVO. 404 = código inválido, vencido ou já usado; 409 = o aluno já "
+                    + "tem um personal ativo."
+    )
+    @PostMapping("/invite-codes/redeem")
+    public ResponseEntity<TrainerLinkDTO> redeemInviteCode(@Valid @RequestBody InviteCodeRedeemRequestDTO dto) {
+        return ResponseEntity.ok(trainerInviteCodeService.redeem(currentUserEmail(), dto.getCode()));
     }
 
     @Operation(

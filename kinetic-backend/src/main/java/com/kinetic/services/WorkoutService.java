@@ -5,6 +5,7 @@ import com.kinetic.dtos.GeneratedExerciseDto;
 import com.kinetic.dtos.GeneratedWorkoutPlanDto;
 import com.kinetic.dtos.WorkoutPlanResponseDTO;
 import com.kinetic.enums.TrainerLinkStatus;
+import com.kinetic.exceptions.AiQuotaExceededException;
 import com.kinetic.exceptions.TrainerManagedPlanException;
 import com.kinetic.models.Exercise;
 import com.kinetic.models.User;
@@ -18,9 +19,11 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
 import java.text.Normalizer;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +36,9 @@ import java.util.UUID;
 @Slf4j
 @Service
 public class WorkoutService {
+
+    /** Intervalo mínimo entre fichas geradas por IA para o próprio aluno (cota do app). */
+    static final Duration STUDENT_AI_COOLDOWN = Duration.ofDays(30);
 
     private static final Set<String> SECTIONS = Set.of("AQUECIMENTO", "PRINCIPAL", "FINALIZACAO");
     private static final String DEFAULT_SECTION = "PRINCIPAL";
@@ -81,6 +87,18 @@ public class WorkoutService {
             throw new TrainerManagedPlanException(
                     "Seu treino é montado pelo seu personal. Fale com ele pelo WhatsApp para ajustar a ficha.");
         }
+
+        // Cota de IA do aluno: a 1ª ficha (onboarding) é livre; depois, uma nova a cada
+        // 30 dias. Acompanhamento contínuo é o serviço do personal — a IA grátis não compete com ele.
+        workoutPlanRepository.findLatestAiCreatedAt(user.getId())
+                .map(last -> last.plus(STUDENT_AI_COOLDOWN))
+                .filter(next -> next.isAfter(LocalDateTime.now()))
+                .ifPresent(next -> {
+                    throw new AiQuotaExceededException(
+                            "Você pode gerar uma nova ficha com IA a cada " + STUDENT_AI_COOLDOWN.toDays()
+                                    + " dias. A próxima fica liberada em "
+                                    + next.format(DateTimeFormatter.ofPattern("dd/MM")) + ".");
+                });
 
         log.info("Usuário encontrado. Atualizando perfil... (Idade calculada com data {}: {} anos)", request.birthDate(), age);
 

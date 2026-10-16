@@ -37,7 +37,7 @@ export function StudentsSkeleton() {
   );
 }
 
-const STEPS = ['Envie o convite por e-mail', 'O aluno aceita no app', 'Acompanhe treinos e converse'];
+const STEPS = ['Mande o link de convite no WhatsApp', 'O aluno cria a conta e usa o código', 'Acompanhe os treinos dele'];
 
 /** Carteira vazia: ilustração com ondas + CTA + os 3 passos do convite. */
 export function StudentsEmpty({ onInvite }: { onInvite: () => void }) {

@@ -20,6 +20,19 @@ import java.util.List;
 import java.util.Objects;
 import com.fasterxml.jackson.core.type.TypeReference;
 
+/**
+ * Geração de fichas por IA (Google Gemini), usada pelo app do aluno (WorkoutService)
+ * e pela prévia do personal (TrainerAiPlanService).
+ *
+ * <p><b>MIGRAÇÃO PLANEJADA:</b> trocar o Gemini pelo Claude Haiku 5.5
+ * ({@code claude-haiku-5-5}) via SDK Java oficial da Anthropic, pago com os créditos
+ * mensais de API da assinatura Claude Max. Pontos a cuidar na troca:
+ * saída em JSON por structured outputs; effort baixo, já que o raciocínio é cobrado
+ * como saída; gravar os tokens de cada chamada para recalibrar as cotas de IA
+ * (BillingPlan); manter um saldo reserva com recarga automática no Console, porque
+ * sem crédito as requisições param; e usar um workspace próprio com limite de gasto.
+ * Detalhes em kinetic-backend/todo.md.
+ */
 @Service
 public class GeminiService {
 

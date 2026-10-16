@@ -15,6 +15,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthContext } from '../../contexts/AuthContext';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { isValidCellPhone, maskCellPhone } from '../../utils/whatsapp';
+import { savePendingInviteCode } from '../../services/trainerService';
 
 const A = {
   bg: '#131313',
@@ -216,6 +217,7 @@ export default function RegisterScreen({ navigation }: Props) {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -239,6 +241,12 @@ export default function RegisterScreen({ navigation }: Props) {
     if (!result.success) {
       Alert.alert('Erro no cadastro', result.error);
       return;
+    }
+
+    // Resgatado no primeiro login (ver usePendingInviteRedeem): antes disso o
+    // e-mail precisa ser confirmado e ainda não há sessão.
+    if (inviteCode.trim()) {
+      await savePendingInviteCode(inviteCode);
     }
 
     Alert.alert(
@@ -325,6 +333,24 @@ export default function RegisterScreen({ navigation }: Props) {
               {phone.length > 0 && !isPhoneValid
                 ? 'Informe DDD + número do celular.'
                 : 'Seu personal usa este número para falar com você pelo WhatsApp.'}
+            </Text>
+
+            {/* Invite code field (opcional) */}
+            <Text style={[styles.fieldLabel, { marginTop: 16 }]}>CÓDIGO DE CONVITE (OPCIONAL)</Text>
+            <View style={styles.inputWrap}>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Ex.: ABCDE-23456"
+                placeholderTextColor={A.text3}
+                value={inviteCode}
+                onChangeText={(v) => setInviteCode(v.toUpperCase())}
+                autoCapitalize="characters"
+                autoCorrect={false}
+                maxLength={16}
+              />
+            </View>
+            <Text style={styles.fieldHint}>
+              Recebeu um link do seu personal? Digite o código para entrar na carteira dele.
             </Text>
 
             {/* Password field */}
