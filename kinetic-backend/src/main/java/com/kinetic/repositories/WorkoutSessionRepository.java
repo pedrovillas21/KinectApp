@@ -1,6 +1,8 @@
 package com.kinetic.repositories;
 
 import com.kinetic.models.WorkoutSession;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -9,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -98,4 +101,15 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
             @Param("startDate") LocalDate startDate,
             @Param("endDate")   LocalDate endDate
     );
+
+    long countByUserId(UUID userId);
+
+    Optional<WorkoutSession> findByUserIdAndClientSessionId(UUID userId, UUID clientSessionId);
+
+    /** Histórico de treinos do usuário, mais recentes primeiro — aba "Treinos" do perfil. */
+    Page<WorkoutSession> findByUserIdOrderBySessionDateDescIdDesc(UUID userId, Pageable pageable);
+
+    /** Todas as datas de treino do usuário (uma por sessão), em ordem — conquistas e sequências. */
+    @Query("SELECT ws.sessionDate FROM WorkoutSession ws WHERE ws.user.id = :userId ORDER BY ws.sessionDate")
+    List<LocalDate> findAllSessionDatesByUserId(@Param("userId") UUID userId);
 }

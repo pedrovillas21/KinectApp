@@ -33,4 +33,11 @@ public interface UserConnectionRepository extends JpaRepository<UserConnection, 
           AND c.addressee.id = :userId
         """)
     List<UserConnection> findPendingIncomingFor(@Param("userId") UUID userId);
+
+    @Query("""
+        SELECT COUNT(c) FROM UserConnection c
+        WHERE c.status = 'ACCEPTED'
+          AND (c.requester.id = :userId OR c.addressee.id = :userId)
+        """)
+    long countAcceptedFor(@Param("userId") UUID userId);
 }

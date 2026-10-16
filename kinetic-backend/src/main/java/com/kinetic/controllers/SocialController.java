@@ -1,6 +1,7 @@
 package com.kinetic.controllers;
 
 import com.kinetic.dtos.*;
+import com.kinetic.services.PublicProfileService;
 import com.kinetic.services.SocialService;
 import com.kinetic.services.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,11 +31,17 @@ public class SocialController extends BaseController {
 
     private final SocialService socialService;
     private final StorageService storageService;
+    private final PublicProfileService publicProfileService;
 
-    public SocialController(SocialService socialService, StorageService storageService) {
+    public SocialController(SocialService socialService, StorageService storageService,
+                            PublicProfileService publicProfileService) {
         this.socialService = socialService;
         this.storageService = storageService;
+        this.publicProfileService = publicProfileService;
     }
+
+    /** Teto de itens por página nas listas do perfil. */
+    private static final int MAX_PROFILE_PAGE_SIZE = 50;
 
     // ── Media ─────────────────────────────────────────────────────────────────
 
@@ -281,5 +288,65 @@ public class SocialController extends BaseController {
                                                   @Valid @RequestBody AddCommentRequest req) {
         CommentDTO dto = socialService.addComment(currentUserEmail(), id, req);
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+    }
+
+    // ── Perfil de outro usuário / comparar ───────────────────────────────────
+
+    @Operation(
+            summary = "Ver o perfil de um usuário",
+            description = "Cabeçalho (nome, foto, membro desde), contadores (posts, amigos, treinos) e o estado da "
+                    + "conexão com o usuário logado (SELF, CONNECTED, PENDING_OUTGOING, PENDING_INCOMING, NONE). "
+                    + "Para quem não é amigo aceito, \"locked\" vem true e as listas de atividade (minutos das "
+                    + "últimas 12 semanas, recordes, conquistas) vêm vazias."
+    )
+    @GetMapping("/users/{id}/profile")
+    public ResponseEntity<PublicProfileDTO> getUserProfile(@PathVariable UUID id) {
+        return ResponseEntity.ok(publicProfileService.getProfile(currentUserEmail(), id));
+    }
+
+    @Operation(
+            summary = "Listar as publicações de um usuário",
+            description = "Posts do usuário informado, mais recentes primeiro, no mesmo formato do feed. Só o próprio "
+                    + "usuário ou amigos aceitos podem ver; os demais recebem 403."
+    )
+    @GetMapping("/users/{id}/posts")
+    public ResponseEntity<Page<FeedPostDTO>> getUserPosts(
+            @PathVariable UUID id,
+            @Parameter(description = "Número da página, começando em 0. Padrão: 0.")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Itens por página (máx. 50). Padrão: 12.")
+            @RequestParam(defaultValue = "12") int size) {
+        return ResponseEntity.ok(socialService.getUserPosts(currentUserEmail(), id, profilePage(page, size)));
+    }
+
+    @Operation(
+            summary = "Listar os treinos de um usuário",
+            description = "Sessões registradas pelo usuário informado, mais recentes primeiro: título, duração, "
+                    + "volume, recordes batidos e os 3 primeiros exercícios com a melhor série. Só o próprio "
+                    + "usuário ou amigos aceitos podem ver; os demais recebem 403."
+    )
+    @GetMapping("/users/{id}/workouts")
+    public ResponseEntity<Page<WorkoutSummaryDTO>> getUserWorkouts(
+            @PathVariable UUID id,
+            @Parameter(description = "Número da página, começando em 0. Padrão: 0.")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Itens por página (máx. 50). Padrão: 10.")
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(publicProfileService.getUserWorkouts(currentUserEmail(), id, profilePage(page, size)));
+    }
+
+    @Operation(
+            summary = "Comparar progresso com um amigo",
+            description = "Dados de treino lado a lado (sem peso corporal): minutos das últimas 12 semanas, sessões "
+                    + "no mês, sequência, total de treinos, volume dos últimos 30 dias e recordes dos exercícios que "
+                    + "os dois fazem. Só com amizade aceita (403); 400 se o id for do próprio usuário."
+    )
+    @GetMapping("/compare/{friendId}")
+    public ResponseEntity<CompareProgressDTO> compare(@PathVariable UUID friendId) {
+        return ResponseEntity.ok(publicProfileService.compare(currentUserEmail(), friendId));
+    }
+
+    private static PageRequest profilePage(int page, int size) {
+        return PageRequest.of(Math.max(0, page), Math.min(Math.max(1, size), MAX_PROFILE_PAGE_SIZE));
     }
 }
