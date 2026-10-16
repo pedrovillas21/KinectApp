@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -33,6 +35,7 @@ public class StudentBillingPlan {
     private int amountCents;
 
     /** Dia do vencimento (1–28, para existir em todo mês). */
+    @JdbcTypeCode(SqlTypes.SMALLINT)
     @Column(name = "due_day", nullable = false)
     private int dueDay;
 

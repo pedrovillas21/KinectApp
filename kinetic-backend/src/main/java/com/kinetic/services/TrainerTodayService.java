@@ -88,7 +88,7 @@ public class TrainerTodayService {
         addInvites(items, trainer);
 
         items.sort(Comparator.comparingInt((TodayItemDTO i) -> severityRank(i.severity()))
-                .thenComparing(TodayItemDTO::type));
+                .thenComparing(i -> i.type()));
         return items;
     }
 

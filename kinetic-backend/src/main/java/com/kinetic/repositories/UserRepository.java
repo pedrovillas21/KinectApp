@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -51,7 +52,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      */
     default User saveCheckingPhone(User user) {
         try {
-            return saveAndFlush(user);
+            return saveAndFlush(Objects.requireNonNull(user));
         } catch (DataIntegrityViolationException e) {
             String detail = e.getMostSpecificCause().getMessage();
             if (detail != null && detail.contains("uq_users_phone")) {

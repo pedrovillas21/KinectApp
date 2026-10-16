@@ -155,16 +155,16 @@ public class AsaasPaymentGateway implements PaymentGateway {
     // ── Internos ────────────────────────────────────────────────────────────
 
     private JsonNode post(String path, Map<String, Object> body) {
-        return call(() -> restClient.post().uri(path)
+        return call(() -> restClient.post().uri(Objects.requireNonNull(path))
                 .header("access_token", requireKey())
                 .contentType(Objects.requireNonNull(MediaType.APPLICATION_JSON))
-                .body(body)
+                .body(Objects.requireNonNull(body))
                 .retrieve()
                 .body(JsonNode.class));
     }
 
     private JsonNode get(String path) {
-        return call(() -> restClient.get().uri(path)
+        return call(() -> restClient.get().uri(Objects.requireNonNull(path))
                 .header("access_token", requireKey())
                 .retrieve()
                 .body(JsonNode.class));

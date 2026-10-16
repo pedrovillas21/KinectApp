@@ -22,6 +22,8 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
 
     boolean existsByUserIdAndSessionDate(UUID userId, LocalDate sessionDate);
 
+    boolean existsByUserIdAndClientSessionId(UUID userId, UUID clientSessionId);
+
     List<WorkoutSession> findByUserIdAndSessionDateBetween(
             UUID userId,
             LocalDate startDate,

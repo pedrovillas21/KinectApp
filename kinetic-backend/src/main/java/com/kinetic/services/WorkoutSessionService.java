@@ -3,6 +3,7 @@ package com.kinetic.services;
 import com.kinetic.dtos.MonthlyStatsResponseDTO;
 import com.kinetic.dtos.WeeklyActivityDayDTO;
 import com.kinetic.dtos.WeeklyActivityResponseDTO;
+import com.kinetic.exceptions.DuplicateWorkoutSessionException;
 import com.kinetic.models.User;
 import com.kinetic.models.WorkoutExecutionLog;
 import com.kinetic.models.WorkoutSession;
@@ -16,6 +17,7 @@ import com.kinetic.repositories.WorkoutExecutionLogRepository;
 import com.kinetic.repositories.WorkoutPlanRepository;
 import com.kinetic.repositories.WorkoutSessionRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,14 +55,27 @@ public class WorkoutSessionService {
         this.presenceService = presenceService;
     }
 
+    /**
+     * Grava o treino executado. Idempotente por {@code clientSessionId}: reenvio do
+     * mesmo treino devolve {@code false} sem gravar nada de novo.
+     *
+     * @return {@code true} se o treino foi criado agora, {@code false} se já existia
+     */
     @Transactional
-    public void logSession(String userEmail, LogSessionRequestDTO request) {
+    public boolean logSession(String userEmail, LogSessionRequestDTO request) {
         User user = findUserByEmail(userEmail);
+
+        UUID clientSessionId = request.clientSessionId();
+        if (clientSessionId != null
+                && workoutSessionRepository.existsByUserIdAndClientSessionId(user.getId(), clientSessionId)) {
+            return false;
+        }
 
         WorkoutSession session = new WorkoutSession();
         session.setUser(user);
         session.setDurationInSeconds(request.durationInSeconds());
         session.setSessionDate(request.date());
+        session.setClientSessionId(clientSessionId);
 
         for (SetLogDto setDto : request.exercisesLog()) {
             Exercise exercise = exerciseRepository.findById(Objects.requireNonNull(setDto.exerciseId()))
@@ -76,7 +91,18 @@ public class WorkoutSessionService {
             session.getSetLogs().add(setLog);
         }
 
-        workoutSessionRepository.save(session);
+        // Flush já aqui: se dois envios do mesmo treino passaram juntos pelo exists acima,
+        // o índice único barra o segundo antes de ele gravar o log de execução.
+        try {
+            workoutSessionRepository.saveAndFlush(session);
+        } catch (DataIntegrityViolationException e) {
+            String detail = e.getMostSpecificCause().getMessage();
+            if (clientSessionId != null && detail != null
+                    && detail.contains("uq_workout_sessions_user_client_session")) {
+                throw new DuplicateWorkoutSessionException();
+            }
+            throw e;
+        }
         presenceService.endSession(userEmail);
 
         UUID planId = request.workoutPlanId();
@@ -92,6 +118,7 @@ public class WorkoutSessionService {
                         workoutExecutionLogRepository.save(log);
                     });
         }
+        return true;
     }
 
     @Transactional(readOnly = true)

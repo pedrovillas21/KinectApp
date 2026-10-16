@@ -10,6 +10,8 @@ export interface LogSessionRequestDTO {
   date: string; // ISO format YYYY-MM-DD
   exercisesLog: SetLogDto[];
   workoutPlanId?: string;
+  // Gerado uma vez por treino e repetido em toda tentativa: o backend não grava duas vezes.
+  clientSessionId?: string;
 }
 
 export type StatsPeriodId = 'week' | 'month' | 'q' | 'year';

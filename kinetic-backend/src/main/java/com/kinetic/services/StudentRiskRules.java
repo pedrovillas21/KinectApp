@@ -47,11 +47,12 @@ final class StudentRiskRules {
         int daysLinked = (int) Math.max(0, ChronoUnit.DAYS.between(linkedSince, today));
         Integer daysSince = lastSessionDate == null ? null
                 : (int) Math.max(0, ChronoUnit.DAYS.between(lastSessionDate, today));
-        boolean hasTarget = weeklyTarget != null && weeklyTarget > 0;
+        int target = weeklyTarget == null ? 0 : weeklyTarget;
+        boolean hasTarget = target > 0;
 
         int windowDays = Math.max(7, Math.min(28, daysLinked + 1));
         Integer adherence = hasTarget
-                ? percent(countIn(sessionDays, today.minusDays(windowDays - 1L), today), weeklyTarget * windowDays / 7.0)
+                ? percent(countIn(sessionDays, today.minusDays(windowDays - 1L), today), target * windowDays / 7.0)
                 : null;
 
         List<Alert> alerts = new ArrayList<>();
@@ -61,7 +62,7 @@ final class StudentRiskRules {
             alerts.add(new Alert("NUNCA_TREINOU", daysLinked >= 7 ? ALTO : MEDIO,
                     "Ainda não registrou treino desde que entrou na sua carteira (há " + plural(daysLinked) + ")"));
         } else if (daysSince != null) {
-            int medium = hasTarget ? Math.max(4, (int) Math.ceil(14.0 / weeklyTarget)) : 7;
+            int medium = hasTarget ? Math.max(4, (int) Math.ceil(14.0 / target)) : 7;
             int high = Math.max(10, medium + 3);
             if (daysSince >= high) {
                 alerts.add(new Alert("INATIVO", ALTO, "Não treina há " + plural(daysSince)));
@@ -71,7 +72,7 @@ final class StudentRiskRules {
         }
 
         if (hasTarget && daysLinked >= 14) {
-            double twoWeekTarget = weeklyTarget * 2.0;
+            double twoWeekTarget = target * 2.0;
             int current = percent(countIn(sessionDays, today.minusDays(13), today), twoWeekTarget);
             int previous = percent(countIn(sessionDays, today.minusDays(27), today.minusDays(14)), twoWeekTarget);
             if (previous >= 60 && current <= previous - 30) {
@@ -80,7 +81,7 @@ final class StudentRiskRules {
             } else if (adherence != null && adherence < 40) {
                 alerts.add(new Alert("BAIXA_ADERENCIA", MEDIO,
                         "Aderência de " + adherence + "% nos últimos " + windowDays + " dias (meta: "
-                                + weeklyTarget + "x por semana)"));
+                                + target + "x por semana)"));
             }
         }
 

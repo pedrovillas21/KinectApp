@@ -4,6 +4,7 @@ import com.kinetic.dtos.LogSessionRequestDTO;
 import com.kinetic.dtos.MonthlyStatsResponseDTO;
 import com.kinetic.dtos.StartSessionResponseDTO;
 import com.kinetic.dtos.WeeklyActivityResponseDTO;
+import com.kinetic.exceptions.DuplicateWorkoutSessionException;
 import com.kinetic.services.PresenceService;
 import com.kinetic.services.WorkoutSessionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -65,15 +66,20 @@ public class WorkoutSessionController extends BaseController {
     @Operation(
             summary = "Registrar um treino concluído",
             description = "Salva no banco os exercícios, séries, cargas e repetições que o usuário realmente fez "
-                    + "nessa sessão. É esse registro que alimenta as estatísticas e o histórico do usuário."
+                    + "nessa sessão. É esse registro que alimenta as estatísticas e o histórico do usuário. "
+                    + "Mande o mesmo clientSessionId em todas as tentativas de envio do mesmo treino: a primeira "
+                    + "responde 201 e as repetições respondem 200 sem gravar de novo."
     )
     @PostMapping("/log")
     public ResponseEntity<?> logSession(@Valid @RequestBody LogSessionRequestDTO request) {
         String userEmail = currentUserEmail();
 
         try {
-            workoutSessionService.logSession(userEmail, request);
-            return ResponseEntity.status(HttpStatus.CREATED).build();
+            boolean created = workoutSessionService.logSession(userEmail, request);
+            return ResponseEntity.status(created ? HttpStatus.CREATED : HttpStatus.OK).build();
+        } catch (DuplicateWorkoutSessionException e) {
+            // Envio concorrente do mesmo treino: o outro já gravou.
+            return ResponseEntity.ok().build();
         } catch (EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
