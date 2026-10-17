@@ -8,6 +8,7 @@ import {
   Users,
   MessageSquareText,
   BarChart3,
+  IdCard,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -45,7 +46,10 @@ export interface NavItem {
 }
 
 export const NAV_BY_ROLE: Record<PanelRole, NavItem[]> = {
-  PERSONAL: [{ label: 'Alunos', path: '/students', icon: Users }],
+  PERSONAL: [
+    { label: 'Alunos', path: '/students', icon: Users },
+    { label: 'Meu perfil', path: '/perfil', icon: IdCard },
+  ],
   ROOT: [
     { label: 'Visão Geral', path: '/root', icon: LayoutDashboard },
     { label: 'Empresas', path: '/root/empresas', icon: Building2 },

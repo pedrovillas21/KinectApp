@@ -216,6 +216,26 @@ public class TrainerLinkService {
         trainerClientRepository.save(link);
     }
 
+    /**
+     * O aluno encerra o vínculo com o próprio personal (botão "Encerrar vínculo"
+     * do app). Mesmo efeito de {@link #endLinkByTrainer}; vínculo atribuído pela
+     * empresa só a empresa encerra.
+     */
+    @Transactional
+    public void endLinkByStudent(String studentEmail) {
+        User student = userRepository.getByEmailOrThrow(studentEmail);
+        TrainerClient link = trainerClientRepository
+                .findByStudentIdAndStatus(student.getId(), TrainerLinkStatus.ATIVO)
+                .orElseThrow(() -> new EntityNotFoundException("Você não possui personal ativo."));
+        if (link.getSource() == TrainerLinkSource.COMPANY) {
+            throw new IllegalArgumentException(
+                    "Este personal foi atribuído pela sua academia. Peça à academia para encerrar o vínculo.");
+        }
+        link.setStatus(TrainerLinkStatus.ENCERRADO);
+        link.setEndedAt(LocalDateTime.now());
+        trainerClientRepository.save(link);
+    }
+
     /** Encerra um vínculo corporativo da empresa (desvincular aluno). */
     @Transactional
     public void endCompanyLink(UUID companyId, @NonNull UUID linkId) {

@@ -11,6 +11,7 @@ import InvitePage from './pages/InvitePage';
 import BillingPage from './pages/BillingPage';
 import DemoCheckoutPage from './pages/DemoCheckoutPage';
 import FinancePage from './pages/FinancePage';
+import MyProfilePage from './pages/MyProfilePage';
 import EvolutionReportPage from './pages/EvolutionReportPage';
 import StudentsListPage from './pages/StudentsListPage';
 import StudentDetailPage from './pages/StudentDetailPage';
@@ -57,6 +58,7 @@ export default function App() {
         <Route path="/assinatura" element={<BillingPage />} />
         <Route path="/assinatura/checkout-demo" element={<DemoCheckoutPage />} />
         <Route path="/financeiro" element={<FinancePage />} />
+        <Route path="/perfil" element={<MyProfilePage />} />
       </Route>
 
       {/* ROOT — app-shell com sidebar + rotas filhas. */}
