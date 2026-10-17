@@ -1,16 +1,22 @@
 package com.kinetic.controllers;
 
+import com.kinetic.dtos.AccountExportDTO;
 import com.kinetic.dtos.ChangePasswordDTO;
+import com.kinetic.dtos.DeleteAccountRequestDTO;
 import com.kinetic.dtos.UpdatePhoneRequestDTO;
 import com.kinetic.dtos.UpdateWeightRequestDTO;
 import com.kinetic.dtos.UserProfileResponseDTO;
+import com.kinetic.services.AccountDeletionService;
+import com.kinetic.services.DataExportService;
 import com.kinetic.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -18,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.Map;
 
 @RestController
@@ -29,9 +36,15 @@ import java.util.Map;
 public class UserController extends BaseController {
 
     private final UserService userService;
+    private final DataExportService dataExportService;
+    private final AccountDeletionService accountDeletionService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService,
+                          DataExportService dataExportService,
+                          AccountDeletionService accountDeletionService) {
         this.userService = userService;
+        this.dataExportService = dataExportService;
+        this.accountDeletionService = accountDeletionService;
     }
 
     @Operation(
@@ -102,5 +115,33 @@ public class UserController extends BaseController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
+    }
+
+    @Operation(
+            summary = "Exportar todos os meus dados (LGPD)",
+            description = "Devolve em JSON tudo o que o Kinetic guarda sobre o usuário logado: perfil, peso, "
+                    + "fichas, sessões e séries, avaliações, posts/comentários/curtidas/amizades e, para personal "
+                    + "e aluno, vínculos, cobranças, assinatura, convites e feedbacks. Sem hashes de senha ou tokens."
+    )
+    @GetMapping("/me/export")
+    public ResponseEntity<AccountExportDTO> exportMyData() {
+        AccountExportDTO export = dataExportService.export(currentUserEmail());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"kinetic-dados-" + LocalDate.now() + ".json\"")
+                .body(export);
+    }
+
+    @Operation(
+            summary = "Excluir a própria conta (imediato, irreversível)",
+            description = "Confere a senha e apaga na hora a conta e todos os dados dela. Vínculos com personal "
+                    + "ou alunos são encerrados e as fichas que o personal montou continuam com os alunos, sem "
+                    + "autor. Das gerações de treino por IA fica só o registro (sem pedido nem resposta). "
+                    + "Senha errada → 400 e nada é apagado."
+    )
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteMyAccount(@Valid @RequestBody DeleteAccountRequestDTO request) {
+        accountDeletionService.deleteAccount(currentUserEmail(), request.password());
+        return ResponseEntity.noContent().build();
     }
 }
