@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Path, Polyline } from 'react-native-svg';
@@ -304,10 +303,6 @@ export default function WorkoutScreen({ navigation }: Props) {
     [selectedRoutineId, workoutPlans]
   );
 
-  // A BottomTabBar é flutuante (position: absolute); reserva espaço para o CTA
-  // fixo não ficar escondido atrás dela.
-  const tabBarHeight = useBottomTabBarHeight();
-
   const openRoutineDetail = (id: string) => {
     setSelectedRoutineId(id);
     setViewMode('DETAIL');
@@ -416,7 +411,7 @@ export default function WorkoutScreen({ navigation }: Props) {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <AppHeader />
         <View style={styles.centerState}>
           <ActivityIndicator color={KINETIC.primary} size="large" />
@@ -428,7 +423,7 @@ export default function WorkoutScreen({ navigation }: Props) {
 
   if (viewMode === 'LIST') {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <AppHeader />
         <FlatList<WorkoutPlanItem>
           data={workoutPlans}
@@ -464,7 +459,7 @@ export default function WorkoutScreen({ navigation }: Props) {
 
   const workout = selectedWorkout ?? workoutPlans[0];
   if (!workout) {
-    return <SafeAreaView style={styles.container} />;
+    return <SafeAreaView style={styles.container} edges={['top', 'left', 'right']} />;
   }
 
   const exercises = (workout.data ?? []) as Exercise[];
@@ -559,7 +554,7 @@ export default function WorkoutScreen({ navigation }: Props) {
         ))}
       </ScrollView>
 
-      <View style={[styles.ctaBar, { paddingBottom: tabBarHeight + 12 }]}>
+      <View style={styles.ctaBar}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Iniciar treino"

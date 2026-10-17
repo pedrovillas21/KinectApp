@@ -10,6 +10,8 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 
+import jakarta.annotation.PostConstruct;
+
 import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.List;
@@ -34,6 +36,11 @@ public class EmailService {
     @Value("${resend.from}")
     private String from;
 
+    // Só para desenvolvimento: escreve o texto do e-mail (com o código) no log do servidor,
+    // para testar os fluxos de código sem depender da entrega da Resend.
+    @Value("${resend.dev-log-content:false}")
+    private boolean devLogContent;
+
     public EmailService(@Value("${resend.base-url}") String baseUrl) {
         HttpClient httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(5))
@@ -54,7 +61,19 @@ public class EmailService {
         }
     }
 
+    @PostConstruct
+    void warnIfDevLogEnabled() {
+        if (devLogContent) {
+            log.warn("DEV_LOG_EMAIL_CONTENT ativo: o conteúdo dos e-mails (inclusive códigos) vai para o log. "
+                    + "Nunca use em produção.");
+        }
+    }
+
     public void send(String to, String subject, String html, String text) {
+        if (devLogContent) {
+            log.warn("[DEV] E-mail para {} | {}\n{}", to, subject, text);
+        }
+
         if (apiKey == null || apiKey.isBlank()) {
             throw new EmailDeliveryException("RESEND_API_KEY não configurada; e-mail não enviado.");
         }

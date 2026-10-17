@@ -1,15 +1,22 @@
+import { KINETIC } from './kinetic';
+
+/**
+ * Paleta legada. Os valores escuros vêm de `kinetic.ts` para as telas antigas
+ * herdarem o redesign; as chaves "Light" ficam por compatibilidade (o app é
+ * dark fixo, ver ThemeContext).
+ */
 export const COLORS = {
   // Brand
-  neonBlue: '#00E5FF',
+  neonBlue: KINETIC.primary,
   white: '#FFFFFF',
 
   // Dark Mode
-  darkBackground: '#131313',
-  darkCard: '#202020',
-  darkCardHover: '#2A2A2A',
-  textPrimaryDark: '#FFFFFF',
-  textSecondaryDark: '#A0A0A0',
-  borderDark: '#333333',
+  darkBackground: KINETIC.bg,
+  darkCard: KINETIC.surface1,
+  darkCardHover: KINETIC.surface2,
+  textPrimaryDark: KINETIC.text,
+  textSecondaryDark: KINETIC.textSecondary,
+  borderDark: KINETIC.ghost,
 
   // Light Mode
   lightBackground: '#F5F5F5',
@@ -21,6 +28,6 @@ export const COLORS = {
 
   // Utility
   error: '#FF4444',
-  success: '#00C851',
+  success: KINETIC.success,
   transparent: 'transparent',
 } as const;

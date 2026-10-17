@@ -353,6 +353,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const err = e as {
         response?: { status?: number; data?: { message?: string; code?: string } | string };
       };
+      // Sem resposta = o servidor não foi alcançado (rede, URL ou porta errada), não é senha errada.
+      if (!err.response) {
+        return {
+          success: false,
+          error: 'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.',
+        };
+      }
       const message =
         (err.response?.data as { message?: string })?.message ||
         err.response?.data ||

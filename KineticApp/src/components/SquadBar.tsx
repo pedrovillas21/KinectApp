@@ -1,104 +1,64 @@
-import React, { useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  Image,
-  Animated,
-  ListRenderItem,
-} from 'react-native';
-import { COLORS } from '../theme/colors';
-import { presenceColor } from '../theme/kinetic';
+import React from 'react';
+import { FlatList, ListRenderItem, Pressable, StyleSheet, View } from 'react-native';
+import { KINETIC } from '../theme/kinetic';
 import type { SquadMember } from '../types';
+import Icon from './Icon';
+import { Avatar, Text } from './ui';
 
 interface Props {
   items: SquadMember[];
-  /** Ids de membros com story ativa — recebem anel de destaque e abrem o visualizador. */
+  /** Ids de membros com story ativa — recebem anel ciano e abrem o visualizador. */
   storyUserIds?: string[];
-  onAddPress?: () => void;
   onAddStory?: () => void;
   onOpenStory?: (userId: string) => void;
+  /** Toque em quem não tem story → perfil. */
   onMemberPress?: (member: SquadMember) => void;
 }
 
-function PulsingRing({ color }: { color: string }) {
-  const opacity = useRef(new Animated.Value(1)).current;
+const SIZE = 52;
 
-  React.useEffect(() => {
-    const anim = Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacity, { toValue: 0.3, duration: 800, useNativeDriver: true }),
-        Animated.timing(opacity, { toValue: 1, duration: 800, useNativeDriver: true }),
-      ])
-    );
-    anim.start();
-    return () => anim.stop();
-  }, [opacity]);
-
-  return (
-    <Animated.View
-      style={[StyleSheet.absoluteFill, styles.pulseRing, { borderColor: color, opacity }]}
-    />
-  );
-}
-
-export default function SquadBar({
-  items,
-  storyUserIds,
-  onAddPress,
-  onAddStory,
-  onOpenStory,
-  onMemberPress,
-}: Props) {
+/** Faixa de stories compacta: "Seu story" + amigos (ciano = story nova, verde = treinando agora). */
+export default function SquadBar({ items, storyUserIds, onAddStory, onOpenStory, onMemberPress }: Props) {
   const renderItem: ListRenderItem<SquadMember> = ({ item }) => {
     const hasStory = storyUserIds?.includes(item.id) ?? false;
-    // Story ativa tem prioridade visual: anel neon (estilo Instagram).
-    const ringColor = hasStory ? COLORS.neonBlue : presenceColor(item.status);
-    const isTraining = item.status === 'TRAINING';
-    const avatar = item.avatarUrl ?? `https://i.pravatar.cc/150?u=${item.id}`;
+    const training = item.status === 'TRAINING';
+    const firstName = item.nome.split(' ')[0];
+    const label = `${item.nome}${hasStory ? ', story nova' : ''}${training ? ', treinando agora' : ''}`;
 
     return (
-      <TouchableOpacity
-        style={styles.itemContainer}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        style={styles.item}
         onPress={() => (hasStory ? onOpenStory?.(item.id) : onMemberPress?.(item))}
-        activeOpacity={0.75}
       >
-        <View style={[styles.avatarWrap, { borderColor: ringColor }]}>
-          {isTraining && <PulsingRing color={ringColor} />}
-          <Image source={{ uri: avatar }} style={styles.avatarImage} />
-        </View>
-        <Text style={styles.avatarName} numberOfLines={1}>
-          {item.nome.split(' ')[0]}
+        <Avatar
+          name={item.nome}
+          uri={item.avatarUrl || null}
+          seed={item.id}
+          size={SIZE}
+          ring={hasStory ? 'unseen' : training ? 'live' : undefined}
+        />
+        <Text variant="micro" color={KINETIC.textDim} numberOfLines={1} style={styles.name}>
+          {firstName}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
     );
   };
 
-  // Bolha "Seu story" no estilo Instagram: primeiro item da barra, abre a câmera.
   const renderStoryButton = () => (
-    <TouchableOpacity
-      style={styles.itemContainer}
-      onPress={onAddStory}
-      activeOpacity={0.75}
-    >
-      <View style={styles.storyWrap}>
-        <Text style={styles.storyPlus}>+</Text>
+    <Pressable accessibilityRole="button" accessibilityLabel="Publicar story" style={styles.item} onPress={onAddStory}>
+      <View style={styles.addStory}>
+        <Icon name="plus" size={18} color={KINETIC.primary} strokeWidth={2} />
       </View>
-      <Text style={styles.avatarName}>Seu story</Text>
-    </TouchableOpacity>
+      <Text variant="micro" color={KINETIC.textDim} numberOfLines={1} style={styles.name}>
+        Seu story
+      </Text>
+    </Pressable>
   );
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Squad</Text>
-        <TouchableOpacity onPress={onAddPress}>
-          <Text style={styles.addText}>Add +</Text>
-        </TouchableOpacity>
-      </View>
-
       <FlatList
         data={items}
         horizontal
@@ -106,63 +66,25 @@ export default function SquadBar({
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         ListHeaderComponent={renderStoryButton}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={styles.list}
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#1A1A1A',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-    paddingHorizontal: 20,
-    marginBottom: 16,
-  },
-  title: { color: '#FFF', fontSize: 18, fontWeight: 'bold' },
-  addText: { color: '#CCC', fontSize: 12, fontWeight: 'bold' },
-  listContent: { paddingHorizontal: 20 },
-  itemContainer: { alignItems: 'center', marginRight: 16, width: 64 },
-  avatarWrap: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    borderWidth: 2,
-    borderColor: '#333',
-    justifyContent: 'center',
+  container: { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: KINETIC.hairline },
+  list: { paddingHorizontal: 20, gap: 14 },
+  item: { width: 56, alignItems: 'center', gap: 6 },
+  addStory: {
+    width: SIZE,
+    height: SIZE,
+    borderRadius: SIZE / 2,
+    backgroundColor: KINETIC.surface1,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
     alignItems: 'center',
-    marginBottom: 8,
-    overflow: 'hidden',
-  },
-  pulseRing: {
-    borderRadius: 32,
-    borderWidth: 2,
-    margin: -2,
-  },
-  avatarImage: { width: 56, height: 56, borderRadius: 28 },
-  storyWrap: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    borderWidth: 2,
-    borderColor: COLORS.neonBlue,
-    backgroundColor: '#1C1C1E',
     justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
   },
-  storyPlus: {
-    color: COLORS.neonBlue,
-    fontSize: 30,
-    fontWeight: '300',
-    lineHeight: 32,
-    marginTop: -2,
-  },
-  avatarName: { color: '#CCC', fontSize: 11, fontWeight: 'bold' },
+  name: { maxWidth: 56 },
 });

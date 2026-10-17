@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from './api';
-import type { TrainerLink } from '../types';
+import type { MyTrainerProfile, TrainerLink } from '../types';
 
 /**
  * Vínculo personal↔aluno (Fase 1 do painel do personal).
@@ -31,6 +31,26 @@ export const getMyTrainer = async (): Promise<TrainerLink | null> => {
     if (err.response?.status === 404) return null;
     throw e;
   }
+};
+
+/** Perfil profissional do personal ativo + fichas dele; null quando não há vínculo (404). */
+export const getMyTrainerProfile = async (): Promise<MyTrainerProfile | null> => {
+  try {
+    const res = await api.get<MyTrainerProfile>('/me/trainer/profile');
+    return res.data;
+  } catch (e) {
+    const err = e as { response?: { status?: number } };
+    if (err.response?.status === 404) return null;
+    throw e;
+  }
+};
+
+/**
+ * O aluno encerra o vínculo: o personal perde o acesso aos dados dele; o histórico
+ * de treinos fica. 400 = vínculo atribuído pela empresa (não pode encerrar pelo app).
+ */
+export const endMyTrainerLink = async (): Promise<void> => {
+  await api.delete('/me/trainer');
 };
 
 // ── Código de convite (link do personal) ─────────────────────────────────────

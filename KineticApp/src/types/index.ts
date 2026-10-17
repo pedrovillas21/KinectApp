@@ -93,6 +93,31 @@ export interface NextWorkoutDTO {
   muscleGroups: string[];
   /** Identificador da ficha de treino (usado ao iniciar a sessão). */
   workoutPlanId: string;
+  /** Os 3 primeiros exercícios da ficha (redesign; ausente em backend antigo). */
+  exercises?: NextWorkoutExerciseDTO[];
+  /** Personal que montou a ficha; null quando o próprio aluno/IA gerou. */
+  prescribedBy?: UserRefDTO | null;
+}
+
+export interface NextWorkoutExerciseDTO {
+  name: string;
+  sets: number | null;
+  reps: string | null;
+}
+
+/** Referência curta a outro usuário. */
+export interface UserRefDTO {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+}
+
+/** Dia da faixa da semana do Início. */
+export interface HomeWeekDayDTO {
+  /** YYYY-MM-DD. */
+  date: string;
+  trained: boolean;
+  today: boolean;
 }
 
 export interface RankingEntryDTO {
@@ -150,6 +175,12 @@ export interface HomeDashboardResponseDTO {
   ranking: RankingEntryDTO[];
   /** Pontos da semana corrente para o gráfico de barras. */
   weeklyActivity: WeeklyActivityPointDTO[];
+  /** Treinos no mês corrente (redesign). */
+  monthSessions?: number;
+  /** Volume (reps × carga) dos últimos 7 dias, hoje incluso. */
+  volume7dKg?: number;
+  /** Os 7 dias da semana corrente. */
+  week?: HomeWeekDayDTO[];
 }
 
 export interface MetricDeltaDTO {
@@ -215,6 +246,27 @@ export interface FeedPostData {
   caption: string;
   isLikedByMe: boolean;
   createdAt: string;
+  // ── Treino ligado ao post (redesign; nulos/vazios em post sem treino ou backend antigo) ──
+  title?: string | null;
+  durationSeconds?: number | null;
+  volumeKg?: number | null;
+  recordsCount?: number;
+  /** Até 3 exercícios com a melhor série. */
+  exercises?: WorkoutExerciseSummary[];
+  /** Quantos exercícios ficaram fora de `exercises`. */
+  moreExercises?: number;
+}
+
+/** Melhor série: maior carga (empate → mais repetições). Carga 0 = peso corporal. */
+export interface BestSet {
+  weightKg: number;
+  reps: number;
+}
+
+export interface WorkoutExerciseSummary {
+  name: string;
+  setsCount: number;
+  bestSet: BestSet | null;
 }
 
 export interface Story {
@@ -336,4 +388,133 @@ export interface TrainerLink {
   source: 'INVITE' | 'COMPANY' | 'INVITE_CODE';
   createdAt: string;
   respondedAt: string | null;
+}
+
+// ─── Perfil público e "Comparar progresso" (redesign P3) ─────────────────────
+
+export interface PersonalRecord {
+  exercise: string;
+  weightKg: number;
+  reps: number;
+  /** YYYY-MM-DD */
+  date: string;
+}
+
+export interface Achievement {
+  /** FIRST_WORKOUT | WORKOUTS_10 | WORKOUTS_50 | WORKOUTS_100 | STREAK_7 | STREAK_30 | VOLUME_10T | VOLUME_100T | VOLUME_1000T */
+  code: string;
+  title: string;
+  description: string;
+  unlocked: boolean;
+  unlockedAt: string | null;
+  progress: number;
+  target: number;
+}
+
+/** Perfil de um usuário visto por outro. Com `locked` (não é amigo) as listas vêm vazias. */
+export interface PublicProfile {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+  /** YYYY-MM-DD */
+  memberSince: string | null;
+  isMe: boolean;
+  connectionState: ConnectionState | 'SELF';
+  locked: boolean;
+  postsCount: number;
+  friendsCount: number;
+  workoutsCount: number;
+  streakDays: number;
+  /** Início (domingo) de cada uma das 12 semanas, mais antiga primeiro. */
+  weekStarts: string[];
+  weeklyMinutes: number[];
+  records: PersonalRecord[];
+  achievements: Achievement[];
+}
+
+/** Sessão de treino resumida (aba "Treinos" do perfil). */
+export interface WorkoutSummary {
+  id: string;
+  /** YYYY-MM-DD */
+  date: string;
+  title: string | null;
+  durationSeconds: number | null;
+  volumeKg: number;
+  recordsCount: number;
+  exercises: WorkoutExerciseSummary[];
+  moreExercises: number;
+}
+
+/** Um lado do "Comparar progresso" — só dados de treino. */
+export interface CompareSide {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+  weeklyMinutes: number[];
+  monthSessions: number;
+  streakDays: number;
+  totalSessions: number;
+  volume30dKg: number;
+}
+
+export interface SharedPr {
+  exercise: string;
+  me: BestSet;
+  friend: BestSet;
+}
+
+export interface CompareProgress {
+  weekStarts: string[];
+  me: CompareSide;
+  friend: CompareSide;
+  sharedPrs: SharedPr[];
+}
+
+// ─── Perfil profissional do personal (redesign P5) ───────────────────────────
+
+export interface TrainerEducation {
+  title: string;
+  /** Ex.: "UFMG · 2018". */
+  detail: string | null;
+}
+
+/** Perfil público do personal. `updatedAt` nulo = ainda não preenchido. */
+export interface TrainerPublicProfile {
+  trainerId: string;
+  nome: string;
+  avatarUrl: string | null;
+  phone: string | null;
+  cref: string | null;
+  crefVerified: boolean;
+  bio: string | null;
+  specialties: string[];
+  education: TrainerEducation[];
+  modality: string | null;
+  schedule: string | null;
+  location: string | null;
+  updatedAt: string | null;
+}
+
+/** Ficha vigente montada pelo personal para o aluno. */
+export interface TrainerPlanItem {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  tag: string | null;
+  exerciseCount: number;
+  createdAt: string;
+}
+
+/** Tela "Seu personal": GET /api/me/trainer/profile (404 = sem personal ativo). */
+export interface MyTrainerProfile {
+  linkId: string;
+  linkSource: 'INVITE' | 'COMPANY' | 'INVITE_CODE';
+  /** False quando o vínculo foi atribuído pela empresa. */
+  canEndLink: boolean;
+  linkedSince: string | null;
+  trainer: TrainerPublicProfile;
+  activePlanCount: number;
+  /** Ficha mais recente que o personal montou (vigente ou arquivada). */
+  lastReviewAt: string | null;
+  plans: TrainerPlanItem[];
 }

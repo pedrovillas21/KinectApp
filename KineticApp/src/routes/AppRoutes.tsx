@@ -24,9 +24,16 @@ import StatsScreen from '../screens/StatsScreen';
 import SocialScreen from '../screens/SocialScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ActiveSessionScreen from '../screens/ActiveSessionScreen';
+import UserProfileScreen from '../screens/UserProfileScreen';
+import CompareProgressScreen from '../screens/CompareProgressScreen';
+import SettingsScreen from '../screens/SettingsScreen';
+import TrainerProfileScreen from '../screens/TrainerProfileScreen';
+import ProtocolScreen from '../screens/ProtocolScreen';
+import type { MainStackParamList, MainTabParamList } from '../navigation/types';
 
 const Stack = createNativeStackNavigator();
-const Tab = createBottomTabNavigator();
+const MainStack = createNativeStackNavigator<MainStackParamList>();
+const Tab = createBottomTabNavigator<MainTabParamList>();
 
 function MainTabs(): React.ReactElement {
   return (
@@ -36,8 +43,8 @@ function MainTabs(): React.ReactElement {
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Train" component={WorkoutScreen} />
-      <Tab.Screen name="Stats" component={StatsScreen} />
       <Tab.Screen name="Social" component={SocialScreen} />
+      <Tab.Screen name="Stats" component={StatsScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );
@@ -100,16 +107,21 @@ export default function AppRoutes(): React.ReactElement | null {
   }
 
   return (
-    <Stack.Navigator key="main-stack" screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="MainTabs" component={MainTabs} />
+    <MainStack.Navigator key="main-stack" screenOptions={{ headerShown: false }}>
+      <MainStack.Screen name="MainTabs" component={MainTabs} />
       {/* gestureEnabled: false — no native-stack o swipe-back do iOS completa nativamente
           antes do beforeRemove conseguir bloquear; sem isso o usuário sai da sessão
           arrastando pro lado e pula a confirmação/salvamento parcial do treino. */}
-      <Stack.Screen
+      <MainStack.Screen
         name="ActiveSession"
         component={ActiveSessionScreen}
         options={{ gestureEnabled: false }}
       />
-    </Stack.Navigator>
+      <MainStack.Screen name="UserProfile" component={UserProfileScreen} />
+      <MainStack.Screen name="CompareProgress" component={CompareProgressScreen} />
+      <MainStack.Screen name="Settings" component={SettingsScreen} />
+      <MainStack.Screen name="Protocol" component={ProtocolScreen} />
+      <MainStack.Screen name="TrainerProfile" component={TrainerProfileScreen} />
+    </MainStack.Navigator>
   );
 }

@@ -1,28 +1,21 @@
 import React, { useCallback, useContext, useState } from 'react';
-import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ActivityIndicator, RefreshControl, StyleSheet, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 
-import AppHeader from '../components/AppHeader';
-import HomeGreeting from '../components/home/HomeGreeting';
-import NextWorkoutCard from '../components/home/NextWorkoutCard';
-import AdherenceCard from '../components/home/AdherenceCard';
-import RankingCard from '../components/home/RankingCard';
-import WeeklyChart from '../components/home/WeeklyChart';
+import HomeHeader from '../components/home/HomeHeader';
+import WeekStrip from '../components/home/WeekStrip';
+import TodayWorkoutCard from '../components/home/TodayWorkoutCard';
+import HomeStatsRow from '../components/home/HomeStatsRow';
+import TrainerRow from '../components/home/TrainerRow';
 import OnboardingPrompt from '../components/home/OnboardingPrompt';
+import { Screen } from '../components/ui';
 
 import { AuthContext } from '../contexts/AuthContext';
 import api from '../services/api';
+import { getMyTrainer } from '../services/trainerService';
 import { KINETIC } from '../theme/kinetic';
-import type {
-  HomeDashboardResponseDTO,
-  NextWorkoutDTO,
-} from '../types';
+import type { MainTabScreenProps } from '../navigation/types';
+import type { HomeDashboardResponseDTO, NextWorkoutDTO, TrainerPeer } from '../types';
 
 // ─── Tipos locais (usados apenas para navegar ao ActiveSession) ───────────────
 
@@ -47,16 +40,6 @@ interface WorkoutPlanAPI {
   data: ExerciseAPI[];
 }
 
-// ─── Tipos de navegação ───────────────────────────────────────────────────────
-
-interface HomeNavigationProp {
-  navigate: (screen: string, params?: Record<string, unknown>) => void;
-}
-
-interface HomeScreenProps {
-  navigation: HomeNavigationProp;
-}
-
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function extractFirstName(fullName: string | undefined): string {
@@ -67,17 +50,20 @@ function extractFirstName(fullName: string | undefined): string {
 
 // ─── Componente ──────────────────────────────────────────────────────────────
 
-export default function HomeScreen({ navigation }: HomeScreenProps) {
+export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
   const { currentUser } = useContext(AuthContext);
 
   const [dashboard, setDashboard] = useState<HomeDashboardResponseDTO | null>(null);
   const [plans, setPlans] = useState<WorkoutPlanAPI[]>([]);
+  const [trainer, setTrainer] = useState<TrainerPeer | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
   const loadDashboard = useCallback(async (): Promise<void> => {
-    const [dashboardResult, plansResult] = await Promise.allSettled([
+    const [dashboardResult, plansResult, trainerResult] = await Promise.allSettled([
       api.get<HomeDashboardResponseDTO>('/home/dashboard'),
       api.get<WorkoutPlanAPI[]>('/workouts/my-plans'),
+      getMyTrainer(),
     ]);
 
     if (dashboardResult.status === 'fulfilled') {
@@ -87,13 +73,18 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     }
 
     if (plansResult.status === 'fulfilled') {
-      setPlans(
-        Array.isArray(plansResult.value.data) ? plansResult.value.data : [],
-      );
+      setPlans(Array.isArray(plansResult.value.data) ? plansResult.value.data : []);
     } else {
       console.warn('[HomeScreen] /workouts/my-plans falhou:', plansResult.reason);
       setPlans([]);
     }
+
+    // Falha ao buscar o personal não derruba a Home: só some o atalho.
+    setTrainer(
+      trainerResult.status === 'fulfilled' && trainerResult.value?.status === 'ATIVO'
+        ? trainerResult.value.peer
+        : null,
+    );
 
     setIsLoading(false);
   }, []);
@@ -106,9 +97,15 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     }, [loadDashboard]),
   );
 
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await loadDashboard();
+    setIsRefreshing(false);
+  }, [loadDashboard]);
+
   const handleStartWorkout = useCallback(
     (workout: NextWorkoutDTO): void => {
-      const plan = plans.find(p => p.id === workout.workoutPlanId);
+      const plan = plans.find((p) => p.id === workout.workoutPlanId);
       if (!plan) return;
       navigation.navigate('ActiveSession', {
         workoutData: plan,
@@ -118,87 +115,64 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     [navigation, plans],
   );
 
-  const handleGenerateWorkout = useCallback((): void => {
-    navigation.navigate('Train');
-  }, [navigation]);
-
-  const handleViewAllRanking = useCallback((): void => {
-    navigation.navigate('Social');
-  }, [navigation]);
-
-  const firstName =
-    dashboard?.userFirstName ?? extractFirstName(currentUser?.nome);
+  const firstName = dashboard?.userFirstName ?? extractFirstName(currentUser?.nome);
   const streakDays = dashboard?.streakDays ?? 0;
-  const showOnboarding =
-    !dashboard?.workoutOnboardingCompleted || dashboard?.nextWorkout === null;
+  const nextWorkout = dashboard?.nextWorkout ?? null;
+  const showOnboarding = !dashboard?.workoutOnboardingCompleted || nextWorkout === null;
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <AppHeader streakDays={showOnboarding ? 0 : streakDays} />
-
+    <Screen
+      scroll={!isLoading}
+      contentStyle={isLoading ? styles.loading : styles.content}
+      refreshControl={
+        <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} tintColor={KINETIC.primary} />
+      }
+    >
       {isLoading ? (
-        <View style={styles.loading}>
-          <ActivityIndicator color={KINETIC.primary} />
-        </View>
+        <ActivityIndicator color={KINETIC.primary} />
       ) : (
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
+        <>
+          <HomeHeader
+            firstName={firstName}
+            fullName={currentUser?.nome}
+            userId={currentUser?.id}
+            onPressAvatar={() => navigation.navigate('Profile')}
+          />
+
           {showOnboarding ? (
-            <OnboardingPrompt
-              name={firstName}
-              onGenerateWorkout={handleGenerateWorkout}
-            />
+            <OnboardingPrompt name={firstName} onGenerateWorkout={() => navigation.navigate('Train')} />
           ) : (
-            <>
-              <HomeGreeting
-                name={firstName}
-                streakDays={streakDays}
-              />
+            <View style={styles.sections}>
+              {dashboard?.week && dashboard.week.length > 0 ? <WeekStrip days={dashboard.week} /> : null}
 
-              {dashboard?.nextWorkout && (
-                <NextWorkoutCard
-                  workout={dashboard.nextWorkout}
-                  onStart={() => handleStartWorkout(dashboard.nextWorkout!)}
+              {nextWorkout ? (
+                <TodayWorkoutCard
+                  workout={nextWorkout}
+                  canStart={plans.some((p) => p.id === nextWorkout.workoutPlanId)}
+                  onStart={() => handleStartWorkout(nextWorkout)}
                 />
-              )}
+              ) : null}
 
-              <AdherenceCard
-                completed={dashboard?.completedSessions ?? 0}
-                target={dashboard?.targetSessions ?? 0}
+              <HomeStatsRow
+                monthSessions={dashboard?.monthSessions ?? dashboard?.completedSessions ?? 0}
+                monthTarget={dashboard?.targetSessions ?? 0}
+                streakDays={streakDays}
+                volume7dKg={dashboard?.volume7dKg ?? 0}
               />
 
-              <RankingCard
-                items={dashboard?.ranking ?? []}
-                onPressViewAll={handleViewAllRanking}
-              />
-
-              <WeeklyChart data={dashboard?.weeklyActivity ?? []} />
-            </>
+              {trainer ? (
+                <TrainerRow trainer={trainer} onOpenProfile={() => navigation.navigate('TrainerProfile')} />
+              ) : null}
+            </View>
           )}
-
-          <View style={styles.bottomSpacer} />
-        </ScrollView>
+        </>
       )}
-    </SafeAreaView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: KINETIC.bg,
-  },
-  loading: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  scrollContent: {
-    paddingBottom: 24,
-  },
-  bottomSpacer: {
-    height: 140,
-  },
+  loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  content: { paddingBottom: 24 },
+  sections: { gap: 12 },
 });

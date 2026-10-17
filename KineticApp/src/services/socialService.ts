@@ -86,6 +86,12 @@ export const getFeed = async (page = 0, size = 10): Promise<Page<FeedPostData>> 
   return res.data;
 };
 
+/** Posts de um usuário (o próprio ou amigo aceito; os demais recebem 403). */
+export const getUserPosts = async (userId: string, page = 0, size = 12): Promise<Page<FeedPostData>> => {
+  const res = await api.get<Page<FeedPostData>>(`/social/users/${userId}/posts`, { params: { page, size } });
+  return res.data;
+};
+
 export const createPost = async (req: CreatePostRequest): Promise<FeedPostData> => {
   const res = await api.post<FeedPostData>('/social/posts', req);
   return res.data;
