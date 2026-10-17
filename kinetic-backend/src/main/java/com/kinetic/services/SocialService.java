@@ -2,6 +2,7 @@ package com.kinetic.services;
 
 import com.kinetic.dtos.*;
 import com.kinetic.enums.PresenceStatus;
+import com.kinetic.exceptions.ForbiddenException;
 import com.kinetic.models.*;
 import com.kinetic.repositories.*;
 import jakarta.persistence.EntityNotFoundException;
@@ -25,17 +26,26 @@ public class SocialService {
     private final SocialPostRepository postRepository;
     private final PostLikeRepository likeRepository;
     private final PostCommentRepository commentRepository;
+    private final StorageService storageService;
+    private final WorkoutSessionRepository workoutSessionRepository;
+    private final TrainingSummaryService trainingSummaryService;
 
     public SocialService(UserRepository userRepository,
                          UserConnectionRepository connectionRepository,
                          SocialPostRepository postRepository,
                          PostLikeRepository likeRepository,
-                         PostCommentRepository commentRepository) {
+                         PostCommentRepository commentRepository,
+                         StorageService storageService,
+                         WorkoutSessionRepository workoutSessionRepository,
+                         TrainingSummaryService trainingSummaryService) {
         this.userRepository = userRepository;
         this.connectionRepository = connectionRepository;
         this.postRepository = postRepository;
         this.likeRepository = likeRepository;
         this.commentRepository = commentRepository;
+        this.storageService = storageService;
+        this.workoutSessionRepository = workoutSessionRepository;
+        this.trainingSummaryService = trainingSummaryService;
     }
 
     // ── Search ──────────────────────────────────────────────────────────────
@@ -146,18 +156,40 @@ public class SocialService {
         List<UUID> authorIds = getConnectedIds(me);
         authorIds.add(me.getId());
 
-        Page<SocialPost> page = postRepository.findFeed(authorIds, pageable);
+        return toFeedPage(me, postRepository.findFeed(authorIds, pageable), pageable);
+    }
+
+    /**
+     * Posts de um usuário (aba "Publicações" do perfil). Só o próprio usuário ou um
+     * amigo aceito pode ver; os demais recebem 403.
+     */
+    @Transactional(readOnly = true)
+    public Page<FeedPostDTO> getUserPosts(String email, UUID userId, Pageable pageable) {
+        User me = findByEmail(email);
+        User target = findById(userId);
+        ensureCanSeeActivity(me, target);
+        return toFeedPage(me, postRepository.findFeed(List.of(target.getId()), pageable), pageable);
+    }
+
+    private Page<FeedPostDTO> toFeedPage(User me, Page<SocialPost> page, Pageable pageable) {
         List<SocialPost> posts = page.getContent();
-        if (posts.isEmpty()) return new PageImpl<>(List.of(), pageable, 0);
+        if (posts.isEmpty()) return new PageImpl<>(List.of(), pageable, page.getTotalElements());
 
         List<UUID> postIds = posts.stream().map(SocialPost::getId).toList();
 
         Map<UUID, Long> likeCounts = buildLikeCounts(postIds);
         Map<UUID, Long> commentCounts = buildCommentCounts(postIds);
         Set<UUID> likedByMe = new HashSet<>(likeRepository.findLikedPostIds(postIds, me.getId()));
+        // findFeed já restringiu os autores a conexões ACCEPTED, então assinar aqui
+        // é conceder acesso só ao que este usuário tem direito de ver.
+        Map<String, String> signed = signKeysOf(posts);
+        Map<UUID, WorkoutSummaryDTO> workouts = trainingSummaryService.summarize(posts.stream()
+                .map(SocialPost::getWorkoutSession)
+                .filter(Objects::nonNull)
+                .toList());
 
         List<FeedPostDTO> dtos = posts.stream()
-                .map(p -> toFeedPostDTO(p, likeCounts, commentCounts, likedByMe))
+                .map(p -> toFeedPostDTO(p, likeCounts, commentCounts, likedByMe, signed, workouts))
                 .toList();
 
         return new PageImpl<>(dtos, pageable, page.getTotalElements());
@@ -173,11 +205,32 @@ public class SocialService {
         post.setDurationMinutes(req.durationMinutes());
         post.setCalories(req.calories());
         post.setCaption(req.caption());
-        post.setImageUrl(req.imageUrl());
+        // Versões antigas do app ainda mandam a URL pública devolvida pelo upload
+        // anterior; normalizeKey aceita as duas formas e grava sempre a key.
+        post.setImageUrl(storageService.normalizeKey(req.imageUrl()));
         post.setBadge(req.badge());
-        postRepository.save(post);
+        post.setWorkoutSession(resolveOwnSession(me, req.workoutSessionId(), req.clientSessionId()));
+        // saveAndFlush: created_at só é preenchido no INSERT (@CreationTimestamp).
+        postRepository.saveAndFlush(post);
 
-        return toFeedPostDTO(post, Map.of(), Map.of(), Set.of());
+        Map<UUID, WorkoutSummaryDTO> workouts = post.getWorkoutSession() != null
+                ? trainingSummaryService.summarize(List.of(post.getWorkoutSession()))
+                : Map.of();
+        return toFeedPostDTO(post, Map.of(), Map.of(), Set.of(), signKeysOf(List.of(post)), workouts);
+    }
+
+    /** Treino do próprio autor para ligar ao post; id desconhecido ou de outra pessoa → 404. */
+    private WorkoutSession resolveOwnSession(User me, UUID workoutSessionId, UUID clientSessionId) {
+        if (workoutSessionId != null) {
+            return workoutSessionRepository.findById(workoutSessionId)
+                    .filter(s -> s.getUser().getId().equals(me.getId()))
+                    .orElseThrow(() -> new EntityNotFoundException("Treino não encontrado."));
+        }
+        if (clientSessionId != null) {
+            return workoutSessionRepository.findByUserIdAndClientSessionId(me.getId(), clientSessionId)
+                    .orElseThrow(() -> new EntityNotFoundException("Treino não encontrado."));
+        }
+        return null;
     }
 
     // ── Stories ──────────────────────────────────────────────────────────────
@@ -188,12 +241,12 @@ public class SocialService {
         SocialPost story = new SocialPost();
         story.setAuthor(me);
         story.setKind("STORY");
-        story.setImageUrl(req.imageUrl());
+        story.setImageUrl(storageService.normalizeKey(req.imageUrl()));
         story.setCaption(req.caption());
         story.setExpiresAt(LocalDateTime.now().plusHours(24));
-        postRepository.save(story);
-        return new StoryDTO(story.getId(), story.getImageUrl(), story.getCaption(),
-                story.getCreatedAt(), story.getExpiresAt());
+        postRepository.saveAndFlush(story);
+        return new StoryDTO(story.getId(), storageService.signUrl(story.getImageUrl()),
+                story.getCaption(), story.getCreatedAt(), story.getExpiresAt());
     }
 
     @Transactional(readOnly = true)
@@ -203,14 +256,17 @@ public class SocialService {
         authorIds.add(me.getId());
 
         List<SocialPost> stories = postRepository.findActiveStories(authorIds, LocalDateTime.now());
+        // Mesmo contrato do feed: findActiveStories já limitou aos autores conectados.
+        Map<String, String> signed = signKeysOf(stories);
 
         // Agrupa por autor preservando a ordem cronológica das stories.
         Map<UUID, List<StoryDTO>> grouped = new LinkedHashMap<>();
         Map<UUID, User> authors = new HashMap<>();
         for (SocialPost s : stories) {
             UUID authorId = s.getAuthor().getId();
+            String imageUrl = s.getImageUrl() != null ? signed.get(s.getImageUrl()) : null;
             grouped.computeIfAbsent(authorId, k -> new ArrayList<>())
-                    .add(new StoryDTO(s.getId(), s.getImageUrl(), s.getCaption(), s.getCreatedAt(), s.getExpiresAt()));
+                    .add(new StoryDTO(s.getId(), imageUrl, s.getCaption(), s.getCreatedAt(), s.getExpiresAt()));
             authors.putIfAbsent(authorId, s.getAuthor());
         }
 
@@ -279,7 +335,7 @@ public class SocialService {
         comment.setPost(post);
         comment.setUser(me);
         comment.setBody(req.body());
-        commentRepository.save(comment);
+        commentRepository.saveAndFlush(comment);
         return new CommentDTO(comment.getId(), me.getId(), me.getNome(), avatarOf(me), comment.getBody(), comment.getCreatedAt());
     }
 
@@ -306,7 +362,27 @@ public class SocialService {
                 .orElse(false);
     }
 
-    private String connectionState(User me, User other) {
+    /** Conexão entre dois usuários, em qualquer direção e status. */
+    public Optional<UserConnection> findPair(UUID a, UUID b) {
+        return connectionRepository.findPair(a, b);
+    }
+
+    /** true se {@code me} é o próprio {@code target} ou amigo aceito dele. */
+    public boolean canSeeActivity(User me, User target) {
+        if (me.getId().equals(target.getId())) return true;
+        return findPair(me.getId(), target.getId())
+                .map(c -> "ACCEPTED".equals(c.getStatus()))
+                .orElse(false);
+    }
+
+    void ensureCanSeeActivity(User me, User target) {
+        if (!canSeeActivity(me, target)) {
+            throw new ForbiddenException("Só amigos podem ver a atividade deste perfil.");
+        }
+    }
+
+    /** NONE | CONNECTED | PENDING_OUTGOING | PENDING_INCOMING (SELF fica a cargo de quem chama). */
+    String connectionState(User me, User other) {
         Optional<UserConnection> opt = connectionRepository.findPair(me.getId(), other.getId());
         if (opt.isEmpty()) return "NONE";
         UserConnection c = opt.get();
@@ -340,23 +416,42 @@ public class SocialService {
                 .collect(Collectors.toMap(row -> (UUID) row[0], row -> (Long) row[1]));
     }
 
+    /**
+     * Assina em lote as mídias de {@code posts} — uma única chamada ao Storage por
+     * página de feed, em vez de uma por post. Só deve ser chamado depois de a
+     * consulta já ter limitado os posts aos autores que o usuário pode ver.
+     */
+    private Map<String, String> signKeysOf(List<SocialPost> posts) {
+        Set<String> keys = posts.stream()
+                .map(SocialPost::getImageUrl)
+                .filter(Objects::nonNull)
+                .filter(k -> !k.isBlank())
+                .collect(Collectors.toSet());
+        return storageService.signUrls(keys);
+    }
+
     private FeedPostDTO toFeedPostDTO(SocialPost p,
                                       Map<UUID, Long> likeCounts,
                                       Map<UUID, Long> commentCounts,
-                                      Set<UUID> likedByMe) {
+                                      Set<UUID> likedByMe,
+                                      Map<String, String> signedUrls,
+                                      Map<UUID, WorkoutSummaryDTO> workouts) {
         User author = p.getAuthor();
         FeedAuthorDTO authorDTO = new FeedAuthorDTO(author.getId(), author.getNome(), avatarOf(author));
 
         String duration = formatDuration(p.getDurationMinutes());
         String calories = formatCalories(p.getCalories());
         String timestamp = formatTimestamp(p.getCreatedAt());
+        WorkoutSummaryDTO w = p.getWorkoutSession() != null ? workouts.get(p.getWorkoutSession().getId()) : null;
 
         return new FeedPostDTO(
                 p.getId(),
                 authorDTO,
                 timestamp,
                 p.getCategory() != null ? p.getCategory().toUpperCase() : "",
-                p.getImageUrl(),
+                // image_url guarda a storage key; o cliente recebe a URL assinada.
+                // Ausência no mapa (objeto sumiu do bucket) vira post sem imagem.
+                p.getImageUrl() != null ? signedUrls.get(p.getImageUrl()) : null,
                 duration,
                 calories,
                 p.getBadge(),
@@ -364,7 +459,13 @@ public class SocialService {
                 commentCounts.getOrDefault(p.getId(), 0L),
                 p.getCaption() != null ? p.getCaption() : "",
                 likedByMe.contains(p.getId()),
-                p.getCreatedAt()
+                p.getCreatedAt(),
+                w != null ? w.title() : null,
+                w != null ? w.durationSeconds() : null,
+                w != null ? w.volumeKg() : null,
+                w != null ? w.recordsCount() : 0,
+                w != null ? w.exercises() : List.of(),
+                w != null ? w.moreExercises() : 0
         );
     }
 
@@ -390,16 +491,16 @@ public class SocialService {
         return days + " DAYS AGO";
     }
 
-    private String avatarOf(User u) {
+    static String avatarOf(User u) {
         return u.getAvatarUrl() != null ? u.getAvatarUrl()
                 : "https://i.pravatar.cc/150?u=" + u.getId();
     }
 
-    private User findByEmail(String email) {
+    User findByEmail(String email) {
         return userRepository.getByEmailOrThrow(email);
     }
 
-    private User findById(UUID id) {
+    User findById(UUID id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario nao encontrado."));
     }

@@ -1,13 +1,15 @@
 package com.kinetic.services;
 
+import com.kinetic.enums.Role;
 import com.kinetic.models.User;
 import com.kinetic.repositories.UserRepository;
+import com.kinetic.utils.DocumentValidator;
 import com.kinetic.dtos.RegisterDTO;
 import com.kinetic.dtos.LoginDTO;
 import com.kinetic.dtos.AuthResponseDTO;
 import com.kinetic.dtos.RefreshResponseDTO;
-import com.kinetic.dtos.ResetPasswordDTO;
 import com.kinetic.exceptions.EmailAlreadyInUseException;
+import com.kinetic.exceptions.EmailNotVerifiedException;
 import com.kinetic.security.JwtUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -26,18 +28,44 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenService refreshTokenService;
     private final UserService userService;
+    private final EmailVerificationService emailVerificationService;
 
     public User register(RegisterDTO dto) {
         if (userRepository.existsByEmail(dto.getEmail())) {
             throw new EmailAlreadyInUseException("Email já está em uso.");
         }
 
+        String phone = DocumentValidator.normalizeCellPhone(dto.getPhone());
+        if (phone == null) {
+            throw new IllegalArgumentException("Celular inválido. Informe DDD + número, ex.: (11) 98765-4321.");
+        }
+        userRepository.ensurePhoneAvailable(phone, null);
+
         User user = new User();
         user.setNome(dto.getNome());
         user.setEmail(dto.getEmail());
         user.setSenha(passwordEncoder.encode(dto.getSenha()));
+        user.setPhone(phone);
+        // Auto-cadastro só produz ALUNO ou PERSONAL (whitelist no DTO);
+        // EMPRESA e ROOT nascem por outros caminhos (ROOT: seed no boot).
+        boolean isPersonal = "PERSONAL".equals(dto.getRole());
+        user.setRole(isPersonal ? Role.PERSONAL : Role.ALUNO);
 
-        return userRepository.save(user);
+        if (isPersonal) {
+            if (dto.getCpf() == null || dto.getCpf().isBlank()) {
+                throw new IllegalArgumentException("CPF é obrigatório para personal trainers.");
+            }
+            if (!DocumentValidator.isValidCPF(dto.getCpf())) {
+                throw new IllegalArgumentException("CPF informado é inválido.");
+            }
+            String cleanCpf = dto.getCpf().replaceAll("\\D", "");
+            if (userRepository.existsByCpf(cleanCpf)) {
+                throw new EmailAlreadyInUseException("CPF já está em uso.");
+            }
+            user.setCpf(cleanCpf);
+        }
+
+        return userRepository.saveCheckingPhone(user);
     }
 
     public AuthResponseDTO login(LoginDTO dto) {
@@ -48,11 +76,19 @@ public class AuthService {
         User user = userRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));
 
+        // Só depois da senha conferir: não revela a ninguém quais contas existem.
+        // Já reenvia o código (respeitando o intervalo mínimo entre envios).
+        if (!user.isEmailVerified()) {
+            emailVerificationService.sendCode(user);
+            throw new EmailNotVerifiedException(
+                    "Confirme seu e-mail para entrar. Enviamos um código para " + user.getEmail() + ".");
+        }
+
         // Registro de streak é best-effort: uma falha aqui (ex.: corrida no
         // insert diário) jamais deve impedir um login com credenciais válidas.
         recordDailyLoginSafely(user);
 
-        String token = jwtUtil.generateToken(user.getEmail());
+        String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
         String refreshToken = refreshTokenService.createForUser(user);
         return new AuthResponseDTO(
                 token,
@@ -60,13 +96,15 @@ public class AuthService {
                 user.getId(),
                 user.getNome(),
                 user.getEmail(),
+                user.getPhone(),
                 user.getLevel(),
                 user.getBirthDate(),
                 user.getWeight(),
                 user.getHeight(),
                 user.getGoal(),
                 user.getFrequency(),
-                user.getMedicalConditions()
+                user.getMedicalConditions(),
+                user.getRole().name()
         );
     }
 
@@ -93,14 +131,5 @@ public class AuthService {
 
     public boolean checkEmailExists(String email) {
         return userRepository.existsByEmail(email);
-    }
-
-    public void resetPassword(ResetPasswordDTO dto) {
-        User user = userRepository.findByEmail(dto.getEmail())
-                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));
-
-        refreshTokenService.revokeAllForUser(user);
-        user.setSenha(passwordEncoder.encode(dto.getNewPassword()));
-        userRepository.save(user);
     }
 }

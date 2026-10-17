@@ -12,5 +12,8 @@ public record LogSessionRequestDTO(
     @NotNull @Positive Integer durationInSeconds,
     @NotNull LocalDate date,
     @NotEmpty @Valid List<SetLogDto> exercisesLog,
-    UUID workoutPlanId
+    UUID workoutPlanId,
+    // Gerado pelo app uma vez por treino e repetido em toda tentativa de envio:
+    // o mesmo id nunca vira dois registros. Opcional para clientes antigos.
+    UUID clientSessionId
 ) {}

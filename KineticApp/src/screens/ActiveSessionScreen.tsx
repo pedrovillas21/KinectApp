@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Polyline } from 'react-native-svg';
@@ -10,6 +10,7 @@ import SerieCard, { SerieStatus } from '../components/SerieCard';
 import { SetLogDto, LogSessionRequestDTO } from '../types';
 import api from '../services/api';
 import useWorkoutPresence from '../hooks/useWorkoutPresence';
+import { uuidv4 } from '../utils/uuid';
 
 interface SetData {
   weight: string;
@@ -71,6 +72,26 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
 
   // Armazena todos os logs de todas as séries já preenchidas
   const [globalSetsLog, setGlobalSetsLog] = useState<SetLogDto[]>([]);
+
+  // Trava enquanto o POST /sessions/log está em andamento: sem isso, toques repetidos
+  // em "Finalizar treino" registram a mesma sessão mais de uma vez. O ref bloqueia na
+  // hora (dois toques no mesmo frame veriam o state ainda false); o state só desenha o botão.
+  const savingRef = useRef(false);
+  // Um id por treino, igual em toda tentativa de envio: se a resposta se perder e o
+  // usuário tentar de novo, o backend reconhece o treino e não grava outro.
+  const clientSessionIdRef = useRef<string>('');
+  if (!clientSessionIdRef.current) clientSessionIdRef.current = uuidv4();
+  const [saving, setSaving] = useState(false);
+  const startSaving = () => {
+    if (savingRef.current) return false;
+    savingRef.current = true;
+    setSaving(true);
+    return true;
+  };
+  const stopSaving = () => {
+    savingRef.current = false;
+    setSaving(false);
+  };
 
   useEffect(() => {
     if (exercises.length === 0) return;
@@ -174,15 +195,17 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
 
   const handleNextAction = () => {
     // O CTA só fica ativo com todas as séries confirmadas; guarda por segurança.
-    if (!allConfirmed) return;
+    if (!allConfirmed || savingRef.current) return;
+
+    if (isLastExercise) {
+      // finishWorkoutSession já junta as séries da tela atual; acumular aqui também
+      // duplicaria o último exercício numa nova tentativa após erro.
+      finishWorkoutSession();
+      return;
+    }
 
     accumulateCurrentExerciseSets();
-
-    if (currentIndex < exercises.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-    } else {
-      finishWorkoutSession();
-    }
+    setCurrentIndex(prev => prev + 1);
   };
 
   // Saída deliberada da tela: marca a flag para o beforeRemove não interceptar de novo.
@@ -198,6 +221,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
   };
 
   const handleExitSession = (pendingAction?: any) => {
+    if (savingRef.current) return;
     Alert.alert(
       'Tem a certeza que deseja sair?',
       'O seu treino será encerrado. Apenas as séries marcadas como concluídas serão guardadas no seu histórico.',
@@ -226,11 +250,13 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
             }
 
             // Gravação parcial
+            if (!startSaving()) return;
             const payload: LogSessionRequestDTO = {
               durationInSeconds: elapsedTime,
               date: localDateString(),
               exercisesLog: allLogs,
               workoutPlanId,
+              clientSessionId: clientSessionIdRef.current,
             };
 
             if (timerRef.current) clearInterval(timerRef.current);
@@ -242,6 +268,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
                 leaveScreen(pendingAction);
               })
               .catch((error: unknown) => {
+                stopSaving();
                 console.error('Erro ao salvar sessão parcial', error);
                 Alert.alert('Erro', 'Não foi possível salvar os dados do treino.');
               });
@@ -263,12 +290,15 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
       // Saída já autorizada (pós-confirmação/salvamento) ou sessão sem exercícios: deixa passar.
       if (allowLeaveRef.current || exercises.length === 0) return;
       e.preventDefault();
+      // Salvando: segura a tela até a resposta, sem abrir outro fluxo de saída/gravação.
+      if (savingRef.current) return;
       exitHandlerRef.current(e.data.action);
     });
     return unsubscribe;
   }, [navigation, exercises.length]);
 
   const finishWorkoutSession = async () => {
+    if (!startSaving()) return;
     if (timerRef.current) clearInterval(timerRef.current);
 
     // O globalSetsLog já contém os exercícios anteriores.
@@ -285,6 +315,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
     const finalLogs = [...globalSetsLog, ...mappedLogs];
 
     if (finalLogs.length === 0) {
+      stopSaving();
       leaveScreen();
       return;
     }
@@ -294,6 +325,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
       date: localDateString(),
       exercisesLog: finalLogs,
       workoutPlanId,
+      clientSessionId: clientSessionIdRef.current,
     };
 
     try {
@@ -302,6 +334,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
       Alert.alert('Parabéns!', 'Seu treino foi salvo com sucesso.');
       leaveScreen();
     } catch (error) {
+      stopSaving();
       console.error('Erro ao salvar sessão', error);
       Alert.alert('Erro', 'Não foi possível salvar os dados do treino.');
     }
@@ -328,6 +361,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
           <TouchableOpacity
             style={styles.exitBtn}
             onPress={() => handleExitSession()}
+            disabled={saving}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <View style={styles.exitIconBox}>
@@ -366,6 +400,12 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
               <Text style={styles.focusChipText}>Foco: {currentExercise.muscles}</Text>
             </View>
           )}
+          {!!currentExercise.notes && (
+            <View style={styles.notesBox}>
+              <Text style={styles.notesLabel}>OBSERVAÇÃO DO PERSONAL</Text>
+              <Text style={styles.notesText}>{currentExercise.notes}</Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.setsContainer}>
@@ -374,7 +414,8 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
               key={idx}
               setNumber={idx + 1}
               targetReps={withSuffix(currentExercise.reps, 'reps')}
-              cargaLabel={currentExercise.weight}
+              // Ficha do personal pode vir sem carga definida: o aluno escolhe.
+              cargaLabel={currentExercise.weight || 'Carga livre'}
               restLabel={withSuffix(currentExercise.restTime, 'descanso')}
               weightRequired={weightRequired}
               status={statusOf(idx)}
@@ -397,17 +438,26 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
           </Text>
         )}
         {allConfirmed ? (
-          <TouchableOpacity activeOpacity={0.85} onPress={handleNextAction}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={handleNextAction}
+            disabled={saving}
+            accessibilityState={{ disabled: saving, busy: saving }}
+          >
             <LinearGradient
               colors={[KINETIC.primary, '#00bcd4']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              style={styles.primaryCta}
+              style={[styles.primaryCta, saving && styles.primaryCtaSaving]}
             >
               <Text style={[styles.primaryCtaText, { color: '#001f24' }]}>
-                {isLastExercise ? 'Finalizar treino' : 'Próximo exercício'}
+                {saving ? 'Salvando treino...' : isLastExercise ? 'Finalizar treino' : 'Próximo exercício'}
               </Text>
-              <Icon name="arrow-right" size={16} color="#001f24" strokeWidth={2.5} />
+              {saving ? (
+                <ActivityIndicator size="small" color="#001f24" />
+              ) : (
+                <Icon name="arrow-right" size={16} color="#001f24" strokeWidth={2.5} />
+              )}
             </LinearGradient>
           </TouchableOpacity>
         ) : (
@@ -485,6 +535,17 @@ const styles = StyleSheet.create({
     borderColor: KINETIC.primarySoft,
   },
   focusChipText: { color: KINETIC.primary, fontSize: 11, fontWeight: '700' },
+  notesBox: {
+    marginTop: 12,
+    paddingVertical: 9,
+    paddingHorizontal: 11,
+    borderRadius: 10,
+    borderLeftWidth: 2,
+    borderLeftColor: KINETIC.primary,
+    backgroundColor: KINETIC.ghost,
+  },
+  notesLabel: { color: KINETIC.textMuted, fontSize: 9.5, fontWeight: '700', letterSpacing: 0.6, marginBottom: 4 },
+  notesText: { color: KINETIC.text, fontSize: 13, lineHeight: 18 },
 
   setsContainer: { paddingHorizontal: 16, paddingTop: 14 },
 
@@ -514,6 +575,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   primaryCtaDisabled: { backgroundColor: KINETIC.surface2 },
+  primaryCtaSaving: { opacity: 0.7 },
   primaryCtaText: { fontSize: 15, fontWeight: '800', letterSpacing: 0.2 },
 
   emptyState: {

@@ -1,0 +1,232 @@
+import React, { useCallback, useContext, useState } from 'react';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import Constants from 'expo-constants';
+
+import InviteDialog from '../components/InviteDialog';
+import Icon from '../components/Icon';
+import PhoneDialog from '../components/settings/PhoneDialog';
+import ChangePasswordDialog from '../components/settings/ChangePasswordDialog';
+import DeleteAccountDialog from '../components/settings/DeleteAccountDialog';
+import { Avatar, ListGroup, ListRow, Screen, Text } from '../components/ui';
+import { AuthContext } from '../contexts/AuthContext';
+import api from '../services/api';
+import { exportMyData } from '../services/accountService';
+import { getPublicProfile } from '../services/profileService';
+import { getMyTrainer, getPendingInvites } from '../services/trainerService';
+import { FONT, KINETIC, RADIUS } from '../theme/kinetic';
+import { maskCellPhone } from '../utils/whatsapp';
+import type { MainStackScreenProps } from '../navigation/types';
+import type { TrainerPeer, UserProfileResponse } from '../types';
+
+export default function SettingsScreen({ navigation }: MainStackScreenProps<'Settings'>) {
+  const { currentUser, signOut, changePassword, forgetRememberedUser } = useContext(AuthContext);
+
+  const [account, setAccount] = useState<UserProfileResponse | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [trainer, setTrainer] = useState<TrainerPeer | null>(null);
+  const [inviteCount, setInviteCount] = useState(0);
+  const [exporting, setExporting] = useState(false);
+  const [phoneOpen, setPhoneOpen] = useState(false);
+  const [passwordOpen, setPasswordOpen] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+
+  const load = useCallback(async () => {
+    const [a, t, i, p] = await Promise.allSettled([
+      api.get<UserProfileResponse>('/users/profile'),
+      getMyTrainer(),
+      getPendingInvites(),
+      currentUser ? getPublicProfile(String(currentUser.id)) : Promise.reject(),
+    ]);
+    if (a.status === 'fulfilled') setAccount(a.value.data);
+    if (p.status === 'fulfilled') setAvatarUrl(p.value.avatarUrl);
+    setTrainer(t.status === 'fulfilled' && t.value?.status === 'ATIVO' ? t.value.peer : null);
+    setInviteCount(i.status === 'fulfilled' ? i.value.length : 0);
+  }, [currentUser]);
+
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load]),
+  );
+
+  const name = account?.fullName ?? currentUser?.nome ?? '';
+  const email = account?.email ?? currentUser?.email ?? '';
+  const phone = account?.phone ?? currentUser?.phone ?? null;
+  const version = Constants.expoConfig?.version;
+
+  const handleExport = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      await exportMyData();
+    } catch {
+      Alert.alert('Exportar meus dados', 'Não foi possível gerar o arquivo agora. Tente novamente.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const confirmSignOut = () =>
+    Alert.alert('Sair da conta?', 'Você precisará fazer login novamente para acessar seus treinos.', [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Sair', style: 'destructive', onPress: () => void signOut() },
+    ]);
+
+  // Após trocar a senha o backend revoga as sessões: desloga para entrar com a nova.
+  const handlePasswordChanged = () =>
+    Alert.alert('Senha alterada', 'Sua senha foi atualizada. Faça login novamente com a nova senha.', [
+      { text: 'OK', onPress: () => void signOut() },
+    ]);
+
+  const handleDeleted = async () => {
+    setDeleteOpen(false);
+    // A conta não existe mais: esquece o cartão "conta lembrada" e encerra a sessão local.
+    await forgetRememberedUser().catch(() => {});
+    await signOut().catch(() => {});
+    Alert.alert('Conta excluída', 'Sua conta e seus dados foram apagados.');
+  };
+
+  return (
+    <Screen
+      edges={['top', 'bottom', 'left', 'right']}
+      contentStyle={styles.content}
+      header={
+        <View style={styles.header}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Voltar" onPress={() => navigation.goBack()} hitSlop={8} style={styles.back}>
+            <Icon name="arrow-left" size={20} color={KINETIC.primary} strokeWidth={1.9} />
+            <Text variant="label" color={KINETIC.primary} style={styles.backText}>
+              Você
+            </Text>
+          </Pressable>
+          <Text style={styles.title} accessibilityRole="header">
+            Configurações
+          </Text>
+        </View>
+      }
+    >
+      <View style={styles.accountCard}>
+        <Avatar name={name} uri={avatarUrl} seed={currentUser?.id} size={48} />
+        <View style={styles.flex}>
+          <Text variant="label" numberOfLines={1}>
+            {name}
+          </Text>
+          <Text variant="caption" color={KINETIC.textSecondary} numberOfLines={1}>
+            {email}
+          </Text>
+        </View>
+      </View>
+
+      <ListGroup title="Conta">
+        <ListRow icon="mail" title="E-mail" value={email} />
+        <ListRow
+          icon="phone"
+          title="Celular (WhatsApp)"
+          value={phone ? maskCellPhone(phone) : 'Cadastrar'}
+          onPress={() => setPhoneOpen(true)}
+        />
+        <ListRow icon="lock" title="Senha" value="Alterar" onPress={() => setPasswordOpen(true)} />
+      </ListGroup>
+
+      <ListGroup title="Treino">
+        <ListRow
+          icon="target"
+          title="Meu protocolo"
+          subtitle="Objetivo, medidas, nível, anamnese"
+          onPress={() => navigation.navigate('Protocol')}
+        />
+        <ListRow icon="bell" title="Notificações" comingSoon />
+        <ListRow icon="ruler" title="Unidades" value="kg · cm" />
+        <ListRow icon="globe" title="Idioma" value="Português" />
+      </ListGroup>
+
+      <ListGroup title="Personal">
+        {trainer ? (
+          <ListRow
+            icon="users"
+            title="Perfil do personal"
+            value={trainer.nome.split(' ')[0]}
+            onPress={() => navigation.navigate('TrainerProfile')}
+          />
+        ) : null}
+        <ListRow
+          icon="ticket"
+          title={trainer ? 'Convites de personal' : 'Adicionar personal'}
+          subtitle={trainer ? undefined : 'Código do personal ou convites recebidos'}
+          value={inviteCount > 0 ? `${inviteCount} ${inviteCount === 1 ? 'novo' : 'novos'}` : undefined}
+          onPress={() => setInviteOpen(true)}
+        />
+      </ListGroup>
+
+      <ListGroup title="Comunidade">
+        <ListRow icon="eye" title="Visibilidade no ranking" comingSoon />
+        <ListRow icon="users" title="Amigos e bloqueios" comingSoon />
+      </ListGroup>
+
+      <ListGroup title="Privacidade e dados">
+        <ListRow
+          icon="download"
+          title="Exportar meus dados"
+          subtitle="Arquivo com perfil, treinos, medidas e histórico"
+          value={exporting ? 'Gerando…' : undefined}
+          onPress={handleExport}
+        />
+        <ListRow icon="check" title="Consentimentos" comingSoon />
+        <ListRow icon="shield" title="Política de privacidade" comingSoon />
+        <ListRow icon="doc" title="Termos de uso" comingSoon />
+      </ListGroup>
+
+      <ListGroup footnote="A exclusão apaga seu perfil, treinos, fotos e medidas de forma definitiva, conforme a LGPD (art. 18). Recomendamos exportar seus dados antes.">
+        <ListRow icon="logout" title="Sair da conta" onPress={confirmSignOut} />
+        <ListRow icon="trash" title="Excluir minha conta" destructive onPress={() => setDeleteOpen(true)} />
+      </ListGroup>
+
+      {version ? (
+        <Text variant="mono" color={KINETIC.textMuted} style={styles.version}>
+          Kinetic {version}
+        </Text>
+      ) : null}
+
+      <PhoneDialog
+        visible={phoneOpen}
+        value={phone}
+        onClose={() => setPhoneOpen(false)}
+        onSaved={(p) => setAccount((prev) => (prev ? { ...prev, phone: p } : prev))}
+      />
+      <ChangePasswordDialog
+        visible={passwordOpen}
+        onClose={() => setPasswordOpen(false)}
+        onSubmit={changePassword}
+        onSuccess={handlePasswordChanged}
+      />
+      <InviteDialog visible={inviteOpen} onClose={() => setInviteOpen(false)} initialTab="trainer" onChanged={load} />
+      <DeleteAccountDialog
+        visible={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        onDeleted={handleDeleted}
+        onExport={handleExport}
+      />
+    </Screen>
+  );
+}
+
+const styles = StyleSheet.create({
+  content: { gap: 22, paddingBottom: 32 },
+  header: { paddingHorizontal: 16, paddingTop: 8 },
+  back: { flexDirection: 'row', alignItems: 'center', gap: 2, minHeight: 40, alignSelf: 'flex-start' },
+  backText: { fontFamily: FONT.regular },
+  title: { fontFamily: FONT.semibold, fontSize: 28, lineHeight: 34, letterSpacing: -0.6, marginTop: 6, marginHorizontal: 4 },
+  flex: { flex: 1, minWidth: 0, gap: 2 },
+  accountCard: {
+    marginTop: 16,
+    marginHorizontal: 16,
+    padding: 14,
+    borderRadius: RADIUS.xl,
+    backgroundColor: KINETIC.surface1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  version: { textAlign: 'center', fontSize: 11 },
+});

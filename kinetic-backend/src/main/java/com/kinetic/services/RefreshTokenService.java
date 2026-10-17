@@ -65,7 +65,7 @@ public class RefreshTokenService {
         User user = existing.getUser();
         refreshTokenRepository.delete(existing);
 
-        String newAccessToken = jwtUtil.generateToken(user.getEmail());
+        String newAccessToken = jwtUtil.generateToken(user.getEmail(), user.getRole());
         String newRawRefresh = createForUser(user);
 
         return new RotationResult(newAccessToken, newRawRefresh, user.getEmail());

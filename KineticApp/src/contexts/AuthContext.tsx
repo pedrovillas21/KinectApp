@@ -28,6 +28,9 @@ export interface KineticUser {
   id: string | number;
   nome: string;
   email: string;
+  // Celular (DDD + número). null em contas criadas antes de ele ser obrigatório:
+  // o roteamento barra o app até o cadastro (PhoneRequiredScreen).
+  phone: string | null;
   level: string | null;
   birthDate: string | null;
   weight: number | null;
@@ -53,6 +56,8 @@ export interface WorkoutPlanItem {
   estimatedTotalVolumeKg?: number | null;
   lastCompletedAt?: string | null;
   createdAt?: string | null;
+  // Nome do personal que montou a ficha; null/ausente = gerada por IA.
+  prescribedByName?: string | null;
   data: unknown[];
 }
 
@@ -68,7 +73,7 @@ interface CompleteOnboardingData {
 
 type AuthResult =
   | { success: true }
-  | { success: false; error: string };
+  | { success: false; error: string; needsEmailVerification?: boolean };
 
 interface AuthContextValue {
   isLoggedIn: boolean;
@@ -89,17 +94,22 @@ interface AuthContextValue {
     name: string;
     email: string;
     password: string;
+    phone: string;
   }) => Promise<AuthResult>;
   completeOnboarding: (data: CompleteOnboardingData) => Promise<void>;
-  verifyEmail: (email: string) => Promise<AuthResult>;
+  confirmEmail: (email: string, code: string) => Promise<AuthResult>;
+  resendConfirmation: (email: string) => Promise<AuthResult>;
+  requestPasswordReset: (email: string) => Promise<AuthResult>;
   resetPassword: (
     email: string,
+    code: string,
     newPassword: string,
   ) => Promise<AuthResult>;
   changePassword: (
     currentPassword: string,
     newPassword: string,
   ) => Promise<AuthResult>;
+  updatePhone: (phone: string) => Promise<AuthResult>;
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -131,6 +141,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (e) {
       console.warn('Falha ao verificar treinos existentes:', e);
       return [];
+    }
+  };
+
+  const fetchPhone = async (): Promise<string | null> => {
+    try {
+      const res = await api.get<{ phone: string | null }>('/users/profile');
+      return res.data.phone ?? null;
+    } catch (e) {
+      console.warn('Falha ao verificar o celular cadastrado:', e);
+      return null;
     }
   };
 
@@ -172,6 +192,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const user = JSON.parse(userJson) as KineticUser;
+      // Cache salvo antes do celular existir (ou cadastrado em outro aparelho): confirma no backend.
+      if (!user.phone) {
+        user.phone = await fetchPhone();
+        await AsyncStorage.setItem(USER_KEY, JSON.stringify(user));
+      }
       setCurrentUser(user);
       setJustLoggedOut(false);
       setIsLoggedIn(true);
@@ -212,12 +237,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     name,
     email,
     password,
+    phone,
   }: {
     name: string;
     email: string;
     password: string;
+    phone: string;
   }): Promise<AuthResult> => {
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !phone) {
       return { success: false, error: 'Preencha todos os campos.' };
     }
 
@@ -226,6 +253,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         nome: name.trim(),
         email: email.trim(),
         senha: password,
+        phone: phone.replace(/\D/g, ''),
       });
       return { success: true };
     } catch (e: unknown) {
@@ -256,6 +284,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         id: string | number;
         nome: string;
         email: string;
+        phone: string | null;
         level: string | null;
         birthDate: string | null;
         weight: number | null;
@@ -273,6 +302,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         id,
         nome,
         email: userEmail,
+        phone,
         level,
         birthDate,
         weight,
@@ -285,6 +315,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         id,
         nome,
         email: userEmail,
+        phone: phone ?? null,
         level,
         birthDate,
         weight,
@@ -319,7 +350,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       return { success: true };
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { message?: string } | string } };
+      const err = e as {
+        response?: { status?: number; data?: { message?: string; code?: string } | string };
+      };
+      // Sem resposta = o servidor não foi alcançado (rede, URL ou porta errada), não é senha errada.
+      if (!err.response) {
+        return {
+          success: false,
+          error: 'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.',
+        };
+      }
       const message =
         (err.response?.data as { message?: string })?.message ||
         err.response?.data ||
@@ -327,6 +367,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return {
         success: false,
         error: typeof message === 'string' ? message : 'E-mail ou senha incorretos.',
+        // Senha certa, e-mail ainda não confirmado: a tela abre a confirmação.
+        needsEmailVerification:
+          err.response?.status === 403 &&
+          (err.response?.data as { code?: string })?.code === 'EMAIL_NOT_VERIFIED',
+      };
+    }
+  };
+
+  const confirmEmail = async (email: string, code: string): Promise<AuthResult> => {
+    try {
+      await api.post('/auth/confirm-email', { email: email.trim(), code });
+      return { success: true };
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: unknown } };
+      const message = err.response?.data || 'Não foi possível confirmar o e-mail.';
+      return {
+        success: false,
+        error: typeof message === 'string' ? message : JSON.stringify(message),
+      };
+    }
+  };
+
+  // O backend responde igual exista a conta ou não; só falha por rede ou e-mail malformado.
+  const resendConfirmation = async (email: string): Promise<AuthResult> => {
+    try {
+      await api.post('/auth/resend-confirmation', { email: email.trim() });
+      return { success: true };
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: unknown } };
+      const message = err.response?.data || 'Não foi possível reenviar o código. Tente novamente.';
+      return {
+        success: false,
+        error: typeof message === 'string' ? message : JSON.stringify(message),
       };
     }
   };
@@ -389,13 +462,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setHasOnboarded(isOnboardedFromUser(updatedUser));
   };
 
-  const verifyEmail = async (email: string): Promise<AuthResult> => {
+  // O backend responde igual exista a conta ou não; só falha por rede ou e-mail malformado.
+  const requestPasswordReset = async (email: string): Promise<AuthResult> => {
     try {
-      await api.post('/auth/verify-email', { email: email.trim() });
+      await api.post('/auth/forgot-password', { email: email.trim() });
       return { success: true };
     } catch (e: unknown) {
       const err = e as { response?: { data?: unknown } };
-      const message = err.response?.data || 'E-mail não encontrado.';
+      const message = err.response?.data || 'Não foi possível enviar o código. Tente novamente.';
       return {
         success: false,
         error: typeof message === 'string' ? message : JSON.stringify(message),
@@ -405,11 +479,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const resetPassword = async (
     email: string,
+    code: string,
     newPassword: string,
   ): Promise<AuthResult> => {
     try {
       await api.post('/auth/reset-password', {
         email: email.trim(),
+        code,
         newPassword,
       });
       return { success: true };
@@ -440,6 +516,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Cadastro/troca do celular; o backend devolve só DDD + número.
+  const updatePhone = async (phone: string): Promise<AuthResult> => {
+    if (!currentUser) return { success: false, error: 'Sessão expirada. Entre novamente.' };
+    try {
+      const response = await api.put<{ phone: string }>('/users/phone', { phone });
+      const updatedUser: KineticUser = { ...currentUser, phone: response.data.phone };
+
+      // Sem celular o backend barra /workouts/my-plans (PHONE_REQUIRED), então a checagem
+      // de fichas existentes feita no login falhou; refaz antes de liberar o roteamento
+      // para não cair no onboarding à toa.
+      if (!hasOnboarded) {
+        const plans = await fetchExistingPlans();
+        if (plans.length > 0) {
+          setWorkoutPlans(plans);
+          setHasOnboarded(true);
+        }
+      }
+
+      await AsyncStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
+      setCurrentUser(updatedUser);
+      return { success: true };
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: unknown } };
+      const message = err.response?.data;
+      return {
+        success: false,
+        error: typeof message === 'string' && message ? message : 'Não foi possível salvar o celular.',
+      };
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -457,9 +564,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         forgetRememberedUser,
         register,
         completeOnboarding,
-        verifyEmail,
+        confirmEmail,
+        resendConfirmation,
+        requestPasswordReset,
         resetPassword,
         changePassword,
+        updatePhone,
       }}
     >
       {children}

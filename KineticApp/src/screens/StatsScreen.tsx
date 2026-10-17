@@ -916,7 +916,7 @@ export default function StatsScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <View style={styles.center}>
           <ActivityIndicator size="large" color={T.accent} />
         </View>
@@ -926,7 +926,7 @@ export default function StatsScreen() {
 
   if (!stats) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <ScrollView
           contentContainerStyle={styles.zeroContainer}
           refreshControl={
@@ -957,7 +957,7 @@ export default function StatsScreen() {
 
   if (!hasAnyVolume && !hasAnyWeight && stats.efficiencyPercentage === 0) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <ScrollView
           contentContainerStyle={styles.zeroContainer}
           refreshControl={
@@ -984,7 +984,7 @@ export default function StatsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.topBar}>
         <View style={styles.titleRow}>
           <View>
@@ -1067,7 +1067,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: CONTENT_PAD,
     paddingTop: 14,
-    paddingBottom: 120,
+    paddingBottom: 24,
   },
   card: {
     backgroundColor: T.card,

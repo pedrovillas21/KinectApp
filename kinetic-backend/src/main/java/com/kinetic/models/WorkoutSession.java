@@ -45,6 +45,10 @@ public class WorkoutSession {
     @Column(name = "session_date", nullable = false)
     private LocalDate sessionDate;
 
+    /** Id gerado pelo app para tornar o registro idempotente (nulo em sessões antigas). */
+    @Column(name = "client_session_id")
+    private UUID clientSessionId;
+
     @OneToMany(mappedBy = "workoutSession", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ExerciseSetLog> setLogs = new ArrayList<>();
 }

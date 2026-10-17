@@ -11,6 +11,11 @@ public class ResetPasswordDTO {
     @Email(message = "E-mail com formato inválido.")
     private String email;
 
+    // Código de 6 dígitos enviado por e-mail em /api/auth/forgot-password.
+    @NotBlank(message = "O código é obrigatório.")
+    @Pattern(regexp = "^\\d{6}$", message = "O código deve ter 6 dígitos.")
+    private String code;
+
     @NotBlank(message = "A nova senha é obrigatória.")
     @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*_=+-]).{8,20}$", message = "A senha deve ter entre 8 e 15 caracteres, contendo pelo menos uma letra maiúscula, uma minúscula e um caractere especial.")
     private String newPassword;

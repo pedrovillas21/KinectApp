@@ -1,6 +1,7 @@
 package com.kinetic.services;
 
 import com.kinetic.dtos.ChangePasswordDTO;
+import com.kinetic.dtos.UpdatePhoneRequestDTO;
 import com.kinetic.dtos.UpdateWeightRequestDTO;
 import com.kinetic.dtos.UserProfileResponseDTO;
 import com.kinetic.models.User;
@@ -10,6 +11,7 @@ import com.kinetic.repositories.UserLoginStreakRepository;
 import com.kinetic.repositories.UserRepository;
 import com.kinetic.repositories.WeightHistoryRepository;
 import com.kinetic.repositories.WorkoutExecutionLogRepository;
+import com.kinetic.utils.DocumentValidator;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -87,6 +89,20 @@ public class UserService {
         refreshTokenService.revokeAllForUser(user);
     }
 
+    @Transactional
+    public String updatePhone(String userEmail, UpdatePhoneRequestDTO dto) {
+        String phone = DocumentValidator.normalizeCellPhone(dto.phone());
+        if (phone == null) {
+            throw new IllegalArgumentException("Celular inválido. Informe DDD + número, ex.: (11) 98765-4321.");
+        }
+
+        User user = userRepository.getByEmailOrThrow(userEmail);
+        userRepository.ensurePhoneAvailable(phone, user.getId());
+        user.setPhone(phone);
+        userRepository.saveCheckingPhone(user);
+        return phone;
+    }
+
     public boolean needsWeightUpdate(String userEmail) {
         User user = userRepository.getByEmailOrThrow(userEmail);
 
@@ -109,6 +125,7 @@ public class UserService {
         return new UserProfileResponseDTO(
                 user.getNome(),
                 user.getEmail(),
+                user.getPhone(),
                 memberSince,
                 streak,
                 totalWorkouts,

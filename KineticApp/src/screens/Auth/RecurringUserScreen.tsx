@@ -227,6 +227,15 @@ export default function RecurringUserScreen({ navigation }: Props) {
     const result = await signIn({ email: rememberedUser?.email ?? '', password });
     setLoginLoading(false);
     if (!result.success) {
+      if (result.needsEmailVerification) {
+        Alert.alert('Confirme seu e-mail', result.error, [
+          {
+            text: 'Digitar código',
+            onPress: () => navigation.navigate('ConfirmEmail', { email: rememberedUser?.email ?? '' }),
+          },
+        ]);
+        return;
+      }
       Alert.alert('Erro ao entrar', result.error);
     }
   };
