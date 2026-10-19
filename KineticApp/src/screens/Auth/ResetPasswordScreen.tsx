@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   ScrollView,
   TextInput,
 } from 'react-native';
@@ -15,6 +14,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { AuthContext } from '../../contexts/AuthContext';
 import Svg, { Path, Circle } from 'react-native-svg';
+import { showAlert } from '../../components/ui/AlertHost';
 
 const A = {
   bg: '#131313',
@@ -188,7 +188,7 @@ export default function ResetPasswordScreen({ navigation, route }: Props) {
     if (!canSubmit || loading) return;
 
     if (!email || !code) {
-      Alert.alert('Código ausente', 'Solicite um código de recuperação primeiro.', [
+      showAlert('Código ausente', 'Solicite um código de recuperação primeiro.', [
         { text: 'OK', onPress: () => navigation.navigate('ForgotPassword') },
       ]);
       return;
@@ -200,13 +200,13 @@ export default function ResetPasswordScreen({ navigation, route }: Props) {
 
     if (!result.success) {
       // Código errado/expirado: volta para a tela do código (lá dá para reenviar).
-      Alert.alert('Erro', result.error, [
+      showAlert('Erro', result.error, [
         { text: 'OK', onPress: () => navigation.navigate('VerifyCode', { email }) },
       ]);
       return;
     }
 
-    Alert.alert(
+    showAlert(
       'Senha atualizada!',
       'Sua senha foi redefinida com sucesso. Faça login com a nova senha.',
       [{ text: 'Fazer Login', onPress: () => navigation.navigate('Login', { email }) }],

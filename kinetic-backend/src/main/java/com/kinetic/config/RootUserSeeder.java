@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -61,8 +62,14 @@ public class RootUserSeeder implements CommandLineRunner {
             root.setRole(Role.ROOT);
             // O e-mail vem da configuração do operador, não de um cadastro público.
             root.setEmailVerified(true);
-            userRepository.save(root);
-            log.info("RootUserSeeder: usuário ROOT criado.");
+            try {
+                userRepository.save(root);
+                log.info("RootUserSeeder: usuário ROOT criado.");
+            } catch (DataIntegrityViolationException e) {
+                // Duas réplicas subindo juntas: a outra criou o ROOT entre o findByEmail
+                // e o save. O e-mail é único, então o ROOT já existe; não derruba o boot.
+                log.info("RootUserSeeder: ROOT já criado por outra instância.");
+            }
         });
     }
 }

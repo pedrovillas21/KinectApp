@@ -1,6 +1,7 @@
 package com.kinetic.services;
 
 import com.kinetic.dtos.TrainerExerciseRequestDTO;
+import com.kinetic.enums.LoadType;
 import com.kinetic.dtos.TrainerWorkoutPlanRequestDTO;
 import com.kinetic.dtos.WorkoutPlanResponseDTO;
 import com.kinetic.models.Exercise;
@@ -151,6 +152,7 @@ public class TrainerPlanService {
         exercise.setSets(dto.sets());
         exercise.setReps(dto.reps().trim());
         exercise.setWeight(trimOrNull(dto.weight()));
+        exercise.setLoadType(dto.loadType() != null ? dto.loadType() : LoadType.infer(dto.weight()));
         exercise.setRestTime(trimOrNull(dto.restTime()));
         exercise.setSection(resolveSection(dto.section()));
         exercise.setNotes(trimOrNull(dto.notes()));

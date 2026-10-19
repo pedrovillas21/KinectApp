@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Polyline } from 'react-native-svg';
@@ -7,10 +7,12 @@ import { ThemeContext } from '../contexts/ThemeContext';
 import { KINETIC } from '../theme/kinetic';
 import Icon from '../components/Icon';
 import SerieCard, { SerieStatus } from '../components/SerieCard';
-import { SetLogDto, LogSessionRequestDTO } from '../types';
+import { SetLogDto, LogSessionRequestDTO, LoadType } from '../types';
+import { validateSet } from '../utils/setLimits';
 import api from '../services/api';
 import useWorkoutPresence from '../hooks/useWorkoutPresence';
 import { uuidv4 } from '../utils/uuid';
+import { showAlert } from '../components/ui/AlertHost';
 
 interface SetData {
   weight: string;
@@ -31,8 +33,14 @@ function localDateString(d: Date = new Date()): string {
 
 // Um exercício exige peso quando o rótulo de carga tem valor numérico (ex.: "40 kg").
 // Rótulos como "Sem carga" / "Peso corporal" não têm dígitos → campo opcional.
-function requiresWeight(weightLabel?: string): boolean {
-  return /\d/.test(String(weightLabel ?? ''));
+// Fichas antigas (ou em cache) podem vir sem loadType: mesma dedução do backend
+// (LoadType.infer).
+function loadTypeOf(exercise?: { loadType?: LoadType | null; weight?: string | null }): LoadType {
+  if (exercise?.loadType) return exercise.loadType;
+  const label = String(exercise?.weight ?? '').toLowerCase();
+  if (label.includes('corporal') || label.includes('peso do corpo') || label.includes('colete')) return 'BODYWEIGHT';
+  if (label.includes('sem carga') || label.includes('sem peso')) return 'NONE';
+  return 'EXTERNAL';
 }
 
 // Evita renderizar o literal "undefined" quando o campo vem ausente do plano (ex.:
@@ -112,7 +120,9 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const currentExercise = exercises[currentIndex];
   const numSets = parseInt(currentExercise?.sets, 10) || 3;
-  const weightRequired = requiresWeight(currentExercise?.weight);
+  const loadType = loadTypeOf(currentExercise);
+  // Carga externa com valor prescrito pede o peso; sem prescrição, o aluno escolhe.
+  const weightRequired = loadType === 'EXTERNAL' && /\d/.test(String(currentExercise?.weight ?? ''));
 
   const [setsData, setSetsData] = useState<SetData[]>([]);
 
@@ -146,19 +156,13 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
   const confirmSet = (index: number) => {
     const set = setsData[index];
 
-    // Validação Fail Fast
-    const numericReps = parseInt(set.reps, 10);
-    if (isNaN(numericReps) || numericReps < 1) {
-      Alert.alert('Série Incompleta', 'Insira pelo menos 1 repetição.');
+    // Em BODYWEIGHT o campo é a carga extra; em NONE não há peso.
+    const numericReps = Number(set.reps);
+    const typedWeight = set.weight.trim() === '' ? 0 : Number(set.weight.replace(',', '.'));
+    const error = validateSet(numericReps, loadType === 'NONE' ? 0 : typedWeight);
+    if (error) {
+      showAlert('Confira a série', error);
       return;
-    }
-
-    if (weightRequired) {
-      const numericWeight = parseFloat(set.weight.replace(',', '.'));
-      if (isNaN(numericWeight) || numericWeight < 0) {
-        Alert.alert('Peso Inválido', 'O peso não pode ser negativo. Use 0 para peso do corpo.');
-        return;
-      }
     }
 
     const newSets = [...setsData];
@@ -222,58 +226,63 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
 
   const handleExitSession = (pendingAction?: any) => {
     if (savingRef.current) return;
-    Alert.alert(
-      'Tem a certeza que deseja sair?',
-      'O seu treino será encerrado. Apenas as séries marcadas como concluídas serão guardadas no seu histórico.',
+
+    const currentMapped: SetLogDto[] = setsData
+      .filter(s => s.completed)
+      .map((s, idx) => ({
+        exerciseId: currentExercise.id,
+        setNumber: idx + 1,
+        repsPerformed: parseInt(s.reps, 10) || 0,
+        weightUsed: parseFloat(s.weight.replace(',', '.')) || 0
+      }));
+    const allLogs = [...globalSetsLog, ...currentMapped];
+
+    const discardAndLeave = () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      leaveScreen(pendingAction);
+    };
+
+    // Nada confirmado: não há o que guardar, só confirma a saída.
+    if (allLogs.length === 0) {
+      showAlert('Sair do treino?', 'Nenhuma série foi confirmada, então nada será registrado.', [
+        { text: 'Continuar treino', style: 'cancel' },
+        { text: 'Sair', style: 'destructive', onPress: discardAndLeave },
+      ]);
+      return;
+    }
+
+    const saveAndLeave = () => {
+      if (!startSaving()) return;
+      const payload: LogSessionRequestDTO = {
+        durationInSeconds: elapsedTime,
+        date: localDateString(),
+        exercisesLog: allLogs,
+        workoutPlanId,
+        clientSessionId: clientSessionIdRef.current,
+      };
+      if (timerRef.current) clearInterval(timerRef.current);
+
+      api.post('/sessions/log', payload)
+        .then(() => {
+          markSaved();
+          showAlert('Treino salvo', 'As séries concluídas entraram no seu histórico.');
+          leaveScreen(pendingAction);
+        })
+        .catch((error: unknown) => {
+          stopSaving();
+          console.error('Erro ao salvar sessão parcial', error);
+          showAlert('Erro', 'Não foi possível salvar os dados do treino.');
+        });
+    };
+
+    const total = allLogs.length;
+    showAlert(
+      'Treino incompleto',
+      `Você confirmou ${total} ${total === 1 ? 'série' : 'séries'}. Quer que elas contem no seu histórico e nas estatísticas?`,
       [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Confirmar',
-          style: 'destructive',
-          onPress: () => {
-            // Acumula séries do exercício atual
-            const currentCompleted = setsData.filter(s => s.completed);
-            const currentMapped: SetLogDto[] = currentCompleted.map((s, idx) => ({
-              exerciseId: currentExercise.id,
-              setNumber: idx + 1,
-              repsPerformed: parseInt(s.reps, 10) || 0,
-              weightUsed: parseFloat(s.weight.replace(',', '.')) || 0
-            }));
-
-            const allLogs = [...globalSetsLog, ...currentMapped];
-
-            if (allLogs.length === 0) {
-              // Sessão vazia: descarta sem poluir o banco
-              if (timerRef.current) clearInterval(timerRef.current);
-              leaveScreen(pendingAction);
-              return;
-            }
-
-            // Gravação parcial
-            if (!startSaving()) return;
-            const payload: LogSessionRequestDTO = {
-              durationInSeconds: elapsedTime,
-              date: localDateString(),
-              exercisesLog: allLogs,
-              workoutPlanId,
-              clientSessionId: clientSessionIdRef.current,
-            };
-
-            if (timerRef.current) clearInterval(timerRef.current);
-
-            api.post('/sessions/log', payload)
-              .then(() => {
-                markSaved();
-                Alert.alert('Treino Salvo', 'As séries concluídas foram guardadas.');
-                leaveScreen(pendingAction);
-              })
-              .catch((error: unknown) => {
-                stopSaving();
-                console.error('Erro ao salvar sessão parcial', error);
-                Alert.alert('Erro', 'Não foi possível salvar os dados do treino.');
-              });
-          }
-        }
+        { text: 'Salvar e sair', onPress: saveAndLeave },
+        { text: 'Sair sem salvar', style: 'destructive', onPress: discardAndLeave },
+        { text: 'Continuar treino', style: 'cancel' },
       ]
     );
   };
@@ -331,12 +340,12 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
     try {
       await api.post('/sessions/log', payload);
       markSaved();
-      Alert.alert('Parabéns!', 'Seu treino foi salvo com sucesso.');
+      showAlert('Parabéns!', 'Seu treino foi salvo com sucesso.');
       leaveScreen();
     } catch (error) {
       stopSaving();
       console.error('Erro ao salvar sessão', error);
-      Alert.alert('Erro', 'Não foi possível salvar os dados do treino.');
+      showAlert('Erro', 'Não foi possível salvar os dados do treino.');
     }
   };
 
@@ -417,6 +426,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
               // Ficha do personal pode vir sem carga definida: o aluno escolhe.
               cargaLabel={currentExercise.weight || 'Carga livre'}
               restLabel={withSuffix(currentExercise.restTime, 'descanso')}
+              loadType={loadType}
               weightRequired={weightRequired}
               status={statusOf(idx)}
               weightValue={setObj.weight}

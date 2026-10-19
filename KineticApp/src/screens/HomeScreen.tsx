@@ -1,6 +1,5 @@
 import React, { useCallback, useContext, useState } from 'react';
 import { ActivityIndicator, RefreshControl, StyleSheet, View } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
 
 import HomeHeader from '../components/home/HomeHeader';
 import WeekStrip from '../components/home/WeekStrip';
@@ -8,7 +7,8 @@ import TodayWorkoutCard from '../components/home/TodayWorkoutCard';
 import HomeStatsRow from '../components/home/HomeStatsRow';
 import TrainerRow from '../components/home/TrainerRow';
 import OnboardingPrompt from '../components/home/OnboardingPrompt';
-import { Screen } from '../components/ui';
+import { Screen, StaleBanner } from '../components/ui';
+import useFocusResource from '../hooks/useFocusResource';
 
 import { AuthContext } from '../contexts/AuthContext';
 import api from '../services/api';
@@ -53,55 +53,34 @@ function extractFirstName(fullName: string | undefined): string {
 export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
   const { currentUser } = useContext(AuthContext);
 
-  const [dashboard, setDashboard] = useState<HomeDashboardResponseDTO | null>(null);
-  const [plans, setPlans] = useState<WorkoutPlanAPI[]>([]);
-  const [trainer, setTrainer] = useState<TrainerPeer | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
-  const loadDashboard = useCallback(async (): Promise<void> => {
-    const [dashboardResult, plansResult, trainerResult] = await Promise.allSettled([
-      api.get<HomeDashboardResponseDTO>('/home/dashboard'),
-      api.get<WorkoutPlanAPI[]>('/workouts/my-plans'),
-      getMyTrainer(),
-    ]);
+  // Cada fonte tem cache e falha independentes: sem o personal, a Home continua.
+  const dashboardRes = useFocusResource('home/dashboard', () =>
+    api.get<HomeDashboardResponseDTO>('/home/dashboard').then((r) => r.data),
+  );
+  const plansRes = useFocusResource('workouts/my-plans', () =>
+    api.get<WorkoutPlanAPI[]>('/workouts/my-plans').then((r) => (Array.isArray(r.data) ? r.data : [])),
+  );
+  const trainerRes = useFocusResource('me/trainer', () =>
+    getMyTrainer().then((link) => (link?.status === 'ATIVO' ? link.peer : null)),
+  );
 
-    if (dashboardResult.status === 'fulfilled') {
-      setDashboard(dashboardResult.value.data);
-    } else {
-      console.warn('[HomeScreen] /home/dashboard falhou:', dashboardResult.reason);
-    }
+  const dashboard = dashboardRes.data ?? null;
+  const plans = plansRes.data ?? [];
+  const trainer: TrainerPeer | null = trainerRes.data ?? null;
+  const isLoading = dashboardRes.loading;
 
-    if (plansResult.status === 'fulfilled') {
-      setPlans(Array.isArray(plansResult.value.data) ? plansResult.value.data : []);
-    } else {
-      console.warn('[HomeScreen] /workouts/my-plans falhou:', plansResult.reason);
-      setPlans([]);
-    }
-
-    // Falha ao buscar o personal não derruba a Home: só some o atalho.
-    setTrainer(
-      trainerResult.status === 'fulfilled' && trainerResult.value?.status === 'ATIVO'
-        ? trainerResult.value.peer
-        : null,
-    );
-
-    setIsLoading(false);
-  }, []);
-
-  // useFocusEffect já cobre a montagem inicial e cada retorno de foco à tela,
-  // então não há useEffect separado (evita o request duplicado no startup).
-  useFocusEffect(
-    useCallback(() => {
-      loadDashboard();
-    }, [loadDashboard]),
+  const refreshAll = useCallback(
+    () => Promise.all([dashboardRes.refresh(), plansRes.refresh(), trainerRes.refresh()]),
+    [dashboardRes.refresh, plansRes.refresh, trainerRes.refresh],
   );
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    await loadDashboard();
+    await refreshAll();
     setIsRefreshing(false);
-  }, [loadDashboard]);
+  }, [refreshAll]);
 
   const handleStartWorkout = useCallback(
     (workout: NextWorkoutDTO): void => {
@@ -130,8 +109,11 @@ export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
     >
       {isLoading ? (
         <ActivityIndicator color={KINETIC.primary} />
+      ) : !dashboard ? (
+        <StaleBanner visible hasData={false} onRetry={refreshAll} />
       ) : (
         <>
+          <StaleBanner visible={dashboardRes.error || plansRes.error} onRetry={refreshAll} />
           <HomeHeader
             firstName={firstName}
             fullName={currentUser?.nome}

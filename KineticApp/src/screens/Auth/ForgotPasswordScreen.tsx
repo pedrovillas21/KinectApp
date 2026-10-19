@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   ScrollView,
   TextInput,
 } from 'react-native';
@@ -14,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthContext } from '../../contexts/AuthContext';
 import Svg, { Path } from 'react-native-svg';
+import { showAlert } from '../../components/ui/AlertHost';
 
 const A = {
   bg: '#131313',
@@ -83,7 +83,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
     if (result.success) {
       navigation.navigate('VerifyCode', { email: trimmed });
     } else {
-      Alert.alert('Erro', result.error);
+      showAlert('Erro', result.error);
     }
   };
 

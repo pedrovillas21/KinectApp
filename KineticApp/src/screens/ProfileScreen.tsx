@@ -8,9 +8,10 @@ import NewPostModal from '../components/NewPostModal';
 import InviteDialog from '../components/InviteDialog';
 import Icon, { IconName } from '../components/Icon';
 import ProfileHeader from '../components/profile/ProfileHeader';
+import useFocusResource from '../hooks/useFocusResource';
 import ProfileActivity from '../components/profile/ProfileActivity';
 import RecordsList from '../components/profile/RecordsList';
-import { Avatar, Button, Dialog, Screen, Text } from '../components/ui';
+import { Avatar, Button, Dialog, Screen, StaleBanner, Text } from '../components/ui';
 import { AuthContext } from '../contexts/AuthContext';
 import { goalLabel, hasMedicalInfo, levelLabel } from '../constants/protocol';
 import usePaged from '../hooks/usePaged';
@@ -85,9 +86,6 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
   const { currentUser } = useContext(AuthContext);
   const myId = currentUser ? String(currentUser.id) : '';
 
-  const [profile, setProfile] = useState<PublicProfile | null>(null);
-  const [account, setAccount] = useState<UserProfileResponse | null>(null);
-  const [trainer, setTrainer] = useState<TrainerPeer | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [recordsOpen, setRecordsOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -100,26 +98,31 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
   const { reload: reloadPosts } = posts;
   const { reset: resetWorkouts } = workouts;
 
-  const loadAll = useCallback(async () => {
-    if (!myId) return;
-    const [p, a, t] = await Promise.allSettled([
-      getPublicProfile(myId),
-      api.get<UserProfileResponse>('/users/profile'),
-      getMyTrainer(),
-    ]);
-    if (p.status === 'fulfilled') setProfile(p.value);
-    if (a.status === 'fulfilled') setAccount(a.value.data);
-    setTrainer(t.status === 'fulfilled' && t.value?.status === 'ATIVO' ? t.value.peer : null);
-    resetWorkouts();
-    reloadPosts();
-  }, [myId, reloadPosts, resetWorkouts]);
+  const profileRes = useFocusResource(myId ? `profile/${myId}` : null, () => getPublicProfile(myId));
+  const accountRes = useFocusResource('users/profile', () =>
+    api.get<UserProfileResponse>('/users/profile').then((r) => r.data),
+  );
+  const trainerRes = useFocusResource('me/trainer', () =>
+    getMyTrainer().then((link) => (link?.status === 'ATIVO' ? link.peer : null)),
+  );
+  const profile: PublicProfile | null = profileRes.data ?? null;
+  const account: UserProfileResponse | null = accountRes.data ?? null;
+  const trainer: TrainerPeer | null = trainerRes.data ?? null;
 
-  // Recarrega ao voltar para a aba (ex.: depois de editar o protocolo ou publicar).
+  // Listas paginadas não entram no cache: recarregam a cada foco.
   useFocusEffect(
     useCallback(() => {
-      loadAll();
-    }, [loadAll]),
+      if (!myId) return;
+      resetWorkouts();
+      reloadPosts();
+    }, [myId, resetWorkouts, reloadPosts]),
   );
+
+  const loadAll = useCallback(async () => {
+    await Promise.all([profileRes.refresh(), accountRes.refresh(), trainerRes.refresh()]);
+    resetWorkouts();
+    reloadPosts();
+  }, [profileRes.refresh, accountRes.refresh, trainerRes.refresh, resetWorkouts, reloadPosts]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -165,6 +168,7 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
         </View>
       }
     >
+      <StaleBanner visible={profileRes.error || accountRes.error} onRetry={loadAll} hasData={!!profile} />
       <ProfileHeader
         name={name}
         avatarUrl={profile?.avatarUrl}

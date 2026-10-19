@@ -46,10 +46,10 @@ export interface VolumeSummaryDTO {
 }
 
 export interface CommunityComparisonDTO {
-  /** Média global de aderência da comunidade (%). */
-  averagePercentage: number;
-  /** True quando a aderência do usuário é >= média. */
-  isAbove: boolean;
+  /** Média de aderência dos amigos no mesmo período (%); null com menos de 2 amigos com frequência definida. */
+  averagePercentage: number | null;
+  /** True quando a aderência do usuário é >= média; null sem média. */
+  isAbove: boolean | null;
 }
 
 export interface StatsInsightDTO {

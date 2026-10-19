@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
   ScrollView,
   Image,
-  Alert,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import * as ImagePicker from 'expo-image-picker';
@@ -17,6 +16,7 @@ import { KINETIC } from '../theme/kinetic';
 import { COLORS } from '../theme/colors';
 import Icon from './Icon';
 import { createStory, uploadMedia, deleteMedia } from '../services/socialService';
+import { showAlert } from './ui/AlertHost';
 
 interface Props {
   visible: boolean;
@@ -40,7 +40,7 @@ export default function NewStoryModal({ visible, onClose, onStoryCreated }: Prop
   const pickFromCamera = async () => {
     const perm = await ImagePicker.requestCameraPermissionsAsync();
     if (!perm.granted) {
-      Alert.alert('Permissão necessária', 'Conceda acesso à câmera para tirar uma foto.');
+      showAlert('Permissão necessária', 'Conceda acesso à câmera para tirar uma foto.');
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
@@ -55,7 +55,7 @@ export default function NewStoryModal({ visible, onClose, onStoryCreated }: Prop
   const pickFromGallery = async () => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) {
-      Alert.alert('Permissão necessária', 'Conceda acesso à galeria para escolher uma foto.');
+      showAlert('Permissão necessária', 'Conceda acesso à galeria para escolher uma foto.');
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -83,7 +83,7 @@ export default function NewStoryModal({ visible, onClose, onStoryCreated }: Prop
       // (best-effort) para não acumular lixo no bucket.
       if (uploadedUrl) deleteMedia(uploadedUrl).catch(() => {});
       // Mantém o modal aberto para o usuário tentar de novo (upload pode falhar por rede).
-      Alert.alert('Não foi possível publicar', 'Verifique sua conexão e tente novamente.');
+      showAlert('Não foi possível publicar', 'Verifique sua conexão e tente novamente.');
     } finally {
       setPosting(false);
     }

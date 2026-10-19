@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, RefreshControl, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, StyleSheet, View } from 'react-native';
 
 import FeedPost from '../components/FeedPost';
 import CommentsSheet from '../components/CommentsSheet';
@@ -24,6 +24,7 @@ import { KINETIC, RADIUS } from '../theme/kinetic';
 import { formatMonthYear } from '../utils/formatters';
 import type { MainStackScreenProps } from '../navigation/types';
 import type { FeedPostData, PublicProfile, WorkoutSummary } from '../types';
+import { showAlert } from '../components/ui/AlertHost';
 
 export default function UserProfileScreen({ navigation, route }: MainStackScreenProps<'UserProfile'>) {
   const { userId } = route.params;
@@ -75,14 +76,14 @@ export default function UserProfileScreen({ navigation, route }: MainStackScreen
       await action();
       await reloadAll();
     } catch {
-      Alert.alert('Comunidade', 'Não foi possível concluir agora. Tente novamente.');
+      showAlert('Comunidade', 'Não foi possível concluir agora. Tente novamente.');
     } finally {
       setBusy(false);
     }
   };
 
   const confirmUnfriend = (name: string) =>
-    Alert.alert('Desfazer amizade?', `Você deixa de ver os treinos e publicações de ${name}.`, [
+    showAlert('Desfazer amizade?', `Você deixa de ver os treinos e publicações de ${name}.`, [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Desfazer', style: 'destructive', onPress: () => runConnectionAction(() => removeConnection(userId)) },
     ]);

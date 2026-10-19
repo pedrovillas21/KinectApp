@@ -30,7 +30,7 @@ public class StatsService {
     private final ExerciseSetLogRepository exerciseSetLogRepository;
     private final ExerciseRepository exerciseRepository;
     private final UserService userService;
-    private final CommunityStatsService communityStatsService;
+    private final UserConnectionRepository userConnectionRepository;
     private final PlanCycleSnapshotRepository planCycleSnapshotRepository;
     private final WorkoutPlanRepository workoutPlanRepository;
     private final TrainingSummaryService trainingSummaryService;
@@ -42,7 +42,7 @@ public class StatsService {
                         ExerciseSetLogRepository exerciseSetLogRepository,
                         ExerciseRepository exerciseRepository,
                         UserService userService,
-                        CommunityStatsService communityStatsService,
+                        UserConnectionRepository userConnectionRepository,
                         PlanCycleSnapshotRepository planCycleSnapshotRepository,
                         WorkoutPlanRepository workoutPlanRepository,
                         TrainingSummaryService trainingSummaryService,
@@ -53,7 +53,7 @@ public class StatsService {
         this.exerciseSetLogRepository = exerciseSetLogRepository;
         this.exerciseRepository = exerciseRepository;
         this.userService = userService;
-        this.communityStatsService = communityStatsService;
+        this.userConnectionRepository = userConnectionRepository;
         this.planCycleSnapshotRepository = planCycleSnapshotRepository;
         this.workoutPlanRepository = workoutPlanRepository;
         this.trainingSummaryService = trainingSummaryService;
@@ -90,11 +90,11 @@ public class StatsService {
         // ── Volume ───────────────────────────────────────────────────────────
         VolumeSummaryDTO volumeSummary = buildVolumeSummary(user, start, end, prevStart, prevEnd);
 
-        // ── Comunidade ───────────────────────────────────────────────────────
-        int communityAvg = communityStatsService.getAverageEfficiency();
+        // ── Amigos ───────────────────────────────────────────────────────────
+        Integer friendsAvg = friendsAverageFor(user, period, start, end);
         CommunityComparisonDTO community = new CommunityComparisonDTO(
-                communityAvg,
-                efficiencyPercent >= communityAvg
+                friendsAvg,
+                friendsAvg == null ? null : efficiencyPercent >= friendsAvg
         );
 
         // ── Insight (motor de regras) ────────────────────────────────────────
@@ -129,6 +129,49 @@ public class StatsService {
                 training,
                 activity
         );
+    }
+
+    // ── Média dos amigos ──────────────────────────────────────────────────────
+
+    /** Abaixo disso a "média" exporia a aderência de uma pessoa só. */
+    static final int MIN_FRIENDS_FOR_AVERAGE = 2;
+
+    /**
+     * Aderência média das conexões aceitas (mesmo grupo do ranking da Home) no
+     * mesmo período e com a mesma fórmula do usuário. Null quando há menos de
+     * MIN_FRIENDS_FOR_AVERAGE amigos com frequência semanal definida.
+     */
+    private Integer friendsAverageFor(User user, StatsPeriodParam period, LocalDate start, LocalDate end) {
+        UUID meId = user.getId();
+        Set<UUID> friendIds = userConnectionRepository.findAcceptedFor(meId).stream()
+                .map(c -> c.getRequester().getId().equals(meId) ? c.getAddressee().getId() : c.getRequester().getId())
+                .collect(Collectors.toSet());
+        if (friendIds.size() < MIN_FRIENDS_FOR_AVERAGE) return null;
+
+        Map<UUID, Integer> frequencies = new HashMap<>();
+        for (Object[] row : userRepository.findIdAndFrequencyByIdIn(friendIds)) {
+            frequencies.put((UUID) row[0], ((Number) row[1]).intValue());
+        }
+        if (frequencies.size() < MIN_FRIENDS_FOR_AVERAGE) return null;
+
+        Map<UUID, Long> completed = new HashMap<>();
+        for (Object[] row : workoutSessionRepository.countSessionsPerUserBetween(frequencies.keySet(), start, end)) {
+            completed.put((UUID) row[0], ((Number) row[1]).longValue());
+        }
+        return friendsAverage(frequencies, completed, period);
+    }
+
+    static Integer friendsAverage(Map<UUID, Integer> frequencies, Map<UUID, Long> completed, StatsPeriodParam period) {
+        double total = 0;
+        int count = 0;
+        for (Map.Entry<UUID, Integer> entry : frequencies.entrySet()) {
+            int frequency = entry.getValue() == null ? 0 : entry.getValue();
+            if (frequency <= 0) continue;
+            long done = completed.getOrDefault(entry.getKey(), 0L);
+            total += Math.min(100, Math.round(done * 100.0 / period.targetSessions(frequency)));
+            count++;
+        }
+        return count < MIN_FRIENDS_FOR_AVERAGE ? null : (int) Math.round(total / count);
     }
 
     // ── Atividade (barras) ────────────────────────────────────────────────────

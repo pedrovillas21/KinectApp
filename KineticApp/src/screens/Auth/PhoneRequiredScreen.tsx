@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   ScrollView,
   TextInput,
 } from 'react-native';
@@ -14,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../contexts/AuthContext';
 import Svg, { Path } from 'react-native-svg';
 import { isValidCellPhone, maskCellPhone } from '../../utils/whatsapp';
+import { showAlert } from '../../components/ui/AlertHost';
 
 const A = {
   bg: '#131313',
@@ -56,7 +56,7 @@ export default function PhoneRequiredScreen() {
     setLoading(false);
     // Sucesso: o AuthContext atualiza o usuário e o roteamento libera o app sozinho.
     if (!result.success) {
-      Alert.alert('Erro', result.error);
+      showAlert('Erro', result.error);
     }
   };
 

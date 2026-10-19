@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +38,7 @@ public class OrphanMediaCleanupService {
      * conexão JDBC não fique presa durante as chamadas HTTP (list/delete) ao Storage.
      */
     @Scheduled(cron = "0 0 5 * * *")
+    @SchedulerLock(name = "cleanOrphanMedia", lockAtMostFor = "PT2H")
     public void cleanOrphanMedia() {
         List<String> stored = findAllImageUrls();
         Set<String> knownKeys = new HashSet<>();

@@ -1,5 +1,7 @@
 package com.kinetic.dtos;
 
+import com.kinetic.enums.LoadType;
+
 import com.kinetic.models.Exercise;
 
 import java.util.UUID;
@@ -12,6 +14,7 @@ public record ExerciseResponseDTO(
         Integer sets,
         String reps,
         String weight,
+        LoadType loadType,
         String restTime,
         String section,
         String notes
@@ -25,6 +28,7 @@ public record ExerciseResponseDTO(
                 exercise.getSets(),
                 exercise.getReps(),
                 exercise.getWeight(),
+                exercise.effectiveLoadType(),
                 exercise.getRestTime(),
                 exercise.getSection(),
                 exercise.getNotes()

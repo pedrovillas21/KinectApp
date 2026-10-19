@@ -1,18 +1,19 @@
-import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, Alert, Linking, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import React, { useState } from 'react';
+import { ActivityIndicator, Linking, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 
 import InviteDialog from '../components/InviteDialog';
 import Icon from '../components/Icon';
 import ProfileHeader from '../components/profile/ProfileHeader';
 import { Button, Screen, SectionHeader, StackHeader, Text } from '../components/ui';
 import { endMyTrainerLink, getMyTrainerProfile } from '../services/trainerService';
+import useFocusResource from '../hooks/useFocusResource';
 import { KINETIC, RADIUS } from '../theme/kinetic';
 import { formatRelativeDays } from '../utils/dateRelative';
 import { formatMonthShortYear } from '../utils/formatters';
 import { whatsappUrl } from '../utils/whatsapp';
 import type { MainStackScreenProps } from '../navigation/types';
 import type { MyTrainerProfile } from '../types';
+import { showAlert } from '../components/ui/AlertHost';
 
 /** Cores das fichas (A, B, C…) na mesma ordem das abas de treino. */
 const PLAN_TONES = [
@@ -36,27 +37,20 @@ function InfoRow({ label, value, last }: { label: string; value: string; last?: 
 
 /** "Seu personal": perfil profissional, fichas que ele montou, WhatsApp e encerrar vínculo. */
 export default function TrainerProfileScreen({ navigation }: MainStackScreenProps<'TrainerProfile'>) {
-  const [data, setData] = useState<MyTrainerProfile | null>(null);
-  const [state, setState] = useState<'loading' | 'ready' | 'none' | 'failed'>('loading');
   const [refreshing, setRefreshing] = useState(false);
   const [ending, setEnding] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
 
-  const load = useCallback(async () => {
-    try {
-      const profile = await getMyTrainerProfile();
-      setData(profile);
-      setState(profile ? 'ready' : 'none');
-    } catch {
-      setState((s) => (s === 'ready' ? s : 'failed'));
-    }
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      load();
-    }, [load]),
-  );
+  const res = useFocusResource('me/trainer-profile', () => getMyTrainerProfile());
+  const data: MyTrainerProfile | null = res.data ?? null;
+  const state: 'loading' | 'ready' | 'none' | 'failed' = data
+    ? 'ready'
+    : res.loading
+    ? 'loading'
+    : res.error
+    ? 'failed'
+    : 'none';
+  const load = res.refresh;
 
   const header = <StackHeader title="Seu personal" onBack={() => navigation.goBack()} />;
 
@@ -85,10 +79,7 @@ export default function TrainerProfileScreen({ navigation }: MainStackScreenProp
           visible={inviteOpen}
           onClose={() => setInviteOpen(false)}
           initialTab="trainer"
-          onChanged={() => {
-            setState('loading');
-            load();
-          }}
+          onChanged={load}
         />
       </Screen>
     );
@@ -108,12 +99,12 @@ export default function TrainerProfileScreen({ navigation }: MainStackScreenProp
   const openWhatsApp = () => {
     if (!t.phone) return;
     Linking.openURL(whatsappUrl(t.phone, `Oi, ${firstName}!`)).catch(() =>
-      Alert.alert('WhatsApp', 'Não foi possível abrir o WhatsApp neste aparelho.'),
+      showAlert('WhatsApp', 'Não foi possível abrir o WhatsApp neste aparelho.'),
     );
   };
 
   const confirmEndLink = () =>
-    Alert.alert(
+    showAlert(
       'Encerrar vínculo?',
       `${firstName} deixa de acompanhar seus treinos e perde o acesso aos seus dados. Seu histórico de treinos continua com você.`,
       [
@@ -129,7 +120,7 @@ export default function TrainerProfileScreen({ navigation }: MainStackScreenProp
             } catch (e) {
               const err = e as { response?: { data?: unknown } };
               const raw = err.response?.data;
-              Alert.alert('Encerrar vínculo', typeof raw === 'string' && raw ? raw : 'Não foi possível encerrar agora.');
+              showAlert('Encerrar vínculo', typeof raw === 'string' && raw ? raw : 'Não foi possível encerrar agora.');
             } finally {
               setEnding(false);
             }

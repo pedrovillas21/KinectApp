@@ -4,6 +4,7 @@ import com.kinetic.utils.AppTime;
 
 import com.kinetic.dtos.GenerateWorkoutRequestDto;
 import com.kinetic.dtos.GeneratedExerciseDto;
+import com.kinetic.enums.LoadType;
 import com.kinetic.dtos.GeneratedWorkoutPlanDto;
 import com.kinetic.dtos.WorkoutPlanResponseDTO;
 import com.kinetic.enums.TrainerLinkStatus;
@@ -157,6 +158,7 @@ public class WorkoutService {
                 exercise.setSets(exDto.sets());
                 exercise.setReps(exDto.reps());
                 exercise.setWeight(exDto.weight());
+                exercise.setLoadType(LoadType.resolve(exDto.loadType(), exDto.weight()));
                 exercise.setRestTime(exDto.restTime());
                 exercise.setSection(normalizeSection(exDto.section()));
                 exercise.setSortOrder(sortOrder++);

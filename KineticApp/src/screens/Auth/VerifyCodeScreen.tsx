@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   ScrollView,
   TextInput,
 } from 'react-native';
@@ -15,6 +14,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { AuthContext } from '../../contexts/AuthContext';
 import Svg, { Path } from 'react-native-svg';
+import { showAlert } from '../../components/ui/AlertHost';
 
 const A = {
   bg: '#131313',
@@ -72,12 +72,12 @@ export default function VerifyCodeScreen({ navigation, route }: Props) {
     const result = await requestPasswordReset(email);
     setResending(false);
     if (result.success) {
-      Alert.alert(
+      showAlert(
         'Código reenviado',
         'Se o e-mail estiver cadastrado, um novo código chegará em instantes. Aguarde 1 minuto entre os pedidos.',
       );
     } else {
-      Alert.alert('Erro', result.error);
+      showAlert('Erro', result.error);
     }
   };
 

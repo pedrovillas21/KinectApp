@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { accountErrorMessage, deleteMyAccount } from '../../services/accountService';
 import { KINETIC } from '../../theme/kinetic';
 import { Button, Dialog, Text, TextField } from '../ui';
+import { showAlert } from '../ui/AlertHost';
 
 interface DeleteAccountDialogProps {
   visible: boolean;
@@ -44,7 +45,7 @@ export default function DeleteAccountDialog({ visible, onClose, onDeleted, onExp
 
   const confirm = () => {
     if (!password) return setError('Digite sua senha para confirmar.');
-    Alert.alert(
+    showAlert(
       'Excluir conta definitivamente?',
       'Seu perfil, treinos, fotos, medidas e amizades serão apagados agora. Isso não pode ser desfeito.',
       [

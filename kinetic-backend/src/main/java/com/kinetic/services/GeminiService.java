@@ -232,6 +232,11 @@ public class GeminiService {
             - Mobilidade e aquecimento sem carga: use "Sem carga (RPE 3-4)".
             O valor de RPE deve ser coerente com o objetivo: hipertrofia (RPE 7-9), perda de gordura (RPE 6-8), performance (RPE 8-10). Nunca retorne apenas "Corpo" ou deixe o campo sem valor.
 
+            REGRA DE TIPO DE CARGA (OBRIGATÓRIO): Classifique CADA exercício no campo 'loadType' com EXATAMENTE um destes valores, coerente com o campo 'weight':
+            - "EXTERNAL": a carga vem de halter, barra, anilha, máquina, cabo, kettlebell ou elástico (Ex: supino, leg press, rosca, puxada). O aluno vai registrar o peso usado.
+            - "BODYWEIGHT": o próprio corpo é a resistência (Ex: flexão, barra fixa, paralelas, agachamento livre sem peso, afundo sem peso, prancha, abdominal, burpee). O app usa o peso do aluno como carga; colete ou cinto com anilha é carga extra e continua "BODYWEIGHT".
+            - "NONE": não há carga a medir (Ex: mobilidade, alongamento, aquecimento articular, liberação miofascial, cardio em esteira, bicicleta ou elíptico).
+
             REGRA DE MÚCULOS TRABALHADOS: Ao gerar o músculo correspondente ao exercício proposto, siga apenas com estes grupos definidos -> PEITO,OMBRO,TRICEPS,BICEPS,COSTAS,ANTEBRACO,QUADRICEPS,POSTERIOR,GLUTEOS,PANTURRILHA. Evite termos genéricos como "perna" ou "braço".
 
             REGRA DE NOME DE TREINO: O nome do treino (title) deve corresponder aos exercícios sugeridos. Ex: peito/triceps/ombro = "PUSH DAY". Costas/biceps = "PULL DAY". Quadriceps/posterior/glúteos = "LEG DAY". Treino completo = "FULL BODY". Adapte conforme a divisão escolhida.
@@ -265,6 +270,7 @@ public class GeminiService {
                     "sets": 2,
                     "reps": "10 cada lado",
                     "weight": "Sem carga (RPE 3)",
+                    "loadType": "NONE",
                     "restTime": "30s",
                     "section": "AQUECIMENTO"
                 }

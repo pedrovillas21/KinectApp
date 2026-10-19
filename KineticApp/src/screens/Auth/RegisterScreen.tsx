@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   ScrollView,
   TextInput,
 } from 'react-native';
@@ -16,6 +15,7 @@ import { AuthContext } from '../../contexts/AuthContext';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { isValidCellPhone, maskCellPhone } from '../../utils/whatsapp';
 import { savePendingInviteCode } from '../../services/trainerService';
+import { showAlert } from '../../components/ui/AlertHost';
 
 const A = {
   bg: '#131313',
@@ -239,7 +239,7 @@ export default function RegisterScreen({ navigation }: Props) {
     setLoading(false);
 
     if (!result.success) {
-      Alert.alert('Erro no cadastro', result.error);
+      showAlert('Erro no cadastro', result.error);
       return;
     }
 
@@ -249,7 +249,7 @@ export default function RegisterScreen({ navigation }: Props) {
       await savePendingInviteCode(inviteCode);
     }
 
-    Alert.alert(
+    showAlert(
       'Cadastro realizado!',
       `Bem-vindo, ${name.trim()}! Enviamos um código para ${email.trim()}. Confirme seu e-mail para entrar.`,
       [{ text: 'Confirmar e-mail', onPress: () => navigation.navigate('ConfirmEmail', { email: email.trim() }) }],

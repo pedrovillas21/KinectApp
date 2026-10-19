@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -9,14 +9,14 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Path, Polyline } from 'react-native-svg';
 import { AuthContext, WorkoutPlanItem } from '../contexts/AuthContext';
 import { FONT, KINETIC, RADIUS } from '../theme/kinetic';
 import { formatRelativeDays } from '../utils/dateRelative';
-import { Avatar, Button } from '../components/ui';
+import { Avatar, Button, StaleBanner } from '../components/ui';
+import useFocusResource from '../hooks/useFocusResource';
 import api from '../services/api';
 
 interface Exercise {
@@ -230,33 +230,20 @@ function DetailExerciseCard({ ex, accent, prescribed }: { ex: Exercise; accent: 
 export default function WorkoutScreen({ navigation }: Props) {
   const { workoutPlans, setWorkoutPlans } = useContext(AuthContext);
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('LIST');
   const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(null);
 
-  const fetchWorkoutPlans = useCallback(async () => {
-    if (!Array.isArray(workoutPlans) || workoutPlans.length === 0) {
-      setIsLoading(true);
-    }
-    setErrorMessage('');
-
-    try {
-      const response = await api.get('/workouts/my-plans');
-      setWorkoutPlans(Array.isArray(response.data) ? response.data : []);
-    } catch (error: any) {
-      const message = error.response?.data || 'Nao foi possivel carregar seus treinos.';
-      setErrorMessage(typeof message === 'string' ? message : 'Nao foi possivel carregar seus treinos.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [setWorkoutPlans, workoutPlans.length]);
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchWorkoutPlans();
-    }, [fetchWorkoutPlans])
+  // Mesma chave da Home: as duas telas compartilham o cache das fichas.
+  const plansRes = useFocusResource('workouts/my-plans', () =>
+    api.get<WorkoutPlanItem[]>('/workouts/my-plans').then((r) => (Array.isArray(r.data) ? r.data : [])),
   );
+  const isLoading = plansRes.loading && workoutPlans.length === 0;
+  const fetchWorkoutPlans = plansRes.refresh;
+
+  // As fichas também vivem no AuthContext (usadas fora desta tela).
+  useEffect(() => {
+    if (plansRes.data) setWorkoutPlans(plansRes.data);
+  }, [plansRes.data, setWorkoutPlans]);
 
   const selectedWorkout = useMemo(
     () => workoutPlans.find((plan) => plan.id === selectedRoutineId),
@@ -354,7 +341,7 @@ export default function WorkoutScreen({ navigation }: Props) {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.listContent}>
           <Text style={styles.screenTitle} accessibilityRole="header">Treinos</Text>
 
-          {!!errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
+          <StaleBanner visible={plansRes.error} hasData={workoutPlans.length > 0} onRetry={fetchWorkoutPlans} />
 
           {!next ? (
             renderEmptyState()
@@ -624,7 +611,6 @@ const styles = StyleSheet.create({
     paddingTop: 18,
     paddingBottom: 12,
   },
-  errorText: { color: KINETIC.warn, fontSize: 12, lineHeight: 17, paddingHorizontal: 4, marginBottom: 10 },
 
   // ─── Plano (quem prescreveu) ───
   planCard: {

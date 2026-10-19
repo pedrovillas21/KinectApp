@@ -1,5 +1,7 @@
 package com.kinetic.models;
 
+import com.kinetic.enums.LoadType;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -36,6 +38,11 @@ public class Exercise {
 
     private String weight;
 
+    /** Nulo em linhas antigas: use {@link #effectiveLoadType()}. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "load_type", length = 16)
+    private LoadType loadType;
+
     @Column(name = "rest_time")
     private String restTime;
 
@@ -62,4 +69,8 @@ public class Exercise {
 
     @OneToMany(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ExerciseSetLog> setLogs = new ArrayList<>();
+
+    public LoadType effectiveLoadType() {
+        return loadType != null ? loadType : LoadType.infer(weight);
+    }
 }

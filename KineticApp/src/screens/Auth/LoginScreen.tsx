@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   ScrollView,
   TextInput,
 } from 'react-native';
@@ -15,6 +14,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { AuthContext } from '../../contexts/AuthContext';
 import Svg, { Path, Circle } from 'react-native-svg';
+import { showAlert } from '../../components/ui/AlertHost';
 
 const A = {
   bg: '#131313',
@@ -175,17 +175,17 @@ export default function LoginScreen({ navigation, route }: Props) {
     setLoading(false);
     if (!result.success) {
       if (result.needsEmailVerification) {
-        Alert.alert('Confirme seu e-mail', result.error, [
+        showAlert('Confirme seu e-mail', result.error, [
           { text: 'Digitar código', onPress: () => navigation.navigate('ConfirmEmail', { email: email.trim() }) },
         ]);
         return;
       }
-      Alert.alert('Erro ao entrar', result.error);
+      showAlert('Erro ao entrar', result.error);
     }
   };
 
   const handleSocial = (provider: string) => {
-    Alert.alert('Em breve', `Login com ${provider} estará disponível em breve.`);
+    showAlert('Em breve', `Login com ${provider} estará disponível em breve.`);
   };
 
   return (

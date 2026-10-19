@@ -8,9 +8,11 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -62,9 +64,9 @@ public interface UserRepository extends JpaRepository<User, UUID> {
         }
     }
 
-    /** Par (userId, frequency) de todos os usuários com frequência definida — usado pelo CommunityStatsService. */
-    @Query("SELECT u.id, u.frequency FROM User u WHERE u.frequency IS NOT NULL AND u.frequency > 0")
-    List<Object[]> findAllUserIdAndFrequency();
+    /** Par (userId, frequency) dos usuários informados com frequência definida — média dos amigos (StatsService). */
+    @Query("SELECT u.id, u.frequency FROM User u WHERE u.id IN :ids AND u.frequency IS NOT NULL AND u.frequency > 0")
+    List<Object[]> findIdAndFrequencyByIdIn(@Param("ids") Collection<UUID> ids);
 
     // ── Painel ROOT: métricas e listagens de compliance ────────────────────
 

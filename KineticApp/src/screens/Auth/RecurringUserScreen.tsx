@@ -8,7 +8,6 @@ import {
   Animated,
   Easing,
   TextInput,
-  Alert,
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
@@ -18,6 +17,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { AuthContext } from '../../contexts/AuthContext';
 import Icon from '../../components/Icon';
+import { showAlert } from '../../components/ui/AlertHost';
 
 // ─── Design tokens ───────────────────────────────────────────────────────────
 const A = {
@@ -228,7 +228,7 @@ export default function RecurringUserScreen({ navigation }: Props) {
     setLoginLoading(false);
     if (!result.success) {
       if (result.needsEmailVerification) {
-        Alert.alert('Confirme seu e-mail', result.error, [
+        showAlert('Confirme seu e-mail', result.error, [
           {
             text: 'Digitar código',
             onPress: () => navigation.navigate('ConfirmEmail', { email: rememberedUser?.email ?? '' }),
@@ -236,7 +236,7 @@ export default function RecurringUserScreen({ navigation }: Props) {
         ]);
         return;
       }
-      Alert.alert('Erro ao entrar', result.error);
+      showAlert('Erro ao entrar', result.error);
     }
   };
 

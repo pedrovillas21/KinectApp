@@ -40,14 +40,16 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
             @Param("endDate") LocalDate endDate
     );
 
-    /** Contagem de sessões por usuário no intervalo — usado pelo CommunityStatsService para calcular a média global. */
+    /** Contagem de sessões por usuário no intervalo — média de consistência dos amigos (StatsService). */
     @Query("""
             SELECT ws.user.id, COUNT(ws)
             FROM WorkoutSession ws
-            WHERE ws.sessionDate BETWEEN :startDate AND :endDate
+            WHERE ws.user.id IN :userIds
+              AND ws.sessionDate BETWEEN :startDate AND :endDate
             GROUP BY ws.user.id
             """)
     List<Object[]> countSessionsPerUserBetween(
+            @Param("userIds")   Collection<UUID> userIds,
             @Param("startDate") LocalDate startDate,
             @Param("endDate")   LocalDate endDate
     );

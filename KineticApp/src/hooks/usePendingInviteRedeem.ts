@@ -1,11 +1,12 @@
 import { useEffect } from 'react';
-import { Alert } from 'react-native';
+
 import {
   clearPendingInviteCode,
   getPendingInviteCode,
   redeemErrorMessage,
   redeemInviteCode,
 } from '../services/trainerService';
+import { showAlert } from '../components/ui/AlertHost';
 
 /**
  * Assim que o aluno entra, resgata o código de convite digitado no cadastro.
@@ -24,12 +25,12 @@ export default function usePendingInviteRedeem(isLoggedIn: boolean) {
       try {
         const link = await redeemInviteCode(code);
         await clearPendingInviteCode();
-        Alert.alert('Personal conectado', `Agora ${link.peer.nome} acompanha seus treinos.`);
+        showAlert('Personal conectado', `Agora ${link.peer.nome} acompanha seus treinos.`);
       } catch (e) {
         const status = (e as { response?: { status?: number } }).response?.status;
         if (status === 400 || status === 402 || status === 404 || status === 409) {
           await clearPendingInviteCode();
-          Alert.alert('Código de convite', redeemErrorMessage(e));
+          showAlert('Código de convite', redeemErrorMessage(e));
         }
       }
     })();

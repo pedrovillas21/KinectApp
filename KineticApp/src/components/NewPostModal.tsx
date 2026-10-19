@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
   ScrollView,
   Image,
-  Alert,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import * as ImagePicker from 'expo-image-picker';
@@ -18,6 +17,7 @@ import { COLORS } from '../theme/colors';
 import Icon from './Icon';
 import { createPost, uploadMedia, deleteMedia } from '../services/socialService';
 import type { FeedPostData, PostIntensity } from '../types';
+import { showAlert } from './ui/AlertHost';
 
 interface Props {
   visible: boolean;
@@ -43,7 +43,7 @@ export default function NewPostModal({ visible, onClose, onPostCreated }: Props)
     if (!perm.granted) {
       const galleryPerm = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!galleryPerm.granted) {
-        Alert.alert('Permissão necessária', 'Conceda acesso à câmera ou à galeria para adicionar uma foto.');
+        showAlert('Permissão necessária', 'Conceda acesso à câmera ou à galeria para adicionar uma foto.');
         return;
       }
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -87,7 +87,7 @@ export default function NewPostModal({ visible, onClose, onPostCreated }: Props)
       // (best-effort) para não acumular lixo no bucket.
       if (uploadedUrl) deleteMedia(uploadedUrl).catch(() => {});
       // Mantém o modal aberto para o usuário tentar de novo (upload pode falhar por rede).
-      Alert.alert('Não foi possível publicar', 'Verifique sua conexão e tente novamente.');
+      showAlert('Não foi possível publicar', 'Verifique sua conexão e tente novamente.');
     } finally {
       setPosting(false);
     }

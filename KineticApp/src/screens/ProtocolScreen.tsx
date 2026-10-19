@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import OptionPickerDialog from '../components/profile/protocol/OptionPickerDialog';
 import MetricsDialog from '../components/profile/protocol/MetricsDialog';
@@ -19,6 +19,7 @@ import api from '../services/api';
 import { KINETIC } from '../theme/kinetic';
 import type { MainStackScreenProps } from '../navigation/types';
 import type { GenerateWorkoutRequest, UserProfileResponse } from '../types';
+import { showAlert } from '../components/ui/AlertHost';
 
 type ProtocolDialog = 'goal' | 'metrics' | 'level' | 'frequency' | 'anamnesis' | null;
 
@@ -56,7 +57,7 @@ export default function ProtocolScreen({ navigation }: MainStackScreenProps<'Pro
     const { goal, weight, height, birthDate, level, frequency, medicalConditions } = form;
 
     if (!goal || !level || !birthDate || !weight || !height || !frequency) {
-      Alert.alert('Dados incompletos', 'Preencha objetivo, métricas, nível e frequência antes de regenerar o treino.');
+      showAlert('Dados incompletos', 'Preencha objetivo, métricas, nível e frequência antes de regenerar o treino.');
       return;
     }
 
@@ -74,7 +75,7 @@ export default function ProtocolScreen({ navigation }: MainStackScreenProps<'Pro
       // O backend tenta até N modelos com 120s de read timeout cada.
       // 3 modelos × 120s + 60s de buffer = 420s. Mantemos 480s para folga.
       await api.post('/workouts/generate', payload, { timeout: 480000 });
-      Alert.alert('Pronto!', 'Seu treino foi regenerado com sucesso com base nos novos dados.');
+      showAlert('Pronto!', 'Seu treino foi regenerado com sucesso com base nos novos dados.');
       navigation.navigate('MainTabs', { screen: 'Home' });
     } catch (e) {
       const err = e as { response?: { status?: number; data?: unknown } };
@@ -84,7 +85,7 @@ export default function ProtocolScreen({ navigation }: MainStackScreenProps<'Pro
       // 409 = a ficha vigente foi montada pelo personal; 429 = cota de IA (1 ficha a cada 30 dias).
       // Ambos são regra de negócio, não falha.
       const status = err.response?.status;
-      Alert.alert(status === 409 ? 'Treino do seu personal' : status === 429 ? 'Nova ficha em breve' : 'Erro', message);
+      showAlert(status === 409 ? 'Treino do seu personal' : status === 429 ? 'Nova ficha em breve' : 'Erro', message);
     } finally {
       setIsRegenerating(false);
     }

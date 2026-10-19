@@ -1,10 +1,11 @@
 import React from 'react';
-import { Alert, Linking, Pressable, StyleSheet, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, View } from 'react-native';
 import { KINETIC, RADIUS } from '../../theme/kinetic';
 import type { TrainerPeer } from '../../types';
 import { whatsappUrl } from '../../utils/whatsapp';
 import Icon from '../Icon';
 import { Avatar, Text } from '../ui';
+import { showAlert } from '../ui/AlertHost';
 
 interface TrainerRowProps {
   trainer: TrainerPeer;
@@ -17,7 +18,7 @@ export default function TrainerRow({ trainer, onOpenProfile }: TrainerRowProps) 
     if (!trainer.phone) return;
     const firstName = trainer.nome.trim().split(/\s+/)[0];
     Linking.openURL(whatsappUrl(trainer.phone, `Oi, ${firstName}!`)).catch(() =>
-      Alert.alert('WhatsApp', 'Não foi possível abrir o WhatsApp neste aparelho.'),
+      showAlert('WhatsApp', 'Não foi possível abrir o WhatsApp neste aparelho.'),
     );
   };
 

@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Alert,
   TextInput,
   ActivityIndicator,
 } from 'react-native';
@@ -17,6 +16,7 @@ import CustomInput from '../../components/CustomInput';
 import PrimaryButton from '../../components/PrimaryButton';
 import Icon from '../../components/Icon';
 import api from '../../services/api';
+import { showAlert } from '../../components/ui/AlertHost';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -620,7 +620,7 @@ export default function OnboardingScreen() {
       const err = e as { response?: { data?: unknown } };
       const raw = err.response?.data;
       const message = typeof raw === 'string' ? raw : 'Erro ao gerar treino. Tente novamente.';
-      Alert.alert('Erro', message);
+      showAlert('Erro', message);
       setStep(4);
     }
   };
@@ -648,7 +648,7 @@ export default function OnboardingScreen() {
           <TouchableOpacity
             onPress={() => {
               if (step === 0) {
-                Alert.alert(
+                showAlert(
                   'Sair do cadastro?',
                   'Você perderá o progresso e voltará para a tela de login.',
                   [

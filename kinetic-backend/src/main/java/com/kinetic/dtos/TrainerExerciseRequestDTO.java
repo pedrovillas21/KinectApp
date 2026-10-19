@@ -1,5 +1,7 @@
 package com.kinetic.dtos;
 
+import com.kinetic.enums.LoadType;
+
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -37,6 +39,8 @@ public record TrainerExerciseRequestDTO(
 
         @Size(max = 80, message = "Carga deve ter até 80 caracteres")
         String weight,
+        /** Opcional: ausente = deduzido do rótulo de carga. */
+        LoadType loadType,
 
         @Size(max = 40, message = "Descanso deve ter até 40 caracteres")
         String restTime,

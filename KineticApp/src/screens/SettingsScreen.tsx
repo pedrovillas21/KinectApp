@@ -1,6 +1,5 @@
 import React, { useCallback, useContext, useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Constants from 'expo-constants';
 
 import InviteDialog from '../components/InviteDialog';
@@ -10,6 +9,7 @@ import ChangePasswordDialog from '../components/settings/ChangePasswordDialog';
 import DeleteAccountDialog from '../components/settings/DeleteAccountDialog';
 import { Avatar, ListGroup, ListRow, Screen, Text } from '../components/ui';
 import { AuthContext } from '../contexts/AuthContext';
+import useFocusResource from '../hooks/useFocusResource';
 import api from '../services/api';
 import { exportMyData } from '../services/accountService';
 import { getPublicProfile } from '../services/profileService';
@@ -18,37 +18,36 @@ import { FONT, KINETIC, RADIUS } from '../theme/kinetic';
 import { maskCellPhone } from '../utils/whatsapp';
 import type { MainStackScreenProps } from '../navigation/types';
 import type { TrainerPeer, UserProfileResponse } from '../types';
+import { showAlert } from '../components/ui/AlertHost';
 
 export default function SettingsScreen({ navigation }: MainStackScreenProps<'Settings'>) {
   const { currentUser, signOut, changePassword, forgetRememberedUser } = useContext(AuthContext);
 
-  const [account, setAccount] = useState<UserProfileResponse | null>(null);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [trainer, setTrainer] = useState<TrainerPeer | null>(null);
-  const [inviteCount, setInviteCount] = useState(0);
   const [exporting, setExporting] = useState(false);
   const [phoneOpen, setPhoneOpen] = useState(false);
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
-  const load = useCallback(async () => {
-    const [a, t, i, p] = await Promise.allSettled([
-      api.get<UserProfileResponse>('/users/profile'),
-      getMyTrainer(),
-      getPendingInvites(),
-      currentUser ? getPublicProfile(String(currentUser.id)) : Promise.reject(),
-    ]);
-    if (a.status === 'fulfilled') setAccount(a.value.data);
-    if (p.status === 'fulfilled') setAvatarUrl(p.value.avatarUrl);
-    setTrainer(t.status === 'fulfilled' && t.value?.status === 'ATIVO' ? t.value.peer : null);
-    setInviteCount(i.status === 'fulfilled' ? i.value.length : 0);
-  }, [currentUser]);
+  const myId = currentUser ? String(currentUser.id) : '';
+  // Mesmas chaves do Perfil e da Home: as telas dividem o cache.
+  const accountRes = useFocusResource('users/profile', () =>
+    api.get<UserProfileResponse>('/users/profile').then((r) => r.data),
+  );
+  const profileRes = useFocusResource(myId ? `profile/${myId}` : null, () => getPublicProfile(myId));
+  const trainerRes = useFocusResource('me/trainer', () =>
+    getMyTrainer().then((link) => (link?.status === 'ATIVO' ? link.peer : null)),
+  );
+  const invitesRes = useFocusResource('me/trainer-invites', () => getPendingInvites());
 
-  useFocusEffect(
-    useCallback(() => {
-      load();
-    }, [load]),
+  const account: UserProfileResponse | null = accountRes.data ?? null;
+  const avatarUrl = profileRes.data?.avatarUrl ?? null;
+  const trainer: TrainerPeer | null = trainerRes.data ?? null;
+  const inviteCount = invitesRes.data?.length ?? 0;
+
+  const load = useCallback(
+    () => Promise.all([accountRes.refresh(), profileRes.refresh(), trainerRes.refresh(), invitesRes.refresh()]),
+    [accountRes.refresh, profileRes.refresh, trainerRes.refresh, invitesRes.refresh],
   );
 
   const name = account?.fullName ?? currentUser?.nome ?? '';
@@ -62,21 +61,21 @@ export default function SettingsScreen({ navigation }: MainStackScreenProps<'Set
     try {
       await exportMyData();
     } catch {
-      Alert.alert('Exportar meus dados', 'Não foi possível gerar o arquivo agora. Tente novamente.');
+      showAlert('Exportar meus dados', 'Não foi possível gerar o arquivo agora. Tente novamente.');
     } finally {
       setExporting(false);
     }
   };
 
   const confirmSignOut = () =>
-    Alert.alert('Sair da conta?', 'Você precisará fazer login novamente para acessar seus treinos.', [
+    showAlert('Sair da conta?', 'Você precisará fazer login novamente para acessar seus treinos.', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Sair', style: 'destructive', onPress: () => void signOut() },
     ]);
 
   // Após trocar a senha o backend revoga as sessões: desloga para entrar com a nova.
   const handlePasswordChanged = () =>
-    Alert.alert('Senha alterada', 'Sua senha foi atualizada. Faça login novamente com a nova senha.', [
+    showAlert('Senha alterada', 'Sua senha foi atualizada. Faça login novamente com a nova senha.', [
       { text: 'OK', onPress: () => void signOut() },
     ]);
 
@@ -85,7 +84,7 @@ export default function SettingsScreen({ navigation }: MainStackScreenProps<'Set
     // A conta não existe mais: esquece o cartão "conta lembrada" e encerra a sessão local.
     await forgetRememberedUser().catch(() => {});
     await signOut().catch(() => {});
-    Alert.alert('Conta excluída', 'Sua conta e seus dados foram apagados.');
+    showAlert('Conta excluída', 'Sua conta e seus dados foram apagados.');
   };
 
   return (
@@ -192,7 +191,7 @@ export default function SettingsScreen({ navigation }: MainStackScreenProps<'Set
         visible={phoneOpen}
         value={phone}
         onClose={() => setPhoneOpen(false)}
-        onSaved={(p) => setAccount((prev) => (prev ? { ...prev, phone: p } : prev))}
+        onSaved={() => accountRes.refresh()}
       />
       <ChangePasswordDialog
         visible={passwordOpen}

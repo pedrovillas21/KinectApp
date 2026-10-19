@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PlanEvolutionCard from '../components/PlanEvolutionCard';
 import Icon from '../components/Icon';
 import {
@@ -12,11 +12,12 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { LineChart } from 'react-native-gifted-charts';
 import Svg, { Circle, Text as SvgText } from 'react-native-svg';
 import EvolutionModal from '../components/EvolutionModal';
-import { SegmentedControl } from '../components/ui';
+import { SegmentedControl, StaleBanner } from '../components/ui';
+import useFocusResource from '../hooks/useFocusResource';
 import api from '../services/api';
 import {
   CommunityComparisonDTO,
@@ -111,13 +112,19 @@ function ConsistencyCard({ activity, completed, target, efficiencyPercentage, co
       </View>
       <ActivityBars activity={activity} />
       <View style={consistencyStyles.footer}>
-        <Icon name={community.isAbove ? 'arrow-up' : 'arrow-down'} size={14} color={cmpColor} strokeWidth={2.2} />
-        <Text style={styles.cardSubtitle}>
-          <Text style={{ color: cmpColor, fontFamily: FONT.semibold }}>
-            {community.isAbove ? 'Acima' : 'Abaixo'} da média
-          </Text>{' '}
-          da comunidade ({community.averagePercentage}%)
-        </Text>
+        {community.averagePercentage == null ? (
+          <Text style={styles.cardSubtitle}>Adicione amigos para comparar sua consistência</Text>
+        ) : (
+          <>
+            <Icon name={community.isAbove ? 'arrow-up' : 'arrow-down'} size={14} color={cmpColor} strokeWidth={2.2} />
+            <Text style={styles.cardSubtitle}>
+              <Text style={{ color: cmpColor, fontFamily: FONT.semibold }}>
+                {community.isAbove ? 'Acima' : 'Abaixo'} da média
+              </Text>{' '}
+              dos seus amigos ({community.averagePercentage}%)
+            </Text>
+          </>
+        )}
       </View>
     </View>
   );
@@ -433,40 +440,36 @@ const volumeStyles = StyleSheet.create({
 
 // ─── Screen ───────────────────────────────────────────────────────────────
 export default function StatsScreen() {
+  const navigation = useNavigation<any>();
   const [period, setPeriod] = useState<StatsPeriodId>('month');
-  const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
-  const [stats, setStats] = useState<StatsSummaryResponseDTO | null>(null);
-  const [planEvolution, setPlanEvolution] = useState<PlanEvolutionResponseDTO | null>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const [fetchError, setFetchError] = useState<string | null>(null);
   // O modal de atualização de peso só pode aparecer uma vez por sessão.
   // Sem isso, qualquer refetch (troca de período / pull-to-refresh) reabriria
   // o modal enquanto o backend continuar retornando needsWeightUpdate: true.
   const weightModalDismissedRef = useRef<boolean>(false);
 
-  const fetchStats = useCallback(
-    async (selected: StatsPeriodId): Promise<void> => {
-      try {
-        const response = await api.get<StatsSummaryResponseDTO>('/stats/summary', {
-          params: { period: selected },
-        });
-        const data = response.data;
-        setStats(data);
-        setFetchError(null);
-        if (data.needsWeightUpdate && !weightModalDismissedRef.current) {
-          setModalVisible(true);
-        }
-      } catch (error) {
-        console.error('Error fetching stats', error);
-        setFetchError('Não foi possível atualizar suas estatísticas. Verifique sua conexão e tente novamente.');
-      } finally {
-        setLoading(false);
-        setRefreshing(false);
-      }
-    },
-    []
+  const summaryRes = useFocusResource(`stats/summary?${period}`, () =>
+    api.get<StatsSummaryResponseDTO>('/stats/summary', { params: { period } }).then((r) => r.data),
   );
+  // Evolução de ciclo independe do período: chave própria, não refaz ao trocar de período.
+  const evolutionRes = useFocusResource('stats/plan-evolution', () =>
+    api.get<PlanEvolutionResponseDTO>('/stats/plan-evolution').then((r) => r.data),
+  );
+
+  // Ao trocar de período, mantém os números anteriores na tela até os novos chegarem.
+  const lastStatsRef = useRef<StatsSummaryResponseDTO | null>(null);
+  if (summaryRes.data) lastStatsRef.current = summaryRes.data;
+  const stats = summaryRes.data ?? lastStatsRef.current;
+  const planEvolution = evolutionRes.data ?? null;
+  const loading = !stats && summaryRes.loading;
+
+  // Só pergunta o peso com base na resposta do servidor, não num cache antigo.
+  useEffect(() => {
+    if (summaryRes.fresh && summaryRes.data?.needsWeightUpdate && !weightModalDismissedRef.current) {
+      setModalVisible(true);
+    }
+  }, [summaryRes.fresh, summaryRes.data]);
 
   const closeWeightModal = useCallback(() => {
     weightModalDismissedRef.current = true;
@@ -476,42 +479,14 @@ export default function StatsScreen() {
   const onWeightModalSuccess = useCallback(() => {
     weightModalDismissedRef.current = true;
     setModalVisible(false);
-    fetchStats(period);
-  }, [fetchStats, period]);
+    summaryRes.refresh();
+  }, [summaryRes.refresh]);
 
-  // useFocusEffect cobre o mount, a troca de período E cada retorno de foco à aba
-  // (ex.: voltar para Stats depois de finalizar um treino na aba Train). Sem isso,
-  // o StatsScreen — que fica montado no tab navigator — só atualizaria via pull-to-refresh.
-  useFocusEffect(
-    useCallback(() => {
-      fetchStats(period);
-    }, [period, fetchStats]),
-  );
-
-  // Evolução de ciclo é independente do seletor de período, então tem seu próprio fetch.
-  const fetchPlanEvolution = useCallback(async (): Promise<void> => {
-    try {
-      const res = await api.get<PlanEvolutionResponseDTO>('/stats/plan-evolution');
-      setPlanEvolution(res.data);
-    } catch (err) {
-      console.warn('plan-evolution fetch failed', err);
-    }
-  }, []);
-
-  // Re-busca a cada foco da aba (ex.: voltar para Stats após regenerar um plano). Fica num
-  // useFocusEffect separado do fetchStats justamente para NÃO depender do seletor de período —
-  // o callback é estável, então trocar de período não dispara um refetch aqui.
-  useFocusEffect(
-    useCallback(() => {
-      fetchPlanEvolution();
-    }, [fetchPlanEvolution]),
-  );
-
-  const onRefresh = useCallback(() => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    fetchStats(period);
-    fetchPlanEvolution();
-  }, [period, fetchStats, fetchPlanEvolution]);
+    await Promise.all([summaryRes.refresh(), evolutionRes.refresh()]);
+    setRefreshing(false);
+  }, [summaryRes.refresh, evolutionRes.refresh]);
 
   const kpis = useMemo<ReadonlyArray<KpiData>>(() => {
     if (!stats) return [];
@@ -551,7 +526,12 @@ export default function StatsScreen() {
   }, [stats]);
 
   const weightModal = (
-    <EvolutionModal visible={modalVisible} onClose={closeWeightModal} onSuccess={onWeightModalSuccess} />
+    <EvolutionModal
+      visible={modalVisible}
+      onClose={closeWeightModal}
+      onSuccess={onWeightModalSuccess}
+      onReviewProtocol={() => navigation.navigate('Protocol')}
+    />
   );
 
   if (loading) {
@@ -614,11 +594,7 @@ export default function StatsScreen() {
         />
 
         <View style={styles.sections}>
-          {fetchError ? (
-            <View style={styles.errorBanner}>
-              <Text style={styles.errorBannerText}>{fetchError}</Text>
-            </View>
-          ) : null}
+          <StaleBanner visible={summaryRes.error} onRetry={onRefresh} />
           <ConsistencyCard
             activity={stats.activity}
             completed={stats.completedSessions}
@@ -674,13 +650,4 @@ const styles = StyleSheet.create({
   zeroIcon: { marginBottom: 20 },
   zeroTitle: { fontFamily: FONT.semibold, color: T.text, fontSize: 22, marginBottom: 12 },
   zeroDesc: { fontFamily: FONT.regular, color: KINETIC.textDim, fontSize: 15, textAlign: 'center', lineHeight: 22 },
-  errorBanner: {
-    backgroundColor: T.warnDim,
-    borderWidth: 1,
-    borderColor: 'rgba(245,185,69,0.45)',
-    borderRadius: RADIUS.lg,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  errorBannerText: { fontFamily: FONT.semibold, color: T.warn, fontSize: 12, lineHeight: 17 },
 });

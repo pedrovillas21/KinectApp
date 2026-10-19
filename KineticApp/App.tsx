@@ -19,6 +19,7 @@ import { ThemeProvider } from './src/contexts/ThemeContext';
 import { AuthProvider, AuthContext } from './src/contexts/AuthContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AppRoutes from './src/routes/AppRoutes';
+import AlertHost from './src/components/ui/AlertHost';
 
 // Keep the native splash visible until the auth bootstrap and the fonts are ready.
 SplashScreen.preventAutoHideAsync();
@@ -60,6 +61,7 @@ export default function App() {
       <ThemeProvider>
         <AuthProvider>
           <AppContent />
+          <AlertHost />
         </AuthProvider>
       </ThemeProvider>
     </SafeAreaProvider>

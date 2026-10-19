@@ -1,6 +1,0 @@
-{
-  "statusLine": {
-    "type": "command",
-    "command": "powershell -ExecutionPolicy Bypass -File \"C:\\Users\\Pedro villas\\.claude\\ponytail-statusline.ps1\""
-  }
-}

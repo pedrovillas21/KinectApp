@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -101,22 +102,21 @@ public class PasswordResetService {
         PasswordResetCode resetCode = codeRepository.findByUser(user)
                 .orElseThrow(() -> new InvalidCodeException(INVALID_CODE));
 
-        if (resetCode.getExpiresAt().isBefore(Instant.now()) || resetCode.getAttempts() >= MAX_ATTEMPTS) {
-            codeRepository.delete(resetCode);
+        // A tentativa é contada antes do bcrypt: em rajada paralela, cada requisição
+        // espera a anterior e o limite de MAX_ATTEMPTS vale de verdade.
+        if (codeRepository.reserveAttempt(resetCode.getId(), MAX_ATTEMPTS, Instant.now()) == 0) {
+            codeRepository.deleteByUser(user);
             throw new InvalidCodeException(INVALID_CODE);
         }
 
         if (!passwordEncoder.matches(code, resetCode.getCodeHash())) {
-            resetCode.setAttempts(resetCode.getAttempts() + 1);
-            if (resetCode.getAttempts() >= MAX_ATTEMPTS) {
-                codeRepository.delete(resetCode);
-            } else {
-                codeRepository.save(resetCode);
+            if (resetCode.getAttempts() + 1 >= MAX_ATTEMPTS) {
+                codeRepository.deleteByUser(user);
             }
             throw new InvalidCodeException(INVALID_CODE);
         }
 
-        codeRepository.delete(resetCode);
+        codeRepository.deleteByUser(user);
         refreshTokenService.revokeAllForUser(user);
         user.setSenha(passwordEncoder.encode(newPassword));
         // Receber o código prova a posse da caixa: também confirma o e-mail. Assim o
@@ -127,6 +127,7 @@ public class PasswordResetService {
 
     /** Remove diariamente às 04:30 os códigos vencidos (30 min após a limpeza de refresh tokens). */
     @Scheduled(cron = "0 30 4 * * *")
+    @SchedulerLock(name = "purgeExpiredPasswordResetCodes")
     @Transactional
     public void purgeExpiredCodes() {
         int deleted = codeRepository.deleteAllExpired(Instant.now());

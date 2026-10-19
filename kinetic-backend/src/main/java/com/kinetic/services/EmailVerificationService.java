@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -106,29 +107,28 @@ public class EmailVerificationService {
         EmailVerificationCode verificationCode = codeRepository.findByUser(user)
                 .orElseThrow(() -> new InvalidCodeException(INVALID_CODE));
 
-        if (verificationCode.getExpiresAt().isBefore(Instant.now())
-                || verificationCode.getAttempts() >= MAX_ATTEMPTS) {
-            codeRepository.delete(verificationCode);
+        // A tentativa é contada antes do bcrypt: em rajada paralela, cada requisição
+        // espera a anterior e o limite de MAX_ATTEMPTS vale de verdade.
+        if (codeRepository.reserveAttempt(verificationCode.getId(), MAX_ATTEMPTS, Instant.now()) == 0) {
+            codeRepository.deleteByUser(user);
             throw new InvalidCodeException(INVALID_CODE);
         }
 
         if (!passwordEncoder.matches(code, verificationCode.getCodeHash())) {
-            verificationCode.setAttempts(verificationCode.getAttempts() + 1);
-            if (verificationCode.getAttempts() >= MAX_ATTEMPTS) {
-                codeRepository.delete(verificationCode);
-            } else {
-                codeRepository.save(verificationCode);
+            if (verificationCode.getAttempts() + 1 >= MAX_ATTEMPTS) {
+                codeRepository.deleteByUser(user);
             }
             throw new InvalidCodeException(INVALID_CODE);
         }
 
-        codeRepository.delete(verificationCode);
+        codeRepository.deleteByUser(user);
         user.setEmailVerified(true);
         userRepository.save(user);
     }
 
     /** Remove diariamente às 04:45 os códigos vencidos. */
     @Scheduled(cron = "0 45 4 * * *")
+    @SchedulerLock(name = "purgeExpiredEmailVerificationCodes")
     @Transactional
     public void purgeExpiredCodes() {
         int deleted = codeRepository.deleteAllExpired(Instant.now());

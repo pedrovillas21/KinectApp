@@ -1,5 +1,7 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.SetLimits;
+
 import com.kinetic.utils.AppTime;
 
 import com.kinetic.dtos.MonthlyStatsResponseDTO;
@@ -63,6 +65,24 @@ public class WorkoutSessionService {
      *
      * @return {@code true} se o treino foi criado agora, {@code false} se já existia
      */
+    /**
+     * Peso gravado na série. Peso corporal entra como o peso atual do aluno + carga
+     * extra: é aproximação, mas dá volume e progressão em vez de 0 kg. Sem carga
+     * grava 0 seja o que for enviado.
+     */
+    static double effectiveWeight(Exercise exercise, User user, SetLogDto set) {
+        double typed = set.weightUsed();
+        if (!SetLimits.isPlausible(typed, set.repsPerformed())) {
+            throw new IllegalArgumentException("Série de " + exercise.getName() + " com "
+                    + set.repsPerformed() + " reps e " + typed + " kg está fora do possível. Confira os valores.");
+        }
+        return switch (exercise.effectiveLoadType()) {
+            case NONE -> 0;
+            case BODYWEIGHT -> (user.getWeight() != null ? user.getWeight() : 0) + typed;
+            case EXTERNAL -> typed;
+        };
+    }
+
     @Transactional
     public boolean logSession(String userEmail, LogSessionRequestDTO request) {
         User user = findUserByEmail(userEmail);
@@ -87,7 +107,7 @@ public class WorkoutSessionService {
             setLog.setExercise(exercise);
             setLog.setSetNumber(setDto.setNumber());
             setLog.setRepsPerformed(setDto.repsPerformed());
-            setLog.setWeightUsed(setDto.weightUsed());
+            setLog.setWeightUsed(effectiveWeight(exercise, user, setDto));
             setLog.setWorkoutSession(session);
 
             session.getSetLogs().add(setLog);

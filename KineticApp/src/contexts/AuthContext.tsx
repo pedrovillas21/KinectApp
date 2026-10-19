@@ -6,6 +6,7 @@ import React, {
   ReactNode,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { clearResourceCache } from '../services/resourceCache';
 import api, {
   setSignOutHandler,
   refreshAccessToken,
@@ -222,6 +223,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       await clearTokens();
       await AsyncStorage.multiRemove([USER_KEY, REMEMBERED_USER_KEY]);
+      // Dados das telas ficam no aparelho por usuário; ao sair, saem todos.
+      await clearResourceCache();
     } catch (e) {
       console.error('Erro ao esquecer usuário:', e);
     } finally {
@@ -413,6 +416,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       await clearTokens();
       await AsyncStorage.multiRemove([USER_KEY, REMEMBERED_USER_KEY]);
+      // Dados das telas ficam no aparelho por usuário; ao sair, saem todos.
+      await clearResourceCache();
     } catch (e) {
       console.error('Erro ao limpar sessão do storage:', e);
     } finally {

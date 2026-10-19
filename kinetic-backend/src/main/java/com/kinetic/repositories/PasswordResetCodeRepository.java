@@ -23,6 +23,16 @@ public interface PasswordResetCodeRepository extends JpaRepository<PasswordReset
     @Query("DELETE FROM PasswordResetCode c WHERE c.user = :user")
     void deleteByUser(@Param("user") User user);
 
+    /**
+     * Conta uma tentativa de forma atômica, antes de conferir o código. O UPDATE trava
+     * a linha até o fim da transação, então requisições paralelas não leem o mesmo
+     * contador. 0 linhas: código vencido, esgotado ou já usado.
+     */
+    @Modifying
+    @Query("UPDATE PasswordResetCode c SET c.attempts = c.attempts + 1 "
+            + "WHERE c.id = :id AND c.attempts < :max AND c.expiresAt > :now")
+    int reserveAttempt(@Param("id") UUID id, @Param("max") int max, @Param("now") Instant now);
+
     @Modifying
     @Transactional
     @Query("DELETE FROM PasswordResetCode c WHERE c.expiresAt < :now")

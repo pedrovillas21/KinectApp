@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.lang.NonNull;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -172,6 +173,7 @@ public class TrainerInviteCodeService {
 
     /** Remove diariamente às 04:45 convites vencidos há mais de 30 dias e nunca usados. */
     @Scheduled(cron = "0 45 4 * * *")
+    @SchedulerLock(name = "purgeStaleTrainerInviteCodes")
     @Transactional
     public void purgeStaleCodes() {
         int deleted = codeRepository.deleteExpiredBefore(Instant.now().minus(Duration.ofDays(30)));

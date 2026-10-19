@@ -6,7 +6,6 @@ import {
   Platform,
   ScrollView,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -17,6 +16,7 @@ import { COLORS } from '../../theme/colors';
 import HeaderLogo from '../../components/HeaderLogo';
 import CustomInput from '../../components/CustomInput';
 import PrimaryButton from '../../components/PrimaryButton';
+import { showAlert } from '../../components/ui/AlertHost';
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
@@ -45,11 +45,11 @@ export default function ConfirmEmailScreen({ navigation, route }: Props) {
     setLoading(false);
 
     if (!result.success) {
-      Alert.alert('Erro', result.error);
+      showAlert('Erro', result.error);
       return;
     }
 
-    Alert.alert('E-mail confirmado!', 'Agora faça login com seu e-mail e senha.', [
+    showAlert('E-mail confirmado!', 'Agora faça login com seu e-mail e senha.', [
       { text: 'Fazer Login', onPress: () => navigation.navigate('Login', { email }) },
     ]);
   };
@@ -60,12 +60,12 @@ export default function ConfirmEmailScreen({ navigation, route }: Props) {
     const result = await resendConfirmation(email);
     setResending(false);
     if (result.success) {
-      Alert.alert(
+      showAlert(
         'Código reenviado',
         'Um novo código chegará em instantes. Aguarde 1 minuto entre os pedidos.',
       );
     } else {
-      Alert.alert('Erro', result.error);
+      showAlert('Erro', result.error);
     }
   };
 
