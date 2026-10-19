@@ -1,5 +1,7 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.AppTime;
+
 import com.kinetic.dtos.FinanceOverviewDTO.ChargeDTO;
 import com.kinetic.dtos.StudentEngagementDTO;
 import com.kinetic.dtos.TodayItemDTO;
@@ -66,7 +68,7 @@ public class TrainerTodayService {
     @Transactional
     public List<TodayItemDTO> today(String trainerEmail) {
         User trainer = userRepository.getByEmailOrThrow(trainerEmail);
-        LocalDate today = LocalDate.now();
+        LocalDate today = AppTime.today();
         List<TrainerClient> links = trainerClientRepository
                 .findByTrainerAndStatusFetchStudent(trainer.getId(), TrainerLinkStatus.ATIVO);
         Map<UUID, User> students = new HashMap<>();

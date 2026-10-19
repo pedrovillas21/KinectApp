@@ -1,5 +1,7 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.AppTime;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -367,7 +369,7 @@ public class TrainerAiPlanService {
 
     private static Integer ageOf(LocalDate birthDate) {
         if (birthDate == null) return null;
-        int age = Period.between(birthDate, LocalDate.now()).getYears();
+        int age = Period.between(birthDate, AppTime.today()).getYears();
         return age > 0 && age < 120 ? age : null;
     }
 

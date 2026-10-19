@@ -1,5 +1,7 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.AppTime;
+
 import com.kinetic.dtos.MonthlyStatsResponseDTO;
 import com.kinetic.dtos.WeeklyActivityDayDTO;
 import com.kinetic.dtos.WeeklyActivityResponseDTO;
@@ -130,7 +132,7 @@ public class WorkoutSessionService {
         }
 
         int targetSessions = user.getFrequency() * 4;
-        LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
+        LocalDate startOfMonth = AppTime.today().withDayOfMonth(1);
         LocalDate startOfNextMonth = startOfMonth.plusMonths(1);
         long completedSessions = workoutSessionRepository
                 .countByUserIdAndSessionDateGreaterThanEqualAndSessionDateLessThan(
@@ -153,7 +155,7 @@ public class WorkoutSessionService {
     public WeeklyActivityResponseDTO getWeeklyActivity(String userEmail) {
         User user = findUserByEmail(userEmail);
 
-        LocalDate today = LocalDate.now();
+        LocalDate today = AppTime.today();
         int daysFromSunday = today.getDayOfWeek() == DayOfWeek.SUNDAY
                 ? 0
                 : today.getDayOfWeek().getValue();

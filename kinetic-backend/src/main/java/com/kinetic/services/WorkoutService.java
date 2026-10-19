@@ -1,5 +1,7 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.AppTime;
+
 import com.kinetic.dtos.GenerateWorkoutRequestDto;
 import com.kinetic.dtos.GeneratedExerciseDto;
 import com.kinetic.dtos.GeneratedWorkoutPlanDto;
@@ -69,7 +71,7 @@ public class WorkoutService {
         log.info("Iniciando requisição de geração para o usuário: {}", userEmail);
         validateRequest(request);
 
-        int age = Period.between(request.birthDate(), LocalDate.now()).getYears();
+        int age = Period.between(request.birthDate(), AppTime.today()).getYears();
         if (age < 0) {
             throw new IllegalArgumentException("Data de nascimento nao pode ser no futuro.");
         }

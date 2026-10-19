@@ -1,5 +1,7 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.AppTime;
+
 import com.kinetic.dtos.HomeDashboardResponseDTO;
 import com.kinetic.dtos.HomeWeekDayDTO;
 import com.kinetic.dtos.NextWorkoutExerciseDTO;
@@ -72,7 +74,7 @@ public class HomeAggregatorService {
 
         // Campos novos do redesign (faixa da semana, sessões do mês, volume 7d): baratos e
         // úteis mesmo antes do onboarding, então vêm nos dois caminhos.
-        LocalDate today = LocalDate.now();
+        LocalDate today = AppTime.today();
         long monthSessions = trainingSummaryService.sessionsThisMonth(user.getId());
         double volume7dKg = trainingSummaryService.volumeBetween(user.getId(), today.minusDays(6), today);
         List<HomeWeekDayDTO> week = trainingSummaryService.currentWeek(user.getId());
@@ -174,7 +176,7 @@ public class HomeAggregatorService {
             return new int[]{0, 0, 0};
         }
         int targetSessions = user.getFrequency() * 4;
-        LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
+        LocalDate startOfMonth = AppTime.today().withDayOfMonth(1);
         LocalDate startOfNextMonth = startOfMonth.plusMonths(1);
         long completed = workoutSessionRepository
                 .countByUserIdAndSessionDateGreaterThanEqualAndSessionDateLessThan(
@@ -184,7 +186,7 @@ public class HomeAggregatorService {
     }
 
     private List<WeeklyActivityPointDTO> buildWeeklyActivity(UUID userId) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = AppTime.today();
         int daysFromSunday = today.getDayOfWeek() == DayOfWeek.SUNDAY ? 0 : today.getDayOfWeek().getValue();
         LocalDate weekStart = today.minusDays(daysFromSunday);
         LocalDate weekEnd = weekStart.plusDays(6);
@@ -230,7 +232,7 @@ public class HomeAggregatorService {
         }
 
         // Mesma convenção de semana do WeeklyChart: começa no domingo.
-        LocalDate today = LocalDate.now();
+        LocalDate today = AppTime.today();
         int daysFromSunday = today.getDayOfWeek() == DayOfWeek.SUNDAY ? 0 : today.getDayOfWeek().getValue();
         LocalDate weekStart = today.minusDays(daysFromSunday);
 

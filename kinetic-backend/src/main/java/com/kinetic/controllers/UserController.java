@@ -1,5 +1,7 @@
 package com.kinetic.controllers;
 
+import com.kinetic.utils.AppTime;
+
 import com.kinetic.dtos.AccountExportDTO;
 import com.kinetic.dtos.ChangePasswordDTO;
 import com.kinetic.dtos.DeleteAccountRequestDTO;
@@ -128,7 +130,7 @@ public class UserController extends BaseController {
         AccountExportDTO export = dataExportService.export(currentUserEmail());
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"kinetic-dados-" + LocalDate.now() + ".json\"")
+                        "attachment; filename=\"kinetic-dados-" + AppTime.today() + ".json\"")
                 .body(export);
     }
 

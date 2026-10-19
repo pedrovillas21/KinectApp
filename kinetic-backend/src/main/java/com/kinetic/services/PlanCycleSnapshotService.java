@@ -1,5 +1,7 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.AppTime;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kinetic.models.PlanCycleSnapshot;
@@ -51,7 +53,7 @@ public class PlanCycleSnapshotService {
      */
     @Transactional
     public void captureSnapshot(User user, LocalDate cycleStart, String oldGoal, double oldWeight) {
-        LocalDate cycleEnd = LocalDate.now();
+        LocalDate cycleEnd = AppTime.today();
         long dayCount = ChronoUnit.DAYS.between(cycleStart, cycleEnd);
 
         // Sessões completadas no ciclo

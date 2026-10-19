@@ -1,5 +1,7 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.AppTime;
+
 import com.kinetic.dtos.AchievementDTO;
 import com.kinetic.dtos.BestSetDTO;
 import com.kinetic.dtos.HomeWeekDayDTO;
@@ -66,7 +68,7 @@ public class TrainingSummaryService {
 
     /** Domingos das últimas {@link #WEEKS} semanas, a mais antiga primeiro; a última é a semana atual. */
     public List<LocalDate> lastWeekStarts() {
-        LocalDate current = weekStart(LocalDate.now());
+        LocalDate current = weekStart(AppTime.today());
         List<LocalDate> starts = new ArrayList<>(WEEKS);
         for (int i = WEEKS - 1; i >= 0; i--) {
             starts.add(current.minusWeeks(i));
@@ -81,7 +83,7 @@ public class TrainingSummaryService {
      * sequência continua contando a partir de ontem.
      */
     public int streakDays(UUID userId) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = AppTime.today();
         Set<LocalDate> sessionDates = new HashSet<>(
                 workoutSessionRepository.findSessionDatesByUserIdBetween(userId, today.minusDays(365), today)
         );
@@ -97,9 +99,47 @@ public class TrainingSummaryService {
         return streak;
     }
 
+    /** Maior sequência de dias seguidos com treino em todo o histórico. */
+    public int bestStreakDays(UUID userId) {
+        return longestRun(workoutSessionRepository.findAllSessionDatesByUserId(userId));
+    }
+
+    /** Maior série de datas consecutivas (repetidas contam uma vez). */
+    static int longestRun(Collection<LocalDate> dates) {
+        int longest = 0;
+        int run = 0;
+        LocalDate prev = null;
+        for (LocalDate d : new TreeSet<>(dates)) {
+            run = (prev != null && prev.plusDays(1).equals(d)) ? run + 1 : 1;
+            longest = Math.max(longest, run);
+            prev = d;
+        }
+        return longest;
+    }
+
+    /**
+     * Exercícios cujo recorde de carga foi superado entre as datas (inclusivas), o mais recente
+     * primeiro. Mesma regra dos cards: a primeira vez de um exercício não é recorde, nem peso corporal.
+     */
+    public List<PersonalRecordDTO> recordsBetween(UUID userId, LocalDate start, LocalDate end) {
+        Map<String, Double> before = new HashMap<>();
+        for (Object[] row : exerciseSetLogRepository.maxWeightPerExerciseBefore(userId, start)) {
+            if (row[1] == null) continue;
+            before.merge(normalizeExerciseName((String) row[0]), ((Number) row[1]).doubleValue(), (a, b) -> Math.max(a, b));
+        }
+        return personalRecords(userId).stream()
+                .filter(r -> !r.date().isBefore(start) && !r.date().isAfter(end))
+                .filter(r -> {
+                    Double prev = before.get(normalizeExerciseName(r.exercise()));
+                    return prev != null && r.weightKg() > 0 && r.weightKg() > prev;
+                })
+                .sorted(Comparator.comparing(PersonalRecordDTO::date).reversed())
+                .toList();
+    }
+
     /** Treinos registrados no mês corrente. */
     public long sessionsThisMonth(UUID userId) {
-        LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
+        LocalDate startOfMonth = AppTime.today().withDayOfMonth(1);
         return workoutSessionRepository.countByUserIdAndSessionDateGreaterThanEqualAndSessionDateLessThan(
                 userId, startOfMonth, startOfMonth.plusMonths(1));
     }
@@ -112,7 +152,7 @@ public class TrainingSummaryService {
 
     /** Domingo a sábado da semana atual, marcando os dias com treino e o dia de hoje. */
     public List<HomeWeekDayDTO> currentWeek(UUID userId) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = AppTime.today();
         LocalDate start = weekStart(today);
         Set<LocalDate> trained = new HashSet<>(
                 workoutSessionRepository.findSessionDatesByUserIdBetween(userId, start, start.plusDays(6)));
@@ -139,7 +179,7 @@ public class TrainingSummaryService {
         for (WorkoutSession s : workoutSessionRepository.findByUserIdAndSessionDateBetween(userId, from, to)) {
             Integer secs = s.getDurationInSeconds();
             if (secs == null || secs <= 0) continue;
-            secondsPerWeek.merge(weekStart(s.getSessionDate()), secs.longValue(), Long::sum);
+            secondsPerWeek.merge(weekStart(s.getSessionDate()), secs.longValue(), (a, b) -> a + b);
         }
         return weekStarts.stream()
                 .map(w -> (int) Math.round(secondsPerWeek.getOrDefault(w, 0L) / 60.0))
@@ -162,8 +202,8 @@ public class TrainingSummaryService {
             best.merge(normalizeExerciseName(name), candidate, TrainingSummaryService::better);
         }
         return best.values().stream()
-                .sorted(Comparator.comparingDouble(PersonalRecordDTO::weightKg).reversed()
-                        .thenComparing(PersonalRecordDTO::exercise))
+                .sorted(Comparator.comparingDouble((PersonalRecordDTO r) -> r.weightKg()).reversed()
+                        .thenComparing(r -> r.exercise()))
                 .toList();
     }
 
@@ -255,8 +295,8 @@ public class TrainingSummaryService {
                 .sorted(Comparator
                         .comparing((ExerciseSetLog sl) -> sl.getExercise().getSortOrder(),
                                 Comparator.nullsLast(Comparator.naturalOrder()))
-                        .thenComparing(ExerciseSetLog::getLoggedAt, Comparator.nullsLast(Comparator.naturalOrder()))
-                        .thenComparing(ExerciseSetLog::getSetNumber, Comparator.nullsLast(Comparator.naturalOrder())))
+                        .thenComparing(sl -> sl.getLoggedAt(), Comparator.nullsLast(Comparator.naturalOrder()))
+                        .thenComparing(sl -> sl.getSetNumber(), Comparator.nullsLast(Comparator.naturalOrder())))
                 .forEach(sl -> {
                     String key = normalizeExerciseName(sl.getExercise().getName());
                     byExercise.computeIfAbsent(key, k -> new ArrayList<>()).add(sl);
@@ -279,7 +319,7 @@ public class TrainingSummaryService {
             }
             Exercise ex = exerciseOf.get(e.getKey());
             if (ex.getWorkoutPlan() != null && ex.getWorkoutPlan().getTitle() != null) {
-                planVotes.merge(ex.getWorkoutPlan().getTitle(), e.getValue().size(), Integer::sum);
+                planVotes.merge(ex.getWorkoutPlan().getTitle(), e.getValue().size(), (a, b) -> a + b);
             }
             sessionMax.put(e.getKey(), bestSet != null ? bestSet.weightKg() : 0);
             exercises.add(new WorkoutExerciseSummaryDTO(displayName(ex.getName()), e.getValue().size(), bestSet));
@@ -287,7 +327,7 @@ public class TrainingSummaryService {
 
         String title = planVotes.entrySet().stream()
                 .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
+                .map(entry -> entry.getKey())
                 .orElse("Treino");
 
         return new WorkoutSummaryDTO(
@@ -312,7 +352,7 @@ public class TrainingSummaryService {
         Map<String, Double> previous = new HashMap<>();
         for (Object[] row : exerciseSetLogRepository.maxWeightPerExerciseBefore(
                 session.getUser().getId(), session.getSessionDate())) {
-            previous.merge(normalizeExerciseName((String) row[0]), ((Number) row[1]).doubleValue(), Math::max);
+            previous.merge(normalizeExerciseName((String) row[0]), ((Number) row[1]).doubleValue(), (a, b) -> Math.max(a, b));
         }
         int records = 0;
         for (Map.Entry<String, Double> e : sessionMax.entrySet()) {

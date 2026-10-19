@@ -1,8 +1,6 @@
 import React, { useCallback, useContext, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  FlatList,
-  ListRenderItemInfo,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -16,9 +14,9 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Path, Polyline } from 'react-native-svg';
 import { AuthContext, WorkoutPlanItem } from '../contexts/AuthContext';
-import { KINETIC } from '../theme/kinetic';
+import { FONT, KINETIC, RADIUS } from '../theme/kinetic';
 import { formatRelativeDays } from '../utils/dateRelative';
-import AppHeader from '../components/AppHeader';
+import { Avatar, Button } from '../components/ui';
 import api from '../services/api';
 
 interface Exercise {
@@ -57,63 +55,37 @@ const ACCENTS: Accent[] = [
   { color: KINETIC.success, grad: ['#4ade80', '#22c55e'], dim: 'rgba(74,222,128,0.10)', soft: 'rgba(74,222,128,0.22)', fg: '#001f0c' },
 ];
 
-const DAY_LETTERS = ['A', 'B', 'C'];
+// A, B, C, D… pela posição na grade (a cor é que cicla de 3 em 3).
+const letterOf = (index: number) => String.fromCharCode(65 + (index % 26));
+
+const musclesOf = (exercises: Exercise[]) =>
+  Array.from(new Set(exercises.map((e) => (e.muscles ?? '').trim()).filter(Boolean)));
+
+// "7 exercícios · 55 min · nunca feito"
+const metaOf = (item: WorkoutPlanItem, exerciseCount: number) =>
+  [
+    `${exerciseCount} ${exerciseCount === 1 ? 'exercício' : 'exercícios'}`,
+    item.estimatedDurationMinutes != null ? `${item.estimatedDurationMinutes} min` : null,
+    item.lastCompletedAt ? formatRelativeDays(item.lastCompletedAt).toLowerCase() : 'nunca feito',
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
+// Próxima ficha da rotação: a feita há mais tempo; nunca feita vem antes, na ordem da grade.
+function nextPlanIndex(plans: WorkoutPlanItem[]): number {
+  let best = -1;
+  let bestTime = Infinity;
+  plans.forEach((p, i) => {
+    const t = p.lastCompletedAt ? Date.parse(p.lastCompletedAt) : -Infinity;
+    if (best === -1 || t < bestTime) {
+      best = i;
+      bestTime = t;
+    }
+  });
+  return best;
+}
 
 // ─── Ícones SVG ────────────────────────────────────────────────
-function IcDumbbell({ color }: { color: string }) {
-  return (
-    <Svg width={11} height={11} viewBox="0 0 24 24">
-      <Path
-        d="M6 4v16M18 4v16M3 8h3M18 8h3M3 16h3M18 16h3M6 12h12"
-        fill="none"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-function IcClock({ color }: { color: string }) {
-  return (
-    <Svg width={11} height={11} viewBox="0 0 24 24">
-      <Circle cx="12" cy="12" r="10" fill="none" stroke={color} strokeWidth={2} />
-      <Polyline
-        points="12 6 12 12 16 14"
-        fill="none"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-function IcHistory({ color }: { color: string }) {
-  return (
-    <Svg width={11} height={11} viewBox="0 0 24 24">
-      <Polyline
-        points="1 4 1 10 7 10"
-        fill="none"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M3.51 15a9 9 0 1 0 .49-3.5"
-        fill="none"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
 function IcArrow({ color }: { color: string }) {
   return (
     <Svg width={14} height={14} viewBox="0 0 24 24">
@@ -137,15 +109,6 @@ function IcSparkle({ color }: { color: string }) {
         fill={color}
       />
     </Svg>
-  );
-}
-
-function MetricItem({ icon, label, muted }: { icon: React.ReactNode; label: string; muted?: boolean }) {
-  return (
-    <View style={styles.metricItem}>
-      {icon}
-      <Text style={[styles.metricText, { color: muted ? KINETIC.textMuted : KINETIC.textDim }]}>{label}</Text>
-    </View>
   );
 }
 
@@ -216,9 +179,6 @@ function groupSections(exercises: Exercise[]): RenderSection[] {
   const showLabels = nonEmpty.length > 1;
   return nonEmpty.map((k) => ({ id: k, label: showLabels ? SECTION_LABELS[k] : null, items: buckets[k] }));
 }
-
-// Primeiro nome do personal para os selos ("Por Marina").
-const firstName = (name: string) => name.trim().split(/\s+/)[0] ?? name;
 
 // ─── Card de exercício (DETAIL) ────────────────────────────────────
 function DetailExerciseCard({ ex, accent, prescribed }: { ex: Exercise; accent: Accent; prescribed: boolean }) {
@@ -334,85 +294,46 @@ export default function WorkoutScreen({ navigation }: Props) {
     </View>
   );
 
-  const renderWorkoutCard = ({ item, index }: ListRenderItemInfo<WorkoutPlanItem>) => {
+  const renderFichaRow = (item: WorkoutPlanItem, index: number, last: boolean) => {
     const exercises = (item.data ?? []) as Exercise[];
     const accent = ACCENTS[index % ACCENTS.length];
-    const letter = DAY_LETTERS[index % DAY_LETTERS.length];
-
-    const muscles = Array.from(
-      new Set(exercises.map((e) => (e.muscles ?? '').trim()).filter(Boolean))
-    );
-    const chips = muscles.length ? muscles : ['Corpo inteiro'];
-
-    const neverDone = !item.lastCompletedAt;
-    const durationLabel = item.estimatedDurationMinutes != null ? `${item.estimatedDurationMinutes} min` : '— min';
-
+    const letter = letterOf(index);
+    const muscles = musclesOf(exercises);
     return (
-      <TouchableOpacity activeOpacity={0.85} style={styles.card} onPress={() => openRoutineDetail(item.id)}>
-        <LinearGradient colors={accent.grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.cardStripe} />
-
-        <View style={styles.cardBody}>
-          <View style={styles.cardTopRow}>
-            <View style={[styles.dayBadge, { backgroundColor: accent.dim, borderColor: accent.soft }]}>
-              <Text style={[styles.dayBadgeText, { color: accent.color }]}>{tagLabel(item, letter)}</Text>
-            </View>
-            {item.prescribedByName ? (
-              <View style={[styles.iaBadge, styles.trainerBadge]}>
-                <IcUserCheck color={KINETIC.success} />
-                <Text style={[styles.iaBadgeText, { color: KINETIC.success }]}>
-                  Por {firstName(item.prescribedByName)}
-                </Text>
-              </View>
-            ) : (
-              <View style={styles.iaBadge}>
-                <IcSparkle color={KINETIC.textMuted} />
-                <Text style={styles.iaBadgeText}>Sugestão IA</Text>
-              </View>
-            )}
-          </View>
-
-          <Text style={styles.cardTitle}>{item.title}</Text>
-
-          <View style={styles.chipsRow}>
-            {chips.map((g) => (
-              <View key={g} style={styles.muscleChip}>
-                <Text style={styles.muscleChipText}>{g}</Text>
-              </View>
-            ))}
-          </View>
-
-          <View style={styles.metricsRow}>
-            <MetricItem icon={<IcDumbbell color={KINETIC.textDim} />} label={`${exercises.length} exercícios`} />
-            <Text style={styles.metricDot}>·</Text>
-            <MetricItem icon={<IcClock color={KINETIC.textDim} />} label={durationLabel} />
-            <Text style={styles.metricDot}>·</Text>
-            <MetricItem
-              icon={<IcHistory color={neverDone ? KINETIC.textMuted : KINETIC.textDim} />}
-              label={formatRelativeDays(item.lastCompletedAt)}
-              muted={neverDone}
-            />
-          </View>
-
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Iniciar treino"
-            onPress={() => startSession(item)}
-            style={({ pressed }) => [styles.ctaWrap, pressed && styles.ctaPressed]}
-          >
-            <LinearGradient colors={accent.grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.cta}>
-              <Text style={[styles.ctaText, { color: accent.fg }]}>Iniciar treino</Text>
-              <IcArrow color={accent.fg} />
-            </LinearGradient>
-          </Pressable>
+      <Pressable
+        key={item.id}
+        accessibilityRole="button"
+        accessibilityLabel={`Ver ficha ${letter}, ${item.title}`}
+        onPress={() => openRoutineDetail(item.id)}
+        style={({ pressed }) => [styles.row, !last && styles.rowDivider, pressed && styles.rowPressed]}
+      >
+        <View style={[styles.letterTile, { backgroundColor: accent.dim }]}>
+          <Text style={[styles.letterText, { color: accent.color }]}>{letter}</Text>
         </View>
-      </TouchableOpacity>
+        <View style={styles.rowBody}>
+          <Text style={styles.rowTitle} numberOfLines={1}>{item.title}</Text>
+          <Text style={styles.rowMuscles} numberOfLines={1}>{muscles.length ? muscles.join(' · ') : 'Corpo inteiro'}</Text>
+          <Text style={styles.rowMeta} numberOfLines={1}>{metaOf(item, exercises.length)}</Text>
+        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Iniciar ficha ${letter}, ${item.title}`}
+          onPress={() => startSession(item)}
+          hitSlop={4}
+          style={styles.playBtn}
+        >
+          <Svg width={30} height={30} viewBox="0 0 32 32">
+            <Circle cx="16" cy="16" r="15" fill="none" stroke={accent.color} strokeOpacity={0.35} strokeWidth={1.5} />
+            <Path d="M13 10.5v11l9-5.5z" fill={accent.color} />
+          </Svg>
+        </Pressable>
+      </Pressable>
     );
   };
 
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-        <AppHeader />
         <View style={styles.centerState}>
           <ActivityIndicator color={KINETIC.primary} size="large" />
           <Text style={styles.loadingText}>Carregando seus treinos...</Text>
@@ -422,37 +343,113 @@ export default function WorkoutScreen({ navigation }: Props) {
   }
 
   if (viewMode === 'LIST') {
+    const nextIndex = nextPlanIndex(workoutPlans);
+    const next = workoutPlans[nextIndex];
+    const trainerName = workoutPlans.find((p) => p.prescribedByName)?.prescribedByName ?? null;
+    const hasAiPlans = workoutPlans.some((p) => !p.prescribedByName);
+    const gradeLetters = workoutPlans.map((_, i) => letterOf(i)).join('');
+
     return (
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-        <AppHeader />
-        <FlatList<WorkoutPlanItem>
-          data={workoutPlans}
-          keyExtractor={(item) => item.id}
-          renderItem={renderWorkoutCard}
-          ListEmptyComponent={renderEmptyState}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContent}
-          ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-          ListHeaderComponent={() => (
-            <View style={styles.routineHeader}>
-              <Text style={styles.routineTitle}>SUAS FICHAS</Text>
-              <Text style={styles.routineSub}>
-                {errorMessage || 'Escolha um treino da sua grade personalizada.'}
-              </Text>
-            </View>
-          )}
-          ListFooterComponent={() =>
-            workoutPlans.length > 0 ? (
-              <View style={styles.disclaimer}>
-                <IcSparkle color={KINETIC.textMuted} />
-                <Text style={styles.disclaimerText}>
-                  Fichas geradas por IA com base no seu perfil. Consulte um profissional de educação física antes
-                  de iniciar qualquer programa de treinos.
-                </Text>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.listContent}>
+          <Text style={styles.screenTitle} accessibilityRole="header">Treinos</Text>
+
+          {!!errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
+
+          {!next ? (
+            renderEmptyState()
+          ) : (
+            <>
+              <View style={styles.planCard}>
+                {trainerName ? (
+                  <Avatar name={trainerName} seed={trainerName} size={40} />
+                ) : (
+                  <View style={styles.aiAvatar}>
+                    <IcSparkle color={KINETIC.primary} />
+                  </View>
+                )}
+                <View style={styles.rowBody}>
+                  <Text style={styles.planTitle}>Grade personalizada · {gradeLetters}</Text>
+                  <Text style={styles.rowMuscles} numberOfLines={1}>
+                    {trainerName ? `Prescrita por ${trainerName}` : 'Sugerida pela IA com base no seu perfil'}
+                  </Text>
+                </View>
               </View>
-            ) : null
-          }
-        />
+
+              <Text style={styles.sectionLabel}>Próximo treino</Text>
+              {(() => {
+                const exercises = (next.data ?? []) as Exercise[];
+                const accent = ACCENTS[nextIndex % ACCENTS.length];
+                const letter = letterOf(nextIndex);
+                const muscles = musclesOf(exercises);
+                return (
+                  <View style={[styles.nextCard, { borderColor: accent.soft }]}>
+                    <View style={styles.nextTop}>
+                      <View style={[styles.letterTile, styles.letterTileLg, { backgroundColor: accent.dim }]}>
+                        <Text style={[styles.letterText, styles.letterTextLg, { color: accent.color }]}>{letter}</Text>
+                      </View>
+                      <View style={styles.rowBody}>
+                        <Text style={styles.nextTitle}>{next.title}</Text>
+                        <Text style={styles.rowMeta}>{metaOf(next, exercises.length)}</Text>
+                        {muscles.length > 0 && (
+                          <View style={styles.chipsRow}>
+                            {muscles.map((g) => (
+                              <View key={g} style={styles.muscleChip}>
+                                <Text style={styles.muscleChipText}>{g}</Text>
+                              </View>
+                            ))}
+                          </View>
+                        )}
+                      </View>
+                    </View>
+                    <View style={styles.nextActions}>
+                      <Button
+                        label="Iniciar treino"
+                        icon="play"
+                        onPress={() => startSession(next)}
+                        style={styles.flex}
+                      />
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={`Ver exercícios da ficha ${letter}`}
+                        onPress={() => openRoutineDetail(next.id)}
+                        style={styles.listBtn}
+                      >
+                        <Svg width={18} height={18} viewBox="0 0 24 24">
+                          <Path
+                            d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"
+                            fill="none"
+                            stroke={KINETIC.text}
+                            strokeWidth={1.8}
+                            strokeLinecap="round"
+                          />
+                        </Svg>
+                      </Pressable>
+                    </View>
+                  </View>
+                );
+              })()}
+
+              <View style={styles.sectionRow}>
+                <Text style={styles.sectionLabelInline}>Todas as fichas</Text>
+                <Text style={styles.rowMeta}>{workoutPlans.length}</Text>
+              </View>
+              <View style={styles.listCard}>
+                {workoutPlans.map((p, i) => renderFichaRow(p, i, i === workoutPlans.length - 1))}
+              </View>
+
+              {hasAiPlans && (
+                <View style={styles.disclaimer}>
+                  <IcSparkle color={KINETIC.textMuted} />
+                  <Text style={styles.disclaimerText}>
+                    Fichas geradas por IA com base no seu perfil. Consulte um profissional de educação física antes
+                    de iniciar qualquer programa de treinos.
+                  </Text>
+                </View>
+              )}
+            </>
+          )}
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -465,7 +462,7 @@ export default function WorkoutScreen({ navigation }: Props) {
   const exercises = (workout.data ?? []) as Exercise[];
   const selectedIndex = Math.max(0, workoutPlans.findIndex((p) => p.id === workout.id));
   const accent = ACCENTS[selectedIndex % ACCENTS.length];
-  const letter = DAY_LETTERS[selectedIndex % DAY_LETTERS.length];
+  const letter = letterOf(selectedIndex);
 
   const muscleGroups = Array.from(
     new Set(exercises.map((e) => (e.muscles ?? '').trim()).filter(Boolean))
@@ -498,7 +495,7 @@ export default function WorkoutScreen({ navigation }: Props) {
           <Text style={styles.detailTitle}>{(workout.title ?? '').toUpperCase()}</Text>
 
           {muscleGroups.length > 0 && (
-            <View style={styles.chipsRow}>
+            <View style={[styles.chipsRow, styles.detailChips]}>
               {muscleGroups.map((g) => (
                 <View key={g} style={styles.muscleChip}>
                   <Text style={styles.muscleChipText}>{g}</Text>
@@ -575,7 +572,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: KINETIC.bg },
   listContent: {
     paddingHorizontal: 16,
-    paddingBottom: 40,
+    paddingBottom: 32,
   },
   centerState: {
     flex: 1,
@@ -616,35 +613,99 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
 
-  // ─── Header da seção ───
-  routineHeader: {
-    marginBottom: 20,
-    marginTop: 8,
-    paddingHorizontal: 4,
-  },
-  routineTitle: {
-    fontSize: 30,
-    fontStyle: 'italic',
-    fontWeight: '900',
-    letterSpacing: -1,
+  flex: { flex: 1 },
+  screenTitle: {
+    fontFamily: FONT.semibold,
+    fontSize: 24,
+    lineHeight: 30,
+    letterSpacing: -0.5,
     color: KINETIC.text,
+    paddingHorizontal: 4,
+    paddingTop: 18,
+    paddingBottom: 12,
   },
-  routineSub: { color: KINETIC.textDim, fontSize: 13, marginTop: 6, lineHeight: 18 },
+  errorText: { color: KINETIC.warn, fontSize: 12, lineHeight: 17, paddingHorizontal: 4, marginBottom: 10 },
 
-  // ─── Card de ficha (LIST) ───
-  card: {
-    backgroundColor: KINETIC.surface1,
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  cardStripe: { height: 3, width: '100%' },
-  cardBody: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 16 },
-  cardTopRow: {
+  // ─── Plano (quem prescreveu) ───
+  planCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 10,
+    gap: 12,
+    padding: 16,
+    borderRadius: RADIUS.xl,
+    backgroundColor: KINETIC.surface1,
+    borderWidth: 1,
+    borderColor: KINETIC.hairline,
   },
+  aiAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: KINETIC.primaryDim,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  planTitle: { fontFamily: FONT.semibold, fontSize: 15, lineHeight: 20, color: KINETIC.text },
+
+  // ─── Rótulos de seção ───
+  sectionLabel: {
+    fontFamily: FONT.semibold,
+    fontSize: 12,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    color: KINETIC.textSecondary,
+    paddingHorizontal: 4,
+    paddingTop: 22,
+    paddingBottom: 10,
+  },
+  sectionRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    paddingHorizontal: 4,
+    paddingTop: 24,
+    paddingBottom: 10,
+  },
+  sectionLabelInline: {
+    fontFamily: FONT.semibold,
+    fontSize: 12,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    color: KINETIC.textSecondary,
+  },
+
+  // ─── Próximo treino ───
+  nextCard: { borderRadius: RADIUS.xl, backgroundColor: KINETIC.surface1, borderWidth: 1, padding: 16, gap: 16 },
+  nextTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 14 },
+  nextTitle: { fontFamily: FONT.semibold, fontSize: 19, lineHeight: 24, letterSpacing: -0.3, color: KINETIC.text },
+  nextActions: { flexDirection: 'row', gap: 8 },
+  listBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: KINETIC.ghost,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // ─── Letra da ficha ───
+  letterTile: { width: 44, height: 44, borderRadius: RADIUS.lg, alignItems: 'center', justifyContent: 'center' },
+  letterTileLg: { width: 52, height: 52, borderRadius: 14 },
+  letterText: { fontFamily: FONT.bold, fontSize: 21, lineHeight: 26, transform: [{ skewX: '-10deg' }] },
+  letterTextLg: { fontSize: 26, lineHeight: 32 },
+
+  // ─── Lista de fichas ───
+  listCard: { borderRadius: RADIUS.xl, backgroundColor: KINETIC.surface1, overflow: 'hidden' },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 14, paddingLeft: 14, paddingRight: 6 },
+  rowDivider: { borderBottomWidth: 1, borderBottomColor: KINETIC.hairline },
+  rowPressed: { backgroundColor: KINETIC.surfaceRaised },
+  rowBody: { flex: 1, minWidth: 0, gap: 4 },
+  rowTitle: { fontFamily: FONT.semibold, fontSize: 15, lineHeight: 20, color: KINETIC.text },
+  rowMuscles: { fontFamily: FONT.regular, fontSize: 12, lineHeight: 16, color: KINETIC.textSecondary },
+  rowMeta: { fontFamily: FONT.mono, fontSize: 11.5, lineHeight: 16, color: KINETIC.textSecondary },
+  playBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+
   dayBadge: {
     paddingHorizontal: 10,
     paddingVertical: 3,
@@ -652,37 +713,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   dayBadgeText: { fontSize: 10, fontWeight: '700', letterSpacing: 1 },
-  iaBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 9,
-    paddingVertical: 3,
-    borderRadius: 999,
-    backgroundColor: KINETIC.ghost,
-  },
-  iaBadgeText: { fontSize: 10, fontWeight: '600', color: KINETIC.textMuted },
-  trainerBadge: { backgroundColor: 'rgba(74,222,128,0.10)' },
-  cardTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    letterSpacing: -0.6,
-    color: KINETIC.text,
-    lineHeight: 26,
-    marginBottom: 10,
-  },
-  chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginBottom: 14 },
+  chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 },
   muscleChip: {
     paddingHorizontal: 9,
-    paddingVertical: 3,
-    borderRadius: 999,
+    paddingVertical: 4,
+    borderRadius: RADIUS.xs,
     backgroundColor: KINETIC.ghost,
   },
-  muscleChipText: { fontSize: 10, fontWeight: '600', color: KINETIC.textDim },
-  metricsRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
-  metricItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  metricText: { fontSize: 11, fontWeight: '500' },
-  metricDot: { color: KINETIC.textMuted, fontSize: 10 },
+  muscleChipText: { fontFamily: FONT.medium, fontSize: 11, color: KINETIC.textDim },
 
   // ─── CTA gradiente ───
   ctaWrap: {
@@ -734,6 +772,7 @@ const styles = StyleSheet.create({
   detailScrollView: { flex: 1 },
   detailScroll: { paddingBottom: 20 },
   titleBlock: { paddingHorizontal: 20, paddingTop: 4, paddingBottom: 6 },
+  detailChips: { marginTop: 0, marginBottom: 14 },
   dayBadgeStart: { alignSelf: 'flex-start', marginBottom: 12 },
   detailTitle: {
     fontSize: 32,

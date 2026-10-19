@@ -1,5 +1,7 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.AppTime;
+
 import com.kinetic.dtos.StudentEngagementDTO;
 import com.kinetic.enums.TrainerLinkStatus;
 import com.kinetic.models.TrainerClient;
@@ -46,7 +48,7 @@ public class TrainerEngagementService {
         }
 
         List<UUID> ids = links.stream().map(l -> l.getStudent().getId()).toList();
-        LocalDate today = LocalDate.now();
+        LocalDate today = AppTime.today();
 
         Map<UUID, LocalDate> lastSession = new HashMap<>();
         for (Object[] row : workoutSessionRepository.findLastSessionDatePerUser(ids)) {

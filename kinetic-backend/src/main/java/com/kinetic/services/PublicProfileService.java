@@ -1,5 +1,7 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.AppTime;
+
 import com.kinetic.dtos.BestSetDTO;
 import com.kinetic.dtos.CompareProgressDTO;
 import com.kinetic.dtos.CompareSideDTO;
@@ -123,13 +125,13 @@ public class PublicProfileService {
                     new BestSetDTO(mine.weightKg(), mine.reps()),
                     new BestSetDTO(theirs.weightKg(), theirs.reps())));
         }
-        shared.sort(Comparator.comparing(SharedPrDTO::exercise, String.CASE_INSENSITIVE_ORDER));
+        shared.sort(Comparator.comparing((SharedPrDTO p) -> p.exercise(), String.CASE_INSENSITIVE_ORDER));
 
         return new CompareProgressDTO(weekStarts, side(me, weekStarts), side(friend, weekStarts), shared);
     }
 
     private CompareSideDTO side(User u, List<LocalDate> weekStarts) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = AppTime.today();
         return new CompareSideDTO(
                 u.getId(),
                 u.getNome(),

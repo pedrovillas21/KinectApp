@@ -78,6 +78,35 @@ export interface StatsSummaryResponseDTO {
   community: CommunityComparisonDTO;
   /** Texto contextual gerado pelo motor de regras do back-end. */
   insight: StatsInsightDTO;
+  training: StatsTrainingDTO;
+  activity: StatsActivityDTO;
+}
+
+/** Tempo treinado, recordes e sequência da aba Progresso. */
+export interface StatsTrainingDTO {
+  minutes: number;
+  /** Minutos do período anterior de mesmo tamanho (para a variação). */
+  previousMinutes: number;
+  recordsCount: number;
+  /** Recorde mais recente do período; null quando não houve. */
+  latestRecord: PersonalRecord | null;
+  streakDays: number;
+  bestStreakDays: number;
+}
+
+export interface ActivityBucketDTO {
+  /** Primeiro dia da barra (YYYY-MM-DD). */
+  start: string;
+  sessions: number;
+  minutes: number;
+}
+
+/** Treinos do período em barras: dias (semana), semanas (mês/3M) ou meses (ano). */
+export interface StatsActivityDTO {
+  granularity: 'day' | 'week' | 'month';
+  /** Meta de treinos por barra; null nas barras diárias ou sem frequência definida. */
+  target: number | null;
+  buckets: ActivityBucketDTO[];
 }
 
 export interface NextWorkoutDTO {

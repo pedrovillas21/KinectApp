@@ -1,5 +1,7 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.AppTime;
+
 import com.kinetic.repositories.UserRepository;
 import com.kinetic.repositories.WorkoutSessionRepository;
 import org.slf4j.Logger;
@@ -61,7 +63,7 @@ public class CommunityStatsService {
     public void refreshCache() {
         log.info("CommunityStatsService: recalculando média global de aderência...");
 
-        LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
+        LocalDate startOfMonth = AppTime.today().withDayOfMonth(1);
         LocalDate startOfNextMonth = startOfMonth.plusMonths(1);
         int daysInMonth = startOfMonth.lengthOfMonth();
 

@@ -1,5 +1,7 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.AppTime;
+
 import com.kinetic.dtos.ChangePasswordDTO;
 import com.kinetic.dtos.UpdatePhoneRequestDTO;
 import com.kinetic.dtos.UpdateWeightRequestDTO;
@@ -53,7 +55,7 @@ public class UserService {
         user.setWeight(dto.newWeight());
         userRepository.save(user);
 
-        LocalDate today = LocalDate.now();
+        LocalDate today = AppTime.today();
         Optional<WeightHistory> existingHistory = weightHistoryRepository.findByUserAndLoggedAt(user, today);
 
         if (existingHistory.isPresent()) {
@@ -108,7 +110,7 @@ public class UserService {
 
         return weightHistoryRepository.findFirstByUserOrderByLoggedAtDesc(user)
                 .map(lastHistory -> {
-                    long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(lastHistory.getLoggedAt(), LocalDate.now());
+                    long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(lastHistory.getLoggedAt(), AppTime.today());
                     return daysBetween >= 30;
                 })
                 .orElse(false);
@@ -141,7 +143,7 @@ public class UserService {
 
     @Transactional
     public void recordDailyLogin(User user) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = AppTime.today();
 
         // Pula o insert se o login de hoje já foi registrado. Sem esta checagem,
         // um segundo login no mesmo dia violaria a constraint única
@@ -166,7 +168,7 @@ public class UserService {
     }
 
     private int calculateConsecutiveLoginStreak(User user) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = AppTime.today();
         Set<LocalDate> loginDates = new HashSet<>(
                 userLoginStreakRepository.findAllLoginDatesByUser(user)
         );

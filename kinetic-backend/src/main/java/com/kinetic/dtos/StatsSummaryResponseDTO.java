@@ -9,5 +9,7 @@ public record StatsSummaryResponseDTO(
         WeightSummaryDTO weight,
         VolumeSummaryDTO volume,
         CommunityComparisonDTO community,
-        StatsInsightDTO insight
+        StatsInsightDTO insight,
+        StatsTrainingDTO training,
+        StatsActivityDTO activity
 ) {}

@@ -145,4 +145,34 @@ class TrainingSummaryServiceTest {
         sl.setWeightUsed(weight);
         return sl;
     }
+
+    @Test
+    void longestRunCountsConsecutiveDistinctDays() {
+        LocalDate d = LocalDate.of(2026, 10, 1);
+        assertEquals(0, TrainingSummaryService.longestRun(List.of()));
+        assertEquals(3, TrainingSummaryService.longestRun(
+                List.of(d, d.plusDays(1), d.plusDays(1), d.plusDays(2), d.plusDays(5), d.plusDays(6))));
+    }
+
+    @Test
+    void recordsBetweenNeedAPreviousLighterBest() {
+        LocalDate start = LocalDate.of(2026, 10, 1);
+        LocalDate end = LocalDate.of(2026, 10, 19);
+        when(setLogs.maxWeightPerExerciseBefore(USER, start)).thenReturn(List.<Object[]>of(
+                new Object[]{"Supino Reto", 22.0},
+                new Object[]{"Remada", 60.0}
+        ));
+        when(setLogs.findDistinctSetsForUser(USER)).thenReturn(List.of(
+                new Object[]{"supino reto", 26.0, 9, LocalDate.of(2026, 10, 10)},   // superou 22 → recorde
+                new Object[]{"Remada", 55.0, 8, LocalDate.of(2026, 10, 12)},        // abaixo de 60 → não
+                new Object[]{"Agachamento", 85.0, 8, LocalDate.of(2026, 10, 15)},   // primeira vez → não
+                new Object[]{"Remada", 60.0, 10, LocalDate.of(2026, 9, 1)}
+        ));
+
+        List<PersonalRecordDTO> records = service.recordsBetween(USER, start, end);
+
+        assertEquals(1, records.size());
+        assertEquals("supino reto", records.get(0).exercise());
+        assertEquals(26.0, records.get(0).weightKg());
+    }
 }

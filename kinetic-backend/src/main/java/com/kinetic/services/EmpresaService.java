@@ -1,5 +1,7 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.AppTime;
+
 import com.kinetic.dtos.EmpresaAnalyticsDTO;
 import com.kinetic.dtos.EmpresaStudentLinkDTO;
 import com.kinetic.dtos.FeedbackDTO;
@@ -128,7 +130,7 @@ public class EmpresaService {
         UUID companyId = resolveCompanyId(empresaEmail);
         LocalDate startDate = periodStartDate(period);
         LocalDateTime startDateTime = startDate.atStartOfDay();
-        LocalDate today = LocalDate.now();
+        LocalDate today = AppTime.today();
 
         long personaisAtivos = userRepository.countByCompanyIdAndRole(companyId, Role.PERSONAL);
         long alunosAtivos = trainerClientRepository.countByCompanyIdAndStatus(companyId, TrainerLinkStatus.ATIVO);
@@ -171,7 +173,7 @@ public class EmpresaService {
     }
 
     private LocalDate periodStartDate(String period) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = AppTime.today();
         return switch (period == null ? "month" : period) {
             case "week" -> today.minusDays(7);
             case "q" -> today.minusDays(90);

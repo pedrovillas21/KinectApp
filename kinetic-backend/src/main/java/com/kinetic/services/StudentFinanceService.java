@@ -1,5 +1,7 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.AppTime;
+
 import com.kinetic.dtos.FinanceOverviewDTO;
 import com.kinetic.dtos.FinanceOverviewDTO.ChargeDTO;
 import com.kinetic.dtos.FinanceOverviewDTO.PlanDTO;
@@ -60,7 +62,7 @@ public class StudentFinanceService {
     @Transactional
     public FinanceOverviewDTO overview(String trainerEmail, YearMonth month) {
         User trainer = userRepository.getByEmailOrThrow(trainerEmail);
-        LocalDate today = LocalDate.now();
+        LocalDate today = AppTime.today();
         ensureCharges(trainer, today);
 
         Map<UUID, TrainerClient> activeLinks = activeLinksByStudent(trainer);
@@ -110,7 +112,7 @@ public class StudentFinanceService {
     /** Cobranças em aberto vencendo até {@code until} (atrasadas inclusas) — usado pela caixa "Hoje". */
     @Transactional
     public List<ChargeDTO> pendingDueUntil(User trainer, LocalDate until) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = AppTime.today();
         ensureCharges(trainer, today);
         Map<UUID, TrainerClient> activeLinks = activeLinksByStudent(trainer);
         return chargeRepository.findPendingDueUntil(trainer.getId(), until).stream()
@@ -148,7 +150,7 @@ public class StudentFinanceService {
         if (wasActive) {
             chargeRepository.repricePendingFrom(plan.getId(), currentMonth, amountCents, dueDay);
         }
-        createChargesFor(plan, LocalDate.now());
+        createChargesFor(plan, AppTime.today());
     }
 
     /** Desativa a mensalidade: o que ainda não venceu é cancelado; o atrasado continua devido. */
@@ -161,7 +163,7 @@ public class StudentFinanceService {
         plan.setActive(false);
         plan.setUpdatedAt(Instant.now());
         planRepository.save(plan);
-        chargeRepository.cancelPendingNotDue(plan.getId(), LocalDate.now());
+        chargeRepository.cancelPendingNotDue(plan.getId(), AppTime.today());
     }
 
     // ── Cobranças ───────────────────────────────────────────────────────────
@@ -176,8 +178,8 @@ public class StudentFinanceService {
         if (!METHODS.contains(normalized)) {
             throw new IllegalArgumentException("Forma de pagamento inválida.");
         }
-        LocalDate date = paidAt != null ? paidAt : LocalDate.now();
-        if (date.isAfter(LocalDate.now())) {
+        LocalDate date = paidAt != null ? paidAt : AppTime.today();
+        if (date.isAfter(AppTime.today())) {
             throw new IllegalArgumentException("A data do pagamento não pode ser no futuro.");
         }
         charge.setStatus(StudentCharge.PAGO);

@@ -1,5 +1,7 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.AppTime;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kinetic.dtos.*;
@@ -7,6 +9,7 @@ import com.kinetic.enums.StatsPeriodParam;
 import com.kinetic.models.PlanCycleSnapshot;
 import com.kinetic.models.User;
 import com.kinetic.models.WeightHistory;
+import com.kinetic.models.WorkoutSession;
 import com.kinetic.repositories.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,6 +33,7 @@ public class StatsService {
     private final CommunityStatsService communityStatsService;
     private final PlanCycleSnapshotRepository planCycleSnapshotRepository;
     private final WorkoutPlanRepository workoutPlanRepository;
+    private final TrainingSummaryService trainingSummaryService;
     private final ObjectMapper objectMapper;
 
     public StatsService(WorkoutSessionRepository workoutSessionRepository,
@@ -41,6 +45,7 @@ public class StatsService {
                         CommunityStatsService communityStatsService,
                         PlanCycleSnapshotRepository planCycleSnapshotRepository,
                         WorkoutPlanRepository workoutPlanRepository,
+                        TrainingSummaryService trainingSummaryService,
                         ObjectMapper objectMapper) {
         this.workoutSessionRepository = workoutSessionRepository;
         this.userRepository = userRepository;
@@ -51,6 +56,7 @@ public class StatsService {
         this.communityStatsService = communityStatsService;
         this.planCycleSnapshotRepository = planCycleSnapshotRepository;
         this.workoutPlanRepository = workoutPlanRepository;
+        this.trainingSummaryService = trainingSummaryService;
         this.objectMapper = objectMapper;
     }
 
@@ -94,6 +100,22 @@ public class StatsService {
         // ── Insight (motor de regras) ────────────────────────────────────────
         StatsInsightDTO insight = buildInsight(period, efficiencyPercent, weightSummary, volumeSummary);
 
+        // ── Tempo, recordes, sequência e barras de atividade ─────────────────
+        List<WorkoutSession> sessions = workoutSessionRepository
+                .findByUserIdAndSessionDateBetween(user.getId(), start, end);
+        int previousMinutes = totalMinutes(workoutSessionRepository
+                .findByUserIdAndSessionDateBetween(user.getId(), prevStart, prevEnd));
+        List<PersonalRecordDTO> records = trainingSummaryService.recordsBetween(user.getId(), start, end);
+        StatsTrainingDTO training = new StatsTrainingDTO(
+                totalMinutes(sessions),
+                previousMinutes,
+                records.size(),
+                records.isEmpty() ? null : records.get(0),
+                trainingSummaryService.streakDays(user.getId()),
+                trainingSummaryService.bestStreakDays(user.getId())
+        );
+        StatsActivityDTO activity = buildActivity(period, frequency, start, end, sessions);
+
         return new StatsSummaryResponseDTO(
                 needsWeightUpdate,
                 period.id(),
@@ -103,8 +125,72 @@ public class StatsService {
                 weightSummary,
                 volumeSummary,
                 community,
-                insight
+                insight,
+                training,
+                activity
         );
+    }
+
+    // ── Atividade (barras) ────────────────────────────────────────────────────
+
+    private static int totalMinutes(List<WorkoutSession> sessions) {
+        long seconds = 0;
+        for (WorkoutSession s : sessions) {
+            if (s.getDurationInSeconds() != null && s.getDurationInSeconds() > 0) seconds += s.getDurationInSeconds();
+        }
+        return (int) Math.round(seconds / 60.0);
+    }
+
+    /**
+     * Semana: os 7 dias (seg–dom, os futuros zerados). Mês e 3M: semanas de domingo que tocam o
+     * período. Ano: os últimos 12 meses. Só contam sessões dentro do período, então a soma das
+     * barras bate com {@code completedSessions} (no ano, os dias antes do 1º mês ficam de fora).
+     */
+    static StatsActivityDTO buildActivity(StatsPeriodParam period, int weeklyFrequency,
+                                          LocalDate start, LocalDate end, List<WorkoutSession> sessions) {
+        String granularity;
+        List<LocalDate> starts = new ArrayList<>();
+        java.util.function.UnaryOperator<LocalDate> keyOf;
+        Integer target;
+        switch (period) {
+            case WEEK -> {
+                granularity = "day";
+                for (int i = 0; i < 7; i++) starts.add(start.plusDays(i));
+                keyOf = d -> d;
+                target = null;
+            }
+            case YEAR -> {
+                granularity = "month";
+                LocalDate first = end.withDayOfMonth(1).minusMonths(11);
+                for (int i = 0; i < 12; i++) starts.add(first.plusMonths(i));
+                keyOf = d -> d.withDayOfMonth(1);
+                target = weeklyFrequency > 0 ? (int) Math.round(weeklyFrequency * 52 / 12.0) : null;
+            }
+            default -> {
+                granularity = "week";
+                for (LocalDate w = TrainingSummaryService.weekStart(start); !w.isAfter(end); w = w.plusWeeks(1)) {
+                    starts.add(w);
+                }
+                keyOf = TrainingSummaryService::weekStart;
+                target = weeklyFrequency > 0 ? weeklyFrequency : null;
+            }
+        }
+
+        Map<LocalDate, int[]> acc = new HashMap<>();
+        for (WorkoutSession s : sessions) {
+            LocalDate d = s.getSessionDate();
+            if (d == null || d.isBefore(start) || d.isAfter(end)) continue;
+            int[] a = acc.computeIfAbsent(keyOf.apply(d), k -> new int[2]);
+            a[0]++;
+            if (s.getDurationInSeconds() != null && s.getDurationInSeconds() > 0) a[1] += s.getDurationInSeconds();
+        }
+        List<StatsActivityDTO.ActivityBucketDTO> buckets = starts.stream()
+                .map(d -> {
+                    int[] a = acc.getOrDefault(d, new int[2]);
+                    return new StatsActivityDTO.ActivityBucketDTO(d, a[0], (int) Math.round(a[1] / 60.0));
+                })
+                .toList();
+        return new StatsActivityDTO(granularity, target, buckets);
     }
 
     // ── Peso ──────────────────────────────────────────────────────────────────
@@ -297,9 +383,9 @@ public class StatsService {
 
         LocalDate cycleStart = cycleStartOpt
                 .map(dt -> dt.toLocalDate())
-                .orElse(LocalDate.now());
+                .orElse(AppTime.today());
 
-        LocalDate today = LocalDate.now();
+        LocalDate today = AppTime.today();
 
         // Sessões do ciclo atual
         long currentCompletedRaw = workoutSessionRepository

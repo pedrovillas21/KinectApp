@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { KINETIC } from '../../theme/kinetic';
+import Svg, { Path } from 'react-native-svg';
+import { FONT, KINETIC } from '../../theme/kinetic';
 import { formatLongDate, greetingFor } from '../../utils/formatters';
 import { Avatar, Text } from '../ui';
 
@@ -12,36 +13,60 @@ interface HomeHeaderProps {
   onPressAvatar: () => void;
 }
 
-/** Data, saudação e atalho para o perfil. */
+/** Marca Kinetic (só na Início, como Instagram/Strava), depois data e saudação. */
 export default function HomeHeader({ firstName, fullName, userId, onPressAvatar }: HomeHeaderProps) {
   const now = new Date();
   return (
-    <View style={styles.row}>
+    <View>
+      <View style={styles.brandRow}>
+        <View style={styles.brand} accessible accessibilityRole="header" accessibilityLabel="Kinetic">
+          <Svg width={26} height={20} viewBox="0 0 26 20">
+            <Path d="M6 0h6L6 20H0z" fill={KINETIC.primary} />
+            <Path d="M15 0h6l-6 20H9z" fill={KINETIC.primary} opacity={0.55} />
+            <Path d="M24 0h2l-6 20h-2z" fill={KINETIC.primary} opacity={0.25} />
+          </Svg>
+          <Text style={styles.wordmark}>KINETIC</Text>
+        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Abrir meu perfil"
+          onPress={onPressAvatar}
+          style={styles.avatarHit}
+        >
+          <Avatar name={fullName ?? firstName} seed={userId ?? fullName} size={34} />
+        </Pressable>
+      </View>
       <View style={styles.texts}>
         <Text variant="micro" color={KINETIC.textSecondary} style={styles.date}>
           {formatLongDate(now)}
         </Text>
-        <Text variant="display" accessibilityRole="header" numberOfLines={1}>
+        <Text variant="title" numberOfLines={1}>
           {greetingFor(now)}, {firstName}
         </Text>
       </View>
-      <Pressable accessibilityRole="button" accessibilityLabel="Abrir meu perfil" onPress={onPressAvatar} hitSlop={4}>
-        <Avatar name={fullName ?? firstName} seed={userId ?? fullName} size={40} />
-      </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: {
+  brandRow: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 18,
-    paddingBottom: 14,
-    gap: 12,
+    paddingLeft: 20,
+    paddingRight: 12,
+    paddingTop: 10,
   },
-  texts: { flex: 1, gap: 4 },
+  brand: { flexDirection: 'row', alignItems: 'center', gap: 9 },
+  // Geist não tem itálico carregado: o skew dá a inclinação da marca nas duas plataformas.
+  wordmark: {
+    fontFamily: FONT.bold,
+    fontSize: 22,
+    lineHeight: 26,
+    letterSpacing: 1.2,
+    transform: [{ skewX: '-10deg' }],
+  },
+  avatarHit: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  texts: { gap: 3, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 14 },
   date: { fontSize: 12, letterSpacing: 0.4 },
 });
