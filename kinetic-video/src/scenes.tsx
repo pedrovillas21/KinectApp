@@ -73,7 +73,7 @@ const TextColumn: React.FC<{ children: React.ReactNode; width?: number }> = ({ c
 );
 
 /** Blocos de texto que se substituem no mesmo lugar. */
-const Stages: React.FC<{ stages: { title: string; sub: string; at: number; out?: number }[]; size?: number; height?: number }> = ({ stages, size = 76, height = 470 }) => (
+export const Stages: React.FC<{ stages: { title: string; sub: string; at: number; out?: number }[]; size?: number; height?: number }> = ({ stages, size = 76, height = 470 }) => (
   <div style={{ position: "relative", height }}>
     {stages.map((s) => (
       <div key={s.title} style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", gap: 26 }}>
@@ -118,7 +118,7 @@ export const Intro: React.FC = () => {
 };
 
 /* ───────────── 2. O problema ───────────── */
-const CHAOS = [
+export const CHAOS = [
   { tag: "XLS", color: "#21a366", title: "Fichas_alunos_2026.xlsx", sub: "Planilha · editada há 3 dias", x: -560, y: -40, r: -8 },
   { tag: "PDF", color: "#e5484d", title: "Treino_Ana_v3_FINAL.pdf", sub: "Enviado por WhatsApp", x: 520, y: -90, r: 7 },
   { tag: "WA", color: "#25d366", title: "“Manda o treino de novo?”", sub: "Bruno · 23:47", x: -420, y: 230, r: 5 },
@@ -354,7 +354,7 @@ export const Bridge: React.FC = () => {
 };
 
 /* ───────────── 6. App do aluno ───────────── */
-const APP_STEP = 3.5;
+export const APP_STEP = 3.5;
 export const AppScene: React.FC = () => {
   const { a, sec } = useAnim();
   const screens = [
@@ -409,7 +409,7 @@ export const AppScene: React.FC = () => {
 };
 
 /* ───────────── 7. Gestão: convite, avaliação, financeiro ───────────── */
-const MG = 4.4;
+export const MG = 4.4;
 export const ManageScene: React.FC = () => {
   const { sec } = useAnim();
   const stage = sec < MG ? 0 : sec < MG * 2 ? 1 : 2;
@@ -472,13 +472,13 @@ export const ManageScene: React.FC = () => {
 };
 
 /* ───────────── 8. Planos (BillingPage) ───────────── */
-const PLANS = [
+export const PLANS = [
   { name: "Start", students: 5, price: "19,90", per: "3,98", ai: 20 },
   { name: "Pro", students: 15, price: "44,90", per: "2,99", ai: 60 },
   { name: "Plus", students: 30, price: "79,90", per: "2,66", ai: 120 },
   { name: "Max", students: 60, price: "129,90", per: "2,17", ai: 240 },
 ];
-const INCLUDED = [
+export const INCLUDED = [
   { icon: Smartphone, title: "App grátis para os alunos", text: "Treinam, registram cargas e acompanham a evolução sem pagar nada." },
   { icon: Sparkles, title: "Fichas com IA, revisadas por você", text: "A IA monta o rascunho a partir da anamnese; você ajusta e publica." },
   { icon: TriangleAlert, title: "Alertas de risco de abandono", text: "Saiba quem parou de treinar antes que o aluno cancele com você." },

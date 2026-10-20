@@ -4,6 +4,7 @@ import { linearTiming, TransitionSeries } from "@remotion/transitions";
 import type { TransitionPresentation, TransitionPresentationComponentProps } from "@remotion/transitions";
 import { AbsoluteFill, interpolate, Sequence, staticFile, useVideoConfig } from "remotion";
 import { AiScene, AppScene, Bridge, Intro, ManageScene, Outro, OverviewScene, PricingScene, Problem } from "./scenes";
+import { AiSceneV, AppSceneV, BridgeV, IntroV, ManageSceneV, OutroV, OverviewSceneV, PricingSceneV, ProblemV } from "./scenes-vertical";
 import { K } from "./theme";
 import { IN_OUT } from "./ui";
 
@@ -32,7 +33,21 @@ const TRACK = 58;
 const LOOP_AT = 55.5;
 const LOOP_SKIP = 6;
 
-export const KineticPromo: React.FC = () => {
+const HORIZONTAL = { Intro, Problem, OverviewScene, AiScene, Bridge, AppScene, ManageScene, PricingScene, Outro };
+const VERTICAL: typeof HORIZONTAL = {
+  Intro: IntroV,
+  Problem: ProblemV,
+  OverviewScene: OverviewSceneV,
+  AiScene: AiSceneV,
+  Bridge: BridgeV,
+  AppScene: AppSceneV,
+  ManageScene: ManageSceneV,
+  PricingScene: PricingSceneV,
+  Outro: OutroV,
+};
+
+export const KineticPromo: React.FC<{ vertical?: boolean }> = ({ vertical = false }) => {
+  const { Intro, Problem, OverviewScene, AiScene, Bridge, AppScene, ManageScene, PricingScene, Outro } = vertical ? VERTICAL : HORIZONTAL;
   const { fps, durationInFrames } = useVideoConfig();
   const timing = linearTiming({ durationInFrames: T, easing: IN_OUT });
   const second = durationInFrames - LOOP_AT * fps;
@@ -88,6 +103,54 @@ export const KineticPromo: React.FC = () => {
           volume={(f) => interpolate(f, [0, 2.5 * fps, second - 2.5 * fps, second], [0, 0.9, 0.9, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })}
         />
       </Sequence>
+    </AbsoluteFill>
+  );
+};
+
+/** 9:16 para Reels, TikTok e Shorts: mesmas cenas, tempos e trilha. */
+export const KineticPromoVertical: React.FC = () => <KineticPromo vertical />;
+
+/**
+ * Stories (9:16, ~29 s): corte curto com problema → IA → app → CTA.
+ * A IA entra já na prévia (9 s da cena) e o fechamento termina parado no CTA.
+ */
+export const KineticStory: React.FC = () => {
+  const { fps, durationInFrames } = useVideoConfig();
+  const timing = linearTiming({ durationInFrames: T, easing: IN_OUT });
+  return (
+    <AbsoluteFill style={{ background: K.bg }}>
+      <TransitionSeries>
+        <TransitionSeries.Sequence name="Abertura" durationInFrames={3 * fps}>
+          <IntroV />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition presentation={slashWipe()} timing={timing} />
+        <TransitionSeries.Sequence name="O problema" durationInFrames={5.5 * fps}>
+          <ProblemV />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition presentation={slashWipe()} timing={timing} />
+        <TransitionSeries.Sequence name="Ficha com IA (aprovação)" durationInFrames={5.5 * fps}>
+          <Sequence from={-9 * fps}>
+            <AiSceneV />
+          </Sequence>
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition presentation={slashWipe()} timing={timing} />
+        <TransitionSeries.Sequence name="A ponte" durationInFrames={4.5 * fps}>
+          <BridgeV />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition presentation={slashWipe()} timing={timing} />
+        <TransitionSeries.Sequence name="App do aluno" durationInFrames={7 * fps}>
+          <AppSceneV />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition presentation={slashWipe()} timing={timing} />
+        <TransitionSeries.Sequence name="Fechamento" durationInFrames={6 * fps}>
+          <OutroV hold />
+        </TransitionSeries.Sequence>
+      </TransitionSeries>
+      <Audio
+        name="Warm Fiano"
+        src={staticFile("music.mp3")}
+        volume={(f) => interpolate(f, [0, 0.5 * fps, durationInFrames - 1.5 * fps, durationInFrames], [0, 0.9, 0.9, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })}
+      />
     </AbsoluteFill>
   );
 };
