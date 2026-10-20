@@ -1,8 +1,12 @@
 package com.kinetic.controllers;
 
 import com.kinetic.dtos.InviteCodeRedeemRequestDTO;
+import com.kinetic.dtos.PhysicalAssessmentDTOs;
+import com.kinetic.dtos.StudentProtocolDTOs;
 import com.kinetic.dtos.TrainerLinkDTO;
 import com.kinetic.dtos.TrainerProfileDTOs;
+import com.kinetic.services.PhysicalAssessmentService;
+import com.kinetic.services.StudentProtocolService;
 import com.kinetic.services.TrainerInviteCodeService;
 import com.kinetic.services.TrainerLinkService;
 import com.kinetic.services.TrainerProfileService;
@@ -32,6 +36,8 @@ public class StudentTrainerController extends BaseController {
     private final TrainerLinkService trainerLinkService;
     private final TrainerInviteCodeService trainerInviteCodeService;
     private final TrainerProfileService trainerProfileService;
+    private final PhysicalAssessmentService physicalAssessmentService;
+    private final StudentProtocolService studentProtocolService;
 
     @Operation(
             summary = "Listar convites de personal recebidos",
@@ -95,6 +101,16 @@ public class StudentTrainerController extends BaseController {
     }
 
     @Operation(
+            summary = "Minhas avaliações físicas",
+            description = "Avaliações registradas pelos personais do aluno (atual e anteriores), da mais antiga "
+                    + "para a mais recente, com medidas, IMC/composição e o parecer de cada uma."
+    )
+    @GetMapping("/assessments")
+    public ResponseEntity<List<PhysicalAssessmentDTOs.Response>> myAssessments() {
+        return ResponseEntity.ok(physicalAssessmentService.listMine(currentUserEmail()));
+    }
+
+    @Operation(
             summary = "Encerrar o vínculo com o meu personal",
             description = "O aluno deixa de ser acompanhado pelo personal: o personal perde o acesso aos dados "
                     + "dele e o aluno volta a controlar as próprias fichas. O histórico de treinos não é apagado. "
@@ -104,5 +120,25 @@ public class StudentTrainerController extends BaseController {
     public ResponseEntity<Void> endMyTrainerLink() {
         trainerLinkService.endLinkByStudent(currentUserEmail());
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Meu protocolo e anamnese",
+            description = "Objetivo, nível, frequência e anamnese, com quem registrou. managedByName preenchido = "
+                    + "o personal define o protocolo e o aluno só confere."
+    )
+    @GetMapping("/protocol")
+    public ResponseEntity<StudentProtocolDTOs.Response> myProtocol() {
+        return ResponseEntity.ok(studentProtocolService.getForStudent(currentUserEmail()));
+    }
+
+    @Operation(
+            summary = "Confirmar que a anamnese está correta",
+            description = "O aluno confere a anamnese registrada (pelo personal na consulta, por exemplo). "
+                    + "400 = ainda não há anamnese."
+    )
+    @PostMapping("/protocol/anamnesis/confirm")
+    public ResponseEntity<StudentProtocolDTOs.Response> confirmAnamnesis() {
+        return ResponseEntity.ok(studentProtocolService.confirmAnamnesis(currentUserEmail()));
     }
 }

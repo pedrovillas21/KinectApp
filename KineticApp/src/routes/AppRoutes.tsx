@@ -24,11 +24,14 @@ import StatsScreen from '../screens/StatsScreen';
 import SocialScreen from '../screens/SocialScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ActiveSessionScreen from '../screens/ActiveSessionScreen';
+import WorkoutCameraScreen from '../screens/WorkoutCameraScreen';
+import NewWorkoutPostScreen from '../screens/NewWorkoutPostScreen';
 import UserProfileScreen from '../screens/UserProfileScreen';
 import CompareProgressScreen from '../screens/CompareProgressScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import TrainerProfileScreen from '../screens/TrainerProfileScreen';
 import ProtocolScreen from '../screens/ProtocolScreen';
+import AnamnesisScreen from '../screens/AnamnesisScreen';
 import type { MainStackParamList, MainTabParamList } from '../navigation/types';
 
 const Stack = createNativeStackNavigator();
@@ -117,10 +120,17 @@ export default function AppRoutes(): React.ReactElement | null {
         component={ActiveSessionScreen}
         options={{ gestureEnabled: false }}
       />
+      <MainStack.Screen
+        name="WorkoutCamera"
+        component={WorkoutCameraScreen}
+        options={{ animation: 'fade', statusBarHidden: true }}
+      />
+      <MainStack.Screen name="NewWorkoutPost" component={NewWorkoutPostScreen} />
       <MainStack.Screen name="UserProfile" component={UserProfileScreen} />
       <MainStack.Screen name="CompareProgress" component={CompareProgressScreen} />
       <MainStack.Screen name="Settings" component={SettingsScreen} />
       <MainStack.Screen name="Protocol" component={ProtocolScreen} />
+      <MainStack.Screen name="Anamnesis" component={AnamnesisScreen} />
       <MainStack.Screen name="TrainerProfile" component={TrainerProfileScreen} />
     </MainStack.Navigator>
   );

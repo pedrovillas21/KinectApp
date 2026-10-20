@@ -115,7 +115,7 @@ public class TrainerTodayService {
             if (StudentRiskRules.OK.equals(e.risk()) || e.alerts().isEmpty()) continue;
             User s = students.get(e.studentId());
             items.add(new TodayItemDTO("RISCO", e.risk(), e.studentId(), s != null ? s.getNome() : null,
-                    e.alerts().get(0).message(), "Risco de abandono · fale com o aluno", "#alertas-de-risco"));
+                    e.alerts().get(0).message(), "Risco de abandono · fale com o aluno", "/students/" + e.studentId()));
         }
     }
 

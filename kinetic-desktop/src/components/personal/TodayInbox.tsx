@@ -2,7 +2,6 @@ import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import {
-  CalendarCheck,
   ChevronRight,
   ClipboardList,
   Dumbbell,
@@ -35,7 +34,7 @@ const COLLAPSED_LIMIT = 6;
 /** Âncoras da própria carteira rolam a página; o resto navega para a tela certa. */
 function ActionLink({ path, children }: { path: string; children: ReactNode }) {
   const className =
-    'flex h-9 shrink-0 items-center gap-1 rounded-xl border border-white/10 px-3 text-[13px] font-semibold text-k-text-dim transition-colors hover:border-k-primary/45 hover:text-k-primary';
+    'flex h-8 shrink-0 items-center gap-1 rounded-lg border border-white/[0.12] px-3 text-[13px] text-k-text transition-colors hover:bg-white/[0.06]';
   if (path.startsWith('#')) {
     return (
       <button
@@ -77,15 +76,12 @@ export default function TodayInbox({ items }: { items: TodayItem[] }) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: EASE_OUT, delay: 0.1 }}
-      className="flex flex-col gap-4 rounded-[20px] border border-k-ghost bg-k-surface1 p-5"
+      className="flex flex-col rounded-xl border border-white/[0.08]"
     >
-      <div className="flex flex-wrap items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-k-primary-dim text-k-primary">
-          <CalendarCheck className="h-5 w-5" />
-        </span>
-        <div>
-          <h2 className="font-display text-lg font-extrabold tracking-tight font-stretch-semi-expanded">Hoje</h2>
-          <p className="text-[13px] text-k-text-muted">
+      <div className="flex flex-wrap items-center gap-3 border-b border-white/[0.07] px-5 py-3.5">
+        <div className="flex items-baseline gap-3">
+          <h2 className="text-[15px] font-semibold">Fila de hoje</h2>
+          <p className="font-mono text-xs text-k-text-muted">
             {items.length === 0
               ? 'Tudo em dia. Nenhuma pendência por agora.'
               : `${items.length} ${items.length === 1 ? 'pendência' : 'pendências'}${
@@ -94,7 +90,7 @@ export default function TodayInbox({ items }: { items: TodayItem[] }) {
           </p>
         </div>
         {types.length > 1 && (
-          <div role="group" aria-label="Filtrar pendências" className="ml-auto flex flex-wrap gap-1 rounded-[14px] border border-k-ghost bg-k-bg p-1">
+          <div role="group" aria-label="Filtrar pendências" className="ml-auto flex flex-wrap gap-0.5 rounded-lg border border-white/[0.08] p-0.5">
             {(['ALL', ...types] as const).map((t) => {
               const active = filter === t;
               return (
@@ -106,19 +102,19 @@ export default function TodayInbox({ items }: { items: TodayItem[] }) {
                     setFilter(t);
                     setExpanded(false);
                   }}
-                  className={`relative flex h-8 items-center gap-1.5 rounded-[10px] px-2.5 text-[12.5px] font-semibold transition-colors ${
-                    active ? 'text-k-primary' : 'text-k-text-dim hover:text-k-text'
+                  className={`relative flex h-7 items-center gap-1.5 rounded-md px-2.5 text-xs transition-colors ${
+                    active ? 'text-k-text' : 'text-k-text-dim hover:text-k-text'
                   }`}
                 >
                   {active && (
                     <motion.span
                       layoutId="today-filter-pill"
                       transition={SPRING_PILL}
-                      className="absolute inset-0 rounded-[10px] bg-k-primary-dim shadow-[inset_0_0_0_1px_rgba(0,229,255,0.25)]"
+                      className="absolute inset-0 rounded-md bg-white/[0.08]"
                     />
                   )}
                   <span className="relative">{t === 'ALL' ? 'Tudo' : TYPE_META[t].label}</span>
-                  <span className="relative text-k-text-muted">{t === 'ALL' ? items.length : counts[t]}</span>
+                  <span className="relative font-mono text-k-text-muted">{t === 'ALL' ? items.length : counts[t]}</span>
                 </button>
               );
             })}
@@ -127,7 +123,7 @@ export default function TodayInbox({ items }: { items: TodayItem[] }) {
       </div>
 
       {items.length > 0 && (
-        <ul className="flex flex-col divide-y divide-white/[0.06]">
+        <ul className="flex flex-col divide-y divide-white/[0.06] px-5">
           <AnimatePresence initial={false}>
             {shown.map((item, i) => {
               const Icon = TYPE_META[item.type].icon;
@@ -138,16 +134,16 @@ export default function TodayInbox({ items }: { items: TodayItem[] }) {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="flex items-center gap-3 py-3"
+                  className="flex items-center gap-3 py-3.5"
                 >
                   <span className={`h-2 w-2 shrink-0 rounded-full ${SEVERITY_DOT[item.severity]}`} aria-hidden="true" />
                   <Icon className="h-4 w-4 shrink-0 text-k-text-muted" />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold">
+                    <p className="truncate text-sm font-medium">
                       {item.studentName ? `${item.studentName} · ` : ''}
                       <span className="font-normal text-k-text-soft">{item.title}</span>
                     </p>
-                    <p className="truncate text-[12.5px] text-k-text-muted">{item.detail}</p>
+                    <p className="truncate text-[13px] text-k-text-muted">{item.detail}</p>
                   </div>
                   <ActionLink path={item.actionPath}>
                     Resolver
@@ -164,7 +160,7 @@ export default function TodayInbox({ items }: { items: TodayItem[] }) {
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="self-start text-[13px] font-semibold text-k-primary hover:underline"
+          className="mx-5 my-3 self-start text-[13px] text-k-primary hover:underline"
         >
           {expanded ? 'Mostrar menos' : `Ver todas (${filtered.length})`}
         </button>

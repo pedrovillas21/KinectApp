@@ -35,6 +35,7 @@ public class TrainerLinkService {
     private final TrainerClientRepository trainerClientRepository;
     private final UserRepository userRepository;
     private final BillingService billingService;
+    private final TrainerEventService trainerEventService;
 
     @Transactional
     public TrainerLinkDTO invite(String trainerEmail, String studentEmail) {
@@ -65,7 +66,9 @@ public class TrainerLinkService {
         link.setSource(TrainerLinkSource.INVITE);
 
         try {
-            return toDto(trainerClientRepository.saveAndFlush(link), student);
+            TrainerLinkDTO dto = toDto(trainerClientRepository.saveAndFlush(link), student);
+            trainerEventService.publishAfterCommit(trainer.getId(), "students", student.getId());
+            return dto;
         } catch (DataIntegrityViolationException e) {
             // Corrida com outro convite/aceite: o índice único parcial barrou.
             throw new ActiveTrainerConflictException("Já existe um convite pendente para este aluno.");
@@ -234,6 +237,8 @@ public class TrainerLinkService {
         link.setStatus(TrainerLinkStatus.ENCERRADO);
         link.setEndedAt(LocalDateTime.now());
         trainerClientRepository.save(link);
+        // O interceptor de escrita do aluno não acha mais o vínculo ATIVO: avisa o ex-personal aqui.
+        trainerEventService.publishAfterCommit(link.getTrainer().getId(), "students", student.getId());
     }
 
     /** Encerra um vínculo corporativo da empresa (desvincular aluno). */
@@ -249,6 +254,7 @@ public class TrainerLinkService {
         link.setRespondedAt(LocalDateTime.now());
         link.setEndedAt(LocalDateTime.now());
         trainerClientRepository.save(link);
+        trainerEventService.publishAfterCommit(link.getTrainer().getId(), "students", link.getStudent().getId());
     }
 
     /** Busca o convite garantindo posse (é do aluno logado) e estado PENDENTE. */

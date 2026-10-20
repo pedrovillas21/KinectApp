@@ -118,6 +118,7 @@ public class StatsService {
 
         return new StatsSummaryResponseDTO(
                 needsWeightUpdate,
+                userService.isBodyManagedByTrainer(user),
                 period.id(),
                 efficiencyPercent,
                 completedSessions,

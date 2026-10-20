@@ -80,6 +80,23 @@ public class User {
     @Column(columnDefinition = "TEXT")
     private String medicalConditions;
 
+    /** Última mudança de objetivo, nível ou frequência, e quem fez (o aluno ou o personal). */
+    @Column(name = "protocol_updated_at")
+    private LocalDateTime protocolUpdatedAt;
+
+    @Column(name = "protocol_updated_by_id")
+    private UUID protocolUpdatedById;
+
+    @Column(name = "anamnesis_updated_at")
+    private LocalDateTime anamnesisUpdatedAt;
+
+    @Column(name = "anamnesis_updated_by_id")
+    private UUID anamnesisUpdatedById;
+
+    /** Quando o aluno conferiu a anamnese no app; zera quando o personal a altera. */
+    @Column(name = "anamnesis_confirmed_at")
+    private LocalDateTime anamnesisConfirmedAt;
+
     @Column(name = "workout_onboarding_completed", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private Boolean workoutOnboardingCompleted = false;
 

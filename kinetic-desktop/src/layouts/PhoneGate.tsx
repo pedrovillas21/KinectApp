@@ -3,6 +3,7 @@ import { Outlet, useOutletContext } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import PhoneDialog from '../components/PhoneDialog';
 import { getMyPhone } from '../services/userService';
+import { useTrainerLiveUpdates } from '../services/trainerEvents';
 
 type PhoneState = 'checking' | 'missing' | 'ok';
 
@@ -25,6 +26,8 @@ export default function PhoneGate() {
   const { signOut } = useAuth();
   const [state, setState] = useState<PhoneState>('checking');
   const [phone, setPhone] = useState<string | null>(null);
+  // Avisos em tempo real só depois do celular: antes disso o backend barra a API.
+  useTrainerLiveUpdates(state === 'ok');
 
   useEffect(() => {
     let active = true;

@@ -45,7 +45,7 @@ function HeaderButton({ icon, label, onPress, badge }: { icon: IconName; label: 
   );
 }
 
-export default function SocialScreen({ navigation }: MainTabScreenProps<'Social'>) {
+export default function SocialScreen({ navigation, route }: MainTabScreenProps<'Social'>) {
   const { currentUser } = useContext(AuthContext);
   const myId = currentUser ? String(currentUser.id) : null;
 
@@ -124,6 +124,12 @@ export default function SocialScreen({ navigation }: MainTabScreenProps<'Social'
     loadStories();
     loadPending();
   }, [loadFeedPage, loadSquad, loadStories, loadPending]);
+
+  // Volta de "Nova publicação" com um post novo: a aba já montada recarrega o feed.
+  const refreshAt = route.params?.refreshAt;
+  useEffect(() => {
+    if (refreshAt) loadFeedPage(0, true);
+  }, [refreshAt, loadFeedPage]);
 
   useEffect(() => {
     if (tab === 'arena' && ranking === null) loadRanking();

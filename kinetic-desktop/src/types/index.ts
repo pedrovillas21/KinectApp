@@ -223,7 +223,7 @@ export interface TodayItem {
   studentName: string | null;
   title: string;
   detail: string;
-  /** Rota do painel ("/financeiro") ou âncora da carteira ("#alertas-de-risco"). */
+  /** Rota do painel ("/financeiro") ou âncora da carteira ("#convites-pendentes"). */
   actionPath: string;
 }
 
@@ -379,6 +379,30 @@ export interface WorkoutPlanInput {
 // ── Fichas com IA (pedido do personal → prévia → aprovação) ─────────────────
 
 /** Anamnese do aluno que vai para a IA — espelha AiPlanContextDTO. null = não informado. */
+/** GET/PUT /trainer/students/{id}/protocol — espelha StudentProtocolDTOs. */
+export interface StudentProtocol {
+  goal: string | null;
+  level: string | null;
+  frequency: number | null;
+  medicalConditions: string | null;
+  managedByName: string | null;
+  protocolUpdatedAt: string | null;
+  protocolUpdatedByName: string | null;
+  protocolUpdatedByStudent: boolean;
+  anamnesisUpdatedAt: string | null;
+  anamnesisUpdatedByName: string | null;
+  anamnesisUpdatedByStudent: boolean;
+  /** Quando o aluno conferiu a anamnese no app; null = ainda não conferiu a versão atual. */
+  anamnesisConfirmedAt: string | null;
+}
+
+export interface StudentProtocolUpdate {
+  goal: string;
+  level: string;
+  frequency: number;
+  medicalConditions: string | null;
+}
+
 export interface AiPlanContext {
   goal: string | null;
   level: string;

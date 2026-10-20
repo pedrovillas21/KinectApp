@@ -1,4 +1,5 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
@@ -30,11 +31,12 @@ import {
   setStudentPlan,
   waiveCharge,
 } from '../services/financeService';
+import { qk, refreshTrainerData } from '../services/queryClient';
 import { centsToInput, formatBRL, parseBRLToCents } from '../utils/money';
 import { dayMonth, monthLabel, shiftMonth, todayIso } from '../utils/dates';
 import { whatsappUrl } from '../utils/whatsapp';
 import { useAuth } from '../contexts/AuthContext';
-import type { ChargeStatus, FinanceOverview, PaymentMethod, StudentChargeItem } from '../types';
+import type { ChargeStatus, PaymentMethod, StudentChargeItem } from '../types';
 
 const STATUS_META: Record<ChargeStatus, { label: string; className: string }> = {
   ATRASADO: { label: 'Atrasado', className: 'bg-k-alert/[0.14] text-k-alert' },
@@ -67,8 +69,9 @@ export default function FinancePage() {
   const { currentUser } = useAuth();
   const trainerFirstName = currentUser?.nome.trim().split(/\s+/)[0];
   const [month, setMonth] = useState(() => todayIso().slice(0, 7));
-  const [data, setData] = useState<FinanceOverview | null>(null);
-  const [loadError, setLoadError] = useState(false);
+  const financeQ = useQuery({ queryKey: qk.finance(month), queryFn: () => getFinance(month) });
+  const data = financeQ.data ?? null;
+  const loadError = financeQ.isError && !data;
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const [planTarget, setPlanTarget] = useState<PlanTarget | null>(null);
@@ -84,17 +87,8 @@ export default function FinancePage() {
 
   const [pixDraft, setPixDraft] = useState<string | null>(null);
 
-  const load = (target = month) => {
-    setLoadError(false);
-    getFinance(target)
-      .then(setData)
-      .catch(() => setLoadError(true));
-  };
-
-  useEffect(() => {
-    setData(null);
-    load(month);
-  }, [month]);
+  // Cobrança paga/plano salvo mexem também na caixa "Hoje": recarrega o que estiver na tela.
+  const load = () => void refreshTrainerData();
 
   const run = async (id: string, action: () => Promise<void>, success: string, failure: string) => {
     setBusyId(id);

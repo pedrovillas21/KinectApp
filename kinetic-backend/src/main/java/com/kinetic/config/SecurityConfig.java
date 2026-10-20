@@ -4,6 +4,7 @@ import com.kinetic.security.CustomUserDetailsService;
 import com.kinetic.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -44,6 +45,11 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
+                // Redespacho ASYNC do SSE (/api/trainer/events) ao encerrar: a requisição já foi
+                // autorizada no REQUEST; sem isto o stateless perde o contexto e responde 403.
+                .dispatcherTypeMatchers(DispatcherType.ASYNC).permitAll()
+                // Redespacho para /error: sem isto um 404/500 vira 403 e esconde o erro real.
+                .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 // Página pública do link de convite: só leitura (nome/foto do personal).
                 .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()

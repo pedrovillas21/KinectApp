@@ -71,6 +71,7 @@ public class BillingService {
     private final AiPlanGenerationRepository aiPlanGenerationRepository;
     private final UserRepository userRepository;
     private final PaymentGateway gateway;
+    private final TrainerEventService trainerEventService;
 
     @Value("${billing.trial-days:14}")
     private int trialDays;
@@ -221,6 +222,7 @@ public class BillingService {
             default -> { }
         }
         save(sub);
+        trainerEventService.publishAfterCommit(sub.getTrainer().getId(), "billing", null);
     }
 
     // ── Limite de alunos ────────────────────────────────────────────────────

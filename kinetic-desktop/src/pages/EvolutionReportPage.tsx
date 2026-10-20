@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { ArrowLeft, Printer } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { listAssessments } from '../services/assessmentService';
 import { getEngagement, listStudents } from '../services/trainerService';
+import { qk } from '../services/queryClient';
 import {
   DERIVED_FIELDS,
   MEASURE_FIELDS,
@@ -13,7 +14,7 @@ import {
   formatMeasure,
 } from '../components/personal/assessmentFields';
 import { dayMonth, fullDate, todayIso } from '../utils/dates';
-import type { PhysicalAssessment, StudentEngagement, TrainerLink } from '../types';
+import type { PhysicalAssessment } from '../types';
 
 /** Medidas do "antes e depois", na ordem do relatório. */
 const HIGHLIGHTS: { key: keyof PhysicalAssessment; label: string; unit: string; better: 'up' | 'down' | 'neutral'; digits: number }[] = [
@@ -34,21 +35,14 @@ const TABLE_COLUMNS = MEASURE_FIELDS.filter((f) =>
 export default function EvolutionReportPage() {
   const { id = '' } = useParams();
   const { currentUser } = useAuth();
-  const [link, setLink] = useState<TrainerLink | null | undefined>(undefined);
-  const [list, setList] = useState<PhysicalAssessment[] | null>(null);
-  const [engagement, setEngagement] = useState<StudentEngagement | null>(null);
-
-  useEffect(() => {
-    listStudents()
-      .then((links) => setLink(links.find((l) => l.peer.id === id) ?? null))
-      .catch(() => setLink(null));
-    listAssessments(id)
-      .then(setList)
-      .catch(() => setList([]));
-    getEngagement()
-      .then((all) => setEngagement(all.find((e) => e.studentId === id) ?? null))
-      .catch(() => setEngagement(null));
-  }, [id]);
+  // Mesmas chaves das outras telas: vindo do perfil do aluno, o relatório abre na hora.
+  const studentsQ = useQuery({ queryKey: qk.students, queryFn: listStudents });
+  const assessmentsQ = useQuery({ queryKey: qk.assessments(id), queryFn: () => listAssessments(id) });
+  const engagementQ = useQuery({ queryKey: qk.engagement, queryFn: getEngagement });
+  // undefined = carregando; null = fora da carteira (ou falhou).
+  const link = studentsQ.isPending ? undefined : (studentsQ.data?.find((l) => l.peer.id === id) ?? null);
+  const list = assessmentsQ.data ?? (assessmentsQ.isError ? [] : null);
+  const engagement = engagementQ.data?.find((e) => e.studentId === id) ?? null;
 
   if (link === undefined || list === null) {
     return <div className="min-h-screen bg-k-bg p-10 text-k-text-dim">Montando o relatório…</div>;

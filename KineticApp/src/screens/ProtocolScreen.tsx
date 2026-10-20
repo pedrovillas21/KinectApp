@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Linking, StyleSheet, View } from 'react-native';
 
 import OptionPickerDialog from '../components/profile/protocol/OptionPickerDialog';
 import MetricsDialog from '../components/profile/protocol/MetricsDialog';
 import AnamnesisDialog from '../components/profile/protocol/AnamnesisDialog';
 import type { ProtocolForm } from '../components/profile/protocol/types';
+import Icon from '../components/Icon';
 import { Button, ListGroup, ListRow, Screen, StackHeader, Text } from '../components/ui';
 import {
   ageFromBirthDate,
@@ -16,6 +17,9 @@ import {
   levelLabel,
 } from '../constants/protocol';
 import api from '../services/api';
+import useFocusResource from '../hooks/useFocusResource';
+import { getMyProtocol, getMyTrainer } from '../services/trainerService';
+import { whatsappUrl } from '../utils/whatsapp';
 import { KINETIC } from '../theme/kinetic';
 import type { MainStackScreenProps } from '../navigation/types';
 import type { GenerateWorkoutRequest, UserProfileResponse } from '../types';
@@ -24,14 +28,17 @@ import { showAlert } from '../components/ui/AlertHost';
 type ProtocolDialog = 'goal' | 'metrics' | 'level' | 'frequency' | 'anamnesis' | null;
 
 /**
- * "Meu protocolo": o que alimenta a IA. As edições ficam locais e vão para o
- * backend ao regenerar o treino (mesma lógica da antiga tela Perfil).
+ * "Meu protocolo": o que alimenta a IA. Sem personal, as edições ficam locais e vão
+ * para o backend ao regenerar o treino. Com personal ativo, objetivo, nível,
+ * frequência e anamnese são dele: o aluno só vê e confere a anamnese.
  */
 export default function ProtocolScreen({ navigation }: MainStackScreenProps<'Protocol'>) {
   const [form, setForm] = useState<ProtocolForm | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
   const [activeDialog, setActiveDialog] = useState<ProtocolDialog>(null);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const protocolRes = useFocusResource('me/protocol', getMyProtocol);
+  const trainerRes = useFocusResource('me/trainer', getMyTrainer);
 
   useEffect(() => {
     api
@@ -113,6 +120,62 @@ export default function ProtocolScreen({ navigation }: MainStackScreenProps<'Pro
       .filter(Boolean)
       .join(' · ') || 'Adicionar';
   const anamComplete = hasMedicalInfo(form.medicalConditions);
+  const managed = protocolRes.data?.managedByName ? protocolRes.data : null;
+
+  if (managed) {
+    const trainerName = managed.managedByName!.split(' ')[0];
+    const phone = trainerRes.data?.peer.phone ?? null;
+    const managedAnam = hasMedicalInfo(managed.medicalConditions);
+    const lock = <Icon name="lock" size={14} color={KINETIC.textMuted} />;
+    const talk = () => {
+      if (!phone) return;
+      Linking.openURL(whatsappUrl(phone, `Oi, ${trainerName}!`)).catch(() =>
+        showAlert('WhatsApp', 'Não foi possível abrir o WhatsApp neste aparelho.'),
+      );
+    };
+    return (
+      <Screen edges={['top', 'bottom', 'left', 'right']} header={header} contentStyle={styles.content}>
+        <ListGroup title={`Definido por ${managed.managedByName}, seu personal`}>
+          <ListRow icon="target" title="Objetivo" value={goalLabel(managed.goal)} accessory={lock} />
+          <ListRow icon="progress" title="Nível de experiência" value={levelLabel(managed.level)} accessory={lock} />
+          <ListRow
+            icon="calendar"
+            title="Frequência semanal"
+            value={managed.frequency ? `${managed.frequency} dias` : '—'}
+            accessory={lock}
+          />
+          <ListRow
+            icon="heart"
+            title="Anamnese"
+            subtitle={
+              !managedAnam
+                ? 'Ainda não registrada'
+                : managed.anamnesisConfirmedAt
+                  ? 'Conferida por você'
+                  : 'Toque para conferir se está tudo certo'
+            }
+            value={managedAnam ? 'Completa' : 'Pendente'}
+            onPress={() => navigation.navigate('Anamnesis')}
+          />
+        </ListGroup>
+
+        <ListGroup
+          title="Seus dados"
+          footnote="Peso e altura são atualizados nas avaliações físicas do seu personal."
+          style={styles.group}
+        >
+          <ListRow icon="ruler" title="Métricas" value={metricsValue} />
+        </ListGroup>
+
+        <View style={styles.regen}>
+          {phone ? <Button label={`Falar com ${trainerName}`} variant="secondary" onPress={talk} /> : null}
+          <Text variant="caption" color={KINETIC.textSecondary} style={styles.hint}>
+            Seu treino é prescrito por {trainerName}. Para mudar objetivo, nível ou frequência, combine com {trainerName}.
+          </Text>
+        </View>
+      </Screen>
+    );
+  }
 
   return (
     <Screen edges={['top', 'bottom', 'left', 'right']} header={header} contentStyle={styles.content}>
@@ -191,5 +254,6 @@ const styles = StyleSheet.create({
   center: { alignItems: 'center', justifyContent: 'center' },
   content: { paddingTop: 12, paddingBottom: 32 },
   regen: { marginTop: 20, marginHorizontal: 16, gap: 8 },
+  group: { marginTop: 20 },
   hint: { textAlign: 'center' },
 });

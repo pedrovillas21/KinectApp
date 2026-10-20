@@ -82,11 +82,12 @@ public class WorkoutService {
 
         User user = findUserByEmail(userEmail);
 
-        // Regenerar arquiva as fichas vigentes. Se o personal montou alguma e o vínculo segue
-        // ativo, o treino é dele: bloqueia antes de gastar a chamada ao Gemini. Com o vínculo
-        // encerrado o aluno volta a ter o controle da própria ficha.
+        // Com vínculo ativo, protocolo e treino são do personal: depois do onboarding (ou se ele
+        // já montou alguma ficha) o aluno não regenera nem muda objetivo/nível/frequência por aqui.
+        // Bloqueia antes de gastar a chamada à IA. Com o vínculo encerrado o aluno volta a ter o controle.
         if (trainerClientRepository.existsByStudentIdAndStatus(user.getId(), TrainerLinkStatus.ATIVO)
-                && workoutPlanRepository.existsByUserIdAndStatusAndCreatedByIsNotNull(user.getId(), "active")) {
+                && (Boolean.TRUE.equals(user.getWorkoutOnboardingCompleted())
+                    || workoutPlanRepository.existsByUserIdAndStatusAndCreatedByIsNotNull(user.getId(), "active"))) {
             throw new TrainerManagedPlanException(
                     "Seu treino é montado pelo seu personal. Fale com ele pelo WhatsApp para ajustar a ficha.");
         }
@@ -170,14 +171,20 @@ public class WorkoutService {
         }
 
         user.setBirthDate(request.birthDate());
-        user.setWeight(request.weight());
-        user.setHeight(heightCm);
+        // Com personal ativo, peso e altura vêm das avaliações físicas dele.
+        if (!trainerClientRepository.existsByStudentIdAndStatus(user.getId(), TrainerLinkStatus.ATIVO)) {
+            user.setWeight(request.weight());
+            user.setHeight(heightCm);
+        }
         user.setGoal(request.goal());
         user.setFrequency(request.frequency());
         user.setLevel(request.level());
+        boolean anamnesisChanged = request.medicalConditions() != null
+                && !request.medicalConditions().equals(user.getMedicalConditions());
         if (request.medicalConditions() != null) {
             user.setMedicalConditions(request.medicalConditions());
         }
+        StudentProtocolService.recordStudentEdit(user, anamnesisChanged);
         user.setWorkoutOnboardingCompleted(true);
         userRepository.save(user);
 

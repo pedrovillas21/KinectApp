@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
@@ -7,6 +8,7 @@ import Avatar from '../components/Avatar';
 import { formInputClass, formLabelClass } from '../components/personal/FormDialog';
 import { riseItem, staggerContainer } from '../components/motion/primitives';
 import { getMyTrainerProfile, saveMyTrainerProfile } from '../services/trainerProfileService';
+import { qk, queryClient } from '../services/queryClient';
 import type { TrainerEducation, TrainerProfile, TrainerProfileInput } from '../types';
 
 const BIO_MAX = 1500;
@@ -72,23 +74,19 @@ const toInput = (d: Draft): TrainerProfileInput => ({
 const textareaClass = `${formInputClass} h-auto min-h-[150px] resize-y py-3 leading-relaxed`;
 
 export default function MyProfilePage() {
-  const [profile, setProfile] = useState<TrainerProfile | null>(null);
-  const [draft, setDraft] = useState<Draft | null>(null);
-  const [loadError, setLoadError] = useState(false);
+  const profileQ = useQuery({ queryKey: qk.profile, queryFn: getMyTrainerProfile });
+  const profile = profileQ.data ?? null;
+  const loadError = profileQ.isError && !profile;
+  // O rascunho nasce do perfil e não é sobrescrito por recargas em segundo plano.
+  const [draft, setDraft] = useState<Draft | null>(() => (profile ? toDraft(profile) : null));
   const [saving, setSaving] = useState(false);
   const [specialtyInput, setSpecialtyInput] = useState('');
 
-  const load = () => {
-    setLoadError(false);
-    getMyTrainerProfile()
-      .then((p) => {
-        setProfile(p);
-        setDraft(toDraft(p));
-      })
-      .catch(() => setLoadError(true));
-  };
+  useEffect(() => {
+    if (profile && !draft) setDraft(toDraft(profile));
+  }, [profile, draft]);
 
-  useEffect(load, []);
+  const load = () => void profileQ.refetch();
 
   const dirty = useMemo(
     () => !!profile && !!draft && JSON.stringify(toInput(draft)) !== JSON.stringify(toInput(toDraft(profile))),
@@ -127,7 +125,7 @@ export default function MyProfilePage() {
     setSaving(true);
     try {
       const saved = await saveMyTrainerProfile(toInput(draft));
-      setProfile(saved);
+      queryClient.setQueryData<TrainerProfile>(qk.profile, saved);
       setDraft(toDraft(saved));
       toast.success('Perfil salvo', { description: 'Seus alunos já veem a versão nova no app.' });
     } catch (err) {

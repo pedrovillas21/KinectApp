@@ -28,6 +28,14 @@ export function formatLongDate(date: Date): string {
   return `${WEEKDAYS[date.getDay()]}, ${date.getDate()} de ${MONTHS[date.getMonth()]}`;
 }
 
+/** "15 out 2026" a partir de um instante ISO; null se inválido. */
+export function formatDayMonthYear(iso?: string | null): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return `${d.getDate()} ${MONTHS[d.getMonth()].slice(0, 3)} ${d.getFullYear()}`;
+}
+
 /** Letra do dia da semana para faixas compactas: D S T Q Q S S. */
 export function weekdayLetter(date: Date): string {
   return 'DSTQQSS'[date.getDay()];
@@ -64,6 +72,15 @@ export function formatMinutes(totalMinutes: number): string {
 /** Segundos de treino → "58min" / "1h 05min". */
 export function formatDurationSeconds(seconds: number): string {
   return formatMinutes(seconds / 60);
+}
+
+/** Segundos → relógio "58:12" / "1:05:09". */
+export function formatClock(seconds: number): string {
+  const s = Math.max(0, Math.round(seconds));
+  const h = Math.floor(s / 3600);
+  const mm = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+  const ss = String(s % 60).padStart(2, '0');
+  return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
 }
 
 /** Carga em kg sem casas desnecessárias: 80 → "80", 22.5 → "22,5". */

@@ -67,6 +67,8 @@ export interface StatsInsightDTO {
 
 export interface StatsSummaryResponseDTO {
   needsWeightUpdate: boolean;
+  /** Com personal ativo o peso vem das avaliações físicas dele: o aluno não registra. */
+  weightManagedByTrainer: boolean;
   /** Período retornado pelo back-end. */
   period: StatsPeriodId;
   /** Aderência (%): completedSessions / targetSessions. */
@@ -359,6 +361,8 @@ export interface CreatePostRequest {
   caption?: string;
   imageUrl?: string;
   badge?: string;
+  /** Mesmo id enviado em /sessions/log: liga o post ao treino (volume, tempo, título). */
+  clientSessionId?: string;
 }
 
 export interface Page<T> {
@@ -416,6 +420,24 @@ export interface TrainerPeer {
 }
 
 /** Vínculo personal↔aluno — espelha TrainerLinkDTO do backend. */
+/** GET /api/me/protocol: protocolo e anamnese, com quem registrou por último. */
+export interface StudentProtocol {
+  goal: string | null;
+  level: string | null;
+  frequency: number | null;
+  medicalConditions: string | null;
+  /** Personal com vínculo ativo: ele define o protocolo e o aluno só confere. Null = o aluno edita. */
+  managedByName: string | null;
+  protocolUpdatedAt: string | null;
+  protocolUpdatedByName: string | null;
+  protocolUpdatedByStudent: boolean;
+  anamnesisUpdatedAt: string | null;
+  anamnesisUpdatedByName: string | null;
+  anamnesisUpdatedByStudent: boolean;
+  /** Quando o aluno conferiu a anamnese; null = ainda não conferiu a versão atual. */
+  anamnesisConfirmedAt: string | null;
+}
+
 export interface TrainerLink {
   id: string;
   peer: TrainerPeer;
@@ -552,4 +574,20 @@ export interface MyTrainerProfile {
   /** Ficha mais recente que o personal montou (vigente ou arquivada). */
   lastReviewAt: string | null;
   plans: TrainerPlanItem[];
+}
+
+/** Avaliação física registrada pelo personal (GET /me/assessments). */
+export interface PhysicalAssessmentDTO {
+  id: string;
+  assessedOn: string;
+  weightKg: number | null;
+  heightCm: number | null;
+  bodyFatPct: number | null;
+  muscleMassKg: number | null;
+  restingHr: number | null;
+  waistCm: number | null;
+  hipCm: number | null;
+  notes: string | null;
+  bmi: number | null;
+  trainerName: string | null;
 }

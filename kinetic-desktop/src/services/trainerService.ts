@@ -9,6 +9,8 @@ import type {
   StatsPeriodId,
   StatsSummaryResponseDTO,
   StudentEngagement,
+  StudentProtocol,
+  StudentProtocolUpdate,
   TodayItem,
   TrainerInviteCode,
   TrainerLink,
@@ -103,13 +105,9 @@ export const getStudentPlanEvolution = async (
   return res.data;
 };
 
-/** Estatísticas do mês corrente do aluno (exige vínculo ATIVO; 404 sem posse). */
-export const getStudentMonthlyStats = async (
-  studentId: string,
-): Promise<MonthlyStatsResponseDTO> => {
-  const res = await api.get<MonthlyStatsResponseDTO>(
-    `/trainer/students/${studentId}/monthly-stats`,
-  );
+/** Estatísticas do mês corrente de todos os alunos ativos, numa chamada só: studentId → estatísticas. */
+export const getStudentsMonthlyStats = async (): Promise<Record<string, MonthlyStatsResponseDTO>> => {
+  const res = await api.get<Record<string, MonthlyStatsResponseDTO>>('/trainer/students/monthly-stats');
   return res.data;
 };
 
@@ -153,6 +151,21 @@ export const archiveStudentPlan = async (studentId: string, planId: string): Pro
 // 409 = prévia já aprovada ou expirada. O corpo é a mensagem pronta para exibir.
 
 /** O que a IA vai considerar do aluno (anamnese do app). */
+/** Protocolo (objetivo, nível, frequência) e anamnese do aluno. */
+export const getStudentProtocol = async (studentId: string): Promise<StudentProtocol> => {
+  const res = await api.get<StudentProtocol>(`/trainer/students/${studentId}/protocol`);
+  return res.data;
+};
+
+/** O personal define o protocolo; mudar a anamnese pede nova conferência do aluno no app. */
+export const updateStudentProtocol = async (
+  studentId: string,
+  body: StudentProtocolUpdate,
+): Promise<StudentProtocol> => {
+  const res = await api.put<StudentProtocol>(`/trainer/students/${studentId}/protocol`, body);
+  return res.data;
+};
+
 export const getAiPlanContext = async (studentId: string): Promise<AiPlanContext> => {
   const res = await api.get<AiPlanContext>(`/trainer/students/${studentId}/ai-plans/context`);
   return res.data;

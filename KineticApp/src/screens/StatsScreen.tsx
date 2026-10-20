@@ -21,6 +21,7 @@ import useFocusResource from '../hooks/useFocusResource';
 import api from '../services/api';
 import {
   CommunityComparisonDTO,
+  PhysicalAssessmentDTO,
   PlanEvolutionResponseDTO,
   StatsInsightDTO,
   StatsPeriodId,
@@ -286,7 +287,7 @@ const insightStyles = StyleSheet.create({
 });
 
 // ─── Peso corporal ──────────────────────────────────────────────────────────
-function WeightCard({ weight, period, onRegister }: { weight: WeightSummaryDTO; period: StatsPeriodId; onRegister: () => void }) {
+function WeightCard({ weight, period, managed, onRegister }: { weight: WeightSummaryDTO; period: StatsPeriodId; managed: boolean; onRegister: () => void }) {
   const chartWidth = SCREEN_W - CONTENT_PAD * 2 - 32 - 24; // padding do card e eixo Y
   const data = weight.history.map((p: WeightPointDTO) => ({
     value: p.weight,
@@ -300,9 +301,11 @@ function WeightCard({ weight, period, onRegister }: { weight: WeightSummaryDTO; 
         title="Peso corporal"
         subtitle={periodDescription(period)}
         action={
-          <Pressable accessibilityRole="button" onPress={onRegister} style={styles.smallBtn}>
-            <Text style={styles.smallBtnText}>Registrar</Text>
-          </Pressable>
+          managed ? undefined : (
+            <Pressable accessibilityRole="button" onPress={onRegister} style={styles.smallBtn}>
+              <Text style={styles.smallBtnText}>Registrar</Text>
+            </Pressable>
+          )
         }
       />
 
@@ -328,7 +331,11 @@ function WeightCard({ weight, period, onRegister }: { weight: WeightSummaryDTO; 
           initialSpacing={8}
         />
       ) : (
-        <Text style={styles.emptyText}>Registre seu peso para visualizar a evolução.</Text>
+        <Text style={styles.emptyText}>
+          {managed
+            ? 'Seu peso é atualizado pelo seu personal a cada avaliação física.'
+            : 'Registre seu peso para visualizar a evolução.'}
+        </Text>
       )}
 
       <View style={weightStyles.stats}>
@@ -350,6 +357,69 @@ function WeightCard({ weight, period, onRegister }: { weight: WeightSummaryDTO; 
     </View>
   );
 }
+
+// ─── Avaliação física: última medição do personal, variação e parecer ───────
+const ASSESSMENT_METRICS: ReadonlyArray<{ key: keyof PhysicalAssessmentDTO; label: string; unit: string }> = [
+  { key: 'weightKg', label: 'Peso', unit: 'kg' },
+  { key: 'bodyFatPct', label: 'Gordura', unit: '%' },
+  { key: 'muscleMassKg', label: 'Massa muscular', unit: 'kg' },
+  { key: 'waistCm', label: 'Cintura', unit: 'cm' },
+  { key: 'hipCm', label: 'Quadril', unit: 'cm' },
+  { key: 'bmi', label: 'IMC', unit: '' },
+];
+
+function AssessmentCard({ assessments }: { assessments: PhysicalAssessmentDTO[] }) {
+  const latest = assessments[assessments.length - 1];
+  // Variação contra a avaliação anterior mais recente que mediu o mesmo item.
+  const previousOf = (key: keyof PhysicalAssessmentDTO): number | null => {
+    for (let i = assessments.length - 2; i >= 0; i--) {
+      const v = assessments[i][key];
+      if (typeof v === 'number') return v;
+    }
+    return null;
+  };
+  const metrics = ASSESSMENT_METRICS.filter((m) => typeof latest[m.key] === 'number');
+
+  return (
+    <View style={styles.card}>
+      <CardHeader
+        title="Avaliação física"
+        subtitle={`${formatShortDate(latest.assessedOn)}${latest.trainerName ? ` · por ${latest.trainerName}` : ''}`}
+      />
+      <View style={assessmentStyles.grid}>
+        {metrics.map((m) => {
+          const value = latest[m.key] as number;
+          const prev = previousOf(m.key);
+          return (
+            <View key={m.key} style={assessmentStyles.cell}>
+              <Text style={styles.cardSubtitleTop}>{m.label}</Text>
+              <Text style={weightStyles.stat}>
+                {formatNumberPtBR(value, 1)}{m.unit ? ` ${m.unit}` : ''}
+              </Text>
+              {prev !== null && (
+                <Text style={assessmentStyles.delta}>{formatSignedNumberPtBR(value - prev, 1)} vs anterior</Text>
+              )}
+            </View>
+          );
+        })}
+      </View>
+      {latest.notes ? (
+        <View style={assessmentStyles.notes}>
+          <Text style={styles.cardSubtitleTop}>Parecer do personal</Text>
+          <Text style={assessmentStyles.notesText}>{latest.notes}</Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+const assessmentStyles = StyleSheet.create({
+  grid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: 12, marginTop: 14 },
+  cell: { width: '33.33%' },
+  delta: { fontFamily: FONT.mono, fontSize: 10, lineHeight: 14, color: KINETIC.textSecondary, marginTop: 1 },
+  notes: { marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: KINETIC.hairline },
+  notesText: { fontFamily: FONT.regular, fontSize: 14, lineHeight: 21, color: T.text, marginTop: 4 },
+});
 
 const weightStyles = StyleSheet.create({
   stats: { flexDirection: 'row', marginTop: 14 },
@@ -456,6 +526,10 @@ export default function StatsScreen() {
   const evolutionRes = useFocusResource('stats/plan-evolution', () =>
     api.get<PlanEvolutionResponseDTO>('/stats/plan-evolution').then((r) => r.data),
   );
+  const assessmentsRes = useFocusResource('me/assessments', () =>
+    api.get<PhysicalAssessmentDTO[]>('/me/assessments').then((r) => r.data),
+  );
+  const assessments = assessmentsRes.data ?? [];
 
   // Ao trocar de período, mantém os números anteriores na tela até os novos chegarem.
   const lastStatsRef = useRef<StatsSummaryResponseDTO | null>(null);
@@ -484,9 +558,9 @@ export default function StatsScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([summaryRes.refresh(), evolutionRes.refresh()]);
+    await Promise.all([summaryRes.refresh(), evolutionRes.refresh(), assessmentsRes.refresh()]);
     setRefreshing(false);
-  }, [summaryRes.refresh, evolutionRes.refresh]);
+  }, [summaryRes.refresh, evolutionRes.refresh, assessmentsRes.refresh]);
 
   const kpis = useMemo<ReadonlyArray<KpiData>>(() => {
     if (!stats) return [];
@@ -604,7 +678,13 @@ export default function StatsScreen() {
           />
           <KpiGrid kpis={kpis} />
           <InsightBlock insight={stats.insight} />
-          <WeightCard weight={stats.weight} period={period} onRegister={() => setModalVisible(true)} />
+          {assessments.length > 0 && <AssessmentCard assessments={assessments} />}
+          <WeightCard
+            weight={stats.weight}
+            period={period}
+            managed={stats.weightManagedByTrainer}
+            onRegister={() => setModalVisible(true)}
+          />
           <VolumeCard volume={stats.volume} />
           {planEvolution && <PlanEvolutionCard data={planEvolution} />}
         </View>

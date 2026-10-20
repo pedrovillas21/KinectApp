@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { FlaskConical } from 'lucide-react';
 import { billingErrorMessage, confirmDemoPayment, formatBRL, getBilling } from '../services/billingService';
-import type { BillingOverview } from '../types';
+import { qk, queryClient } from '../services/queryClient';
 
 /**
  * Checkout de mentira do modo demo (billing.gateway=demo): no lugar da página
@@ -11,14 +12,13 @@ import type { BillingOverview } from '../types';
  */
 export default function DemoCheckoutPage() {
   const navigate = useNavigate();
-  const [billing, setBilling] = useState<BillingOverview | null>(null);
+  const billingQ = useQuery({ queryKey: qk.billing, queryFn: getBilling });
+  const billing = billingQ.data ?? null;
   const [paying, setPaying] = useState(false);
 
   useEffect(() => {
-    getBilling()
-      .then(setBilling)
-      .catch(() => toast.error('Não foi possível carregar a cobrança.'));
-  }, []);
+    if (billingQ.isError) toast.error('Não foi possível carregar a cobrança.');
+  }, [billingQ.isError]);
 
   const plan = billing?.plans.find((p) => p.code === billing.plan);
   const payable = billing?.gatewayMode === 'DEMO' && billing.status === 'PENDENTE' && plan?.priceCents != null;
@@ -27,6 +27,7 @@ export default function DemoCheckoutPage() {
     setPaying(true);
     try {
       await confirmDemoPayment();
+      await queryClient.invalidateQueries({ queryKey: qk.billing });
       toast.success(`Plano ${plan?.name} ativo`, { description: 'Pagamento simulado com sucesso.' });
       navigate('/assinatura', { replace: true });
     } catch (err) {

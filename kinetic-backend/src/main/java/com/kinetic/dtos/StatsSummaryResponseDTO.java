@@ -2,6 +2,7 @@ package com.kinetic.dtos;
 
 public record StatsSummaryResponseDTO(
         Boolean needsWeightUpdate,
+        Boolean weightManagedByTrainer,
         String period,
         Integer efficiencyPercentage,
         Integer completedSessions,

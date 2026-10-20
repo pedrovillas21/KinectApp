@@ -1,15 +1,30 @@
 import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { approveAiPlans, generateAiPlanPreview, getAiPlanContext } from '../../../services/trainerService';
+import { refreshTrainerData } from '../../../services/queryClient';
 import ConfirmDialog from '../ConfirmDialog';
 import PlanEditor from '../PlanEditor';
 import AiPlanComposer from './AiPlanComposer';
 import AiPlanGenerating from './AiPlanGenerating';
 import AiPlanPreview from './AiPlanPreview';
 import { tagsFor, toPreviewPlans, type AiRequestForm, type PreviewPlan } from './aiDraft';
-import type { AiPlanContext, AiPlanPreview as AiPlanPreviewData, WorkoutPlan } from '../../../types';
+import {
+  abortAiRequest,
+  beginAiRequest,
+  getAiDraft,
+  isAiDraftOnScreen,
+  markAiDraftOnScreen,
+  removeAiDraft,
+  updateAiDraft,
+  useAiDraft,
+} from './aiDraftStore';
+import type { AiPlanContext, WorkoutPlan } from '../../../types';
 
 interface Props {
+  /** Chave do rascunho (aiDraftStore.draftKey); quem abre o fluxo cria o rascunho. */
+  draftKey: string;
   studentId: string;
   studentFirstName: string;
   studentName: string;
@@ -19,8 +34,6 @@ interface Props {
   onApproved: (plans: WorkoutPlan[], replaced: boolean) => void;
 }
 
-type Step = 'compose' | 'generating' | 'preview' | 'edit';
-
 type HttpError = { response?: { status?: number; data?: unknown }; code?: string };
 
 const bodyText = (err: unknown): string | null => {
@@ -28,42 +41,47 @@ const bodyText = (err: unknown): string | null => {
   return typeof data === 'string' && data.trim() ? data : null;
 };
 
+const approvedMessage = (count: number, firstName: string, replaced: boolean) => {
+  const many = count !== 1;
+  return `${count} ${many ? 'fichas aprovadas' : 'ficha aprovada'}. ${many ? 'Já aparecem' : 'Já aparece'} no app de ${firstName}, ${
+    many ? 'prescritas' : 'prescrita'
+  } por você.${replaced ? ' As fichas anteriores saíram do app.' : ''}`;
+};
+
 /**
  * Fluxo de fichas com IA: o personal descreve o treino, a IA monta uma prévia e nada
- * chega ao app do aluno até ele revisar cada ficha e aprovar com a declaração.
+ * chega ao app do aluno até ele revisar cada ficha e aprovar com a declaração. O estado
+ * vive no aiDraftStore: sair para outra tela não perde o pedido, a geração nem a prévia.
  */
-export default function AiPlanFlow({ studentId, studentFirstName, studentName, currentPlans, onExit, onApproved }: Props) {
-  const [step, setStep] = useState<Step>('compose');
-  const [form, setForm] = useState<AiRequestForm>(() => ({
-    prompt: '',
-    scope: 'full',
-    count: 3,
-    duration: '60',
-    level: 'INTERMEDIÁRIO',
-    // Fichas que só a IA do app montou costumam ser trocadas; as de um personal, mantidas.
-    replace: currentPlans.length > 0 && currentPlans.every((p) => p.prescribedByName === null),
-  }));
-  const levelTouched = useRef(false);
+export default function AiPlanFlow({
+  draftKey: key,
+  studentId,
+  studentFirstName,
+  studentName,
+  currentPlans,
+  onExit,
+  onApproved,
+}: Props) {
+  const draft = useAiDraft(key);
+  const navigate = useNavigate();
+  const set = (patch: Parameters<typeof updateAiDraft>[1]) => updateAiDraft(key, patch);
 
   const [context, setContext] = useState<AiPlanContext | null>(null);
   const [contextError, setContextError] = useState(false);
   const [contextKey, setContextKey] = useState(0);
-
-  const [error, setError] = useState<string | null>(null);
-  const [preview, setPreview] = useState<AiPlanPreviewData | null>(null);
-  /** Pedido que gerou a prévia atual (o compositor pode estar sendo ajustado). */
-  const [generatedWith, setGeneratedWith] = useState<AiRequestForm | null>(null);
-  const [plans, setPlans] = useState<PreviewPlan[]>([]);
-  const [reviewed, setReviewed] = useState<boolean[]>([]);
-  const [active, setActive] = useState(0);
-  const [agreed, setAgreed] = useState(false);
-  const [editing, setEditing] = useState<number | null>(null);
-  const [approving, setApproving] = useState(false);
-  const [approveError, setApproveError] = useState<string | null>(null);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
-
-  const abortRef = useRef<AbortController | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const onApprovedRef = useRef<Props['onApproved'] | null>(onApproved);
+  onApprovedRef.current = onApproved;
+
+  // Na tela: o fim da geração aparece aqui. Fora dela, vira um aviso com atalho.
+  useEffect(() => {
+    const unmark = markAiDraftOnScreen(key);
+    return () => {
+      unmark();
+      onApprovedRef.current = null;
+    };
+  }, [key]);
 
   useEffect(() => {
     let cancelled = false;
@@ -73,7 +91,7 @@ export default function AiPlanFlow({ studentId, studentFirstName, studentName, c
         if (cancelled) return;
         setContext(data);
         // O nível do perfil vira o padrão, a menos que o personal já tenha escolhido outro.
-        if (!levelTouched.current) setForm((f) => ({ ...f, level: data.level }));
+        if (!getAiDraft(key)?.levelTouched) set((d) => ({ form: { ...d.form, level: data.level } }));
       })
       .catch(() => {
         if (!cancelled) setContextError(true);
@@ -81,46 +99,42 @@ export default function AiPlanFlow({ studentId, studentFirstName, studentName, c
     return () => {
       cancelled = true;
     };
-  }, [studentId, contextKey]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [studentId, contextKey, key]);
 
+  const step = draft?.step;
   // Cada etapa começa do topo do painel.
   useEffect(() => {
     rootRef.current?.scrollIntoView({ block: 'start' });
   }, [step]);
 
-  // Sair da aba com a requisição em andamento não deixa resposta chegando num componente morto.
-  useEffect(() => () => abortRef.current?.abort(), []);
-
-  // Prévia ainda não aprovada: avisa antes de fechar a janela.
-  useEffect(() => {
-    if (!preview) return;
-    const onBeforeUnload = (e: BeforeUnloadEvent) => e.preventDefault();
-    window.addEventListener('beforeunload', onBeforeUnload);
-    return () => window.removeEventListener('beforeunload', onBeforeUnload);
-  }, [preview]);
-
+  if (!draft) return null;
+  const { form, preview, plans } = draft;
   const replaceCurrent = currentPlans.length > 0 && form.replace;
+  const reviewPath = `/students/${studentId}?aba=treinos`;
 
-  const updateForm = (changes: Partial<AiRequestForm>) => {
-    if (changes.level !== undefined) levelTouched.current = true;
-    setForm((f) => ({ ...f, ...changes }));
-    // Substituir ou manter muda as letras das fichas novas; as que o personal editou ficam como ele deixou.
-    if (changes.replace !== undefined && changes.replace !== form.replace && plans.length > 0) {
-      const tags = tagsFor(plans.length, changes.replace, currentPlans);
-      setPlans((list) => list.map((p, i) => (p.edited ? p : { ...p, input: { ...p.input, tag: tags[i] ?? null } })));
-      setAgreed(false);
-    }
-  };
+  const updateForm = (changes: Partial<AiRequestForm>) =>
+    set((d) => {
+      const next: Partial<typeof d> = { form: { ...d.form, ...changes } };
+      if (changes.level !== undefined) next.levelTouched = true;
+      // Substituir ou manter muda as letras das fichas novas; as que o personal editou ficam como ele deixou.
+      if (changes.replace !== undefined && changes.replace !== d.form.replace && d.plans.length > 0) {
+        const tags = tagsFor(d.plans.length, changes.replace, currentPlans);
+        next.plans = d.plans.map((p, i) => (p.edited ? p : { ...p, input: { ...p.input, tag: tags[i] ?? null } }));
+        next.agreed = false;
+      }
+      return next;
+    });
 
+  // Tudo abaixo escreve no rascunho, não no componente: continua valendo se o personal sair da tela.
   const generate = async () => {
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-    const request = { ...form };
+    const current = getAiDraft(key);
+    if (!current) return;
+    const controller = beginAiRequest(key);
+    const request = { ...current.form };
     const planCount = request.scope === 'full' ? request.count : 1;
 
-    setError(null);
-    setStep('generating');
+    set({ error: null, step: 'generating', generatingSince: Date.now() });
     try {
       const result = await generateAiPlanPreview(
         studentId,
@@ -134,72 +148,91 @@ export default function AiPlanFlow({ studentId, studentFirstName, studentName, c
       );
       if (controller.signal.aborted) return;
       const tags = tagsFor(result.plans.length, request.replace, currentPlans);
-      setPreview(result);
-      setGeneratedWith(request);
-      setPlans(toPreviewPlans(result.plans, tags, request.level));
-      setReviewed(result.plans.map(() => false));
-      setActive(0);
-      setAgreed(false);
-      setApproveError(null);
-      setStep('preview');
+      set({
+        preview: result,
+        generatedWith: request,
+        plans: toPreviewPlans(result.plans, tags, request.level),
+        reviewed: result.plans.map(() => false),
+        active: 0,
+        agreed: false,
+        approveError: null,
+        step: 'preview',
+        generatingSince: null,
+      });
+      if (!isAiDraftOnScreen(key)) {
+        toast.success(`Prévia de ${studentFirstName} pronta`, {
+          description: `${result.plans.length} ${result.plans.length === 1 ? 'ficha aguardando' : 'fichas aguardando'} sua revisão.`,
+          action: { label: 'Revisar', onClick: () => navigate(reviewPath) },
+        });
+      }
     } catch (err: unknown) {
       if (controller.signal.aborted || axios.isCancel(err)) return;
       const status = (err as HttpError).response?.status;
-      if (status === 404) {
-        setError(`O vínculo com ${studentFirstName} não está mais ativo.`);
-      } else if ((err as HttpError).code === 'ECONNABORTED') {
-        setError('A IA demorou demais para responder. Tente gerar de novo.');
-      } else {
-        setError(
-          bodyText(err) ?? 'Não foi possível gerar a prévia. Verifique sua conexão e tente de novo.',
-        );
+      const message =
+        status === 404
+          ? `O vínculo com ${studentFirstName} não está mais ativo.`
+          : (err as HttpError).code === 'ECONNABORTED'
+            ? 'A IA demorou demais para responder. Tente gerar de novo.'
+            : (bodyText(err) ?? 'Não foi possível gerar a prévia. Verifique sua conexão e tente de novo.');
+      set({ error: message, step: 'compose', generatingSince: null });
+      if (!isAiDraftOnScreen(key)) {
+        toast.error(`A prévia de ${studentFirstName} não foi gerada`, {
+          description: message,
+          action: { label: 'Ver pedido', onClick: () => navigate(reviewPath) },
+        });
       }
-      setStep('compose');
     }
   };
 
   const cancelGeneration = () => {
-    abortRef.current?.abort();
-    setStep(preview ? 'preview' : 'compose');
+    abortAiRequest(key);
+    set((d) => ({ step: d.preview ? 'preview' : 'compose', generatingSince: null }));
   };
 
-  const toggleReviewed = (index: number) => {
-    const next = reviewed.map((r, i) => (i === index ? !r : r));
-    setReviewed(next);
-    // A declaração cobre todas as fichas revisadas: desmarcar uma desfaz o aceite.
-    if (!next.every(Boolean)) setAgreed(false);
-  };
+  const toggleReviewed = (index: number) =>
+    set((d) => {
+      const next = d.reviewed.map((r, i) => (i === index ? !r : r));
+      // A declaração cobre todas as fichas revisadas: desmarcar uma desfaz o aceite.
+      return { reviewed: next, agreed: next.every(Boolean) ? d.agreed : false };
+    });
 
-  const applyEdit = (index: number, input: PreviewPlan['input']) => {
-    setPlans((list) => list.map((p, i) => (i === index ? { ...p, input, edited: true } : p)));
-    // O aceite valia para a versão anterior da ficha.
-    setAgreed(false);
-    setApproveError(null);
-    setEditing(null);
-    setStep('preview');
-  };
+  const applyEdit = (index: number, input: PreviewPlan['input']) =>
+    set((d) => ({
+      plans: d.plans.map((p, i) => (i === index ? { ...p, input, edited: true } : p)),
+      // O aceite valia para a versão anterior da ficha.
+      agreed: false,
+      approveError: null,
+      editing: null,
+      step: 'preview',
+    }));
 
   const approve = async () => {
-    if (!preview || approving) return;
-    setApproving(true);
-    setApproveError(null);
+    const current = getAiDraft(key);
+    if (!current?.preview || current.approving) return;
+    set({ approving: true, approveError: null });
     try {
-      const saved = await approveAiPlans(studentId, preview.generationId, {
+      const saved = await approveAiPlans(studentId, current.preview.generationId, {
         replaceCurrent,
         declarationAccepted: true,
-        plans: plans.map((p) => p.input),
+        plans: current.plans.map((p) => p.input),
       });
-      onApproved(saved, replaceCurrent);
+      const done = onApprovedRef.current;
+      if (done) {
+        done(saved, replaceCurrent);
+      } else {
+        removeAiDraft(key);
+        toast.success(approvedMessage(saved.length, studentFirstName, replaceCurrent));
+        void refreshTrainerData();
+      }
     } catch (err: unknown) {
       const status = (err as HttpError).response?.status;
-      if (status === 404) {
-        setApproveError(
-          `Não foi possível aprovar: o vínculo com ${studentFirstName} não está mais ativo ou a prévia não existe.`,
-        );
-      } else {
-        setApproveError(bodyText(err) ?? 'Não foi possível aprovar. Verifique sua conexão e tente de novo.');
-      }
-      setApproving(false);
+      set({
+        approving: false,
+        approveError:
+          status === 404
+            ? `Não foi possível aprovar: o vínculo com ${studentFirstName} não está mais ativo ou a prévia não existe.`
+            : (bodyText(err) ?? 'Não foi possível aprovar. Verifique sua conexão e tente de novo.'),
+      });
     }
   };
 
@@ -207,8 +240,9 @@ export default function AiPlanFlow({ studentId, studentFirstName, studentName, c
 
   return (
     <div ref={rootRef}>
-      {step === 'compose' && (
+      {draft.step === 'compose' && (
         <AiPlanComposer
+          studentId={studentId}
           studentFirstName={studentFirstName}
           form={form}
           onChange={updateForm}
@@ -216,61 +250,57 @@ export default function AiPlanFlow({ studentId, studentFirstName, studentName, c
           context={context}
           contextError={contextError}
           onRetryContext={() => setContextKey((k) => k + 1)}
-          error={error}
+          onProtocolSaved={() => setContextKey((k) => k + 1)}
+          error={draft.error}
           hasPreview={!!preview}
-          onBackToPreview={() => setStep('preview')}
+          onBackToPreview={() => set({ step: 'preview' })}
           onGenerate={() => void generate()}
           onExit={requestExit}
         />
       )}
 
-      {step === 'generating' && (
+      {draft.step === 'generating' && (
         <AiPlanGenerating
           studentFirstName={studentFirstName}
           planCount={form.scope === 'full' ? form.count : 1}
+          startedAt={draft.generatingSince ?? Date.now()}
           onCancel={cancelGeneration}
         />
       )}
 
-      {step === 'preview' && preview && generatedWith && plans.length > 0 && (
+      {draft.step === 'preview' && preview && draft.generatedWith && plans.length > 0 && (
         <AiPlanPreview
           studentFirstName={studentFirstName}
           studentName={studentName}
           plans={plans}
           understood={preview.understood}
           attentionPoints={preview.attentionPoints}
-          form={{ ...generatedWith, replace: form.replace }}
+          form={{ ...draft.generatedWith, replace: form.replace }}
           currentPlanCount={currentPlans.length}
-          active={Math.min(active, plans.length - 1)}
-          onSelect={setActive}
-          reviewed={reviewed}
+          active={Math.min(draft.active, plans.length - 1)}
+          onSelect={(active) => set({ active })}
+          reviewed={draft.reviewed}
           onToggleReviewed={toggleReviewed}
-          agreed={agreed}
-          onToggleAgreed={() => setAgreed((a) => !a)}
-          approving={approving}
-          approveError={approveError}
+          agreed={draft.agreed}
+          onToggleAgreed={() => set((d) => ({ agreed: !d.agreed }))}
+          approving={draft.approving}
+          approveError={draft.approveError}
           onApprove={() => void approve()}
           onRegenerate={() => void generate()}
-          onAdjust={() => setStep('compose')}
-          onEdit={(index) => {
-            setEditing(index);
-            setStep('edit');
-          }}
+          onAdjust={() => set({ step: 'compose' })}
+          onEdit={(index) => set({ editing: index, step: 'edit' })}
           onDiscard={() => setConfirmDiscard(true)}
         />
       )}
 
-      {step === 'edit' && editing !== null && plans[editing] && (
+      {draft.step === 'edit' && draft.editing !== null && plans[draft.editing] && (
         <PlanEditor
-          key={`draft-${editing}`}
+          key={`draft-${draft.editing}`}
           studentId={studentId}
           studentFirstName={studentFirstName}
-          mode={{ kind: 'draft', input: plans[editing].input }}
-          onCancel={() => {
-            setEditing(null);
-            setStep('preview');
-          }}
-          onDraftSaved={(input) => applyEdit(editing, input)}
+          mode={{ kind: 'draft', input: plans[draft.editing].input }}
+          onCancel={() => set({ editing: null, step: 'preview' })}
+          onDraftSaved={(input) => applyEdit(draft.editing!, input)}
         />
       )}
 

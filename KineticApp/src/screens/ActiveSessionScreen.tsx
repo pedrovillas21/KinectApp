@@ -13,6 +13,8 @@ import api from '../services/api';
 import useWorkoutPresence from '../hooks/useWorkoutPresence';
 import { uuidv4 } from '../utils/uuid';
 import { showAlert } from '../components/ui/AlertHost';
+import WorkoutCompleteSheet from '../components/WorkoutCompleteSheet';
+import type { FinishedWorkout } from '../navigation/types';
 
 interface SetData {
   weight: string;
@@ -90,6 +92,8 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
   const clientSessionIdRef = useRef<string>('');
   if (!clientSessionIdRef.current) clientSessionIdRef.current = uuidv4();
   const [saving, setSaving] = useState(false);
+  // Treino salvo: abre a folha "Treino concluído" (postar ou sair).
+  const [finished, setFinished] = useState<FinishedWorkout | null>(null);
   const startSaving = () => {
     if (savingRef.current) return false;
     savingRef.current = true;
@@ -340,8 +344,15 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
     try {
       await api.post('/sessions/log', payload);
       markSaved();
-      showAlert('Parabéns!', 'Seu treino foi salvo com sucesso.');
-      leaveScreen();
+      // Mesmo cálculo de volume do backend (TrainingSummaryService): Σ carga × reps.
+      setFinished({
+        clientSessionId: clientSessionIdRef.current,
+        title: workoutData?.title || 'Treino',
+        volumeKg: finalLogs.reduce((sum, l) => sum + l.weightUsed * l.repsPerformed, 0),
+        durationSeconds: elapsedTime,
+        setsCount: finalLogs.length,
+        exercisesCount: new Set(finalLogs.map(l => l.exerciseId)).size,
+      });
     } catch (error) {
       stopSaving();
       console.error('Erro ao salvar sessão', error);
@@ -479,6 +490,16 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
           </View>
         )}
       </View>
+
+      <WorkoutCompleteSheet
+        workout={finished}
+        onSkip={() => leaveScreen()}
+        onPost={() => {
+          if (!finished) return;
+          allowLeaveRef.current = true;
+          navigation.replace('WorkoutCamera', { workout: finished });
+        }}
+      />
     </SafeAreaView>
   );
 }

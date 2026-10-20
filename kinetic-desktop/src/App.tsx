@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import ProtectedRoute from './routes/ProtectedRoute';
 import AppShell from './layouts/AppShell';
 import PhoneGate from './layouts/PhoneGate';
+import PersonalShell from './layouts/PersonalShell';
 import { useAuth } from './contexts/AuthContext';
 import { homeForRole } from './config/nav';
 import LoginPage from './pages/LoginPage';
@@ -52,13 +53,16 @@ export default function App() {
           </ProtectedRoute>
         }
       >
-        <Route path="/students" element={<StudentsListPage />} />
-        <Route path="/students/:id" element={<StudentDetailPage />} />
+        <Route element={<PersonalShell />}>
+          <Route path="/students" element={<StudentsListPage />} />
+          <Route path="/students/:id" element={<StudentDetailPage />} />
+          <Route path="/assinatura" element={<BillingPage />} />
+          <Route path="/financeiro" element={<FinancePage />} />
+          <Route path="/perfil" element={<MyProfilePage />} />
+        </Route>
+        {/* Sem barra lateral: relatório para imprimir e checkout de demonstração. */}
         <Route path="/students/:id/relatorio" element={<EvolutionReportPage />} />
-        <Route path="/assinatura" element={<BillingPage />} />
         <Route path="/assinatura/checkout-demo" element={<DemoCheckoutPage />} />
-        <Route path="/financeiro" element={<FinancePage />} />
-        <Route path="/perfil" element={<MyProfilePage />} />
       </Route>
 
       {/* ROOT — app-shell com sidebar + rotas filhas. */}

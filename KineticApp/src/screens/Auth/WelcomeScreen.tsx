@@ -1,127 +1,154 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Dimensions,
-} from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { AccessibilityInfo, Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import Svg, { Path, Circle, LinearGradient, Defs, Stop } from 'react-native-svg';
-
-// ─── Design tokens (espelham auth.jsx) ──────────────────────────────────────
-const A = {
-  bg: '#131313',
-  s1: '#1c1b1b',
-  s2: '#2a2a2a',
-  primary: '#00E5FF',
-  primarySoft: 'rgba(0,229,255,0.22)',
-  primaryDim: 'rgba(0,229,255,0.08)',
-  text: '#f5f6f7',
-  text2: 'rgba(245,246,247,0.60)',
-  text3: 'rgba(245,246,247,0.34)',
-  ghostHi: 'rgba(255,255,255,0.13)',
-  font: 'System',
-};
-
-const FEATURES = [
-  'Treinos gerados por IA, calibrados para você',
-  'Progressão automática de carga e volume',
-  'Anamnese profunda para resultados reais',
-];
+import Svg, { Path } from 'react-native-svg';
+import { FONT, KINETIC } from '../../theme/kinetic';
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
 };
 
-// Ícone de raio (bolt) inline
-function BoltIcon({ size = 20, color = '#00161a' }: { size?: number; color?: string }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
+// As três barras da marca, na ordem em que entram.
+const BARS = [
+  { d: 'M6 0h6L6 20H0z', opacity: 1 },
+  { d: 'M15 0h6l-6 20H9z', opacity: 0.55 },
+  { d: 'M24 0h2l-6 20h-2z', opacity: 0.25 },
+];
+
+const EASE = Easing.bezier(0.2, 0.7, 0.2, 1);
+
+/** Valor que vai de 0 a 1 depois de `delay` ms (ou já em 1 com "reduzir movimento"). */
+function useEntrance(delay: number, duration: number, reduceMotion: boolean | null) {
+  const value = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (reduceMotion === null) return;
+    if (reduceMotion) {
+      value.setValue(1);
+      return;
+    }
+    Animated.timing(value, { toValue: 1, duration, delay, easing: EASE, useNativeDriver: true }).start();
+  }, [value, delay, duration, reduceMotion]);
+  return value;
 }
 
-function CheckIcon() {
-  return (
-    <Svg width={12} height={12} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M5 12l5 5L20 7"
-        stroke="#00E5FF"
-        strokeWidth={3}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
+/** Tela de entrada: a marca e o caminho para entrar ou criar conta, sem propaganda. */
 export default function WelcomeScreen({ navigation }: Props) {
+  const [reduceMotion, setReduceMotion] = React.useState<boolean | null>(null);
+
+  useEffect(() => {
+    AccessibilityInfo.isReduceMotionEnabled()
+      .then(setReduceMotion)
+      .catch(() => setReduceMotion(false));
+  }, []);
+
+  const bar0 = useEntrance(50, 500, reduceMotion);
+  const bar1 = useEntrance(150, 500, reduceMotion);
+  const bar2 = useEntrance(250, 500, reduceMotion);
+  const wordmark = useEntrance(300, 600, reduceMotion);
+  const tagline = useEntrance(450, 600, reduceMotion);
+  const actions = useEntrance(600, 600, reduceMotion);
+  const footer = useEntrance(700, 600, reduceMotion);
+  const bars = [bar0, bar1, bar2];
+
+  // Barras grandes ao fundo deslizam devagar, ida e volta.
+  const drift = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (reduceMotion !== false) return;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(drift, { toValue: 1, duration: 9000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(drift, { toValue: 0, duration: 9000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [drift, reduceMotion]);
+
+  const rise = (v: Animated.Value) => ({
+    opacity: v,
+    transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }],
+  });
+
   return (
     <View style={styles.container}>
-      {/* Glow orb */}
-      <View style={styles.glowOrb} />
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.backdrop,
+          { transform: [{ translateX: drift.interpolate({ inputRange: [0, 1], outputRange: [0, -18] }) }] },
+        ]}
+      >
+        <Svg width={620} height={477} viewBox="0 0 26 20">
+          <Path d={BARS[0].d} fill={KINETIC.primary} opacity={0.05} />
+          <Path d={BARS[1].d} fill={KINETIC.primary} opacity={0.03} />
+          <Path d={BARS[2].d} fill={KINETIC.primary} opacity={0.02} />
+        </Svg>
+      </Animated.View>
 
       <SafeAreaView style={styles.safe}>
-        {/* Hero area */}
         <View style={styles.hero}>
-          {/* Logo mark */}
-          <View style={styles.logoWrap}>
-            <BoltIcon size={36} color="#00161a" />
+          <View style={styles.brand} accessible accessibilityRole="header" accessibilityLabel="Kinetic">
+            <View style={styles.mark}>
+              {BARS.map((bar, i) => (
+                <Animated.View
+                  key={bar.d}
+                  style={[
+                    StyleSheet.absoluteFill,
+                    {
+                      opacity: bars[i].interpolate({ inputRange: [0, 1], outputRange: [0, bar.opacity] }),
+                      transform: [{ translateX: bars[i].interpolate({ inputRange: [0, 1], outputRange: [-10, 0] }) }],
+                    },
+                  ]}
+                >
+                  <Svg width={40} height={31} viewBox="0 0 26 20">
+                    <Path d={bar.d} fill={KINETIC.primary} />
+                  </Svg>
+                </Animated.View>
+              ))}
+            </View>
+            <Animated.Text style={[styles.wordmark, rise(wordmark)]}>KINETIC</Animated.Text>
           </View>
-
-          {/* Wordmark */}
-          <Text style={styles.wordmark}>KINETIC</Text>
-          <Text style={styles.tagline}>
-            O protocolo de treino que evolui com você.
-          </Text>
-
-          {/* Feature list */}
-          <View style={styles.featureList}>
-            {FEATURES.map((f, i) => (
-              <View key={i} style={styles.featureRow}>
-                <View style={styles.featureIcon}>
-                  <CheckIcon />
-                </View>
-                <Text style={styles.featureText}>{f}</Text>
-              </View>
-            ))}
-          </View>
+          <Animated.Text style={[styles.tagline, rise(tagline)]}>Treino com método.</Animated.Text>
         </View>
 
-        {/* Bottom CTAs */}
-        <View style={styles.footer}>
-          <TouchableOpacity
-            style={styles.primaryBtn}
-            onPress={() => navigation.navigate('Register')}
-            activeOpacity={0.85}
-          >
-            <BoltIcon size={18} color="#00161a" />
-            <Text style={styles.primaryBtnText}>Criar conta grátis</Text>
-          </TouchableOpacity>
+        <View style={styles.bottom}>
+          <Animated.View style={[styles.actions, rise(actions)]}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => navigation.navigate('Login')}
+              style={({ pressed }) => [styles.primaryBtn, pressed && styles.pressed]}
+            >
+              <Text style={styles.primaryBtnText}>Entrar</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => navigation.navigate('Register')}
+              style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
+            >
+              <Text style={styles.secondaryBtnText}>Criar conta</Text>
+            </Pressable>
+          </Animated.View>
 
-          <TouchableOpacity
-            style={styles.secondaryBtn}
-            onPress={() => navigation.navigate('Login')}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.secondaryBtnText}>Já tenho conta · Entrar</Text>
-          </TouchableOpacity>
-
-          <Text style={styles.terms}>
-            Ao criar conta, você concorda com os{' '}
-            <Text style={styles.termsLink}>Termos de Uso</Text>
-            {' '}e{' '}
-            <Text style={styles.termsLink}>Privacidade</Text>.
-          </Text>
+          <Animated.View style={[styles.footer, rise(footer)]}>
+            <View style={styles.trust}>
+              <Svg width={13} height={13} viewBox="0 0 24 24" fill="none">
+                <Path
+                  d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"
+                  stroke={KINETIC.success}
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <Path d="m9 12 2 2 4-4" stroke={KINETIC.success} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+              </Svg>
+              <Text style={styles.trustText}>Seus dados protegidos conforme a LGPD</Text>
+            </View>
+            <Text style={styles.terms}>
+              Ao continuar, você concorda com os <Text style={styles.termsLink}>Termos de Uso</Text> e a{' '}
+              <Text style={styles.termsLink}>Política de Privacidade</Text>.
+            </Text>
+          </Animated.View>
         </View>
       </SafeAreaView>
     </View>
@@ -129,138 +156,42 @@ export default function WelcomeScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: A.bg,
-  },
-  safe: {
-    flex: 1,
-  },
-  glowOrb: {
-    position: 'absolute',
-    top: -80,
-    left: '50%',
-    marginLeft: -170,
-    width: 340,
-    height: 340,
-    borderRadius: 170,
-    backgroundColor: 'rgba(0,229,255,0.07)',
-  },
-  hero: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-    paddingTop: 20,
-  },
-  logoWrap: {
-    width: 72,
-    height: 72,
-    borderRadius: 22,
-    backgroundColor: A.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-    shadowColor: A.primary,
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.4,
-    shadowRadius: 32,
-    elevation: 12,
-  },
-  wordmark: {
-    fontFamily: A.font,
-    fontWeight: '900',
-    fontSize: 42,
-    color: A.text,
-    letterSpacing: -2,
-    marginBottom: 10,
-  },
-  tagline: {
-    fontFamily: A.font,
-    fontSize: 15,
-    color: A.text2,
-    textAlign: 'center',
-    lineHeight: 22,
-    maxWidth: 260,
-    marginBottom: 36,
-  },
-  featureList: {
-    alignSelf: 'stretch',
-    gap: 12,
-  },
-  featureRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  featureIcon: {
-    width: 22,
-    height: 22,
-    borderRadius: 8,
-    backgroundColor: A.primaryDim,
-    borderWidth: 1,
-    borderColor: 'rgba(0,229,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  featureText: {
-    fontFamily: A.font,
-    fontSize: 13,
-    color: A.text2,
-    lineHeight: 20,
-    flex: 1,
-  },
-  footer: {
-    paddingHorizontal: 24,
-    paddingBottom: 16,
-    gap: 12,
-  },
+  container: { flex: 1, backgroundColor: KINETIC.bg, overflow: 'hidden' },
+  backdrop: { position: 'absolute', top: 150, left: 40 },
+  safe: { flex: 1, paddingHorizontal: 24, paddingBottom: 12 },
+  hero: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14 },
+  brand: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  mark: { width: 40, height: 31 },
+  wordmark: { fontFamily: FONT.bold, fontSize: 30, letterSpacing: 1.2, color: KINETIC.text },
+  tagline: { fontFamily: FONT.regular, fontSize: 14, color: KINETIC.textDim },
+  bottom: { gap: 20 },
+  actions: { gap: 10 },
   primaryBtn: {
-    flexDirection: 'row',
+    height: 52,
+    borderRadius: 12,
+    backgroundColor: KINETIC.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 17,
-    borderRadius: 16,
-    backgroundColor: A.primary,
-    shadowColor: A.primary,
-    shadowOffset: { width: 0, height: 6 },
+    shadowColor: KINETIC.primary,
+    shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.35,
-    shadowRadius: 20,
-    elevation: 8,
+    shadowRadius: 18,
+    elevation: 6,
   },
-  primaryBtnText: {
-    fontFamily: A.font,
-    fontWeight: '800',
-    fontSize: 16,
-    color: '#00161a',
-    letterSpacing: 0.2,
-  },
+  primaryBtnText: { fontFamily: FONT.bold, fontSize: 15, color: KINETIC.onPrimary },
   secondaryBtn: {
-    paddingVertical: 17,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: A.ghostHi,
+    height: 52,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.14)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  secondaryBtnText: {
-    fontFamily: A.font,
-    fontWeight: '700',
-    fontSize: 16,
-    color: A.text,
-  },
-  terms: {
-    fontFamily: A.font,
-    fontSize: 11,
-    color: A.text3,
-    textAlign: 'center',
-    lineHeight: 17,
-    marginTop: 4,
-  },
-  termsLink: {
-    color: A.text2,
-    textDecorationLine: 'underline',
-  },
+  secondaryBtnText: { fontFamily: FONT.semibold, fontSize: 15, color: KINETIC.text },
+  pressed: { opacity: 0.85 },
+  footer: { alignItems: 'center', gap: 8 },
+  trust: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  trustText: { fontFamily: FONT.regular, fontSize: 12, color: KINETIC.textDim },
+  terms: { fontFamily: FONT.regular, fontSize: 11.5, lineHeight: 17, color: KINETIC.textSecondary, textAlign: 'center' },
+  termsLink: { textDecorationLine: 'underline', color: KINETIC.textDim },
 });

@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { Activity, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   NAV_BY_ROLE,
@@ -44,11 +44,13 @@ export default function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <div className="flex items-center gap-3 px-2 py-2">
-          <div className="w-9 h-9 shrink-0 rounded-xl flex items-center justify-center bg-gradient-to-br from-k-primary to-k-primary-deep text-k-on-primary shadow-[0_0_12px_rgba(0,229,255,0.25)]">
-            <Activity className="w-5 h-5 stroke-[2.5]" />
-          </div>
+          <svg width="22" height="17" viewBox="0 0 26 20" aria-hidden="true" className="shrink-0">
+            <path d="M6 0h6L6 20H0z" fill="#00E5FF" />
+            <path d="M15 0h6l-6 20H9z" fill="#00E5FF" opacity="0.55" />
+            <path d="M24 0h2l-6 20h-2z" fill="#00E5FF" opacity="0.25" />
+          </svg>
           <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
-            <span className="text-sm font-extrabold tracking-tight leading-tight">Kinetic</span>
+            <span className="text-sm font-extrabold italic tracking-[0.06em] leading-tight">KINETIC</span>
             <span className="text-[11px] text-k-text-muted truncate">{subtitle}</span>
           </div>
         </div>

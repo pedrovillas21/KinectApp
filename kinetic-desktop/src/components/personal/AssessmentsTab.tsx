@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
@@ -14,6 +15,7 @@ import {
   listAssessments,
   updateAssessment,
 } from '../../services/assessmentService';
+import { qk, refreshTrainerData } from '../../services/queryClient';
 import { dayMonth, fullDate, todayIso } from '../../utils/dates';
 import type { AssessmentInput, AssessmentMeasures, PhysicalAssessment } from '../../types';
 
@@ -68,8 +70,9 @@ const tooltipStyle = {
 
 /** Aba "Avaliações" do aluno: histórico, gráfico de evolução e cadastro de novas avaliações. */
 export default function AssessmentsTab({ studentId, studentFirstName }: { studentId: string; studentFirstName: string }) {
-  const [list, setList] = useState<PhysicalAssessment[] | null>(null);
-  const [loadError, setLoadError] = useState(false);
+  const listQ = useQuery({ queryKey: qk.assessments(studentId), queryFn: () => listAssessments(studentId) });
+  const list = listQ.data ?? null;
+  const loadError = listQ.isError && !list;
   const [editing, setEditing] = useState<PhysicalAssessment | 'new' | null>(null);
   const [draft, setDraft] = useState<Draft>(emptyDraft());
   const [saving, setSaving] = useState(false);
@@ -77,14 +80,8 @@ export default function AssessmentsTab({ studentId, studentFirstName }: { studen
   const [deleting, setDeleting] = useState<PhysicalAssessment | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
 
-  const load = () => {
-    setLoadError(false);
-    listAssessments(studentId)
-      .then(setList)
-      .catch(() => setLoadError(true));
-  };
-
-  useEffect(load, [studentId]);
+  // Avaliação também mexe na caixa "Hoje" (reavaliação pendente): recarrega o que estiver na tela.
+  const load = () => void refreshTrainerData();
 
   const latest = list && list.length > 0 ? list[list.length - 1] : null;
 

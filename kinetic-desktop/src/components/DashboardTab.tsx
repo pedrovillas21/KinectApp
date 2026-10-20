@@ -1,4 +1,5 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'motion/react';
 import {
   Area,
@@ -12,21 +13,15 @@ import {
 import {
   AlertCircle,
   AlertTriangle,
-  ArrowRight,
   BarChart3,
   CheckCircle2,
-  Minus,
   RefreshCw,
-  Scale,
-  Sparkles,
-  TrendingDown,
-  TrendingUp,
 } from 'lucide-react';
 import { getStudentPlanEvolution, getStudentStats } from '../services/trainerService';
+import { qk } from '../services/queryClient';
 import {
   CountUp,
   EASE_OUT,
-  ProgressRing,
   SPRING_PILL,
   riseItem,
   staggerContainer,
@@ -41,8 +36,6 @@ import type {
 interface Props {
   studentId: string;
   studentFirstName: string;
-  /** Avisa o pai da meta do aluno (vem da evolução do plano) para o cabeçalho. */
-  onGoal?: (goal: string | null) => void;
 }
 
 const PERIODS: { id: StatsPeriodId; label: string }[] = [
@@ -67,7 +60,7 @@ const formatShortDate = (iso: string): string => {
   return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
 };
 
-const TILE = 'rounded-[20px] border border-k-ghost bg-k-surface1 transition-[translate,border-color] duration-300 hover:-translate-y-[3px] hover:border-white/[0.16]';
+const TILE = 'rounded-xl border border-white/[0.08]';
 
 const tooltipStyle = {
   background: '#2a2a2a',
@@ -78,74 +71,33 @@ const tooltipStyle = {
   padding: '6px 10px',
 };
 
-export default function DashboardTab({ studentId, studentFirstName, onGoal }: Props) {
+export default function DashboardTab({ studentId, studentFirstName }: Props) {
   const [period, setPeriod] = useState<StatsPeriodId>('month');
-  const [stats, setStats] = useState<StatsSummaryResponseDTO | null>(null);
-  const [evolution, setEvolution] = useState<PlanEvolutionResponseDTO | null>(null);
-  const [statsLoading, setStatsLoading] = useState(true);
-  const [evoLoading, setEvoLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [reloadKey, setReloadKey] = useState(0);
-
-  // Troca de aluno: zera tudo para mostrar o esqueleto, não dados do anterior.
-  useEffect(() => {
-    setStats(null);
-    setEvolution(null);
-  }, [studentId]);
-
-  // Estatísticas do período. Ao trocar de período os dados antigos ficam na
-  // tela (esmaecidos) e os números animam até os novos — sem "pulo".
-  useEffect(() => {
-    let cancelled = false;
-    setStatsLoading(true);
-    setError(null);
-    getStudentStats(studentId, period)
-      .then((summary) => {
-        if (!cancelled) setStats(summary);
-      })
-      .catch(() => {
-        if (!cancelled) setError('Não foi possível carregar as estatísticas deste aluno.');
-      })
-      .finally(() => {
-        if (!cancelled) setStatsLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [studentId, period, reloadKey]);
-
+  // Ao trocar de período os dados antigos ficam na tela (esmaecidos) e os
+  // números animam até os novos; ao trocar de aluno, esqueleto (nada do anterior).
+  const statsQ = useQuery({
+    queryKey: qk.studentStats(studentId, period),
+    queryFn: () => getStudentStats(studentId, period),
+    placeholderData: (prev, prevQuery) => (prevQuery?.queryKey[2] === studentId ? prev : undefined),
+  });
   // Evolução do ciclo não depende do período.
-  useEffect(() => {
-    let cancelled = false;
-    setEvoLoading(true);
-    getStudentPlanEvolution(studentId)
-      .then((evo) => {
-        if (cancelled) return;
-        setEvolution(evo);
-        onGoal?.(evo.goal);
-      })
-      .catch(() => {
-        if (!cancelled) setEvolution(null);
-      })
-      .finally(() => {
-        if (!cancelled) setEvoLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-    // onGoal é um setState do pai (estável); não precisa refazer a busca por ele.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [studentId, reloadKey]);
+  const evolutionQ = useQuery({
+    queryKey: qk.planEvolution(studentId),
+    queryFn: () => getStudentPlanEvolution(studentId),
+  });
+  const stats = statsQ.data ?? null;
+  const evolution = evolutionQ.data ?? null;
+  const evoLoading = evolutionQ.isPending;
+  const error = statsQ.isError ? 'Não foi possível carregar as estatísticas deste aluno.' : null;
+  const retry = () => void statsQ.refetch();
 
-  const refreshing = statsLoading && stats !== null;
+  const refreshing = statsQ.isPlaceholderData;
 
   return (
-    <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-5 px-8 py-7">
+    <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-5 px-8 pb-12 pt-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="font-display text-[22px] font-extrabold tracking-tight font-stretch-semi-expanded">
-            Desempenho
-          </h2>
+          <h2 className="text-[17px] font-semibold">Desempenho</h2>
           <p className="mt-0.5 text-[13px] text-k-text-muted">
             Dados registrados por {studentFirstName} no app Kinetic
           </p>
@@ -153,7 +105,7 @@ export default function DashboardTab({ studentId, studentFirstName, onGoal }: Pr
         <div
           role="group"
           aria-label="Período de análise"
-          className="flex rounded-[14px] border border-k-ghost bg-k-surface1 p-1"
+          className="flex gap-0.5 rounded-lg border border-white/[0.08] p-0.5"
         >
           {PERIODS.map((p) => {
             const active = p.id === period;
@@ -163,15 +115,15 @@ export default function DashboardTab({ studentId, studentFirstName, onGoal }: Pr
                 type="button"
                 aria-pressed={active}
                 onClick={() => setPeriod(p.id)}
-                className={`relative h-[38px] w-[92px] rounded-[10px] text-[13px] font-semibold transition-colors ${
-                  active ? 'text-k-primary' : 'text-k-text-muted hover:text-k-text'
+                className={`relative h-8 rounded-md px-3.5 text-[13px] transition-colors ${
+                  active ? 'text-k-text' : 'text-k-text-dim hover:text-k-text'
                 }`}
               >
                 {active && (
                   <motion.span
                     layoutId="dashboard-period-pill"
                     transition={SPRING_PILL}
-                    className="absolute inset-0 rounded-[10px] bg-k-primary/[0.12] shadow-[inset_0_0_0_1px_rgba(0,229,255,0.28)]"
+                    className="absolute inset-0 rounded-md bg-white/[0.08]"
                   />
                 )}
                 <span className="relative">{p.label}</span>
@@ -191,7 +143,7 @@ export default function DashboardTab({ studentId, studentFirstName, onGoal }: Pr
           </span>
           <button
             type="button"
-            onClick={() => setReloadKey((k) => k + 1)}
+            onClick={retry}
             className="font-semibold underline-offset-2 hover:underline"
           >
             Tentar de novo
@@ -200,7 +152,7 @@ export default function DashboardTab({ studentId, studentFirstName, onGoal }: Pr
       )}
 
       {!stats && error ? (
-        <ErrorCard message={error} onRetry={() => setReloadKey((k) => k + 1)} />
+        <ErrorCard message={error} onRetry={retry} />
       ) : !stats ? (
         <DashboardSkeleton />
       ) : (
@@ -234,116 +186,98 @@ function KpiRow({ stats }: { stats: StatsSummaryResponseDTO }) {
   const weightFoot =
     weight.history.length > 1 ? (
       <>
-        <DeltaPill value={weight.delta} suffix=" kg" good={null} />
-        <span className="text-[12.5px] text-k-text-muted">no período</span>
+        <DeltaPill value={weight.delta} suffix=" kg" good={null} /> no período
       </>
+    ) : weight.history.length === 1 ? (
+      'Uma pesagem no período'
+    ) : weight.current > 0 ? (
+      'Último peso informado no perfil'
     ) : (
-      <span className="text-[12.5px] text-k-text-muted">
-        {weight.history.length === 1
-          ? 'Uma pesagem no período'
-          : weight.current > 0
-            ? 'Último peso informado no perfil'
-            : 'Nenhuma pesagem registrada'}
-      </span>
+      'Nenhuma pesagem registrada'
     );
 
   return (
-    <section aria-label="Indicadores do período" className="grid gap-4 md:grid-cols-3">
-      <motion.div variants={riseItem} className={`${TILE} flex items-center gap-[18px] p-5`}>
-        <ProgressRing value={stats.efficiencyPercentage} size={96} stroke={9} glow>
-          <CountUp
-            value={stats.efficiencyPercentage}
-            format={(v) => `${Math.round(v)}%`}
-            className="font-display text-2xl font-extrabold tabular-nums font-stretch-semi-expanded"
-          />
-        </ProgressRing>
-        <div className="flex min-w-0 flex-col gap-1">
-          <span className="text-[13px] font-medium text-k-text-dim">Aderência ao plano</span>
-          {hasPlan ? (
+    <motion.section
+      variants={riseItem}
+      aria-label="Indicadores do período"
+      className="grid gap-px overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.08] md:grid-cols-3"
+    >
+      <KpiCell
+        label="Aderência ao plano"
+        value={hasPlan ? nf0.format(stats.efficiencyPercentage) : '—'}
+        unit={hasPlan ? '%' : undefined}
+        progress={hasPlan ? stats.efficiencyPercentage : undefined}
+        foot={
+          hasPlan ? (
             <>
-              <span className="flex items-baseline gap-1.5">
-                <CountUp
-                  value={stats.completedSessions}
-                  format={(v) => nf0.format(Math.round(v))}
-                  className="font-display text-[30px] font-extrabold leading-tight tabular-nums"
-                />
-                <span className="text-sm font-semibold text-k-text-muted">
-                  de {nf0.format(stats.targetSessions)}
-                </span>
-              </span>
-              <span className="text-[12.5px] text-k-text-muted">treinos planejados concluídos</span>
+              <span className="font-mono text-k-text-soft">{nf0.format(stats.completedSessions)}</span> de{' '}
+              <span className="font-mono">{nf0.format(stats.targetSessions)}</span> treinos planejados
             </>
           ) : (
-            <span className="text-[12.5px] text-k-text-muted">
-              Aluno sem frequência semanal definida
-            </span>
-          )}
-        </div>
-      </motion.div>
-
-      <motion.div variants={riseItem} className={`${TILE} flex flex-col gap-3 p-5`}>
-        <TileHeader label="Tonelagem total" icon={<BarChart3 className="h-[18px] w-[18px]" />} />
-        <span className="flex items-baseline gap-1.5">
-          <CountUp
-            value={volume.total}
-            format={(v) => nf0.format(Math.round(v))}
-            className="font-display text-[34px] font-extrabold leading-tight tabular-nums font-stretch-semi-expanded"
-          />
-          <span className="text-base font-semibold text-k-text-muted">kg</span>
-        </span>
-        <span className="flex flex-wrap items-center gap-2">
-          {volume.total > 0 ? (
+            'Aluno sem frequência semanal definida'
+          )
+        }
+      />
+      <KpiCell
+        label="Tonelagem total"
+        value={nf0.format(volume.total)}
+        unit="kg"
+        foot={
+          volume.total > 0 ? (
             <>
-              <DeltaPill
-                value={volume.deltaPercentage}
-                suffix="%"
-                good={volume.deltaPercentage >= 0}
-              />
-              <span className="text-[12.5px] text-k-text-muted">vs. período anterior</span>
+              <DeltaPill value={volume.deltaPercentage} suffix="%" good={volume.deltaPercentage >= 0} /> vs. período
+              anterior
             </>
           ) : (
-            <span className="text-[12.5px] text-k-text-muted">Nenhum treino no período</span>
-          )}
-        </span>
-      </motion.div>
-
-      <motion.div variants={riseItem} className={`${TILE} flex flex-col gap-3 p-5`}>
-        <TileHeader label="Peso corporal" icon={<Scale className="h-[18px] w-[18px]" />} />
-        <span className="flex items-baseline gap-1.5">
-          {weight.current > 0 ? (
-            <>
-              <CountUp
-                value={weight.current}
-                format={(v) => nf1.format(v)}
-                className="font-display text-[34px] font-extrabold leading-tight tabular-nums font-stretch-semi-expanded"
-              />
-              <span className="text-base font-semibold text-k-text-muted">kg</span>
-            </>
-          ) : (
-            <span className="font-display text-[34px] font-extrabold leading-tight text-k-text-muted">—</span>
-          )}
-        </span>
-        <span className="flex flex-wrap items-center gap-2">
-          {weightFoot}
-          {stats.needsWeightUpdate && (
-            <span className="inline-flex h-6 items-center rounded-full bg-k-warn/[0.12] px-2 text-xs font-bold text-k-warn">
-              Pesagem pendente
-            </span>
-          )}
-        </span>
-      </motion.div>
-    </section>
+            'Nenhum treino no período'
+          )
+        }
+      />
+      <KpiCell
+        label="Peso corporal"
+        value={weight.current > 0 ? nf1.format(weight.current) : '—'}
+        unit={weight.current > 0 ? 'kg' : undefined}
+        foot={
+          <>
+            {weightFoot}
+            {stats.needsWeightUpdate && <span className="text-k-warn"> · pesagem pendente</span>}
+          </>
+        }
+      />
+    </motion.section>
   );
 }
 
-function TileHeader({ label, icon }: { label: string; icon: ReactNode }) {
+function KpiCell({
+  label,
+  value,
+  unit,
+  foot,
+  progress,
+}: {
+  label: string;
+  value: string;
+  unit?: string;
+  foot: ReactNode;
+  progress?: number;
+}) {
   return (
-    <span className="flex items-center justify-between">
-      <span className="text-[13px] font-medium text-k-text-dim">{label}</span>
-      <span className="flex h-9 w-9 items-center justify-center rounded-[11px] bg-k-primary-dim text-k-primary">
-        {icon}
+    <div className="flex flex-col gap-2.5 bg-k-bg p-5">
+      <span className="text-[13px] text-k-text-muted">{label}</span>
+      <span className="flex items-baseline gap-1.5">
+        <span className="font-mono text-[30px] font-medium leading-[34px] tabular-nums">{value}</span>
+        {unit && <span className="font-mono text-k-text-muted">{unit}</span>}
       </span>
-    </span>
+      {progress !== undefined && (
+        <span className="block h-1 rounded-full bg-white/[0.08]">
+          <span
+            className="block h-1 rounded-full bg-k-primary transition-[width] duration-700"
+            style={{ width: `${Math.max(0, Math.min(100, progress))}%` }}
+          />
+        </span>
+      )}
+      <span className="text-xs text-k-text-muted">{foot}</span>
+    </div>
   );
 }
 
@@ -357,17 +291,13 @@ function DeltaPill({
   /** null = neutro (a direção boa depende do objetivo e não foi informada). */
   good: boolean | null;
 }) {
+  // Seta + sinal: a direção não depende só da cor.
   const tone =
-    good === null || value === 0
-      ? 'bg-white/[0.08] text-k-text-soft'
-      : good
-        ? 'bg-k-success/[0.12] text-k-success'
-        : 'bg-k-alert/[0.12] text-k-alert';
-  const Icon = value > 0 ? TrendingUp : value < 0 ? TrendingDown : Minus;
+    good === null || value === 0 ? 'text-k-text-soft' : good ? 'text-k-success' : 'text-[#ff8a8a]';
+  const arrow = value > 0 ? '▲' : value < 0 ? '▼' : '=';
   return (
-    <span className={`inline-flex h-6 items-center gap-1 rounded-full px-2 text-xs font-bold ${tone}`}>
-      <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-      {signed(value)}
+    <span className={`whitespace-nowrap font-mono ${tone}`}>
+      {arrow} {signed(value)}
       {suffix}
     </span>
   );
@@ -378,27 +308,19 @@ function DeltaPill({
 function Insight({ stats }: { stats: StatsSummaryResponseDTO }) {
   if (!stats.insight?.body) return null;
   return (
-    <motion.div
-      variants={riseItem}
-      className="flex items-start gap-4 rounded-[18px] border border-k-primary/[0.22] bg-k-primary/[0.06] px-5 py-[18px]"
-    >
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-k-primary/[0.12] text-k-primary">
-        <Sparkles className="k-twinkle h-[19px] w-[19px]" />
-      </span>
+    <motion.div variants={riseItem} className="flex flex-col gap-1.5 rounded-xl border border-white/[0.08] px-5 py-4">
+      <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-k-text-muted">{stats.insight.tag}</span>
       <AnimatePresence mode="wait" initial={false}>
-        <motion.div
+        <motion.p
           key={stats.insight.body}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -6 }}
-          transition={{ duration: 0.3, ease: EASE_OUT }}
-          className="min-w-0"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="text-[15px] leading-relaxed"
         >
-          <span className="text-[11.5px] font-bold uppercase tracking-[0.06em] text-k-primary">
-            {stats.insight.tag}
-          </span>
-          <p className="mt-1 text-sm leading-relaxed text-k-text-soft">{stats.insight.body}</p>
-        </motion.div>
+          {stats.insight.body}
+        </motion.p>
       </AnimatePresence>
     </motion.div>
   );
@@ -457,7 +379,7 @@ function Charts({ stats, firstName }: { stats: StatsSummaryResponseDTO; firstNam
                   <span className="truncate text-[13px] font-semibold text-k-text-soft" title={g.muscleGroup}>
                     {groupLabel(g.muscleGroup)}
                   </span>
-                  <div className="h-3 overflow-hidden rounded-full bg-white/[0.06]">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
                     <motion.div
                       className="h-full rounded-full"
                       style={{ background: i === 0 ? '#00e5ff' : '#00a5b8' }}
@@ -469,7 +391,7 @@ function Charts({ stats, firstName }: { stats: StatsSummaryResponseDTO; firstNam
                   <CountUp
                     value={g.volume}
                     format={(v) => `${nf0.format(Math.round(v))} kg`}
-                    className="text-right text-[13px] font-semibold tabular-nums"
+                    className="text-right font-mono text-[13px] tabular-nums"
                   />
                   <span
                     className={`text-right text-xs font-bold ${
@@ -557,15 +479,15 @@ function Charts({ stats, firstName }: { stats: StatsSummaryResponseDTO; firstNam
 function CardTitle({ title, subtitle }: { title: string; subtitle: string }) {
   return (
     <div>
-      <h3 className="font-display text-base font-bold font-stretch-semi-expanded">{title}</h3>
-      <p className="mt-0.5 text-[12.5px] text-k-text-muted">{subtitle}</p>
+      <h3 className="text-[15px] font-semibold">{title}</h3>
+      <p className="mt-0.5 text-xs text-k-text-muted">{subtitle}</p>
     </div>
   );
 }
 
 function CompactEmpty({ children }: { children: ReactNode }) {
   return (
-    <p className="rounded-2xl border border-dashed border-white/10 px-5 py-8 text-center text-[13px] leading-relaxed text-k-text-muted">
+    <p className="rounded-lg border border-dashed border-white/10 px-5 py-8 text-center text-[13px] leading-relaxed text-k-text-muted">
       {children}
     </p>
   );
@@ -593,74 +515,62 @@ function CycleComparison({
   const allGood = metrics.every((m) => !m || m.good);
 
   return (
-    <motion.section variants={riseItem} className={`${TILE} flex flex-col gap-[18px] p-[22px]`}>
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <motion.section variants={riseItem} className={`${TILE} flex flex-col`}>
+      <div className="border-b border-white/[0.07] px-5 py-3.5">
         <CardTitle title="Ciclo atual vs. anterior" subtitle={subtitle} />
-        {started && evolution && (
-          <div className="flex h-9 items-center gap-2.5 rounded-xl bg-[#242424] px-3">
-            <span className="text-[12.5px] text-k-text-dim">Treinos concluídos</span>
-            <span className="text-[13px] font-semibold text-k-text-dim">
-              {evolution.previousCompletedSessions}
-            </span>
-            <ArrowRight className="h-3.5 w-3.5 text-k-text-dim" aria-label="para" />
-            <span className="font-display text-sm font-extrabold text-k-primary">
-              {evolution.currentCompletedSessions}
-            </span>
-          </div>
-        )}
       </div>
 
       {loading && !evolution ? (
-        <div className="grid gap-3.5 md:grid-cols-3">
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="k-skeleton h-[118px] rounded-2xl bg-[#181818]" />
-          ))}
-        </div>
+        <div className="k-skeleton m-5 h-[160px] rounded-lg bg-[#181818]" />
       ) : !evolution?.available ? (
-        <CompactEmpty>
-          A ficha de {firstName} ainda não foi atualizada nem regenerada, então não há ciclo
-          anterior para comparar.
-        </CompactEmpty>
-      ) : !evolution.currentCycleStarted ? (
-        <CompactEmpty>
-          O novo ciclo foi gerado, mas {firstName} ainda não registrou sessões nele.
-        </CompactEmpty>
+        <div className="p-5">
+          <CompactEmpty>
+            A ficha de {firstName} ainda não foi atualizada nem regenerada, então não há ciclo anterior para
+            comparar.
+          </CompactEmpty>
+        </div>
+      ) : !started ? (
+        <div className="p-5">
+          <CompactEmpty>O novo ciclo foi gerado, mas {firstName} ainda não registrou sessões nele.</CompactEmpty>
+        </div>
       ) : (
         <>
-          <div className="grid gap-3.5 md:grid-cols-3">
-            <CycleMetric
-              label="Peso corporal"
-              metric={evolution.weight}
-              format={(v) => `${nf1.format(v)} kg`}
-              deltaSuffix=" kg"
-            />
-            <CycleMetric
-              label="Volume de carga"
-              metric={evolution.volume}
-              format={(v) => `${nf0.format(v)} kg`}
-              deltaSuffix=" kg"
-            />
-            <CycleMetric
-              label="Aderência ao plano"
-              metric={evolution.adherence}
-              format={(v) => `${nf0.format(v)}%`}
-              deltaSuffix=" p.p."
-            />
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[560px] border-collapse text-[13px]">
+              <thead>
+                <tr className="text-xs text-k-text-muted">
+                  <th scope="col" className="px-5 py-2.5 text-left font-medium">Métrica</th>
+                  <th scope="col" className="px-3 py-2.5 text-right font-medium">Anterior</th>
+                  <th scope="col" className="px-3 py-2.5 text-right font-medium">Atual</th>
+                  <th scope="col" className="px-5 py-2.5 text-right font-medium">Variação</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/[0.06] border-t border-white/[0.06]">
+                <CycleRow label="Aderência ao plano" metric={evolution.adherence} format={(v) => `${nf0.format(v)}%`} deltaSuffix=" p.p." />
+                <CycleRow label="Volume de carga" metric={evolution.volume} format={(v) => `${nf0.format(v)} kg`} deltaSuffix=" kg" />
+                <CycleRow
+                  label="Treinos concluídos"
+                  metric={{
+                    previous: evolution.previousCompletedSessions,
+                    current: evolution.currentCompletedSessions,
+                    delta: evolution.currentCompletedSessions - evolution.previousCompletedSessions,
+                    good: evolution.currentCompletedSessions >= evolution.previousCompletedSessions,
+                  }}
+                  format={(v) => nf0.format(v)}
+                  deltaSuffix=""
+                />
+                <CycleRow label="Peso corporal" metric={evolution.weight} format={(v) => `${nf1.format(v)} kg`} deltaSuffix=" kg" />
+              </tbody>
+            </table>
           </div>
           {evolution.insight?.body && (
-            <div
-              className={`flex items-start gap-3 rounded-[14px] border px-4 py-3.5 ${
-                allGood
-                  ? 'border-k-success/20 bg-k-success/[0.06]'
-                  : 'border-k-warn/20 bg-k-warn/[0.06]'
-              }`}
-            >
+            <div className="flex items-start gap-2.5 border-t border-white/[0.07] px-5 py-3.5">
               {allGood ? (
-                <CheckCircle2 className="mt-px h-[18px] w-[18px] shrink-0 text-k-success" />
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-k-success" />
               ) : (
-                <AlertTriangle className="mt-px h-[18px] w-[18px] shrink-0 text-k-warn" />
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-k-warn" />
               )}
-              <p className="text-[13.5px] leading-relaxed text-k-text-soft">{evolution.insight.body}</p>
+              <p className="text-[13px] leading-relaxed text-k-text-soft">{evolution.insight.body}</p>
             </div>
           )}
         </>
@@ -669,76 +579,27 @@ function CycleComparison({
   );
 }
 
-function CycleMetric({
+function CycleRow({
   label,
   metric,
   format,
   deltaSuffix,
 }: {
   label: string;
-  metric: MetricDeltaDTO | null;
+  metric: Pick<MetricDeltaDTO, 'previous' | 'current' | 'delta' | 'good'> | null;
   format: (v: number) => string;
   deltaSuffix: string;
 }) {
   if (!metric) return null;
-  const top = Math.max(Math.abs(metric.previous), Math.abs(metric.current)) || 1;
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-white/[0.06] bg-[#181818] p-4">
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-[13px] font-semibold text-k-text-soft">{label}</span>
+    <tr>
+      <th scope="row" className="px-5 py-3 text-left font-normal">{label}</th>
+      <td className="px-3 py-3 text-right font-mono text-k-text-muted">{format(metric.previous)}</td>
+      <td className="px-3 py-3 text-right font-mono">{format(metric.current)}</td>
+      <td className="px-5 py-3 text-right">
         <DeltaPill value={metric.delta} suffix={deltaSuffix} good={metric.good} />
-      </div>
-      <CompareBar
-        label="Anterior"
-        pct={(Math.abs(metric.previous) / top) * 100}
-        text={format(metric.previous)}
-        color="#6b6c6d"
-      />
-      <CompareBar
-        label="Atual"
-        pct={(Math.abs(metric.current) / top) * 100}
-        text={format(metric.current)}
-        color="#00e5ff"
-        strong
-        delay={0.15}
-      />
-    </div>
-  );
-}
-
-function CompareBar({
-  label,
-  pct,
-  text,
-  color,
-  strong = false,
-  delay = 0,
-}: {
-  label: string;
-  pct: number;
-  text: string;
-  color: string;
-  strong?: boolean;
-  delay?: number;
-}) {
-  return (
-    <div className="grid grid-cols-[56px_minmax(0,1fr)_auto] items-center gap-2.5">
-      <span className={`text-xs ${strong ? 'font-semibold text-k-text-soft' : 'text-k-text-muted'}`}>{label}</span>
-      <div className="h-2 overflow-hidden rounded-full bg-white/[0.05]">
-        <motion.div
-          className="h-full rounded-full"
-          style={{ background: color }}
-          initial={{ width: 0 }}
-          animate={{ width: `${pct}%` }}
-          transition={{ duration: 1, ease: EASE_OUT, delay: 0.3 + delay }}
-        />
-      </div>
-      <span
-        className={`text-right tabular-nums ${strong ? 'text-[13px] font-bold' : 'text-[12.5px] text-k-text-dim'}`}
-      >
-        {text}
-      </span>
-    </div>
+      </td>
+    </tr>
   );
 }
 
@@ -751,17 +612,17 @@ function DashboardSkeleton() {
         {[0, 1, 2].map((i) => (
           <div
             key={i}
-            className="k-skeleton h-[136px] rounded-[20px] border border-white/[0.06] bg-k-surface1"
+            className="k-skeleton h-[136px] rounded-xl border border-white/[0.06] bg-k-surface1"
             style={{ animationDelay: `${i * 120}ms` }}
           />
         ))}
       </div>
-      <div className="k-skeleton h-[78px] rounded-[18px] bg-k-primary/[0.04]" />
+      <div className="k-skeleton h-[78px] rounded-xl bg-k-primary/[0.04]" />
       <div className="grid gap-5 lg:grid-cols-2">
         {[0, 1].map((i) => (
           <div
             key={i}
-            className="k-skeleton h-[300px] rounded-[20px] border border-white/[0.06] bg-k-surface1"
+            className="k-skeleton h-[300px] rounded-xl border border-white/[0.06] bg-k-surface1"
             style={{ animationDelay: `${(i + 3) * 120}ms` }}
           />
         ))}
@@ -774,7 +635,7 @@ function ErrorCard({ message, onRetry }: { message: string; onRetry: () => void 
   return (
     <div
       role="alert"
-      className="flex flex-col items-center gap-4 rounded-[20px] border border-k-alert/25 bg-k-surface1 px-6 py-12 text-center"
+      className="flex flex-col items-center gap-4 rounded-xl border border-k-alert/25 bg-k-surface1 px-6 py-12 text-center"
     >
       <AlertCircle className="h-8 w-8 text-k-alert" />
       <p className="text-sm font-semibold">{message}</p>

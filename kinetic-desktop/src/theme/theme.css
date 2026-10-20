@@ -37,6 +37,8 @@
   --font-sans: 'Geist', 'Segoe UI', system-ui, -apple-system, sans-serif;
   /* Títulos e números: Archivo com eixo de largura (use font-stretch-*). */
   --font-display: 'Archivo', 'Segoe UI', system-ui, sans-serif;
+  /* Números (tabelas, indicadores): largura fixa por dígito. */
+  --font-mono: 'Geist Mono', ui-monospace, 'Cascadia Mono', monospace;
 }
 
 /* ── shadcn/ui tokens → mapeados aos tokens de marca Kinetic ────────────────

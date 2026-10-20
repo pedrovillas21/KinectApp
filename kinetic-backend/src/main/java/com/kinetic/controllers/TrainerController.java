@@ -7,6 +7,7 @@ import com.kinetic.dtos.MonthlyStatsResponseDTO;
 import com.kinetic.dtos.PlanEvolutionResponseDTO;
 import com.kinetic.dtos.StatsSummaryResponseDTO;
 import com.kinetic.dtos.StudentEngagementDTO;
+import com.kinetic.dtos.StudentProtocolDTOs;
 import com.kinetic.dtos.TodayItemDTO;
 import com.kinetic.dtos.TrainerAiPlanApproveRequestDTO;
 import com.kinetic.dtos.TrainerAiPlanRequestDTO;
@@ -16,7 +17,9 @@ import com.kinetic.dtos.TrainerLinkDTO;
 import com.kinetic.dtos.TrainerWorkoutPlanRequestDTO;
 import com.kinetic.dtos.WorkoutPlanResponseDTO;
 import com.kinetic.services.StatsService;
+import com.kinetic.services.StudentProtocolService;
 import com.kinetic.services.TrainerAiPlanService;
+import com.kinetic.services.TrainerEventService;
 import com.kinetic.services.TrainerEngagementService;
 import com.kinetic.services.TrainerTodayService;
 import com.kinetic.services.TrainerInviteCodeService;
@@ -26,15 +29,20 @@ import com.kinetic.services.WorkoutSessionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import org.springframework.lang.NonNull;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /** Endpoints do PERSONAL (papel garantido via @PreAuthorize + claim do JWT). */
@@ -57,6 +65,8 @@ public class TrainerController extends BaseController {
     private final TrainerInviteCodeService trainerInviteCodeService;
     private final TrainerEngagementService trainerEngagementService;
     private final TrainerTodayService trainerTodayService;
+    private final TrainerEventService trainerEventService;
+    private final StudentProtocolService studentProtocolService;
 
     @Operation(
             summary = "Convidar um aluno pelo e-mail",
@@ -189,6 +199,35 @@ public class TrainerController extends BaseController {
     }
 
     @Operation(
+            summary = "Ver as estatísticas mensais de todos os alunos",
+            description = "Mesmo cálculo de GET /students/{studentId}/monthly-stats para cada aluno com vínculo "
+                    + "ATIVO, numa resposta só: mapa studentId → estatísticas."
+    )
+    @GetMapping("/students/monthly-stats")
+    public ResponseEntity<Map<UUID, MonthlyStatsResponseDTO>> studentsMonthlyStats() {
+        // shortcut: 2 consultas por aluno no servidor (ok até ~60 alunos); com carteiras maiores, agrupar num COUNT ... GROUP BY.
+        Map<UUID, MonthlyStatsResponseDTO> stats = new LinkedHashMap<>();
+        for (TrainerLinkDTO link : trainerLinkService.listStudents(currentUserEmail())) {
+            stats.put(link.peer().id(), workoutSessionService.getMonthlyStats(link.peer().email()));
+        }
+        return ResponseEntity.ok(stats);
+    }
+
+    @Operation(
+            summary = "Receber avisos em tempo real",
+            description = "Stream SSE (text/event-stream). A cada mudança relevante (treino concluído, peso, protocolo, "
+                    + "vínculo, cobrança) chega um evento \"change\" com {type, studentId}; o painel recarrega a tela "
+                    + "aberta. Comentário \"ping\" a cada 25s mantém a conexão viva."
+    )
+    @GetMapping(path = "/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter events(HttpServletResponse response) {
+        // Sem buffer em proxy (nginx) e sem cache: cada evento sai na hora.
+        response.setHeader("X-Accel-Buffering", "no");
+        response.setHeader("Cache-Control", "no-cache");
+        return trainerEventService.subscribe(currentUserEmail());
+    }
+
+    @Operation(
             summary = "Ver as estatísticas mensais de um aluno",
             description = "Mesmo cálculo de GET /api/sessions/monthly-stats, mas sobre o histórico do aluno "
                     + "informado. Exige vínculo ATIVO entre o personal logado e o aluno; sem vínculo, responde 404."
@@ -249,6 +288,28 @@ public class TrainerController extends BaseController {
             @PathVariable @NonNull UUID planId) {
         trainerPlanService.archivePlan(currentUserEmail(), studentId, planId);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Ver o protocolo e a anamnese de um aluno",
+            description = "Objetivo, nível, frequência e anamnese do aluno, com quem mudou por último e quando o "
+                    + "aluno conferiu a anamnese no app."
+    )
+    @GetMapping("/students/{studentId}/protocol")
+    public ResponseEntity<StudentProtocolDTOs.Response> studentProtocol(@PathVariable @NonNull UUID studentId) {
+        return ResponseEntity.ok(studentProtocolService.getForTrainer(currentUserEmail(), studentId));
+    }
+
+    @Operation(
+            summary = "Definir o protocolo e a anamnese de um aluno",
+            description = "Com vínculo ativo, objetivo, nível e frequência são do personal (o aluno só vê no app). "
+                    + "Mudar a anamnese pede uma nova conferência do aluno. As fichas atuais não mudam."
+    )
+    @PutMapping("/students/{studentId}/protocol")
+    public ResponseEntity<StudentProtocolDTOs.Response> updateStudentProtocol(
+            @PathVariable @NonNull UUID studentId,
+            @Valid @RequestBody StudentProtocolDTOs.UpdateRequest dto) {
+        return ResponseEntity.ok(studentProtocolService.updateByTrainer(currentUserEmail(), studentId, dto));
     }
 
     // ── Fichas geradas por IA a pedido do personal ──────────────────────────

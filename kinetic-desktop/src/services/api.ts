@@ -6,7 +6,7 @@ import axios, {
 } from 'axios';
 import { getAccessToken, setAccessToken, clearTokens } from './tokenStorage';
 
-const API_URL = `${import.meta.env.VITE_API_URL}/api`;
+export const API_URL = `${import.meta.env.VITE_API_URL}/api`;
 
 const api: AxiosInstance = axios.create({
   baseURL: API_URL,

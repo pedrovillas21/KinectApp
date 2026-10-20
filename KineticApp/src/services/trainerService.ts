@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from './api';
-import type { MyTrainerProfile, TrainerLink } from '../types';
+import type { MyTrainerProfile, StudentProtocol, TrainerLink } from '../types';
 
 /**
  * Vínculo personal↔aluno (Fase 1 do painel do personal).
@@ -43,6 +43,18 @@ export const getMyTrainerProfile = async (): Promise<MyTrainerProfile | null> =>
     if (err.response?.status === 404) return null;
     throw e;
   }
+};
+
+/** Protocolo e anamnese do aluno logado (com personal, é ele quem define). */
+export const getMyProtocol = async (): Promise<StudentProtocol> => {
+  const res = await api.get<StudentProtocol>('/me/protocol');
+  return res.data;
+};
+
+/** "Está tudo certo": o aluno confirma a anamnese registrada. */
+export const confirmMyAnamnesis = async (): Promise<StudentProtocol> => {
+  const res = await api.post<StudentProtocol>('/me/protocol/anamnesis/confirm');
+  return res.data;
 };
 
 /**

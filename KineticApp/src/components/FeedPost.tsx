@@ -5,6 +5,7 @@ import type { FeedPostData } from '../types';
 import { formatBestSet, formatDurationSeconds, formatThousands } from '../utils/formatters';
 import { formatPostTime } from '../utils/dateRelative';
 import Icon from './Icon';
+import WorkoutPhotoStrip from './WorkoutPhotoStrip';
 import { Avatar, StatRow, StatTile, Text } from './ui';
 
 interface Props {
@@ -49,7 +50,9 @@ export default function FeedPost({ post, onToggleLike, onOpenComments, onPressAu
   const duration = post.durationSeconds ? formatDurationSeconds(post.durationSeconds) : post.duration || null;
   const hasVolume = post.volumeKg != null && post.volumeKg > 0;
   const records = post.recordsCount ?? 0;
-  const showStats = !!duration || hasVolume || records > 0;
+  // Foto de treino ligado: tonelagem/tempo/treino vão na faixa sobre a imagem, não na linha de números.
+  const photoStrip = !!post.imageUrl && !!post.title && hasVolume && !!post.durationSeconds;
+  const showStats = !photoStrip && (!!duration || hasVolume || records > 0);
   const exercises = post.exercises ?? [];
   const more = post.moreExercises ?? 0;
 
@@ -94,11 +97,16 @@ export default function FeedPost({ post, onToggleLike, onOpenComments, onPressAu
       ) : null}
 
       {post.imageUrl ? (
-        <Image
-          source={{ uri: post.imageUrl }}
-          style={styles.image}
-          accessibilityLabel={title ? `Foto do treino ${title}` : 'Foto do post'}
-        />
+        <View style={styles.image}>
+          <Image
+            source={{ uri: post.imageUrl }}
+            style={StyleSheet.absoluteFill}
+            accessibilityLabel={title ? `Foto do treino ${title}` : 'Foto do post'}
+          />
+          {photoStrip ? (
+            <WorkoutPhotoStrip volumeKg={post.volumeKg!} durationSeconds={post.durationSeconds!} title={post.title!} />
+          ) : null}
+        </View>
       ) : null}
 
       {exercises.length > 0 ? (
@@ -169,7 +177,14 @@ const styles = StyleSheet.create({
   title: { marginTop: 12 },
   caption: { marginTop: 4 },
   stats: { marginTop: 12 },
-  image: { marginTop: 14, width: '100%', aspectRatio: 4 / 3, borderRadius: RADIUS.lg, backgroundColor: KINETIC.media },
+  image: {
+    marginTop: 14,
+    width: '100%',
+    aspectRatio: 4 / 5,
+    borderRadius: RADIUS.lg,
+    overflow: 'hidden',
+    backgroundColor: KINETIC.media,
+  },
   exercises: { marginTop: 8 },
   exercise: { flexDirection: 'row', alignItems: 'center', gap: 12, height: 44 },
   exerciseIcon: {

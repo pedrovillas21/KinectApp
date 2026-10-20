@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'motion/react';
 import { toast } from 'sonner';
 import {
@@ -16,10 +17,12 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { archiveStudentPlan, listStudentPlans } from '../../services/trainerService';
+import { qk, queryClient, refreshTrainerData } from '../../services/queryClient';
 import { EASE_OUT, riseItem, staggerContainer } from '../motion/primitives';
 import ConfirmDialog from './ConfirmDialog';
 import PlanEditor, { type EditorMode } from './PlanEditor';
 import AiPlanFlow from './ai/AiPlanFlow';
+import { draftKey, newAiDraft, removeAiDraft, startAiDraft, useAiDraft } from './ai/aiDraftStore';
 import { heuristicDurationMinutes, muscleLabel } from './workoutVocab';
 import type { WorkoutPlan } from '../../types';
 
@@ -73,38 +76,26 @@ const lastDoneLabel = (iso: string | null): string => {
 
 export default function WorkoutPlansTab({ studentId, studentFirstName, studentName }: Props) {
   const { currentUser } = useAuth();
-  const [plans, setPlans] = useState<WorkoutPlan[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [reloadKey, setReloadKey] = useState(0);
+  const plansQ = useQuery({ queryKey: qk.plans(studentId), queryFn: () => listStudentPlans(studentId) });
+  const plans = plansQ.data ?? null;
+  const error = plansQ.isError ? `Não foi possível carregar as fichas de ${studentFirstName}.` : null;
   const [editor, setEditor] = useState<EditorMode | null>(null);
-  const [aiFlow, setAiFlow] = useState(false);
+  // O fluxo da IA fica aberto enquanto houver rascunho: sobrevive a sair e voltar para o aluno.
+  const aiKey = draftKey(currentUser?.id ?? '', studentId);
+  const aiFlow = !!useAiDraft(aiKey);
+  const openAiFlow = () => startAiDraft(aiKey, newAiDraft(studentId, studentName, plans ?? []));
+  const closeAiFlow = () => removeAiDraft(aiKey);
   // A ficha alvo continua definida enquanto o diálogo anima o fechamento (o texto não some).
   const [toRemove, setToRemove] = useState<WorkoutPlan | null>(null);
   const [removeOpen, setRemoveOpen] = useState(false);
   const [removing, setRemoving] = useState(false);
 
   useEffect(() => {
-    setPlans(null);
     setEditor(null);
-    setAiFlow(false);
   }, [studentId]);
 
-  useEffect(() => {
-    let cancelled = false;
-    setError(null);
-    listStudentPlans(studentId)
-      .then((data) => {
-        if (!cancelled) setPlans(data);
-      })
-      .catch(() => {
-        if (!cancelled) setError(`Não foi possível carregar as fichas de ${studentFirstName}.`);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [studentId, studentFirstName, reloadKey]);
-
-  const reload = () => setReloadKey((k) => k + 1);
+  // Ficha nova/alterada muda ciclo, aderência e caixa "Hoje": recarrega o que estiver na tela.
+  const reload = () => void refreshTrainerData();
 
   const handleSaved = (_plan: WorkoutPlan, created: boolean) => {
     setEditor(null);
@@ -122,7 +113,8 @@ export default function WorkoutPlansTab({ studentId, studentFirstName, studentNa
     setRemoving(true);
     try {
       await archiveStudentPlan(studentId, toRemove.id);
-      setPlans((list) => list?.filter((p) => p.id !== toRemove.id) ?? null);
+      queryClient.setQueryData<WorkoutPlan[]>(qk.plans(studentId), (list) => list?.filter((p) => p.id !== toRemove.id));
+      reload();
       toast.success(`"${toRemove.title}" saiu do app de ${studentFirstName}.`);
       setRemoveOpen(false);
     } catch (err: unknown) {
@@ -142,13 +134,14 @@ export default function WorkoutPlansTab({ studentId, studentFirstName, studentNa
   if (aiFlow && plans) {
     return (
       <AiPlanFlow
+        draftKey={aiKey}
         studentId={studentId}
         studentFirstName={studentFirstName}
         studentName={studentName}
         currentPlans={plans}
-        onExit={() => setAiFlow(false)}
+        onExit={closeAiFlow}
         onApproved={(saved, replaced) => {
-          setAiFlow(false);
+          closeAiFlow();
           const many = saved.length !== 1;
           toast.success(
             `${saved.length} ${many ? 'fichas aprovadas' : 'ficha aprovada'}. ${
@@ -192,7 +185,7 @@ export default function WorkoutPlansTab({ studentId, studentFirstName, studentNa
         </div>
         {plans && plans.length > 0 && (
           <div className="flex flex-wrap items-center gap-2.5">
-            <AiPlanButton onClick={() => setAiFlow(true)} />
+            <AiPlanButton onClick={openAiFlow} />
             <NewPlanButton onClick={() => startCreate()} />
           </div>
         )}
@@ -217,7 +210,7 @@ export default function WorkoutPlansTab({ studentId, studentFirstName, studentNa
       ) : !plans ? (
         <PlansSkeleton />
       ) : plans.length === 0 ? (
-        <EmptyPlans firstName={studentFirstName} onCreate={() => startCreate()} onCreateWithAi={() => setAiFlow(true)} />
+        <EmptyPlans firstName={studentFirstName} onCreate={() => startCreate()} onCreateWithAi={openAiFlow} />
       ) : (
         <motion.ul
           variants={staggerContainer}

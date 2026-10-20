@@ -12,6 +12,7 @@ import api, {
   logoutUser,
 } from '../services/api';
 import { clearTokens, setAccessToken } from '../services/tokenStorage';
+import { queryClient } from '../services/queryClient';
 import { isPanelRole } from '../config/nav';
 
 const USER_KEY = 'kinetic_web_user';
@@ -120,6 +121,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const clearSession = async (): Promise<void> => {
     await clearTokens();
     localStorage.removeItem(USER_KEY);
+    queryClient.clear();
   };
 
   const signIn = async ({
@@ -288,6 +290,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await clearTokens();
       localStorage.removeItem(USER_KEY);
     } finally {
+      // Outro login na mesma máquina não pode ver dados em cache da conta anterior.
+      queryClient.clear();
       setCurrentUser(null);
       setIsLoggedIn(false);
     }

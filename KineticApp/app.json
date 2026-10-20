@@ -36,7 +36,16 @@
       ],
       "expo-status-bar",
       "expo-font",
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "O Kinetic usa a câmera para você tirar a foto do treino e postar para seus amigos.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "barcodeScannerEnabled": false
+        }
+      ]
     ]
   }
 }

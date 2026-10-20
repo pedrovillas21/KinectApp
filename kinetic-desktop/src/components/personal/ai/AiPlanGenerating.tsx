@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { ArrowLeft, Check, Sparkles } from 'lucide-react';
+import { Check, Sparkles } from 'lucide-react';
+import AiFlowHeader from './AiFlowHeader';
 import { EASE_OUT } from '../../motion/primitives';
 
 interface Props {
   studentFirstName: string;
   planCount: number;
+  /** Início da geração (Date.now()): voltar à tela não reinicia as etapas. */
+  startedAt: number;
   onCancel: () => void;
 }
 
@@ -22,38 +25,26 @@ const STEPS = [
 
 const SKELETON_ACCENTS = ['bg-k-primary/[0.12]', 'bg-k-warn/[0.12]', 'bg-k-success/[0.12]'];
 
-export default function AiPlanGenerating({ studentFirstName, planCount, onCancel }: Props) {
-  const [elapsed, setElapsed] = useState(0);
+export default function AiPlanGenerating({ studentFirstName, planCount, startedAt, onCancel }: Props) {
+  const [elapsed, setElapsed] = useState(() => Date.now() - startedAt);
 
   useEffect(() => {
-    const started = Date.now();
-    const id = window.setInterval(() => setElapsed(Date.now() - started), 500);
+    const id = window.setInterval(() => setElapsed(Date.now() - startedAt), 500);
     return () => window.clearInterval(id);
-  }, []);
+  }, [startedAt]);
 
   // A etapa atual é a última já alcançada pelo tempo; as anteriores aparecem concluídas.
   const current = STEPS.reduce((acc, step, i) => (elapsed >= step.after ? i : acc), 0);
 
   return (
     <div className="flex flex-col">
-      <div className="sticky top-0 z-20 border-b border-k-ghost bg-k-bg/85 backdrop-blur-[14px]">
-        <div className="mx-auto flex w-full max-w-[1120px] items-center gap-3 px-8 py-3.5">
-          <button
-            type="button"
-            onClick={onCancel}
-            aria-label="Cancelar e voltar para o pedido"
-            className="group flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-k-surface1 text-k-text-dim transition-colors hover:bg-k-surface2 hover:text-k-text"
-          >
-            <ArrowLeft className="h-[17px] w-[17px] transition-transform duration-300 group-hover:-translate-x-0.5" />
-          </button>
-          <div className="min-w-0">
-            <h2 className="truncate font-display text-lg font-extrabold tracking-tight font-stretch-semi-expanded">
-              Criar fichas com IA
-            </h2>
-            <p className="truncate text-[12.5px] text-k-text-muted">Para {studentFirstName} · gerando a prévia</p>
-          </div>
-        </div>
-      </div>
+      <AiFlowHeader
+        step={1}
+        studentFirstName={studentFirstName}
+        onBack={onCancel}
+        backLabel="Cancelar e voltar para o pedido"
+        note="gerando a prévia · pode sair desta tela, avisamos quando ficar pronta"
+      />
 
       <div className="mx-auto flex w-full max-w-[720px] flex-col items-center gap-7 px-8 pb-14 pt-12">
         <div role="status" aria-live="polite" className="flex flex-col items-center gap-4 text-center">
@@ -68,7 +59,7 @@ export default function AiPlanGenerating({ studentFirstName, planCount, onCancel
               Montando {planCount === 1 ? 'a ficha' : 'a divisão'} de {studentFirstName}
             </h3>
             <p className="mx-auto mt-2 max-w-[460px] text-sm leading-relaxed text-k-text-dim">
-              O Gemini está montando {planCount === 1 ? '1 ficha' : `${planCount} fichas`} a partir do seu pedido e do
+              A IA está montando {planCount === 1 ? '1 ficha' : `${planCount} fichas`} a partir do seu pedido e do
               perfil de {studentFirstName}. Nada é salvo até você aprovar.
             </p>
           </div>

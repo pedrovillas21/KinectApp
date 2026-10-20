@@ -1,20 +1,19 @@
 import React, { useCallback, useContext, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Constants from 'expo-constants';
 
 import InviteDialog from '../components/InviteDialog';
-import Icon from '../components/Icon';
 import PhoneDialog from '../components/settings/PhoneDialog';
 import ChangePasswordDialog from '../components/settings/ChangePasswordDialog';
 import DeleteAccountDialog from '../components/settings/DeleteAccountDialog';
-import { Avatar, ListGroup, ListRow, Screen, Text } from '../components/ui';
+import { Avatar, ListGroup, ListRow, Screen, StackHeader, Text } from '../components/ui';
 import { AuthContext } from '../contexts/AuthContext';
 import useFocusResource from '../hooks/useFocusResource';
 import api from '../services/api';
 import { exportMyData } from '../services/accountService';
 import { getPublicProfile } from '../services/profileService';
 import { getMyTrainer, getPendingInvites } from '../services/trainerService';
-import { FONT, KINETIC, RADIUS } from '../theme/kinetic';
+import { KINETIC, RADIUS } from '../theme/kinetic';
 import { maskCellPhone } from '../utils/whatsapp';
 import type { MainStackScreenProps } from '../navigation/types';
 import type { TrainerPeer, UserProfileResponse } from '../types';
@@ -91,19 +90,7 @@ export default function SettingsScreen({ navigation }: MainStackScreenProps<'Set
     <Screen
       edges={['top', 'bottom', 'left', 'right']}
       contentStyle={styles.content}
-      header={
-        <View style={styles.header}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Voltar" onPress={() => navigation.goBack()} hitSlop={8} style={styles.back}>
-            <Icon name="arrow-left" size={20} color={KINETIC.primary} strokeWidth={1.9} />
-            <Text variant="label" color={KINETIC.primary} style={styles.backText}>
-              Você
-            </Text>
-          </Pressable>
-          <Text style={styles.title} accessibilityRole="header">
-            Configurações
-          </Text>
-        </View>
-      }
+      header={<StackHeader title="Configurações" onBack={() => navigation.goBack()} />}
     >
       <View style={styles.accountCard}>
         <Avatar name={name} uri={avatarUrl} seed={currentUser?.id} size={48} />
@@ -212,10 +199,6 @@ export default function SettingsScreen({ navigation }: MainStackScreenProps<'Set
 
 const styles = StyleSheet.create({
   content: { gap: 22, paddingBottom: 32 },
-  header: { paddingHorizontal: 16, paddingTop: 8 },
-  back: { flexDirection: 'row', alignItems: 'center', gap: 2, minHeight: 40, alignSelf: 'flex-start' },
-  backText: { fontFamily: FONT.regular },
-  title: { fontFamily: FONT.semibold, fontSize: 28, lineHeight: 34, letterSpacing: -0.6, marginTop: 6, marginHorizontal: 4 },
   flex: { flex: 1, minWidth: 0, gap: 2 },
   accountCard: {
     marginTop: 16,

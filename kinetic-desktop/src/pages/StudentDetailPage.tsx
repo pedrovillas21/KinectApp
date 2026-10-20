@@ -1,18 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { AnimatePresence, motion } from 'motion/react';
+import { motion } from 'motion/react';
 import { toast } from 'sonner';
-import { ArrowLeft, BarChart3, Dumbbell, MessageCircle, Ruler, Target, UserMinus, UserX } from 'lucide-react';
-import { endStudentLink, listStudents } from '../services/trainerService';
+import { ArrowLeft, BarChart3, Dumbbell, MessageCircle, Ruler, UserMinus, UserX } from 'lucide-react';
+import { endStudentLink, getEngagement, getStudentPlanEvolution, listStudents } from '../services/trainerService';
+import { qk, refreshTrainerData } from '../services/queryClient';
 import { useAuth } from '../contexts/AuthContext';
 import Avatar from '../components/Avatar';
 import DashboardTab from '../components/DashboardTab';
 import WorkoutPlansTab from '../components/personal/WorkoutPlansTab';
 import AssessmentsTab from '../components/personal/AssessmentsTab';
 import ConfirmDialog from '../components/personal/ConfirmDialog';
-import { EASE_OUT, SPRING_PILL } from '../components/motion/primitives';
-import type { TrainerLink } from '../types';
+import { ProtocolSummary, goalLabel, useStudentProtocol } from '../components/personal/StudentProtocol';
+import { EASE_OUT } from '../components/motion/primitives';
 import { whatsappUrl } from '../utils/whatsapp';
+import type { StudentEngagement } from '../types';
 
 type TabId = 'dashboard' | 'plans' | 'assessments';
 
@@ -42,33 +45,24 @@ export default function StudentDetailPage() {
   // rascunho de ficha em edição nem refaz as buscas do desempenho.
   const [visited, setVisited] = useState<Set<TabId>>(() => new Set([tab]));
 
-  const [link, setLink] = useState<TrainerLink | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [goal, setGoal] = useState<string | null>(null);
+  // Mesmo cache da lista: vindo dela, o perfil abre na hora.
+  const studentsQ = useQuery({ queryKey: qk.students, queryFn: listStudents });
+  const loading = studentsQ.isPending;
+  const link = studentsQ.data?.find((l) => l.peer.id === id) ?? null;
+  // A meta vem do ciclo, que a aba Desempenho também usa (mesma chave, uma busca só).
+  const evolutionQ = useQuery({
+    queryKey: qk.planEvolution(id ?? ''),
+    queryFn: () => getStudentPlanEvolution(id!),
+    enabled: !!link,
+  });
+  // O objetivo vigente vem do protocolo; sem ele, a meta do ciclo.
+  const protocolQ = useStudentProtocol(id ?? '', !!link);
+  const goal = protocolQ.data?.goal ? goalLabel(protocolQ.data.goal) : (evolutionQ.data?.goal ?? null);
+  const engagementQ = useQuery({ queryKey: qk.engagement, queryFn: getEngagement, enabled: !!link });
+  const engagement = engagementQ.data?.find((e) => e.studentId === id);
   const [endOpen, setEndOpen] = useState(false);
   const [ending, setEnding] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setLink(null);
-    setGoal(null);
-    listStudents()
-      .then((links) => {
-        if (cancelled) return;
-        setLink(links.find((l) => l.peer.id === id) ?? null);
-      })
-      .catch(() => {
-        if (!cancelled) setLink(null);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [id]);
 
   if (loading) {
     return (
@@ -129,6 +123,7 @@ export default function StudentDetailPage() {
     setEnding(true);
     try {
       await endStudentLink(id);
+      void refreshTrainerData();
       toast.success(`${firstName} saiu da sua carteira`, {
         description: 'O histórico de treinos dele continua salvo no app.',
       });
@@ -152,123 +147,13 @@ export default function StudentDetailPage() {
   };
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-k-bg text-k-text">
-      <header className="z-30 flex shrink-0 flex-wrap items-center justify-between gap-4 border-b border-k-ghost bg-k-bg/85 px-8 py-3.5 backdrop-blur-[14px]">
-        <motion.div
-          initial={{ opacity: 0, y: -6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: EASE_OUT }}
-          className="flex min-w-0 items-center gap-3.5"
-        >
-          <Link
-            to="/students"
-            aria-label="Voltar para alunos"
-            className="group flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-k-surface1 text-k-text-dim transition-colors hover:bg-k-surface2 hover:text-k-text"
-          >
-            <ArrowLeft className="h-[18px] w-[18px] transition-transform duration-300 group-hover:-translate-x-0.5" />
-          </Link>
-          <Avatar name={peer.nome} avatarUrl={peer.avatarUrl} size={48} ring="rgba(0,229,255,0.5)" />
-          <div className="min-w-0">
-            <h1 className="truncate font-display text-xl font-extrabold tracking-tight font-stretch-semi-expanded">
-              {peer.nome}
-            </h1>
-            <p className="truncate text-[12.5px] text-k-text-muted">
-              {peer.email} · Vinculado desde {sinceLabel(link.respondedAt ?? link.createdAt)}
-            </p>
-          </div>
-          <div className="ml-1.5 hidden gap-2 lg:flex">
-            <AnimatePresence>
-              {goal && (
-                <motion.span
-                  key="goal"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 26 }}
-                  className="inline-flex h-7 items-center gap-1.5 whitespace-nowrap rounded-full bg-k-primary-dim px-3 text-[12.5px] font-semibold text-k-primary"
-                >
-                  <Target className="h-3.5 w-3.5" />
-                  Meta: {goal}
-                </motion.span>
-              )}
-            </AnimatePresence>
-            <span className="inline-flex h-7 items-center gap-1.5 whitespace-nowrap rounded-full bg-k-success/10 px-3 text-[12.5px] font-semibold text-k-success">
-              <span className="h-[7px] w-[7px] rounded-full bg-k-success" />
-              Vínculo ativo
-            </span>
-          </div>
-        </motion.div>
-
-        <div className="flex flex-wrap items-center gap-2.5">
-          <div
-            role="tablist"
-            aria-label="Seções do aluno"
-            className="flex rounded-[14px] border border-k-ghost bg-k-surface1 p-1"
-          >
-            {TABS.map((t) => {
-              const active = t.id === tab;
-              const Icon = t.icon;
-              return (
-                <button
-                  key={t.id}
-                  type="button"
-                  role="tab"
-                  id={`student-tab-${t.id}`}
-                  aria-selected={active}
-                  aria-controls={`student-panel-${t.id}`}
-                  onClick={() => selectTab(t.id)}
-                  className={`relative flex h-[36px] items-center gap-2 rounded-[10px] px-3.5 text-[13px] font-semibold transition-colors ${
-                    active ? 'text-k-primary' : 'text-k-text-muted hover:text-k-text'
-                  }`}
-                >
-                  {active && (
-                    <motion.span
-                      layoutId="student-tab-pill"
-                      transition={SPRING_PILL}
-                      className="absolute inset-0 rounded-[10px] bg-k-primary/[0.12] shadow-[inset_0_0_0_1px_rgba(0,229,255,0.28)]"
-                    />
-                  )}
-                  <Icon className="relative h-4 w-4" />
-                  <span className="relative">{t.label}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {whatsappHref ? (
-            <a
-              href={whatsappHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex h-11 items-center gap-2 rounded-xl border border-k-success/30 bg-k-success/10 px-4 text-sm font-semibold text-k-success transition-colors hover:bg-k-success/[0.18] active:scale-[0.97]"
-            >
-              <MessageCircle className="h-[17px] w-[17px]" />
-              Chamar no WhatsApp
-            </a>
-          ) : (
-            <span
-              title="O aluno não tem celular cadastrado."
-              className="flex h-11 cursor-not-allowed items-center gap-2 rounded-xl border border-white/10 bg-k-surface1 px-4 text-sm font-semibold text-k-text-muted opacity-60"
-            >
-              <MessageCircle className="h-[17px] w-[17px]" />
-              Sem WhatsApp
-            </span>
-          )}
-
-          <button
-            type="button"
-            onClick={() => setEndOpen(true)}
-            disabled={companyManaged}
-            aria-label="Encerrar vínculo com o aluno"
-            title={
-              companyManaged
-                ? 'Aluno atribuído pela sua empresa: só a empresa pode desvincular.'
-                : 'Encerrar vínculo com o aluno'
-            }
-            className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-k-surface1 text-k-text-dim transition-colors hover:border-k-alert/40 hover:bg-k-alert/10 hover:text-k-alert disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-white/10 disabled:hover:bg-k-surface1 disabled:hover:text-k-text-dim"
-          >
-            <UserMinus className="h-[18px] w-[18px]" />
-          </button>
-        </div>
+    <div className="flex h-screen flex-col overflow-hidden">
+      <header className="flex h-[60px] shrink-0 items-center gap-2 border-b border-white/[0.07] px-8 text-sm">
+        <Link to="/students" className="text-k-text-muted transition-colors hover:text-k-text">
+          Alunos
+        </Link>
+        <span aria-hidden="true" className="text-k-text-muted/60">/</span>
+        <span aria-current="page" className="truncate">{peer.nome}</span>
       </header>
 
       <ConfirmDialog
@@ -289,6 +174,84 @@ export default function StudentDetailPage() {
       />
 
       <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-6 px-8 pt-8">
+          <section className="flex flex-wrap items-center gap-4">
+            <Avatar name={peer.nome} avatarUrl={peer.avatarUrl} size={56} />
+            <div className="min-w-0 flex-1">
+              <h1 className="truncate text-2xl font-semibold tracking-[-0.02em]">{peer.nome}</h1>
+              <p className="truncate text-sm text-k-text-muted">
+                {peer.email} · aluno desde {sinceLabel(link.respondedAt ?? link.createdAt)}
+                {goal ? ` · meta: ${goal.toLowerCase()}` : ''}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {whatsappHref ? (
+                <a
+                  href={whatsappHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.12] px-3.5 text-[13px] text-k-text transition-colors hover:bg-white/[0.06]"
+                >
+                  <MessageCircle className="h-4 w-4 text-k-success" />
+                  WhatsApp
+                </a>
+              ) : (
+                <span title="O aluno não tem celular cadastrado." className="px-1 text-xs text-k-text-muted">
+                  Sem WhatsApp cadastrado
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => selectTab('plans')}
+                className="flex h-9 items-center gap-1.5 rounded-lg bg-k-primary px-3.5 text-[13px] font-semibold text-k-on-primary transition-colors hover:bg-[#7df1ff]"
+              >
+                <Dumbbell className="h-4 w-4" />
+                Fichas de treino
+              </button>
+              <button
+                type="button"
+                onClick={() => setEndOpen(true)}
+                disabled={companyManaged}
+                aria-label="Encerrar vínculo com o aluno"
+                title={
+                  companyManaged
+                    ? 'Aluno atribuído pela sua empresa: só a empresa pode desvincular.'
+                    : 'Encerrar vínculo com o aluno'
+                }
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.12] text-k-text-dim transition-colors hover:border-k-alert/40 hover:text-k-alert disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <UserMinus className="h-4 w-4" />
+              </button>
+            </div>
+          </section>
+
+          <StudentStatus engagement={engagement} loading={engagementQ.isPending} />
+
+          <ProtocolSummary studentId={id} studentFirstName={firstName} />
+
+          <div role="tablist" aria-label="Seções do aluno" className="flex gap-6 border-b border-white/[0.08]">
+            {TABS.map((t) => {
+              const active = t.id === tab;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  role="tab"
+                  id={`student-tab-${t.id}`}
+                  aria-selected={active}
+                  aria-controls={`student-panel-${t.id}`}
+                  onClick={() => selectTab(t.id)}
+                  className={`-mb-px h-11 border-b-2 px-0.5 text-sm transition-colors ${
+                    active ? 'border-k-primary text-k-text' : 'border-transparent text-k-text-dim hover:text-k-text'
+                  }`}
+                >
+                  {t.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {visited.has('dashboard') && (
           <div
             role="tabpanel"
@@ -296,7 +259,7 @@ export default function StudentDetailPage() {
             aria-labelledby="student-tab-dashboard"
             hidden={tab !== 'dashboard'}
           >
-            <DashboardTab studentId={id} studentFirstName={firstName} onGoal={setGoal} />
+            <DashboardTab studentId={id} studentFirstName={firstName} />
           </div>
         )}
         {visited.has('plans') && (
@@ -321,5 +284,56 @@ export default function StudentDetailPage() {
         )}
       </div>
     </div>
+  );
+}
+
+const RISK_META: Record<StudentEngagement['risk'], { label: string; dot: string }> = {
+  ALTO: { label: 'Risco de abandono', dot: 'bg-k-alert' },
+  MEDIO: { label: 'Precisa de atenção', dot: 'bg-k-warn' },
+  OK: { label: 'Em dia', dot: 'bg-k-success' },
+};
+
+const lastSessionLabel = (e: StudentEngagement): string => {
+  if (e.daysSinceLastSession === null) return 'Nunca registrou treino';
+  if (e.daysSinceLastSession === 0) return 'Último treino hoje';
+  if (e.daysSinceLastSession === 1) return 'Último treino ontem';
+  return `Último treino há ${e.daysSinceLastSession} dias`;
+};
+
+/** Status do aluno em uma faixa: situação, motivo e os demais alertas do motor de risco. */
+function StudentStatus({ engagement, loading }: { engagement: StudentEngagement | undefined; loading: boolean }) {
+  if (loading) return <div className="k-skeleton h-[104px] rounded-xl bg-k-surface1" />;
+  if (!engagement) return null;
+  const meta = RISK_META[engagement.risk];
+  const [primary, ...others] = engagement.alerts;
+  return (
+    <section
+      aria-label="Status do aluno"
+      className="grid gap-px overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.08] md:grid-cols-[minmax(240px,1fr)_2fr]"
+    >
+      <div className="flex flex-col gap-2 bg-k-bg p-5">
+        <span className="text-xs text-k-text-muted">Status</span>
+        <span className="flex items-center gap-2 text-lg font-semibold">
+          <span className={`h-2 w-2 rounded-full ${meta.dot}`} aria-hidden="true" />
+          {meta.label}
+        </span>
+        <span className="font-mono text-xs text-k-text-muted">
+          {lastSessionLabel(engagement)}
+          {engagement.adherencePercent !== null &&
+            ` · aderência ${engagement.adherencePercent}% (${engagement.adherenceWindowDays}d)`}
+        </span>
+      </div>
+      <div className="flex flex-col gap-2 bg-k-bg p-5">
+        <span className="text-xs text-k-text-muted">{primary ? 'Por quê' : 'Situação'}</span>
+        <p className="text-[15px] leading-relaxed">
+          {primary ? primary.message : 'Treinando dentro do esperado. Nenhum alerta de abandono.'}
+        </p>
+        {others.map((a) => (
+          <p key={a.type} className="text-[13px] text-k-text-muted">
+            {a.message}
+          </p>
+        ))}
+      </div>
+    </section>
   );
 }
