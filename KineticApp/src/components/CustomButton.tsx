@@ -1,10 +1,10 @@
 import React from 'react';
 import {
   TouchableOpacity,
-  Text,
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
+import { Text } from './ui/scaled';
 
 interface Props {
   onPress: () => void;

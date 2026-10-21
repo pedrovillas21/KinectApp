@@ -1,10 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
-  Keyboard,
-  KeyboardEvent,
-  LayoutAnimation,
   Modal,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -14,6 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KINETIC, RADIUS } from '../../theme/kinetic';
 import Icon from '../Icon';
 import Text from './Text';
+import useKeyboardOverlap from '../../hooks/useKeyboardOverlap';
 
 export interface DialogProps {
   visible: boolean;
@@ -35,37 +32,8 @@ const GAP = 16;
  */
 export default function Dialog({ visible, onClose, title, children, dismissable = true, scroll = true }: DialogProps) {
   const insets = useSafeAreaInsets();
-  const rootRef = useRef<View>(null);
+  const { ref: rootRef, ...keyboard } = useKeyboardOverlap(visible);
   const [rootHeight, setRootHeight] = useState(0);
-  const [keyboard, setKeyboard] = useState({ open: false, overlap: 0 });
-
-  useEffect(() => {
-    if (!visible) return;
-    const ios = Platform.OS === 'ios';
-    const animate = () => {
-      if (ios) LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    };
-    const onShow = (e: KeyboardEvent) => {
-      const keyboardTop = e.endCoordinates.screenY;
-      const node = rootRef.current;
-      if (!node) return;
-      node.measureInWindow((_x, y, _w, h) => {
-        animate();
-        setKeyboard({ open: true, overlap: Math.max(0, y + h - keyboardTop) });
-      });
-    };
-    const onHide = () => {
-      animate();
-      setKeyboard({ open: false, overlap: 0 });
-    };
-    const show = Keyboard.addListener(ios ? 'keyboardWillShow' : 'keyboardDidShow', onShow);
-    const hide = Keyboard.addListener(ios ? 'keyboardWillHide' : 'keyboardDidHide', onHide);
-    return () => {
-      show.remove();
-      hide.remove();
-      setKeyboard({ open: false, overlap: 0 });
-    };
-  }, [visible]);
 
   const bottomSpace = keyboard.open ? keyboard.overlap + GAP : Math.max(insets.bottom, GAP);
   const maxCardHeight = rootHeight > 0 ? rootHeight - bottomSpace - Math.max(insets.top, GAP) - GAP : undefined;

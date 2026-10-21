@@ -17,11 +17,17 @@ export interface PagedList<T> {
   update: (fn: (items: T[]) => T[]) => void;
 }
 
-/** Lista paginada de um endpoint Spring `Page<T>`. Falha encerra a lista (last = true). */
-export default function usePaged<T>(fetchPage: (page: number) => Promise<Page<T>>): PagedList<T> {
-  const [items, setItems] = useState<T[]>([]);
-  const [page, setPage] = useState(-1);
-  const [last, setLast] = useState(false);
+/**
+ * Lista paginada de um endpoint Spring `Page<T>`. Falha encerra a lista (last = true).
+ * `initial` continua uma lista já carregada em outra tela (ex.: grade do perfil → publicações).
+ */
+export default function usePaged<T>(
+  fetchPage: (page: number) => Promise<Page<T>>,
+  initial?: { items: T[]; page: number; last: boolean },
+): PagedList<T> {
+  const [items, setItems] = useState<T[]>(initial?.items ?? []);
+  const [page, setPage] = useState(initial?.page ?? -1);
+  const [last, setLast] = useState(initial?.last ?? false);
   const [loading, setLoading] = useState(false);
   const busy = useRef(false);
 

@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, TextInput } from './ui/scaled';
 import { LinearGradient } from 'expo-linear-gradient';
 import { KINETIC } from '../theme/kinetic';
 import Icon from './Icon';
@@ -150,7 +151,7 @@ export default function SerieCard({
                   keyboardType="decimal-pad"
                   maxLength={6}
                   placeholder={loadType === 'BODYWEIGHT' ? '0 (só o corpo)' : '0'}
-                  placeholderTextColor={KINETIC.textMuted}
+                  placeholderTextColor={KINETIC.placeholder}
                 />
               </View>
             )}
@@ -165,7 +166,7 @@ export default function SerieCard({
                 keyboardType="number-pad"
                 maxLength={String(MAX_REPS).length}
                 placeholder={repsHint}
-                placeholderTextColor={KINETIC.textMuted}
+                placeholderTextColor={KINETIC.placeholder}
               />
             </View>
           </View>

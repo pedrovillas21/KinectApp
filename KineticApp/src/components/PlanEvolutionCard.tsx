@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from './ui/scaled';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MetricDeltaDTO, PlanEvolutionResponseDTO, StatsInsightDTO } from '../types';
 import {

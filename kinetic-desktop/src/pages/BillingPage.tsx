@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
   AlertTriangle,
@@ -16,7 +16,9 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import {
+  aiTotalLimit,
   billingErrorMessage,
+  buyAiPack,
   cancelSubscription,
   daysUntil,
   formatBRL,
@@ -24,6 +26,7 @@ import {
   getBilling,
   subscribePlan,
 } from '../services/billingService';
+import ActiveStudentsPicker from '../components/personal/ActiveStudentsPicker';
 import ConfirmDialog from '../components/personal/ConfirmDialog';
 import { qk, queryClient } from '../services/queryClient';
 import type { BillingOverview, BillingPlanOption } from '../types';
@@ -43,8 +46,18 @@ export default function BillingPage() {
   const [busyPlan, setBusyPlan] = useState<string | null>(null);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [canceling, setCanceling] = useState(false);
+  const [buyingPack, setBuyingPack] = useState(false);
 
   const load = () => void billingQ.refetch();
+
+  // Atalho "/assinatura#carteira" (avisos de aluno congelado): rola até a escolha dos ativos.
+  const { hash } = useLocation();
+  const hasBilling = !!billing;
+  useEffect(() => {
+    if (hash === '#carteira' && hasBilling) {
+      document.getElementById('carteira')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [hash, hasBilling]);
 
   const paying = billing?.status === 'ATIVA' || billing?.status === 'ATRASADA';
 
@@ -68,6 +81,20 @@ export default function BillingPage() {
     }
   };
 
+  const handleBuyPack = async () => {
+    if (buyingPack) return;
+    setBuyingPack(true);
+    try {
+      const next = await buyAiPack();
+      setBilling(next);
+      if (next.aiPackCheckoutUrl) openCheckout(next.aiPackCheckoutUrl, navigate);
+    } catch (err) {
+      toast.error(billingErrorMessage(err, 'Não foi possível comprar o pacote. Tente novamente.'));
+    } finally {
+      setBuyingPack(false);
+    }
+  };
+
   const handleCancel = async () => {
     setCanceling(true);
     try {
@@ -81,18 +108,16 @@ export default function BillingPage() {
     }
   };
 
-  const priced = (billing?.plans ?? []).filter((p) => !p.comingSoon && p.priceCents !== null && p.maxStudents);
+  // O Grátis (preço 0) não é assinável: vale sozinho sem plano pago.
+  const priced = (billing?.plans ?? []).filter((p) => !p.comingSoon && (p.priceCents ?? 0) > 0);
+  const free = billing?.plans.find((p) => p.code === 'FREE');
   const upcoming = (billing?.plans ?? []).filter((p) => p.comingSoon);
   const currentIdx = paying ? priced.findIndex((p) => p.code === billing?.plan) : -1;
   // Destaque: o próximo degrau de quem já assina; para quem não assina, o menor plano que comporta a carteira.
   const recommended =
     currentIdx >= 0
       ? priced[currentIdx + 1]
-      : priced.find((p) => (p.maxStudents ?? 0) >= (billing?.activeStudents ?? 0));
-  const cheapestPerStudent = priced.reduce<BillingPlanOption | undefined>(
-    (best, p) => (!best || perStudent(p) < perStudent(best) ? p : best),
-    undefined,
-  );
+      : priced.find((p) => (p.maxStudents ?? Infinity) >= (billing?.activeStudents ?? 0));
 
   return (
     <div className="flex h-screen flex-col overflow-hidden">
@@ -130,7 +155,9 @@ export default function BillingPage() {
                 </h1>
                 <p className="max-w-[600px] text-base leading-relaxed text-k-text-dim">
                   Painel do personal, app grátis para os seus alunos e fichas geradas com IA que você revisa e
-                  aprova. Pague pelo tamanho da sua carteira e troque de plano quando ela crescer.
+                  aprova. Comece grátis
+                  {free ? ` com até ${free.maxStudents} alunos e ${free.aiGenerationsPerMonth} fichas com IA por mês` : ''}{' '}
+                  e assine quando quiser a IA trabalhando por você.
                 </p>
               </section>
 
@@ -140,6 +167,8 @@ export default function BillingPage() {
                 onCancel={() => setCancelOpen(true)}
               />
 
+              {(billing.chooseActiveUntil || billing.frozenStudents > 0) && <ActiveStudentsPicker billing={billing} />}
+
               <section aria-label="Planos" className="grid grid-cols-[repeat(auto-fit,minmax(230px,1fr))] gap-4">
                 {priced.map((plan) => (
                   <PlanColumn
@@ -148,13 +177,44 @@ export default function BillingPage() {
                     billing={billing}
                     paying={paying}
                     recommended={plan.code === recommended?.code}
-                    bestValue={plan.code === cheapestPerStudent?.code && priced.length > 1}
                     busy={busyPlan === plan.code}
                     disabled={!!busyPlan}
                     onChoose={() => void handleChoose(plan)}
                   />
                 ))}
               </section>
+
+              {billing.aiGenerationsLimit !== null && (
+                <section
+                  aria-label="Pacote extra de IA"
+                  className="flex flex-wrap items-center gap-6 rounded-xl border border-white/[0.08] p-6"
+                >
+                  <Wand2 className="h-6 w-6 shrink-0 text-k-primary" strokeWidth={1.7} />
+                  <div className="flex min-w-[260px] flex-1 flex-col gap-1">
+                    <h2 className="text-[17px] font-semibold">
+                      Pacote extra · {billing.aiPack.credits} fichas com IA por {formatBRL(billing.aiPack.priceCents)}
+                    </h2>
+                    <p className="text-[13px] text-k-text-dim">
+                      Pagamento único, sem mensalidade. Não expira e só é usado depois da cota do seu plano.
+                      {billing.aiExtraCredits > 0 && (
+                        <>
+                          {' '}
+                          Você tem <span className="font-mono text-k-text">{billing.aiExtraCredits}</span> fichas
+                          extras.
+                        </>
+                      )}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void handleBuyPack()}
+                    disabled={buyingPack}
+                    className="h-11 rounded-lg border border-white/[0.14] px-5 text-sm font-semibold hover:bg-white/[0.06] disabled:cursor-not-allowed disabled:text-k-text-muted"
+                  >
+                    {buyingPack ? 'Aguarde…' : billing.aiPackCheckoutUrl ? 'Pagar pacote pendente' : 'Comprar pacote'}
+                  </button>
+                </section>
+              )}
 
               <section aria-labelledby="inclui" className="flex flex-col gap-5">
                 <h2 id="inclui" className="text-xl font-semibold tracking-[-0.01em]">
@@ -220,13 +280,12 @@ export default function BillingPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/[0.06] border-t border-white/[0.06] text-right font-mono">
-                        <CompareRow label="Alunos ativos" plans={priced} value={(p) => String(p.maxStudents)} />
+                        <CompareRow label="Alunos ativos" plans={priced} value={(p) => String(p.maxStudents ?? 'Ilimitado')} />
                         <CompareRow
                           label="Fichas com IA por mês"
                           plans={priced}
                           value={(p) => (p.aiGenerationsPerMonth === null ? '—' : String(p.aiGenerationsPerMonth))}
                         />
-                        <CompareRow label="Custo por aluno" plans={priced} value={(p) => formatBRL(perStudent(p))} />
                         <CompareRow label="App do aluno, alertas, relatórios e financeiro" plans={priced} value={() => '✓'} />
                       </tbody>
                     </table>
@@ -268,8 +327,8 @@ export default function BillingPage() {
         title="Cancelar assinatura?"
         description={
           billing?.currentPeriodEnd
-            ? `Não haverá novas cobranças. Seu plano continua valendo até ${formatDate(billing.currentPeriodEnd)}; depois disso você não poderá adicionar alunos novos (os atuais continuam na sua carteira).`
-            : 'A cobrança em aberto será cancelada e você volta ao teste grátis.'
+            ? `Não haverá novas cobranças. Seu plano continua valendo até ${formatDate(billing.currentPeriodEnd)}; depois disso você volta ao plano Grátis. Alunos acima do limite do Grátis ficam congelados (só leitura) até você assinar de novo.`
+            : 'A cobrança em aberto será cancelada e você volta ao teste grátis (ou ao plano Grátis, se o teste já acabou).'
         }
         confirmLabel={canceling ? 'Cancelando…' : 'Cancelar assinatura'}
         destructive
@@ -281,11 +340,12 @@ export default function BillingPage() {
   );
 }
 
-const perStudent = (p: BillingPlanOption) => Math.round((p.priceCents ?? 0) / (p.maxStudents || 1));
+const studentsLabel = (p: BillingPlanOption) =>
+  p.maxStudents === null ? 'Alunos ilimitados' : `Até ${p.maxStudents} alunos ativos`;
 
 const INCLUDED: { icon: LucideIcon; title: string; body: string }[] = [
   { icon: Smartphone, title: 'App grátis para os alunos', body: 'Seus alunos treinam, registram cargas e acompanham a evolução sem pagar nada.' },
-  { icon: Wand2, title: 'Fichas com IA, revisadas por você', body: 'A IA monta o rascunho a partir da anamnese; você ajusta e publica.' },
+  { icon: Wand2, title: 'Fichas com IA, revisadas por você', body: 'A IA monta o rascunho a partir da anamnese; você ajusta e publica. Cota mensal por plano, mais pacotes extras.' },
   { icon: AlertTriangle, title: 'Alertas de risco de abandono', body: 'Saiba quem parou de treinar antes que o aluno cancele com você.' },
   { icon: LineChart, title: 'Relatório de evolução', body: 'Carga, aderência e medidas por ciclo, prontos para mostrar ao aluno.' },
   { icon: Wallet, title: 'Financeiro da carteira', body: 'Mensalidades e cobranças dos seus alunos no mesmo painel.' },
@@ -304,6 +364,18 @@ const FAQ: { q: string; a: string }[] = [
   {
     q: 'O que acontece se a carteira passar do limite?',
     a: 'Os alunos atuais continuam normalmente; para adicionar alunos novos, é só mudar para um plano maior.',
+  },
+  {
+    q: 'E se eu não assinar?',
+    a: 'Depois do teste você fica no plano Grátis: até 3 alunos e 3 fichas com IA por mês, que renovam todo dia 1º. Pacotes extras também valem no Grátis.',
+  },
+  {
+    q: 'Como volto para o plano Grátis?',
+    a: 'Cancele a assinatura no resumo do seu plano. Ela continua valendo até o fim do período já pago e, nessa data, você passa para o Grátis automaticamente. Se a carteira passar do limite, você tem 7 dias para escolher quais alunos continuam ativos; os outros ficam congelados (você vê o histórico, mas não edita) até assinar de novo. Os alunos continuam treinando normalmente no app.',
+  },
+  {
+    q: 'Como funciona o pacote extra de IA?',
+    a: 'É um pagamento único, sem mensalidade. As fichas extras não expiram e só são usadas quando a cota do mês acaba.',
   },
   { q: 'Quais as formas de pagamento?', a: 'Pix, boleto ou cartão, com cobrança mensal.' },
   {
@@ -351,12 +423,12 @@ function CurrentPlan({
   let alert = false;
   switch (billing.status) {
     case 'TRIAL':
-      title = trialDays > 0 ? 'Teste grátis' : 'Teste grátis encerrado';
+      title = trialDays > 0 ? 'Teste grátis' : 'Plano Grátis';
       detail =
         trialDays > 0
           ? `Termina em ${trialDays} ${trialDays === 1 ? 'dia' : 'dias'} (${formatDate(billing.trialEndsAt)}).`
-          : 'Assine um plano para continuar adicionando alunos.';
-      alert = trialDays <= 3;
+          : 'Seu teste acabou. Assine para ter mais alunos e fichas com IA.';
+      alert = trialDays > 0 && trialDays <= 3;
       break;
     case 'PENDENTE':
       title = `Plano ${billing.planName} aguardando pagamento`;
@@ -372,13 +444,14 @@ function CurrentPlan({
       detail = 'Regularize a cobrança para não perder o plano. O boleto/Pix foi enviado por e-mail.';
       alert = true;
       break;
-    default:
-      title = 'Assinatura cancelada';
-      detail =
-        billing.currentPeriodEnd && daysUntil(billing.currentPeriodEnd) > 0
-          ? `Seu plano ${billing.planName} vale até ${formatDate(billing.currentPeriodEnd)}.`
-          : 'Assine um plano para voltar a adicionar alunos.';
-      alert = true;
+    default: {
+      const stillValid = !!billing.currentPeriodEnd && daysUntil(billing.currentPeriodEnd) > 0;
+      title = stillValid ? 'Assinatura cancelada' : 'Plano Grátis';
+      detail = stillValid
+        ? `Seu plano ${billing.planName} vale até ${formatDate(billing.currentPeriodEnd)}.`
+        : 'Assine de novo para ter mais alunos e fichas com IA.';
+      alert = stillValid;
+    }
   }
   const canCancel = billing.status === 'PENDENTE' || billing.status === 'ATIVA' || billing.status === 'ATRASADA';
 
@@ -417,7 +490,7 @@ function CurrentPlan({
         <Usage
           label={`Fichas com IA${billing.aiResetsAt ? ` · renova em ${formatDate(billing.aiResetsAt)}` : ''}`}
           used={billing.aiGenerationsUsed}
-          limit={billing.aiGenerationsLimit}
+          limit={aiTotalLimit(billing)}
         />
       ) : (
         <div className="bg-k-bg" />
@@ -426,14 +499,15 @@ function CurrentPlan({
   );
 }
 
-function Usage({ label, used, limit }: { label: string; used: number; limit: number }) {
-  const pct = limit > 0 ? Math.min(100, (used / limit) * 100) : 100;
+/** `limit` null = ilimitado (barra vazia). */
+function Usage({ label, used, limit }: { label: string; used: number; limit: number | null }) {
+  const pct = limit === null ? 0 : limit > 0 ? Math.min(100, (used / limit) * 100) : 100;
   return (
     <div className="flex flex-col justify-center gap-2.5 bg-k-bg p-5">
       <span className="text-xs text-k-text-muted">{label}</span>
       <span className="font-mono text-2xl font-medium">
         {used}
-        <span className="text-base text-k-text-muted"> / {limit}</span>
+        <span className="text-base text-k-text-muted"> / {limit ?? 'ilimitado'}</span>
       </span>
       <span className="block h-1 rounded-full bg-white/[0.08]">
         <span
@@ -450,7 +524,6 @@ function PlanColumn({
   billing,
   paying,
   recommended,
-  bestValue,
   busy,
   disabled,
   onChoose,
@@ -459,7 +532,6 @@ function PlanColumn({
   billing: BillingOverview;
   paying: boolean;
   recommended: boolean;
-  bestValue: boolean;
   busy: boolean;
   disabled: boolean;
   onChoose: () => void;
@@ -490,11 +562,9 @@ function PlanColumn({
             <span className="inline-flex items-center gap-1 rounded-full bg-k-primary px-2 py-0.5 text-xs font-semibold text-k-on-primary">
               <Check className="h-3 w-3" /> Seu plano
             </span>
-          ) : bestValue ? (
-            <span className="font-mono text-[11px] text-k-success">MENOR CUSTO/ALUNO</span>
           ) : null}
         </div>
-        <span className="text-[13px] text-k-text-muted">Até {plan.maxStudents} alunos ativos</span>
+        <span className="text-[13px] text-k-text-muted">{studentsLabel(plan)}</span>
       </div>
       <div className="flex flex-col gap-1">
         <span className="flex items-baseline gap-1">
@@ -503,7 +573,6 @@ function PlanColumn({
           </span>
           <span className="text-k-text-muted">/mês</span>
         </span>
-        <span className="font-mono text-xs text-k-text-muted">{formatBRL(perStudent(plan))} por aluno</span>
       </div>
       <button
         type="button"
@@ -521,9 +590,7 @@ function PlanColumn({
       <ul className="flex flex-col gap-3 border-t border-white/[0.07] pt-5">
         <li className="flex gap-2.5">
           <Check className="mt-0.5 h-4 w-4 shrink-0 text-k-primary" />
-          <span>
-            Até <span className="font-mono">{plan.maxStudents}</span> alunos ativos
-          </span>
+          <span>{studentsLabel(plan)}</span>
         </li>
         {plan.aiGenerationsPerMonth !== null && (
           <li className="flex gap-2.5">

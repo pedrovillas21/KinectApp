@@ -1,20 +1,21 @@
 import React, { useContext, useState, useRef, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  TextInput,
   ActivityIndicator,
 } from 'react-native';
+import { Text, TextInput } from '../../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import KeyboardAvoider from '../../components/ui/KeyboardAvoider';
 import { ThemeContext } from '../../contexts/ThemeContext';
 import { AuthContext } from '../../contexts/AuthContext';
 import { COLORS } from '../../theme/colors';
 import CustomInput from '../../components/CustomInput';
 import PrimaryButton from '../../components/PrimaryButton';
 import Icon from '../../components/Icon';
+import TextSizePicker from '../../components/TextSizePicker';
 import api from '../../services/api';
 import { showAlert } from '../../components/ui/AlertHost';
 
@@ -147,6 +148,27 @@ function ProgressDots({ current, total }: ProgressDotsProps) {
         );
       })}
     </View>
+  );
+}
+
+// ─── StepTextSize ─────────────────────────────────────────────────────────────
+// Antes de tudo: quem tem dificuldade de leitura ajusta o texto já para o resto do cadastro.
+function StepTextSize({ isDark }: { isDark: boolean }) {
+  const textPrimary   = isDark ? COLORS.textPrimaryDark   : COLORS.textPrimaryLight;
+  const textSecondary = isDark ? COLORS.textSecondaryDark : COLORS.textSecondaryLight;
+
+  return (
+    <>
+      <Text style={styles.stepTag}>Antes de começar</Text>
+      <Text style={[styles.stepTitle, { color: textPrimary }]}>Tamanho do texto</Text>
+      <Text style={[styles.stepSub, { color: textSecondary }]}>
+        Escolha o tamanho mais confortável para ler. Textos e ícones de todo o app seguem essa escolha.
+      </Text>
+      <TextSizePicker />
+      <Text style={[styles.stepSub, { color: textSecondary, marginTop: 12 }]}>
+        Você pode mudar isso depois em Configurações.
+      </Text>
+    </>
   );
 }
 
@@ -559,7 +581,8 @@ export default function OnboardingScreen() {
   const { completeOnboarding, signOut }      = useContext(AuthContext) as AuthContextValue;
   const isDark = isDarkMode;
 
-  const [step, setStep] = useState<number>(0);
+  // -1 = tamanho do texto; 0–4 = perguntas; 5 = gerando.
+  const [step, setStep] = useState<number>(-1);
   const [form, setForm] = useState<OnboardingForm>({
     goal:              '',
     birthDate:         '',
@@ -574,7 +597,7 @@ export default function OnboardingScreen() {
   const formRef = useRef<OnboardingForm>(form);
   useEffect(() => { formRef.current = form; });
 
-  const TOTAL_STEPS = 6;
+  const TOTAL_STEPS = 7;
 
   const canAdvance: boolean = (() => {
     if (step === 0) return !!form.goal;
@@ -642,77 +665,80 @@ export default function OnboardingScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bg }]}>
-      {/* TopBar: visível nos passos 0–4 */}
-      {step < 5 && (
-        <View style={styles.topBar}>
-          <TouchableOpacity
-            onPress={() => {
-              if (step === 0) {
-                showAlert(
-                  'Sair do cadastro?',
-                  'Você perderá o progresso e voltará para a tela de login.',
-                  [
-                    { text: 'Cancelar', style: 'cancel' },
-                    { text: 'Sair', style: 'destructive', onPress: () => void signOut() },
-                  ],
-                );
-              } else {
-                setStep(s => s - 1);
-              }
-            }}
-            style={styles.backBtn}
-          >
-            <Text style={styles.backBtnText}>‹</Text>
-          </TouchableOpacity>
-
-          <ProgressDots current={step} total={TOTAL_STEPS} />
-
-          {step === 4 ? (
-            <TouchableOpacity onPress={handleAdvance} style={styles.skipBtn}>
-              <Text style={styles.skipBtnText}>Pular</Text>
-            </TouchableOpacity>
-          ) : (
-            <View style={styles.skipBtn} />
-          )}
-        </View>
-      )}
-
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {step === 0 && (
-          <StepGoal value={form.goal} onChange={v => setForm({ ...form, goal: v })} isDark={isDark} />
-        )}
-        {step === 1 && (
-          <StepMetrics data={form} onChange={setForm} isDark={isDark} />
-        )}
-        {step === 2 && (
-          <StepLevel value={form.level} onChange={v => setForm({ ...form, level: v })} isDark={isDark} />
-        )}
-        {step === 3 && (
-          <StepFreq days={form.days} onChange={v => setForm({ ...form, days: v })} isDark={isDark} />
-        )}
-        {step === 4 && (
-          <StepAnamnesis value={form.medicalConditions} onChange={v => setForm({ ...form, medicalConditions: v })} isDark={isDark} />
-        )}
-        {step === 5 && (
-          <StepGenerating goalLabel={goalLabel} daysCount={form.days.length} />
-        )}
-      </ScrollView>
-
-      {/* Footer CTA: visível nos passos 0–4 */}
-      {step < 5 && (
-        <View style={styles.footer}>
-          <PrimaryButton title={ctaLabel} onPress={handleAdvance} disabled={!canAdvance} isLoading={false} icon={null} />
-          {step === 0 && (
+      <KeyboardAvoider>
+        {/* TopBar: visível nos passos 0–4 */}
+        {step < 5 && (
+          <View style={styles.topBar}>
             <TouchableOpacity
-              onPress={() => completeOnboarding({ level: 'INT' })}
-              style={styles.footerSkip}
+              onPress={() => {
+                if (step === -1) {
+                  showAlert(
+                    'Sair do cadastro?',
+                    'Você perderá o progresso e voltará para a tela de login.',
+                    [
+                      { text: 'Cancelar', style: 'cancel' },
+                      { text: 'Sair', style: 'destructive', onPress: () => void signOut() },
+                    ],
+                  );
+                } else {
+                  setStep(s => s - 1);
+                }
+              }}
+              style={styles.backBtn}
             >
-              <Text style={styles.footerSkipText}>NÃO, JÁ POSSUO TREINO</Text>
-              <Icon name="close" size={13} color={COLORS.textSecondaryDark} strokeWidth={2.4} />
+              <Text style={styles.backBtnText}>‹</Text>
             </TouchableOpacity>
+
+            <ProgressDots current={step + 1} total={TOTAL_STEPS} />
+
+            {step === 4 ? (
+              <TouchableOpacity onPress={handleAdvance} style={styles.skipBtn}>
+                <Text style={styles.skipBtnText}>Pular</Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.skipBtn} />
+            )}
+          </View>
+        )}
+
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {step === -1 && <StepTextSize isDark={isDark} />}
+          {step === 0 && (
+            <StepGoal value={form.goal} onChange={v => setForm({ ...form, goal: v })} isDark={isDark} />
           )}
-        </View>
-      )}
+          {step === 1 && (
+            <StepMetrics data={form} onChange={setForm} isDark={isDark} />
+          )}
+          {step === 2 && (
+            <StepLevel value={form.level} onChange={v => setForm({ ...form, level: v })} isDark={isDark} />
+          )}
+          {step === 3 && (
+            <StepFreq days={form.days} onChange={v => setForm({ ...form, days: v })} isDark={isDark} />
+          )}
+          {step === 4 && (
+            <StepAnamnesis value={form.medicalConditions} onChange={v => setForm({ ...form, medicalConditions: v })} isDark={isDark} />
+          )}
+          {step === 5 && (
+            <StepGenerating goalLabel={goalLabel} daysCount={form.days.length} />
+          )}
+        </ScrollView>
+
+        {/* Footer CTA: visível nos passos 0–4 */}
+        {step < 5 && (
+          <View style={styles.footer}>
+            <PrimaryButton title={ctaLabel} onPress={handleAdvance} disabled={!canAdvance} isLoading={false} icon={null} />
+            {step === 0 && (
+              <TouchableOpacity
+                onPress={() => completeOnboarding({ level: 'INT' })}
+                style={styles.footerSkip}
+              >
+                <Text style={styles.footerSkipText}>NÃO, JÁ POSSUO TREINO</Text>
+                <Icon name="close" size={13} color={COLORS.textSecondaryDark} strokeWidth={2.4} />
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+      </KeyboardAvoider>
     </SafeAreaView>
   );
 }

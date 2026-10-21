@@ -491,9 +491,9 @@ public class SocialService {
         return days + " DAYS AGO";
     }
 
+    /** Foto de perfil ou null (o app e o painel mostram as iniciais do nome). */
     static String avatarOf(User u) {
-        return u.getAvatarUrl() != null ? u.getAvatarUrl()
-                : "https://i.pravatar.cc/150?u=" + u.getId();
+        return u.getAvatarUrl();
     }
 
     User findByEmail(String email) {

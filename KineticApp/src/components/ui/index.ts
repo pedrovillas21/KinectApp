@@ -14,3 +14,5 @@ export { default as BarChart12w } from './BarChart12w';
 export { default as StackHeader } from './StackHeader';
 export { default as TextField } from './TextField';
 export { default as StaleBanner } from './StaleBanner';
+export { default as KeyboardAvoider } from './KeyboardAvoider';
+export { default as BottomSheet } from './BottomSheet';

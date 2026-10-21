@@ -37,4 +37,8 @@ public interface SocialPostRepository extends JpaRepository<SocialPost, UUID> {
     List<String> findAllImageUrls();
 
     long countByAuthorIdAndKind(UUID authorId, String kind);
+
+    // Stories vencidas (expiresAt < now) para o job de limpeza; em lotes via Pageable.
+    // Curtidas e comentários saem junto por ON DELETE CASCADE (V11).
+    List<SocialPost> findByKindAndExpiresAtBefore(String kind, LocalDateTime now, Pageable pageable);
 }

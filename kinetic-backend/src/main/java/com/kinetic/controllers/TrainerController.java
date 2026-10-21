@@ -1,6 +1,7 @@
 package com.kinetic.controllers;
 
 import com.kinetic.dtos.AiPlanContextDTO;
+import com.kinetic.dtos.AlertPauseRequestDTO;
 import com.kinetic.dtos.AiPlanPreviewDTO;
 import com.kinetic.dtos.InviteCodeCreateRequestDTO;
 import com.kinetic.dtos.MonthlyStatsResponseDTO;
@@ -144,6 +145,34 @@ public class TrainerController extends BaseController {
     @GetMapping("/students/engagement")
     public ResponseEntity<List<StudentEngagementDTO>> engagement() {
         return ResponseEntity.ok(trainerEngagementService.engagement(currentUserEmail()));
+    }
+
+    @Operation(
+            summary = "Pausar os alertas de risco de um aluno",
+            description = "Esconde os alertas do aluno (fila de hoje e painel de risco) por N dias, contando hoje, "
+                    + "com o motivo (LESAO, VIAGEM, CONTATO, OUTRO) e uma nota opcional. Pausar de novo sobrescreve."
+    )
+    @PutMapping("/students/{studentId}/alert-pause")
+    public ResponseEntity<StudentEngagementDTO.Pause> pauseAlerts(@PathVariable @NonNull UUID studentId,
+                                                                  @Valid @RequestBody AlertPauseRequestDTO dto) {
+        return ResponseEntity.ok(trainerEngagementService.pauseAlerts(currentUserEmail(), studentId, dto));
+    }
+
+    @Operation(
+            summary = "Ignorar o lembrete do dia de um aluno",
+            description = "Tira o item \"ainda não treinou hoje\" do aluno da fila de hoje até o dia seguinte."
+    )
+    @PostMapping("/students/{studentId}/today-dismiss")
+    public ResponseEntity<Void> dismissMissedToday(@PathVariable @NonNull UUID studentId) {
+        trainerTodayService.dismissMissedToday(currentUserEmail(), studentId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Reativar os alertas de risco de um aluno")
+    @DeleteMapping("/students/{studentId}/alert-pause")
+    public ResponseEntity<Void> resumeAlerts(@PathVariable @NonNull UUID studentId) {
+        trainerEngagementService.resumeAlerts(currentUserEmail(), studentId);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(

@@ -47,7 +47,7 @@ export default function BottomTabBar({ state, descriptors, navigation }: BottomT
             style={styles.tab}
           >
             <Icon name={meta.icon} size={22} color={color} strokeWidth={1.7} />
-            <Text style={styles.label} color={color} numberOfLines={1}>
+            <Text style={styles.label} color={color} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
               {meta.label}
             </Text>
           </Pressable>

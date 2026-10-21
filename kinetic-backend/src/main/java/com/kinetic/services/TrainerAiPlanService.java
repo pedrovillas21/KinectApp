@@ -98,10 +98,10 @@ public class TrainerAiPlanService {
      */
     public AiPlanPreviewDTO generatePreview(String trainerEmail, @NonNull UUID studentId,
                                             TrainerAiPlanRequestDTO request) {
-        User student = trainerLinkService.resolveOwnedStudent(trainerEmail, studentId);
+        User student = trainerLinkService.resolveOwnedStudentForWrite(trainerEmail, studentId);
         User trainer = userRepository.getByEmailOrThrow(trainerEmail);
         // Antes de chamar a IA: com a cota esgotada não se gasta token nenhum.
-        billingService.assertCanGenerateAi(trainer);
+        boolean usesExtraCredit = billingService.assertCanGenerateAi(trainer);
         String level = TrainerPlanService.resolveLevel(request.level(), null, student.getLevel());
 
         String prompt = buildPrompt(student, request, level);
@@ -121,6 +121,9 @@ public class TrainerAiPlanService {
         generation.setAiOutput(toJson(draft));
         generation.setModel(result.model());
         AiPlanGeneration saved = generationRepository.save(generation);
+        if (usesExtraCredit) {
+            billingService.consumeAiExtraCredit(trainer);
+        }
 
         log.info("Prévia de fichas por IA {} gerada para o aluno {} ({} ficha(s)).",
                 saved.getId(), studentId, draft.plans().size());
@@ -141,7 +144,7 @@ public class TrainerAiPlanService {
     public List<WorkoutPlanResponseDTO> approve(String trainerEmail, @NonNull UUID studentId,
                                                 @NonNull UUID generationId,
                                                 TrainerAiPlanApproveRequestDTO request) {
-        User student = trainerLinkService.resolveOwnedStudent(trainerEmail, studentId);
+        User student = trainerLinkService.resolveOwnedStudentForWrite(trainerEmail, studentId);
         User trainer = userRepository.getByEmailOrThrow(trainerEmail);
 
         AiPlanGeneration generation = generationRepository.findById(generationId)

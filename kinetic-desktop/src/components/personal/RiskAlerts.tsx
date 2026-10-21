@@ -1,38 +1,17 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import { BellOff, ChevronRight, MessageCircle, ShieldCheck } from 'lucide-react';
+import { toast } from 'sonner';
+import { BellOff, BellRing, ChevronRight, MessageCircle, ShieldCheck } from 'lucide-react';
 import Avatar from '../Avatar';
 import { EASE_OUT } from '../motion/primitives';
+import PauseAlertDialog, { formatPauseDate, pauseReasonLabel } from './PauseAlertDialog';
+import { resumeAlerts } from '../../services/trainerService';
+import { qk, queryClient } from '../../services/queryClient';
 import { whatsappUrl } from '../../utils/whatsapp';
 import type { RiskAlert, StudentEngagement, TrainerLink } from '../../types';
 
-/** "Já falei com o aluno" esconde o alerta por alguns dias (só neste navegador). */
-const SNOOZE_KEY = 'kinetic:risk-snooze';
-const SNOOZE_DAYS = 3;
 const COLLAPSED_LIMIT = 6;
-
-type SnoozeMap = Record<string, number>;
-
-function readSnoozes(): SnoozeMap {
-  try {
-    const raw = localStorage.getItem(SNOOZE_KEY);
-    const parsed = raw ? (JSON.parse(raw) as SnoozeMap) : {};
-    const now = Date.now();
-    // Descarta adiamentos vencidos para o mapa não crescer para sempre.
-    return Object.fromEntries(Object.entries(parsed).filter(([, until]) => until > now));
-  } catch {
-    return {};
-  }
-}
-
-function writeSnoozes(map: SnoozeMap) {
-  try {
-    localStorage.setItem(SNOOZE_KEY, JSON.stringify(map));
-  } catch {
-    // Sem storage (aba anônima/bloqueio): o adiamento vale só até recarregar.
-  }
-}
 
 /** Mensagem de WhatsApp pronta, conforme o motivo principal do alerta. */
 function outreachMessage(alert: RiskAlert, studentFirstName: string, trainerFirstName?: string): string {
@@ -60,8 +39,9 @@ interface Item {
 }
 
 /**
- * Alertas de risco de abandono da carteira: quem precisa de um contato agora,
- * com o motivo e um atalho de WhatsApp com mensagem pronta.
+ * Alertas de risco ALTO de abandono da carteira (muito tempo sem treinar, nunca
+ * treinou, queda forte): quem precisa de um contato agora, com o motivo e um
+ * atalho de WhatsApp com mensagem pronta.
  */
 export default function RiskAlerts({
   students,
@@ -72,13 +52,14 @@ export default function RiskAlerts({
   engagement: Record<string, StudentEngagement>;
   trainerFirstName?: string;
 }) {
-  const [snoozes, setSnoozes] = useState<SnoozeMap>(readSnoozes);
   const [expanded, setExpanded] = useState(false);
   const [showSnoozed, setShowSnoozed] = useState(false);
+  const [pausing, setPausing] = useState<Item | null>(null);
 
   const atRisk: Item[] = students
     .map((link) => ({ link, engagement: engagement[link.peer.id] }))
-    .filter((i): i is Item => !!i.engagement && i.engagement.risk !== 'OK')
+    // Só os casos graves; o dia a dia (faltou hoje) fica na fila de hoje. Congelado o personal não atende.
+    .filter((i): i is Item => !!i.engagement && i.engagement.risk === 'ALTO' && !i.link.frozen)
     // Mais grave primeiro; entre iguais, quem está há mais tempo sem treinar.
     .sort((a, b) => {
       const sev = (i: Item) => (i.engagement.risk === 'ALTO' ? 0 : 1);
@@ -86,22 +67,20 @@ export default function RiskAlerts({
       return sev(a) - sev(b) || idle(b) - idle(a);
     });
 
-  const now = Date.now();
-  const snoozedCount = atRisk.filter((i) => (snoozes[i.link.peer.id] ?? 0) > now).length;
-  const pending = showSnoozed ? atRisk : atRisk.filter((i) => (snoozes[i.link.peer.id] ?? 0) <= now);
+  const snoozedCount = atRisk.filter((i) => i.engagement.pause).length;
+  const pending = showSnoozed ? atRisk : atRisk.filter((i) => !i.engagement.pause);
   const shown = expanded ? pending : pending.slice(0, COLLAPSED_LIMIT);
 
-  const snooze = (studentId: string) => {
-    const next = { ...readSnoozes(), [studentId]: Date.now() + SNOOZE_DAYS * 86_400_000 };
-    writeSnoozes(next);
-    setSnoozes(next);
-  };
-
-  const unsnooze = (studentId: string) => {
-    const next = { ...readSnoozes() };
-    delete next[studentId];
-    writeSnoozes(next);
-    setSnoozes(next);
+  const unsnooze = async (studentId: string) => {
+    try {
+      await resumeAlerts(studentId);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: qk.engagement }),
+        queryClient.invalidateQueries({ queryKey: qk.today }),
+      ]);
+    } catch {
+      toast.error('Não foi possível reativar o alerta. Tente novamente.');
+    }
   };
 
   return (
@@ -119,7 +98,7 @@ export default function RiskAlerts({
             onClick={() => setShowSnoozed((v) => !v)}
             className="text-[13px] text-k-text-dim hover:text-k-text"
           >
-            {showSnoozed ? 'Ocultar adiados' : `${snoozedCount} adiado${snoozedCount === 1 ? '' : 's'} · mostrar`}
+            {showSnoozed ? 'Ocultar pausados' : `${snoozedCount} pausado${snoozedCount === 1 ? '' : 's'} · mostrar`}
           </button>
         )}
       </div>
@@ -127,7 +106,7 @@ export default function RiskAlerts({
       {pending.length === 0 ? (
         <div className="flex items-center gap-3 px-5 py-4 text-sm text-k-text-dim">
           <ShieldCheck className="h-5 w-5 text-k-success" />
-          Nenhum aluno em risco de abandono agora. Bom trabalho!
+          Nenhum aluno em risco alto de abandono agora. Bom trabalho!
         </div>
       ) : (
         <ul className="flex flex-col divide-y divide-white/[0.06]">
@@ -136,7 +115,8 @@ export default function RiskAlerts({
               const primary = e.alerts[0];
               const high = e.risk === 'ALTO';
               const firstName = link.peer.nome.trim().split(/\s+/)[0] ?? link.peer.nome;
-              const isSnoozed = (snoozes[link.peer.id] ?? 0) > now;
+              const pause = e.pause;
+              const isSnoozed = !!pause;
               return (
                 <motion.li
                   key={link.peer.id}
@@ -168,6 +148,14 @@ export default function RiskAlerts({
                         {e.adherencePercent !== null &&
                           ` · aderência ${e.adherencePercent}% (${e.adherenceWindowDays} dias)`}
                       </p>
+                      {pause && (
+                        <p className="mt-1.5 text-[13px] text-k-text-dim">
+                          <span className="font-medium text-k-text-soft">
+                            {pauseReasonLabel(pause.reason)} · pausado até {formatPauseDate(pause.until)}
+                          </span>
+                          {pause.note && ` — ${pause.note}`}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -188,12 +176,14 @@ export default function RiskAlerts({
                     )}
                     <button
                       type="button"
-                      onClick={() => (isSnoozed ? unsnooze(link.peer.id) : snooze(link.peer.id))}
-                      title={isSnoozed ? undefined : `Esconde este alerta por ${SNOOZE_DAYS} dias`}
+                      onClick={() =>
+                        isSnoozed ? void unsnooze(link.peer.id) : setPausing({ link, engagement: e })
+                      }
+                      title={isSnoozed ? undefined : 'Anote o motivo e esconda o alerta por alguns dias'}
                       className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[13px] text-k-text-dim transition-colors hover:bg-white/[0.06] hover:text-k-text"
                     >
-                      <BellOff className="h-3.5 w-3.5" />
-                      {isSnoozed ? 'Reativar alerta' : 'Já entrei em contato'}
+                      {isSnoozed ? <BellRing className="h-3.5 w-3.5" /> : <BellOff className="h-3.5 w-3.5" />}
+                      {isSnoozed ? 'Reativar alerta' : 'Resolver'}
                     </button>
                     <Link
                       to={`/students/${link.peer.id}`}
@@ -218,6 +208,17 @@ export default function RiskAlerts({
         >
           {expanded ? 'Mostrar menos' : `Ver todos (${pending.length})`}
         </button>
+      )}
+
+      {pausing && (
+        <PauseAlertDialog
+          open
+          studentId={pausing.link.peer.id}
+          studentName={pausing.link.peer.nome}
+          alertMessage={pausing.engagement.alerts[0]?.message}
+          current={pausing.engagement.pause}
+          onClose={() => setPausing(null)}
+        />
       )}
     </section>
   );

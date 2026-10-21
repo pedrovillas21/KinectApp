@@ -1,19 +1,18 @@
 import React, { useContext, useState } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
-  TextInput,
 } from 'react-native';
+import { Text, TextInput } from '../../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../contexts/AuthContext';
 import Svg, { Path } from 'react-native-svg';
 import { isValidCellPhone, maskCellPhone } from '../../utils/whatsapp';
 import { showAlert } from '../../components/ui/AlertHost';
+import KeyboardAvoider from '../../components/ui/KeyboardAvoider';
+import { KINETIC } from '../../theme/kinetic';
 
 const A = {
   bg: '#131313',
@@ -63,9 +62,7 @@ export default function PhoneRequiredScreen() {
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safe}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.kav}
+        <KeyboardAvoider style={styles.kav}
         >
           {/* Header */}
           <View style={styles.header}>
@@ -95,7 +92,7 @@ export default function PhoneRequiredScreen() {
               <TextInput
                 style={styles.textInput}
                 placeholder="(11) 98765-4321"
-                placeholderTextColor={A.text3}
+                placeholderTextColor={KINETIC.placeholder}
                 value={phone}
                 onChangeText={(v) => setPhone(maskCellPhone(v))}
                 keyboardType="phone-pad"
@@ -132,7 +129,7 @@ export default function PhoneRequiredScreen() {
               </Text>
             </TouchableOpacity>
           </View>
-        </KeyboardAvoidingView>
+        </KeyboardAvoider>
       </SafeAreaView>
     </View>
   );

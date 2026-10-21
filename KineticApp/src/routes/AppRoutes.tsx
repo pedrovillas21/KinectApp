@@ -26,6 +26,7 @@ import ProfileScreen from '../screens/ProfileScreen';
 import ActiveSessionScreen from '../screens/ActiveSessionScreen';
 import WorkoutCameraScreen from '../screens/WorkoutCameraScreen';
 import NewWorkoutPostScreen from '../screens/NewWorkoutPostScreen';
+import ProfilePostsScreen from '../screens/ProfilePostsScreen';
 import UserProfileScreen from '../screens/UserProfileScreen';
 import CompareProgressScreen from '../screens/CompareProgressScreen';
 import SettingsScreen from '../screens/SettingsScreen';
@@ -132,6 +133,7 @@ export default function AppRoutes(): React.ReactElement | null {
       <MainStack.Screen name="Protocol" component={ProtocolScreen} />
       <MainStack.Screen name="Anamnesis" component={AnamnesisScreen} />
       <MainStack.Screen name="TrainerProfile" component={TrainerProfileScreen} />
+      <MainStack.Screen name="ProfilePosts" component={ProfilePostsScreen} />
     </MainStack.Navigator>
   );
 }

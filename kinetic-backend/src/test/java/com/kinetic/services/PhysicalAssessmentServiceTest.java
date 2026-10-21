@@ -36,7 +36,7 @@ class PhysicalAssessmentServiceTest {
 
     @Test
     void createWritesTheWeightToTheStudentHistoryAndProfile() {
-        when(links.resolveOwnedStudent(trainer.getEmail(), student.getId())).thenReturn(student);
+        when(links.resolveOwnedStudentForWrite(trainer.getEmail(), student.getId())).thenReturn(student);
         when(users.getByEmailOrThrow(trainer.getEmail())).thenReturn(trainer);
         when(assessments.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(assessments.findByStudentIdOrderByAssessedOnAscCreatedAtAsc(student.getId()))
@@ -60,7 +60,7 @@ class PhysicalAssessmentServiceTest {
     void deleteKeepsAWeightTheStudentLoggedThemselves() {
         PhysicalAssessment a = assessment(85.0, null);
         a.setId(UUID.randomUUID());
-        when(links.resolveOwnedStudent(trainer.getEmail(), student.getId())).thenReturn(student);
+        when(links.resolveOwnedStudentForWrite(trainer.getEmail(), student.getId())).thenReturn(student);
         when(assessments.findById(a.getId())).thenReturn(Optional.of(a));
         when(assessments.findByStudentIdOrderByAssessedOnAscCreatedAtAsc(student.getId())).thenReturn(List.of());
         WeightHistory own = new WeightHistory();
@@ -77,7 +77,7 @@ class PhysicalAssessmentServiceTest {
     void deleteRemovesTheWeightPointItCreated() {
         PhysicalAssessment a = assessment(85.0, null);
         a.setId(UUID.randomUUID());
-        when(links.resolveOwnedStudent(trainer.getEmail(), student.getId())).thenReturn(student);
+        when(links.resolveOwnedStudentForWrite(trainer.getEmail(), student.getId())).thenReturn(student);
         when(assessments.findById(a.getId())).thenReturn(Optional.of(a));
         when(assessments.findByStudentIdOrderByAssessedOnAscCreatedAtAsc(student.getId())).thenReturn(List.of());
         WeightHistory fromAssessment = new WeightHistory();

@@ -1,5 +1,6 @@
 import React from "react";
 import { AbsoluteFill, Easing } from "remotion";
+import { WandSparkles } from "lucide-react";
 import { CommunityScreen, HomeScreen, ProgressScreen, PushBanner, SessionScreen } from "./app-screens";
 import {
   AiGerando,
@@ -18,7 +19,7 @@ import {
   TopRightDefault,
   TreinosTab,
 } from "./desk";
-import { APP_STEP, CHAOS, INCLUDED, MG, PLANS, Stages } from "./scenes";
+import { APP_STEP, CHAOS, INCLUDED, MG, Stages } from "./scenes";
 import { K, mono, sans } from "./theme";
 import {
   ar,
@@ -48,25 +49,48 @@ import {
  */
 const W = 1080;
 
-/* Navegador centralizado embaixo do texto, entrando de baixo com inclinação. */
-const V_DESK = 0.72;
-const DeskStageV: React.FC<{ url: string; children: React.ReactNode; top?: number }> = ({ url, children, top = 720 }) => {
-  const { a, sec } = useAnim();
+/*
+ * Câmera: mostra um recorte ampliado de um conteúdo `w`×`h` numa janela de largura total
+ * entre `top` e `bottom`. `focus` (coordenadas do conteúdo) é o ponto que fica no centro,
+ * limitado para a janela nunca sair do conteúdo.
+ */
+const Cam: React.FC<{ w: number; h: number; zoom: number; focus: [number, number]; top: number; bottom?: number; children: React.ReactNode }> = ({
+  w,
+  h,
+  zoom,
+  focus,
+  top,
+  bottom = 1720,
+  children,
+}) => {
+  const winH = bottom - top;
+  const clampTo = (v: number, size: number, win: number) => (size * zoom <= win ? size / 2 : Math.min(size - win / 2 / zoom, Math.max(win / 2 / zoom, v)));
+  const fx = clampTo(focus[0], w, W);
+  const fy = clampTo(focus[1], h, winH);
+  const fade = "linear-gradient(transparent, #000 50px, #000 calc(100% - 70px), transparent)";
   return (
-    <div
-      style={{
-        position: "absolute",
-        left: (W - BROWSER_W) / 2,
-        top,
-        width: BROWSER_W,
-        height: BROWSER_H,
-        transformOrigin: "50% 0",
-        transform: `perspective(2600px) rotateX(${a(0, 1.3, 20, 4) + a(1.3, 20, 0, -2, Easing.linear)}deg) scale(${V_DESK})`,
-        opacity: a(0, 0.5),
-        translate: `0 ${a(0, 1.3, 220, 0) + Math.sin(sec * 0.8) * 5}px`,
-      }}
-    >
-      <Browser url={url}>{children}</Browser>
+    <div style={{ position: "absolute", left: 0, top, width: W, height: winH, overflow: "hidden", maskImage: fade }}>
+      <div style={{ position: "absolute", left: W / 2 - fx * zoom, top: winH / 2 - fy * zoom, width: w, height: h, transformOrigin: "left top", scale: String(zoom) }}>
+        {children}
+      </div>
+    </div>
+  );
+};
+
+/* Painel ampliado embaixo do texto: entra de baixo e a câmera segue `focus` (coordenadas do conteúdo, abaixo da barra do navegador). */
+const DeskStageV: React.FC<{ url: string; children: React.ReactNode; focus: [number, number]; zoom?: number; top?: number }> = ({
+  url,
+  children,
+  focus,
+  zoom = 1.6,
+  top = 640,
+}) => {
+  const { a } = useAnim();
+  return (
+    <div style={{ position: "absolute", inset: 0, opacity: a(0, 0.5), translate: `0 ${a(0, 1.1, 260, 0)}px` }}>
+      <Cam w={BROWSER_W} h={BROWSER_H} zoom={zoom * a(0, 1.2, 0.8, 1)} focus={[focus[0], focus[1] + 52]} top={top}>
+        <Browser url={url}>{children}</Browser>
+      </Cam>
     </div>
   );
 };
@@ -187,7 +211,7 @@ export const OverviewSceneV: React.FC = () => {
           ]}
         />
       </TextTop>
-      <DeskStageV url="app.kinetic.com.br/students">
+      <DeskStageV url="app.kinetic.com.br/students" focus={[keys(sec, [1.8, 3.4, 5.0, 7.6, 8.6], [420, 1000, 1045, 1045, 1300]), keys(sec, [3.4, 5.0, 7.6, 8.6], [230, 488, 488, 640])]}>
         <Shell crumb="Visão geral" topRight={<TopRightDefault />}>
           <Dashboard t={sec} scroll={scroll} />
         </Shell>
@@ -225,7 +249,7 @@ export const AiSceneV: React.FC = () => {
           ]}
         />
       </TextTop>
-      <DeskStageV url="app.kinetic.com.br/students/ana-souza">
+      <DeskStageV url="app.kinetic.com.br/students/ana-souza" focus={[keys(sec, [B + 3.4, C, C + 0.5, D, D + 0.6, D + 3.0, D + 3.6], [1309, 1309, 836, 836, 1050, 1050, 1272]), keys(sec, [0.4, 1.3, B + 1.2, B + 3.4, C, C + 0.5, D, D + 0.6, D + 3.0, D + 3.6], [600, 186, 186, 862, 862, 380, 380, 480, 480, 862])]}>
         <Shell crumb={<><span>Alunos</span><span style={{ color: K.textMuted }}>/</span><span style={{ color: K.text }}>Ana Souza</span></>} draft={draft}>
           {phase === 0 && (
             <Content top={24}>
@@ -397,6 +421,82 @@ export const AppSceneV: React.FC = () => {
   );
 };
 
+/* ───────────── 6b. App do aluno, uma cena por recurso, com o celular grande ───────────── */
+const AppFeatureV: React.FC<{
+  kicker: string;
+  title: string;
+  sub: string;
+  screen: (t: number) => React.ReactNode;
+  /** [tempos, zoom, focoX, focoY] da câmera sobre o celular (400×860). */
+  cam: [number[], number[], number[], number[]];
+}> = ({ kicker, title, sub, screen, cam }) => {
+  const { a, sec } = useAnim();
+  const [times, zoom, fx, fy] = cam;
+  return (
+    <AbsoluteFill>
+      <Background glowX={50} glowY={70} />
+      <TextTop top={180}>
+        <Kicker delay={0.1}>{kicker}</Kicker>
+        <Words text={title} delay={0.15} size={86} />
+        <Sub delay={0.5}>{sub}</Sub>
+      </TextTop>
+      <div style={{ position: "absolute", inset: 0, opacity: a(0, 0.35), translate: `0 ${a(0, 0.8, 200, 0)}px` }}>
+        <Cam w={400} h={860} zoom={keys(sec, times, zoom)} focus={[keys(sec, times, fx), keys(sec, times, fy)]} top={600}>
+          <Phone>{screen(sec)}</Phone>
+        </Cam>
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+export const AppHomeV: React.FC = () => {
+  const { a } = useAnim();
+  return (
+    <AppFeatureV
+      kicker="App do aluno · grátis"
+      title="Treino do dia *na *mão."
+      sub="A ficha que o personal prescreveu chega direto no celular."
+      cam={[[0.4, 1.4, 2.4, 3.4], [1.3, 1.3, 1.9, 1.9], [200, 200, 200, 200], [430, 140, 420, 420]]}
+      screen={(t) => (
+        <>
+          <HomeScreen t={t} pressAt={3.3} />
+          <PushBanner p={a(0.7, 1.1, 0, 1, SPRING) * a(2.1, 2.4, 1, 0)} />
+        </>
+      )}
+    />
+  );
+};
+
+export const AppSessionV: React.FC = () => (
+  <AppFeatureV
+    kicker="Treino em andamento"
+    title="Registro série *a *série."
+    sub="Carga, repetições e a observação do personal em cada exercício."
+    cam={[[0.3, 1.1, 3.0, 3.8], [1.3, 1.95, 1.95, 1.6], [200, 200, 200, 200], [430, 470, 520, 470]]}
+    screen={(t) => <SessionScreen t={t} confirmAt={2.0} />}
+  />
+);
+
+export const AppProgressV: React.FC = () => (
+  <AppFeatureV
+    kicker="Evolução"
+    title="Progresso que dá *pra *ver."
+    sub="Consistência, volume e recordes atualizados a cada treino."
+    cam={[[0.3, 1.2, 2.4, 3.4], [1.3, 1.85, 1.85, 1.85], [200, 200, 200, 200], [430, 260, 260, 560]]}
+    screen={(t) => <ProgressScreen t={t} />}
+  />
+);
+
+export const AppCommunityV: React.FC = () => (
+  <AppFeatureV
+    kicker="Comunidade"
+    title="A turma *motiva."
+    sub="Treinos compartilhados com os outros alunos do seu personal."
+    cam={[[0.3, 1.2, 2.4, 3.4], [1.3, 1.8, 1.8, 1.8], [200, 200, 200, 200], [430, 300, 300, 560]]}
+    screen={(t) => <CommunityScreen t={t} />}
+  />
+);
+
 /* ───────────── 7. Gestão ───────────── */
 export const ManageSceneV: React.FC = () => {
   const { sec } = useAnim();
@@ -431,7 +531,7 @@ export const ManageSceneV: React.FC = () => {
           ]}
         />
       </TextTop>
-      <DeskStageV url={stage === 2 ? "app.kinetic.com.br/financeiro" : stage === 1 ? "app.kinetic.com.br/students/ana-souza" : "app.kinetic.com.br/students"}>
+      <DeskStageV focus={[stage === 2 ? keys(t, [0.3, 1.8], [560, cursor.x]) : 720, cursor.y]} url={stage === 2 ? "app.kinetic.com.br/financeiro" : stage === 1 ? "app.kinetic.com.br/students/ana-souza" : "app.kinetic.com.br/students"}>
         <div style={{ position: "absolute", inset: 0, opacity: stage === 0 ? 1 : fade }}>
           {stage === 0 && (
             <>
@@ -460,45 +560,83 @@ export const ManageSceneV: React.FC = () => {
   );
 };
 
-/* ───────────── 8. Planos: cards em 2×2 ───────────── */
+/* ───────────── 8. Planos (tela "Meu plano" atual: Base, Pro, pacote extra, Business) ───────────── */
+const PLANS_V = [
+  { name: "Base", sub: "Até 10 alunos ativos", price: "14,90", ai: "15", current: true },
+  { name: "Pro", sub: "Alunos ilimitados", price: "49,90", ai: "100", current: false },
+];
+
+const CheckLine: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div style={{ display: "flex", gap: 10, alignItems: "center", fontSize: 15 }}>
+    <svg width="15" height="15" viewBox="0 0 24 24">
+      <path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke={K.primary} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+    <span>{children}</span>
+  </div>
+);
+
+const UsageMeter: React.FC<{ label: string; used: number; limit: number; p: number }> = ({ label, used, limit, p }) => (
+  <div style={{ flex: 1, padding: "18px 20px", borderLeft: `1px solid ${K.ghost}` }}>
+    <div style={{ fontSize: 11, color: K.textDim }}>{label}</div>
+    <div style={{ fontFamily: mono, marginTop: 10, display: "flex", alignItems: "baseline", gap: 6 }}>
+      <span style={{ fontSize: 24, fontWeight: 600 }}>{Math.round(used * p)}</span>
+      <span style={{ fontSize: 14, color: K.textDim }}>/ {limit}</span>
+    </div>
+    <div style={{ height: 3, borderRadius: 3, background: K.ghost, marginTop: 12 }}>
+      <div style={{ height: 3, borderRadius: 3, background: K.primary, width: `${((used * p) / limit) * 100}%` }} />
+    </div>
+  </div>
+);
+
 export const PricingSceneV: React.FC = () => {
   const { a, sec } = useAnim();
-  const S = 1.36;
+  const S = 1.42;
   const PW = 700;
-  const focus = sec < 2.2 ? -1 : Math.min(3, Math.floor((sec - 2.2) / 0.7));
+  // A página toda cabe quase inteira; só desce no fim para revelar o Business.
+  const scroll = keys(sec, [5.6, 6.4], [0, 170]);
+  const pick = sec > 2.4 && sec < 3.6 ? 1 : -1;
   return (
     <AbsoluteFill>
       <Background glowX={50} glowY={30} />
-      <div style={{ position: "absolute", left: (W - PW * S) / 2, top: 180, width: PW, transformOrigin: "left top", scale: String(S), fontFamily: sans, color: K.text }}>
+      <div style={{ position: "absolute", left: (W - PW * S) / 2, top: 190 - scroll * S, width: PW, transformOrigin: "left top", scale: String(S), fontFamily: sans, color: K.text }}>
         <div style={{ textAlign: "center", fontFamily: mono, fontSize: 12, letterSpacing: "0.1em", color: K.primary, opacity: a(0.1, 0.5) }}>PLANOS KINETIC</div>
         <Words text="Atenda mais alunos com o *mesmo *tempo de trabalho" delay={0.2} size={38} weight={700} stagger={0.04} style={{ justifyContent: "center", marginTop: 12, fontStretch: "100%", textAlign: "center" }} />
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 28 }}>
-          {PLANS.map((p, i) => {
-            const inP = a(0.6 + i * 0.1, 1.3 + i * 0.1);
-            const on = i === focus || (i === 3 && sec > 4.6);
+        <div style={{ textAlign: "center", fontSize: 15, color: K.textDim, marginTop: 14, opacity: a(0.7, 1.1) }}>Comece grátis com até 3 alunos e 3 fichas com IA por mês.</div>
+        <div style={{ display: "flex", marginTop: 24, borderRadius: 14, border: `1px solid ${K.ghost}`, background: K.surface1, opacity: a(0.8, 1.2), translate: `0 ${a(0.8, 1.3, 20, 0)}px` }}>
+          <div style={{ flex: 1.1, padding: "18px 20px" }}>
+            <div style={{ fontSize: 11, color: K.textDim }}>Você está no</div>
+            <div style={{ fontSize: 20, fontWeight: 700, marginTop: 8 }}>Plano Base</div>
+            <div style={{ fontSize: 12, color: K.textDim, marginTop: 6 }}>Renova em 16 de novembro</div>
+          </div>
+          <UsageMeter label="Alunos ativos" used={8} limit={10} p={a(1.0, 2.0)} />
+          <UsageMeter label="Fichas com IA" used={9} limit={15} p={a(1.1, 2.1)} />
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 18 }}>
+          {PLANS_V.map((p, i) => {
+            const inP = a(1.2 + i * 0.12, 1.9 + i * 0.12);
+            const on = i === pick || (p.current && pick < 0);
             return (
               <div
                 key={p.name}
                 style={{
                   borderRadius: 16,
                   padding: 20,
-                  background: on ? "linear-gradient(170deg, rgba(0,229,255,0.07), transparent 60%), #1c1b1b" : K.surface1,
+                  background: on ? "linear-gradient(170deg, rgba(0,229,255,0.08), transparent 60%), #1c1b1b" : K.surface1,
                   border: `1px solid ${on ? K.primary : K.ghost}`,
-                  boxShadow: on ? "0 0 40px rgba(0,229,255,0.18)" : undefined,
+                  boxShadow: on ? "0 0 40px rgba(0,229,255,0.2)" : undefined,
                   opacity: inP,
-                  translate: `0 ${(1 - inP) * 40 - (i === focus ? 6 : 0)}px`,
+                  translate: `0 ${(1 - inP) * 40 - (i === pick ? 8 * a(2.4, 2.8, 0, 1, SPRING) : 0)}px`,
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: 17, fontWeight: 700 }}>{p.name}</span>
-                  {i === 3 && <span style={{ fontFamily: mono, fontSize: 10, color: K.success, letterSpacing: "0.04em" }}>MENOR CUSTO/ALUNO</span>}
+                  <span style={{ fontSize: 18, fontWeight: 700 }}>{p.name}</span>
+                  {p.current && <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 10, background: K.primary, color: K.onPrimary }}>✓ Seu plano</span>}
                 </div>
-                <div style={{ fontSize: 13, color: K.textDim, marginTop: 4 }}>Até {p.students} alunos ativos</div>
+                <div style={{ fontSize: 13, color: K.textDim, marginTop: 4 }}>{p.sub}</div>
                 <div style={{ marginTop: 16, display: "flex", alignItems: "baseline", gap: 6 }}>
-                  <span style={{ fontFamily: mono, fontSize: 30, fontWeight: 600 }}>R$ {p.price}</span>
+                  <span style={{ fontFamily: mono, fontSize: 32, fontWeight: 600 }}>R$ {p.price}</span>
                   <span style={{ fontSize: 13, color: K.textDim }}>/mês</span>
                 </div>
-                <div style={{ fontFamily: mono, fontSize: 12, color: on ? K.primary : K.textDim, marginTop: 4 }}>R$ {p.per} por aluno</div>
                 <div
                   style={{
                     marginTop: 16,
@@ -509,35 +647,67 @@ export const PricingSceneV: React.FC = () => {
                     justifyContent: "center",
                     fontSize: 14,
                     fontWeight: 700,
-                    background: i === 3 ? K.primary : "transparent",
-                    color: i === 3 ? K.onPrimary : K.text,
-                    border: i === 3 ? "none" : "1px solid rgba(255,255,255,0.18)",
+                    background: p.current ? K.primary : "transparent",
+                    color: p.current ? K.onPrimary : K.text,
+                    border: p.current ? "none" : "1px solid rgba(255,255,255,0.18)",
                   }}
                 >
                   Assinar {p.name}
                 </div>
-                <div style={{ marginTop: 12, display: "flex", gap: 8, alignItems: "center", fontSize: 13 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24">
-                    <path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke={K.primary} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  {p.ai} fichas com IA por mês
+                <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px solid ${K.ghost}`, display: "flex", flexDirection: "column", gap: 10 }}>
+                  <CheckLine>{p.sub}</CheckLine>
+                  <CheckLine>
+                    <b style={{ fontFamily: mono }}>{p.ai}</b> fichas com IA por mês
+                  </CheckLine>
                 </div>
               </div>
             );
           })}
         </div>
-        <div style={{ fontSize: 17, fontWeight: 700, marginTop: 26, opacity: a(5.0, 5.4) }}>Todos os planos incluem</div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 18, marginTop: 4, borderTop: `1px solid ${K.ghost}` }}>
+        <div
+          style={{
+            marginTop: 18,
+            borderRadius: 16,
+            padding: 20,
+            border: `1px solid ${sec > 4.4 && sec < 6.2 ? K.primary : K.ghost}`,
+            background: K.surface1,
+            display: "flex",
+            gap: 16,
+            alignItems: "center",
+            opacity: a(1.6, 2.0),
+          }}
+        >
+          <WandSparkles size={26} color={K.primary} strokeWidth={1.7} style={{ flexShrink: 0 }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 16, fontWeight: 700 }}>Pacote extra · 20 fichas com IA por R$ 9,90</div>
+            <div style={{ fontSize: 12.5, color: K.textDim, marginTop: 5, lineHeight: 1.4 }}>Pagamento único, sem mensalidade. Não expira e só é usado depois da cota do seu plano.</div>
+          </div>
+          <div style={{ padding: "10px 14px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.18)", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap", scale: press(sec, 5.2) }}>
+            Comprar pacote
+          </div>
+        </div>
+        <div style={{ fontSize: 18, fontWeight: 700, marginTop: 30 }}>Todos os planos incluem</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 18, marginTop: 8, borderTop: `1px solid ${K.ghost}` }}>
           {INCLUDED.map((it, i) => {
             const Icon = it.icon;
-            const p = a(5.2 + i * 0.12, 5.7 + i * 0.12);
+            const p = a(3.0 + i * 0.1, 3.5 + i * 0.1);
             return (
               <div key={it.title} style={{ display: "flex", gap: 10, padding: "14px 0", borderBottom: `1px solid ${K.ghost}`, opacity: p, translate: `0 ${(1 - p) * 10}px` }}>
                 <Icon size={18} color={K.primary} strokeWidth={1.8} style={{ flexShrink: 0, marginTop: 1 }} />
-                <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.35 }}>{it.title}</div>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.35 }}>{it.title}</div>
+                  <div style={{ fontSize: 12, color: K.textDim, lineHeight: 1.4, marginTop: 4 }}>{it.text}</div>
+                </div>
               </div>
             );
           })}
+        </div>
+        <div style={{ marginTop: 26, borderRadius: 16, padding: 20, border: `1px solid ${K.ghost}`, background: K.surface1, opacity: a(6.2, 6.7) }}>
+          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+            <span style={{ fontSize: 17, fontWeight: 700 }}>Business</span>
+            <span style={{ fontSize: 10, padding: "3px 8px", borderRadius: 10, border: `1px solid ${K.ghostHi}`, color: K.textDim }}>Em breve</span>
+          </div>
+          <div style={{ fontSize: 13, color: K.textDim, marginTop: 8, lineHeight: 1.45 }}>Para estúdios e equipes com vários personais: carteira compartilhada e gestão de equipe.</div>
         </div>
       </div>
     </AbsoluteFill>
@@ -572,7 +742,7 @@ export const OutroV: React.FC<{ hold?: boolean }> = ({ hold = false }) => {
         </div>
         <div style={{ position: "absolute", left: 0, right: 0, top: 1560, display: "flex", justifyContent: "center" }}>
           <div style={{ padding: "20px 44px", borderRadius: 50, background: K.primary, color: K.onPrimary, fontFamily: sans, fontSize: 38, fontWeight: 700, opacity: a(2.0, 2.4), scale: String(a(2.0, 2.5, 0.7, 1, SPRING)) }}>
-            Comece com 14 dias grátis
+            Comece grátis hoje
           </div>
         </div>
       </AbsoluteFill>

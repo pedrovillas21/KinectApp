@@ -1,8 +1,89 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { AnimatePresence, motion } from 'motion/react';
 import { useAuth } from '../contexts/AuthContext';
-import { Eye, EyeOff, Lock, Mail, Activity, Building2, User, ArrowLeft, CheckCircle2, FileText, CreditCard, Check, X, Phone } from 'lucide-react';
+import {
+  ArrowRight,
+  BarChart3,
+  Building2,
+  Check,
+  CheckCircle2,
+  Eye,
+  EyeOff,
+  Loader2,
+  MessageSquare,
+  Sparkles,
+  User,
+  Users,
+  Wallet,
+  X,
+} from 'lucide-react';
 import { isValidCellPhone, maskCellPhone } from '../utils/whatsapp';
+import KineticLogo from '../components/KineticLogo';
+import AuthBrandPanel, { authInputClass, type BrandHighlight } from '../components/AuthBrandPanel';
+import { EASE_OUT, SPRING_PILL, riseItem, staggerContainer } from '../components/motion/primitives';
+
+type AccountType = 'personal' | 'company';
+
+const TABS: { id: AccountType; label: string; icon: typeof User }[] = [
+  { id: 'personal', label: 'Profissional', icon: User },
+  { id: 'company', label: 'Empresa', icon: Building2 },
+];
+
+const BRAND: Record<AccountType, { eyebrow: string; title: ReactNode; highlights: BrandHighlight[] }> = {
+  personal: {
+    eyebrow: 'Para personal trainers',
+    title: (
+      <>
+        Seu método.
+        <br />
+        <span className="text-k-text-muted">Em escala.</span>
+      </>
+    ),
+    highlights: [
+      { icon: Sparkles, title: 'Prescrição com IA', text: 'Monte planos de treino em minutos.' },
+      { icon: Users, title: 'Alunos em tempo real', text: 'Cargas, frequência e evolução num só lugar.' },
+      { icon: Wallet, title: 'Cobrança integrada', text: 'Mensalidades e financeiro sem planilha.' },
+    ],
+  },
+  company: {
+    eyebrow: 'Para academias e estúdios',
+    title: (
+      <>
+        Sua equipe.
+        <br />
+        <span className="text-k-text-muted">Em sintonia.</span>
+      </>
+    ),
+    highlights: [
+      { icon: Users, title: 'Gestão da equipe', text: 'Personais e clientes organizados em um painel.' },
+      { icon: BarChart3, title: 'Indicadores da operação', text: 'Engajamento e retenção acompanhados de perto.' },
+      { icon: MessageSquare, title: 'Feedbacks dos clientes', text: 'Saiba o que seus alunos pensam do serviço.' },
+    ],
+  },
+};
+
+const REQUIREMENTS = [
+  { key: 'length', label: '8 a 20 caracteres' },
+  { key: 'uppercase', label: 'Letra maiúscula' },
+  { key: 'lowercase', label: 'Letra minúscula' },
+  { key: 'special', label: 'Caractere especial' },
+] as const;
+
+// Indexado pela quantidade de requisitos atendidos (0–4).
+const STRENGTH = [
+  { label: 'Fraca', text: 'text-k-alert', bar: 'bg-k-error' },
+  { label: 'Fraca', text: 'text-k-alert', bar: 'bg-k-error' },
+  { label: 'Média', text: 'text-k-warn', bar: 'bg-k-warn' },
+  { label: 'Boa', text: 'text-k-primary', bar: 'bg-k-primary' },
+  { label: 'Forte', text: 'text-k-success', bar: 'bg-k-success' },
+];
+
+// Troca de lado dos painéis: mesma curva "expo out" do resto do painel.
+const SIDE_SWAP = { duration: 0.8, ease: EASE_OUT };
+
+const primaryButtonClass =
+  'group w-full h-11 flex items-center justify-center gap-2 rounded-lg bg-k-primary text-k-on-primary font-semibold text-sm transition-[background-color,box-shadow,transform] hover:bg-k-primary-deep hover:shadow-[0_8px_24px_-8px_rgba(0,229,255,0.55)] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-k-primary/30 disabled:opacity-40 disabled:pointer-events-none cursor-pointer';
 
 // Math validation for CPF
 function isValidCPF(cpf: string): boolean {
@@ -77,7 +158,7 @@ export default function RegisterPage() {
   const navigate = useNavigate();
 
   // Tab: 'personal' | 'company'
-  const [activeTab, setActiveTab] = useState<'personal' | 'company'>('personal');
+  const [activeTab, setActiveTab] = useState<AccountType>('personal');
 
   // Common Fields
   const [email, setEmail] = useState('');
@@ -107,6 +188,7 @@ export default function RegisterPage() {
   };
 
   const metCount = Object.values(checks).filter(Boolean).length;
+  const isCompany = activeTab === 'company';
 
   const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCpf(formatCPF(e.target.value));
@@ -185,452 +267,390 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div className="relative h-screen flex items-center justify-center bg-k-bg text-k-text overflow-hidden">
-        {/* Dynamic Background Glows */}
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-k-primary/10 blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-k-primary/5 blur-[120px] pointer-events-none" />
-
-        <div className="relative w-full max-w-[440px] mx-4 z-10">
-          <div className="w-full flex flex-col items-center text-center gap-6 bg-k-surface1/85 backdrop-blur-xl border border-k-ghost rounded-2xl p-8 shadow-2xl">
-            <div className="w-16 h-16 rounded-full flex items-center justify-center bg-k-success/10 text-k-success border border-k-success/20 shadow-[0_0_20px_rgba(74,222,128,0.2)]">
-              <CheckCircle2 className="w-10 h-10 stroke-[2]" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-extrabold tracking-tight text-white">
-                Cadastro Realizado!
-              </h2>
-              <p className="text-sm text-k-text-dim mt-2 leading-relaxed">
-                {activeTab === 'personal'
-                  ? 'Sua conta de Personal Trainer foi criada com sucesso.'
-                  : 'Sua empresa e conta de administrador foram criadas com sucesso.'}{' '}
-                Enviamos um código para <span className="font-semibold text-white">{email.trim()}</span>.
-                Confirme seu e-mail para entrar no painel.
-              </p>
-            </div>
-            <button
-              onClick={() => navigate('/confirm-email', { state: { email: email.trim() } })}
-              className="w-full py-3.5 rounded-xl bg-k-primary hover:bg-k-primary-deep text-k-on-primary font-extrabold text-sm tracking-wide shadow-lg hover:shadow-[0_0_20px_rgba(0,229,255,0.4)] transition-all duration-200 cursor-pointer"
-            >
-              Confirmar e-mail
-            </button>
-          </div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-k-bg text-k-text px-6">
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          animate="show"
+          className="w-full max-w-[400px] flex flex-col items-center text-center"
+        >
+          <motion.div variants={riseItem} className="mb-10">
+            <KineticLogo size={20} />
+          </motion.div>
+          <motion.div
+            variants={riseItem}
+            className="w-14 h-14 rounded-full grid place-items-center bg-k-success/10 text-k-success border border-k-success/25"
+          >
+            <CheckCircle2 className="w-7 h-7" />
+          </motion.div>
+          <motion.div variants={riseItem} className="mt-6">
+            <h1 className="font-display font-bold text-[28px] leading-tight tracking-tight">Conta criada</h1>
+            <p className="mt-2 text-sm text-k-text-dim leading-relaxed">
+              {isCompany
+                ? 'Sua empresa e a conta de administrador foram criadas.'
+                : 'Sua conta de personal trainer foi criada.'}{' '}
+              Enviamos um código para <span className="font-semibold text-k-text">{email.trim()}</span> — confirme seu
+              e-mail para entrar no painel.
+            </p>
+          </motion.div>
+          <motion.button
+            variants={riseItem}
+            onClick={() => navigate('/confirm-email', { state: { email: email.trim() } })}
+            className={`${primaryButtonClass} mt-8`}
+          >
+            Confirmar e-mail
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+          </motion.button>
+        </motion.div>
       </div>
     );
   }
 
+  const strength = STRENGTH[metCount];
+
   return (
-    <div className="relative h-screen overflow-y-auto bg-k-bg text-k-text py-12 px-4">
-      {/* Dynamic Background Glows */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-k-primary/10 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-k-primary/5 blur-[120px] pointer-events-none" />
+    <div
+      className={`h-screen flex bg-k-bg text-k-text overflow-hidden ${isCompany ? 'lg:flex-row-reverse' : 'lg:flex-row'}`}
+    >
+      {/* Painel de marca: troca de lado quando o tipo de conta muda */}
+      <motion.aside
+        layout
+        transition={SIDE_SWAP}
+        className={`hidden lg:block w-1/2 h-full border-k-ghost ${isCompany ? 'border-l' : 'border-r'}`}
+      >
+        <AuthBrandPanel contentKey={activeTab} {...BRAND[activeTab]} />
+      </motion.aside>
 
-      {/* Main Container */}
-      <div className="relative w-full max-w-[460px] mx-auto min-h-full flex items-center justify-center z-10">
-        <form
-          onSubmit={handleSubmit}
-          className="w-full flex flex-col gap-6 bg-k-surface1/85 backdrop-blur-xl border border-k-ghost rounded-2xl p-8 shadow-2xl hover:border-k-ghost-hi transition-colors duration-300"
-        >
-          {/* Header/Brand Section */}
-          <div className="flex flex-col items-center text-center gap-3">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-gradient-to-br from-k-primary to-k-primary-deep text-k-on-primary shadow-[0_0_20px_rgba(0,229,255,0.35)]">
-              <Activity className="w-8 h-8 stroke-[2.5]" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white to-k-text-dim bg-clip-text text-transparent">
-                Criar Conta Kinetic
+      <motion.main layout transition={SIDE_SWAP} className="w-full lg:w-1/2 h-full overflow-y-auto">
+        <div className="min-h-full flex items-center justify-center px-6 py-12">
+          <motion.form
+            onSubmit={handleSubmit}
+            variants={staggerContainer}
+            initial="hidden"
+            animate="show"
+            className="w-full max-w-[400px] flex flex-col"
+          >
+            <motion.div variants={riseItem} className="lg:hidden mb-10">
+              <KineticLogo size={20} />
+            </motion.div>
+
+            <motion.div variants={riseItem}>
+              <h1 className="font-display font-bold text-[28px] leading-tight tracking-tight">
+                {isCompany ? 'Cadastre sua empresa' : 'Crie sua conta'}
               </h1>
-              <p className="text-xs font-semibold uppercase tracking-wider text-k-primary mt-1">
-                Escolha seu tipo de acesso
+              <p className="mt-1.5 text-sm text-k-text-dim">
+                {isCompany
+                  ? 'Gerencie sua equipe de personais e seus clientes.'
+                  : 'Comece a prescrever e acompanhar seus alunos.'}
               </p>
-            </div>
-          </div>
+            </motion.div>
 
-          {/* Tabs Selector */}
-          <div className="grid grid-cols-2 p-1 bg-k-surface2/60 border border-k-ghost rounded-xl">
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('personal');
-                setError(null);
-              }}
-              className={`py-2 text-xs font-extrabold tracking-wider uppercase rounded-lg transition-all cursor-pointer ${
-                activeTab === 'personal'
-                  ? 'bg-k-primary text-k-on-primary shadow-md font-extrabold'
-                  : 'text-k-text-dim hover:text-white font-medium'
-              }`}
+            {/* Tipo de conta */}
+            <motion.div
+              variants={riseItem}
+              role="tablist"
+              aria-label="Tipo de conta"
+              className="mt-7 grid grid-cols-2 p-1 bg-k-surface1 border border-k-ghost rounded-lg"
             >
-              Profissional
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('company');
-                setError(null);
-              }}
-              className={`py-2 text-xs font-extrabold tracking-wider uppercase rounded-lg transition-all cursor-pointer ${
-                activeTab === 'company'
-                  ? 'bg-k-primary text-k-on-primary shadow-md font-extrabold'
-                  : 'text-k-text-dim hover:text-white font-medium'
-              }`}
-            >
-              Empresa
-            </button>
-          </div>
+              {TABS.map((tab) => {
+                const selected = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={selected}
+                    onClick={() => {
+                      setActiveTab(tab.id);
+                      setError(null);
+                    }}
+                    className={`relative h-9 flex items-center justify-center gap-2 rounded-md text-sm font-medium transition-colors cursor-pointer ${
+                      selected ? 'text-k-text' : 'text-k-text-muted hover:text-k-text'
+                    }`}
+                  >
+                    {selected && (
+                      <motion.span
+                        layoutId="register-tab-pill"
+                        transition={SPRING_PILL}
+                        className="absolute inset-0 rounded-md bg-k-surface3 shadow-[inset_0_0_0_1px_var(--k-ghost-hi)]"
+                      />
+                    )}
+                    <tab.icon className={`relative w-4 h-4 ${selected ? 'text-k-primary' : ''}`} />
+                    <span className="relative">{tab.label}</span>
+                  </button>
+                );
+              })}
+            </motion.div>
 
-          {/* Form Fields */}
-          <div className="flex flex-col gap-4">
-            {/* Conditional Company Name and CNPJ Fields */}
-            {activeTab === 'company' && (
-              <>
-                <div className="flex flex-col gap-1.5 transition-all">
-                  <label htmlFor="companyName" className="text-xs font-bold text-k-text-dim uppercase tracking-wider">
-                    Nome da Empresa
-                  </label>
-                  <div className="relative flex items-center">
-                    <span className="absolute left-4 text-k-text-muted">
-                      <Building2 className="w-4 h-4" />
-                    </span>
-                    <input
-                      id="companyName"
-                      type="text"
-                      placeholder="Ex: Academia Corpore"
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                      required
-                      className="w-full pl-12 pr-4 py-3 bg-k-surface2/60 border border-k-ghost rounded-xl outline-none focus:border-k-primary focus:ring-1 focus:ring-k-primary/30 transition-all text-sm placeholder:text-k-text-muted"
-                    />
-                  </div>
-                </div>
+            <motion.div variants={riseItem} className="mt-6 flex flex-col">
+              <AnimatePresence initial={false}>
+                {isCompany && (
+                  <Collapse key="company">
+                    <Field id="companyName" label="Nome da empresa">
+                      <input
+                        id="companyName"
+                        type="text"
+                        autoComplete="organization"
+                        placeholder="Ex.: Academia Corpore"
+                        value={companyName}
+                        onChange={(e) => setCompanyName(e.target.value)}
+                        required
+                        className={authInputClass}
+                      />
+                    </Field>
+                    <Field id="companyCnpj" label="CNPJ">
+                      <input
+                        id="companyCnpj"
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="00.000.000/0000-00"
+                        value={companyCnpj}
+                        onChange={handleCnpjChange}
+                        required
+                        className={authInputClass}
+                      />
+                    </Field>
+                  </Collapse>
+                )}
+              </AnimatePresence>
 
-                <div className="flex flex-col gap-1.5 transition-all">
-                  <label htmlFor="companyCnpj" className="text-xs font-bold text-k-text-dim uppercase tracking-wider">
-                    CNPJ da Empresa
-                  </label>
-                  <div className="relative flex items-center">
-                    <span className="absolute left-4 text-k-text-muted">
-                      <FileText className="w-4 h-4" />
-                    </span>
-                    <input
-                      id="companyCnpj"
-                      type="text"
-                      placeholder="00.000.000/0000-00"
-                      value={companyCnpj}
-                      onChange={handleCnpjChange}
-                      required
-                      className="w-full pl-12 pr-4 py-3 bg-k-surface2/60 border border-k-ghost rounded-xl outline-none focus:border-k-primary focus:ring-1 focus:ring-k-primary/30 transition-all text-sm placeholder:text-k-text-muted"
-                    />
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Name Field */}
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="name" className="text-xs font-bold text-k-text-dim uppercase tracking-wider">
-                {activeTab === 'company' ? 'Nome do Responsável' : 'Seu Nome'}
-              </label>
-              <div className="relative flex items-center">
-                <span className="absolute left-4 text-k-text-muted">
-                  <User className="w-4 h-4" />
-                </span>
+              <Field id="name" label={isCompany ? 'Nome do responsável' : 'Nome completo'}>
                 <input
                   id="name"
                   type="text"
-                  placeholder="Ex: João Silva"
+                  autoComplete="name"
+                  placeholder="Ex.: João Silva"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  className="w-full pl-12 pr-4 py-3 bg-k-surface2/60 border border-k-ghost rounded-xl outline-none focus:border-k-primary focus:ring-1 focus:ring-k-primary/30 transition-all text-sm placeholder:text-k-text-muted"
+                  className={authInputClass}
                 />
-              </div>
-            </div>
+              </Field>
 
-            {/* Conditional CPF Field for Professionals */}
-            {activeTab === 'personal' && (
-              <div className="flex flex-col gap-1.5 transition-all">
-                <label htmlFor="cpf" className="text-xs font-bold text-k-text-dim uppercase tracking-wider">
-                  CPF
-                </label>
-                <div className="relative flex items-center">
-                  <span className="absolute left-4 text-k-text-muted">
-                    <CreditCard className="w-4 h-4" />
-                  </span>
-                  <input
-                    id="cpf"
-                    type="text"
-                    placeholder="000.000.000-00"
-                    value={cpf}
-                    onChange={handleCpfChange}
-                    required
-                    className="w-full pl-12 pr-4 py-3 bg-k-surface2/60 border border-k-ghost rounded-xl outline-none focus:border-k-primary focus:ring-1 focus:ring-k-primary/30 transition-all text-sm placeholder:text-k-text-muted"
-                  />
-                </div>
-              </div>
-            )}
+              <AnimatePresence initial={false}>
+                {!isCompany && (
+                  <Collapse key="personal">
+                    <Field id="cpf" label="CPF">
+                      <input
+                        id="cpf"
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="000.000.000-00"
+                        value={cpf}
+                        onChange={handleCpfChange}
+                        required
+                        className={authInputClass}
+                      />
+                    </Field>
+                    <Field
+                      id="phone"
+                      label="Celular (WhatsApp)"
+                      hint="Seus alunos usam este número para falar com você pelo WhatsApp."
+                    >
+                      <input
+                        id="phone"
+                        type="tel"
+                        inputMode="numeric"
+                        autoComplete="tel-national"
+                        placeholder="(11) 98765-4321"
+                        value={phone}
+                        onChange={(e) => setPhone(maskCellPhone(e.target.value))}
+                        required
+                        className={authInputClass}
+                      />
+                    </Field>
+                  </Collapse>
+                )}
+              </AnimatePresence>
 
-            {/* Celular (WhatsApp) for Professionals */}
-            {activeTab === 'personal' && (
-              <div className="flex flex-col gap-1.5 transition-all">
-                <label htmlFor="phone" className="text-xs font-bold text-k-text-dim uppercase tracking-wider">
-                  Celular (WhatsApp)
-                </label>
-                <div className="relative flex items-center">
-                  <span className="absolute left-4 text-k-text-muted">
-                    <Phone className="w-4 h-4" />
-                  </span>
-                  <input
-                    id="phone"
-                    type="tel"
-                    inputMode="numeric"
-                    autoComplete="tel-national"
-                    placeholder="(11) 98765-4321"
-                    value={phone}
-                    onChange={(e) => setPhone(maskCellPhone(e.target.value))}
-                    required
-                    className="w-full pl-12 pr-4 py-3 bg-k-surface2/60 border border-k-ghost rounded-xl outline-none focus:border-k-primary focus:ring-1 focus:ring-k-primary/30 transition-all text-sm placeholder:text-k-text-muted"
-                  />
-                </div>
-                <p className="text-[11px] text-k-text-muted">
-                  Seus alunos usam este número para falar com você pelo WhatsApp.
-                </p>
-              </div>
-            )}
-
-            {/* Email Field */}
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="email" className="text-xs font-bold text-k-text-dim uppercase tracking-wider">
-                E-mail
-              </label>
-              <div className="relative flex items-center">
-                <span className="absolute left-4 text-k-text-muted">
-                  <Mail className="w-4 h-4" />
-                </span>
+              <Field id="email" label="E-mail">
                 <input
                   id="email"
                   type="email"
+                  autoComplete="email"
                   placeholder="voce@exemplo.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full pl-12 pr-4 py-3 bg-k-surface2/60 border border-k-ghost rounded-xl outline-none focus:border-k-primary focus:ring-1 focus:ring-k-primary/30 transition-all text-sm placeholder:text-k-text-muted"
+                  className={authInputClass}
                 />
-              </div>
-            </div>
+              </Field>
 
-            {/* Password Field */}
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="password" className="text-xs font-bold text-k-text-dim uppercase tracking-wider">
-                Senha
-              </label>
-              <div className="relative flex items-center">
-                <span className="absolute left-4 text-k-text-muted">
-                  <Lock className="w-4 h-4" />
-                </span>
-                <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Mínimo 8 caracteres com Maiúscula, Minúscula e Especial"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onFocus={() => setIsPasswordFocused(true)}
-                  onBlur={() => setIsPasswordFocused(false)}
-                  required
-                  className="w-full pl-12 pr-12 py-3 bg-k-surface2/60 border border-k-ghost rounded-xl outline-none focus:border-k-primary focus:ring-1 focus:ring-k-primary/30 transition-all text-sm placeholder:text-k-text-muted"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  tabIndex={-1}
-                  className="absolute right-4 text-k-text-muted hover:text-k-primary focus-visible:text-k-primary transition-colors outline-none cursor-pointer"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-
-              {/* Password Validator Box */}
-              {(isPasswordFocused || password.length > 0) && (
-                <div className="mt-1.5 p-3.5 bg-k-surface1/95 border border-k-ghost rounded-xl animate-fade-in flex flex-col gap-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-k-text-dim">
-                      Força da Senha
-                    </span>
-                    <span className={`text-[11px] font-extrabold uppercase tracking-wide transition-colors duration-200 ${
-                      password.length === 0 ? 'text-k-text-muted' :
-                      metCount <= 1 ? 'text-k-error' :
-                      metCount === 2 ? 'text-k-warn' :
-                      metCount === 3 ? 'text-k-primary' :
-                      'text-k-success'
-                    }`}>
-                      {password.length === 0 ? 'Vazia' :
-                       metCount <= 1 ? 'Fraca' :
-                       metCount === 2 ? 'Média' :
-                       metCount === 3 ? 'Boa' :
-                       'Forte'}
-                    </span>
-                  </div>
-
-                  {/* Segmented Progress Bar */}
-                  <div className="flex gap-1 h-1">
-                    <div className={`h-full flex-1 rounded-full transition-all duration-300 ${
-                      password.length > 0 && metCount >= 1 ? 
-                        (metCount <= 1 ? 'bg-k-error' : metCount === 2 ? 'bg-k-warn' : metCount === 3 ? 'bg-k-primary' : 'bg-k-success') : 
-                        'bg-k-ghost-hi'
-                    }`} />
-                    <div className={`h-full flex-1 rounded-full transition-all duration-300 ${
-                      password.length > 0 && metCount >= 2 ? 
-                        (metCount === 2 ? 'bg-k-warn' : metCount === 3 ? 'bg-k-primary' : 'bg-k-success') : 
-                        'bg-k-ghost-hi'
-                    }`} />
-                    <div className={`h-full flex-1 rounded-full transition-all duration-300 ${
-                      password.length > 0 && metCount >= 3 ? 
-                        (metCount === 3 ? 'bg-k-primary' : 'bg-k-success') : 
-                        'bg-k-ghost-hi'
-                    }`} />
-                    <div className={`h-full flex-1 rounded-full transition-all duration-300 ${
-                      password.length > 0 && metCount >= 4 ? 
-                        'bg-k-success' : 
-                        'bg-k-ghost-hi'
-                    }`} />
-                  </div>
-
-                  {/* Requirements checklist */}
-                  <div className="grid grid-cols-2 gap-x-3 gap-y-2 mt-0.5">
-                    <div className="flex items-center gap-1.5">
-                      {checks.length ? (
-                        <Check className="w-3.5 h-3.5 text-k-success shrink-0 stroke-[3]" />
-                      ) : (
-                        <div className="w-3.5 h-3.5 rounded-full border border-k-text-muted/30 shrink-0" />
-                      )}
-                      <span className={`text-[11px] transition-colors duration-200 ${
-                        checks.length ? 'text-k-success font-semibold' : 'text-k-text-dim'
-                      }`}>
-                        8 a 20 caracteres
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-1.5">
-                      {checks.uppercase ? (
-                        <Check className="w-3.5 h-3.5 text-k-success shrink-0 stroke-[3]" />
-                      ) : (
-                        <div className="w-3.5 h-3.5 rounded-full border border-k-text-muted/30 shrink-0" />
-                      )}
-                      <span className={`text-[11px] transition-colors duration-200 ${
-                        checks.uppercase ? 'text-k-success font-semibold' : 'text-k-text-dim'
-                      }`}>
-                        Letra maiúscula
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-1.5">
-                      {checks.lowercase ? (
-                        <Check className="w-3.5 h-3.5 text-k-success shrink-0 stroke-[3]" />
-                      ) : (
-                        <div className="w-3.5 h-3.5 rounded-full border border-k-text-muted/30 shrink-0" />
-                      )}
-                      <span className={`text-[11px] transition-colors duration-200 ${
-                        checks.lowercase ? 'text-k-success font-semibold' : 'text-k-text-dim'
-                      }`}>
-                        Letra minúscula
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-1.5">
-                      {checks.special ? (
-                        <Check className="w-3.5 h-3.5 text-k-success shrink-0 stroke-[3]" />
-                      ) : (
-                        <div className="w-3.5 h-3.5 rounded-full border border-k-text-muted/30 shrink-0" />
-                      )}
-                      <span className={`text-[11px] transition-colors duration-200 ${
-                        checks.special ? 'text-k-success font-semibold' : 'text-k-text-dim'
-                      }`}>
-                        Caractere especial
-                      </span>
-                    </div>
-                  </div>
+              <Field id="password" label="Senha">
+                <div className="relative">
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    placeholder="8 a 20 caracteres"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onFocus={() => setIsPasswordFocused(true)}
+                    onBlur={() => setIsPasswordFocused(false)}
+                    required
+                    className={`${authInputClass} pr-11`}
+                  />
+                  <EyeToggle shown={showPassword} onToggle={() => setShowPassword(!showPassword)} />
                 </div>
-              )}
-            </div>
 
-            {/* Confirm Password Field */}
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="confirmPassword" className="text-xs font-bold text-k-text-dim uppercase tracking-wider">
-                Confirmar Senha
-              </label>
-              <div className="relative flex items-center">
-                <span className="absolute left-4 text-k-text-muted">
-                  <Lock className="w-4 h-4" />
-                </span>
-                <input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  placeholder="Repita a senha"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  className="w-full pl-12 pr-12 py-3 bg-k-surface2/60 border border-k-ghost rounded-xl outline-none focus:border-k-primary focus:ring-1 focus:ring-k-primary/30 transition-all text-sm placeholder:text-k-text-muted"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  tabIndex={-1}
-                  className="absolute right-4 text-k-text-muted hover:text-k-primary focus-visible:text-k-primary transition-colors outline-none cursor-pointer"
-                >
-                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
+                {(isPasswordFocused || password.length > 0) && (
+                  <div className="mt-1 p-3.5 bg-k-surface1 border border-k-ghost rounded-lg animate-fade-in flex flex-col gap-3">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-k-text-dim">Força da senha</span>
+                      <span
+                        className={`font-semibold transition-colors duration-200 ${
+                          password.length === 0 ? 'text-k-text-muted' : strength.text
+                        }`}
+                      >
+                        {password.length === 0 ? 'Vazia' : strength.label}
+                      </span>
+                    </div>
 
-              {/* Confirm Password Feedback */}
-              {confirmPassword.length > 0 && (
-                <div className="flex items-center gap-1.5 mt-1 text-[11px] animate-fade-in">
-                  {password === confirmPassword ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-k-success shrink-0" />
-                      <span className="text-k-success font-semibold">As senhas coincidem</span>
-                    </>
-                  ) : (
-                    <>
-                      <X className="w-3.5 h-3.5 text-k-error shrink-0" />
-                      <span className="text-k-error font-semibold">As senhas não coincidem</span>
-                    </>
-                  )}
+                    <div className="flex gap-1 h-1">
+                      {[0, 1, 2, 3].map((i) => (
+                        <div
+                          key={i}
+                          className={`h-full flex-1 rounded-full transition-colors duration-300 ${
+                            i < metCount ? strength.bar : 'bg-k-ghost-hi'
+                          }`}
+                        />
+                      ))}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+                      {REQUIREMENTS.map(({ key, label }) => (
+                        <div key={key} className="flex items-center gap-1.5">
+                          {checks[key] ? (
+                            <Check className="w-3.5 h-3.5 text-k-success shrink-0 stroke-[3]" />
+                          ) : (
+                            <div className="w-3.5 h-3.5 rounded-full border border-k-text-muted/30 shrink-0" />
+                          )}
+                          <span
+                            className={`text-xs transition-colors duration-200 ${
+                              checks[key] ? 'text-k-success' : 'text-k-text-dim'
+                            }`}
+                          >
+                            {label}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </Field>
+
+              <Field id="confirmPassword" label="Confirmar senha">
+                <div className="relative">
+                  <input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    placeholder="Repita a senha"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    className={`${authInputClass} pr-11`}
+                  />
+                  <EyeToggle
+                    shown={showConfirmPassword}
+                    onToggle={() => setShowConfirmPassword(!showConfirmPassword)}
+                  />
                 </div>
-              )}
-            </div>
-          </div>
 
-          {/* Error Message */}
-          {error && (
-            <div
-              className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-k-error/10 border border-k-error/30 text-k-error text-xs leading-relaxed"
-              role="alert"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-k-error shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
+                {confirmPassword.length > 0 && (
+                  <div className="flex items-center gap-1.5 text-xs animate-fade-in">
+                    {password === confirmPassword ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-k-success shrink-0" />
+                        <span className="text-k-success">As senhas coincidem</span>
+                      </>
+                    ) : (
+                      <>
+                        <X className="w-3.5 h-3.5 text-k-alert shrink-0" />
+                        <span className="text-k-alert">As senhas não coincidem</span>
+                      </>
+                    )}
+                  </div>
+                )}
+              </Field>
+            </motion.div>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full mt-2 py-3.5 rounded-xl bg-k-primary hover:bg-k-primary-deep text-k-on-primary font-extrabold text-sm tracking-wide shadow-lg hover:shadow-[0_0_20px_rgba(0,229,255,0.4)] transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
-          >
-            {submitting ? 'Cadastrando…' : 'Finalizar Cadastro'}
-          </button>
+            {error && (
+              <div
+                className="flex items-center gap-2.5 px-3.5 py-3 rounded-lg bg-k-error/10 border border-k-error/30 text-k-alert text-sm"
+                role="alert"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-k-error shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
 
-          {/* Link back to login */}
-          <div className="flex justify-center mt-2">
-            <Link
-              to="/login"
-              className="inline-flex items-center gap-2 text-xs font-bold text-k-primary hover:text-white transition-colors uppercase tracking-wider"
-            >
-              <ArrowLeft className="w-3 h-3" />
-              Voltar para o Login
-            </Link>
-          </div>
-        </form>
-      </div>
+            <motion.div variants={riseItem} className="mt-6">
+              <button type="submit" disabled={submitting} className={primaryButtonClass}>
+                {submitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Cadastrando…
+                  </>
+                ) : (
+                  <>
+                    {isCompany ? 'Cadastrar empresa' : 'Criar conta'}
+                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+                  </>
+                )}
+              </button>
+
+              <p className="mt-6 text-center text-sm text-k-text-dim">
+                Já tem conta?{' '}
+                <Link to="/login" className="font-semibold text-k-primary hover:underline underline-offset-4">
+                  Entrar
+                </Link>
+              </p>
+            </motion.div>
+          </motion.form>
+        </div>
+      </motion.main>
     </div>
+  );
+}
+
+function Field({ id, label, hint, children }: { id: string; label: string; hint?: string; children: ReactNode }) {
+  return (
+    <div className="flex flex-col gap-2 pb-5">
+      <label htmlFor={id} className="text-sm font-medium text-k-text-soft">
+        {label}
+      </label>
+      {children}
+      {hint && <p className="text-xs text-k-text-muted">{hint}</p>}
+    </div>
+  );
+}
+
+/** Abre/fecha um grupo de campos que só existe em um dos tipos de conta. */
+function Collapse({ children }: { children: ReactNode }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: 'auto' }}
+      exit={{ opacity: 0, height: 0 }}
+      transition={{ duration: 0.45, ease: EASE_OUT }}
+      className="overflow-hidden"
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function EyeToggle({ shown, onToggle }: { shown: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      tabIndex={-1}
+      aria-label={shown ? 'Ocultar senha' : 'Exibir senha'}
+      className="absolute inset-y-0 right-0 w-11 grid place-items-center text-k-text-muted hover:text-k-text transition-colors cursor-pointer"
+    >
+      {shown ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+    </button>
   );
 }

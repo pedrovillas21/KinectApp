@@ -1,6 +1,8 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { Text } from '../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import KeyboardAvoider from '../components/ui/KeyboardAvoider';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Polyline } from 'react-native-svg';
 import { ThemeContext } from '../contexts/ThemeContext';
@@ -375,131 +377,133 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Barra superior: sair (esq.) · tempo discreto (dir.) · progresso do exercício */}
-      <View style={styles.topBar}>
-        <View style={styles.topRow}>
-          <TouchableOpacity
-            style={styles.exitBtn}
-            onPress={() => handleExitSession()}
-            disabled={saving}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <View style={styles.exitIconBox}>
-              <Icon name="arrow-left" size={15} color={KINETIC.text} strokeWidth={2.4} />
-            </View>
-            <Text style={styles.exitText}>Sair da sessão</Text>
-          </TouchableOpacity>
+      <KeyboardAvoider>
+        {/* Barra superior: sair (esq.) · tempo discreto (dir.) · progresso do exercício */}
+        <View style={styles.topBar}>
+          <View style={styles.topRow}>
+            <TouchableOpacity
+              style={styles.exitBtn}
+              onPress={() => handleExitSession()}
+              disabled={saving}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <View style={styles.exitIconBox}>
+                <Icon name="arrow-left" size={15} color={KINETIC.text} strokeWidth={2.4} />
+              </View>
+              <Text style={styles.exitText}>Sair da sessão</Text>
+            </TouchableOpacity>
 
-          <View style={styles.timerBadge}>
-            <ClockIcon />
-            <Text style={styles.timerText}>{formatTime(elapsedTime)}</Text>
+            <View style={styles.timerBadge}>
+              <ClockIcon />
+              <Text style={styles.timerText}>{formatTime(elapsedTime)}</Text>
+            </View>
           </View>
-        </View>
 
-        <Text style={styles.progressLabel}>
-          Exercício {currentIndex + 1} de {exercises.length}
-        </Text>
-        <View style={styles.progressTrack}>
-          <LinearGradient
-            colors={[KINETIC.primary, '#00bcd4']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={[
-              styles.progressFill,
-              { width: `${((currentIndex + 1) / exercises.length) * 100}%` },
-            ]}
-          />
-        </View>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.exerciseHeader}>
-          <Text style={styles.exerciseTitle}>{currentExercise.name.toUpperCase()}</Text>
-          {!!currentExercise.muscles && (
-            <View style={styles.focusChip}>
-              <Text style={styles.focusChipText}>Foco: {currentExercise.muscles}</Text>
-            </View>
-          )}
-          {!!currentExercise.notes && (
-            <View style={styles.notesBox}>
-              <Text style={styles.notesLabel}>OBSERVAÇÃO DO PERSONAL</Text>
-              <Text style={styles.notesText}>{currentExercise.notes}</Text>
-            </View>
-          )}
-        </View>
-
-        <View style={styles.setsContainer}>
-          {setsData.map((setObj, idx) => (
-            <SerieCard
-              key={idx}
-              setNumber={idx + 1}
-              targetReps={withSuffix(currentExercise.reps, 'reps')}
-              // Ficha do personal pode vir sem carga definida: o aluno escolhe.
-              cargaLabel={currentExercise.weight || 'Carga livre'}
-              restLabel={withSuffix(currentExercise.restTime, 'descanso')}
-              loadType={loadType}
-              weightRequired={weightRequired}
-              status={statusOf(idx)}
-              weightValue={setObj.weight}
-              repsValue={setObj.reps}
-              onWeightChange={(val: string) => updateSet(idx, 'weight', val)}
-              onRepsChange={(val: string) => updateSet(idx, 'reps', val)}
-              onConfirm={() => confirmSet(idx)}
-              onEdit={() => editSet(idx)}
-            />
-          ))}
-        </View>
-      </ScrollView>
-
-      {/* CTA inferior: bloqueado até todas as séries serem confirmadas */}
-      <View style={styles.footer}>
-        {!allConfirmed && (
-          <Text style={styles.footerHint}>
-            {confirmedCount} de {setsData.length} séries confirmadas
+          <Text style={styles.progressLabel}>
+            Exercício {currentIndex + 1} de {exercises.length}
           </Text>
-        )}
-        {allConfirmed ? (
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={handleNextAction}
-            disabled={saving}
-            accessibilityState={{ disabled: saving, busy: saving }}
-          >
+          <View style={styles.progressTrack}>
             <LinearGradient
               colors={[KINETIC.primary, '#00bcd4']}
               start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={[styles.primaryCta, saving && styles.primaryCtaSaving]}
-            >
-              <Text style={[styles.primaryCtaText, { color: '#001f24' }]}>
-                {saving ? 'Salvando treino...' : isLastExercise ? 'Finalizar treino' : 'Próximo exercício'}
-              </Text>
-              {saving ? (
-                <ActivityIndicator size="small" color="#001f24" />
-              ) : (
-                <Icon name="arrow-right" size={16} color="#001f24" strokeWidth={2.5} />
-              )}
-            </LinearGradient>
-          </TouchableOpacity>
-        ) : (
-          <View style={[styles.primaryCta, styles.primaryCtaDisabled]}>
-            <Text style={[styles.primaryCtaText, { color: KINETIC.textMuted }]}>
-              {isLastExercise ? 'Finalizar treino' : 'Próximo exercício'}
-            </Text>
-            <Icon name="arrow-right" size={16} color={KINETIC.textMuted} strokeWidth={2.5} />
+              end={{ x: 1, y: 0 }}
+              style={[
+                styles.progressFill,
+                { width: `${((currentIndex + 1) / exercises.length) * 100}%` },
+              ]}
+            />
           </View>
-        )}
-      </View>
+        </View>
 
-      <WorkoutCompleteSheet
-        workout={finished}
-        onSkip={() => leaveScreen()}
-        onPost={() => {
-          if (!finished) return;
-          allowLeaveRef.current = true;
-          navigation.replace('WorkoutCamera', { workout: finished });
-        }}
-      />
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <View style={styles.exerciseHeader}>
+            <Text style={styles.exerciseTitle}>{currentExercise.name.toUpperCase()}</Text>
+            {!!currentExercise.muscles && (
+              <View style={styles.focusChip}>
+                <Text style={styles.focusChipText}>Foco: {currentExercise.muscles}</Text>
+              </View>
+            )}
+            {!!currentExercise.notes && (
+              <View style={styles.notesBox}>
+                <Text style={styles.notesLabel}>OBSERVAÇÃO DO PERSONAL</Text>
+                <Text style={styles.notesText}>{currentExercise.notes}</Text>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.setsContainer}>
+            {setsData.map((setObj, idx) => (
+              <SerieCard
+                key={idx}
+                setNumber={idx + 1}
+                targetReps={withSuffix(currentExercise.reps, 'reps')}
+                // Ficha do personal pode vir sem carga definida: o aluno escolhe.
+                cargaLabel={currentExercise.weight || 'Carga livre'}
+                restLabel={withSuffix(currentExercise.restTime, 'descanso')}
+                loadType={loadType}
+                weightRequired={weightRequired}
+                status={statusOf(idx)}
+                weightValue={setObj.weight}
+                repsValue={setObj.reps}
+                onWeightChange={(val: string) => updateSet(idx, 'weight', val)}
+                onRepsChange={(val: string) => updateSet(idx, 'reps', val)}
+                onConfirm={() => confirmSet(idx)}
+                onEdit={() => editSet(idx)}
+              />
+            ))}
+          </View>
+        </ScrollView>
+
+        {/* CTA inferior: bloqueado até todas as séries serem confirmadas */}
+        <View style={styles.footer}>
+          {!allConfirmed && (
+            <Text style={styles.footerHint}>
+              {confirmedCount} de {setsData.length} séries confirmadas
+            </Text>
+          )}
+          {allConfirmed ? (
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={handleNextAction}
+              disabled={saving}
+              accessibilityState={{ disabled: saving, busy: saving }}
+            >
+              <LinearGradient
+                colors={[KINETIC.primary, '#00bcd4']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[styles.primaryCta, saving && styles.primaryCtaSaving]}
+              >
+                <Text style={[styles.primaryCtaText, { color: '#001f24' }]}>
+                  {saving ? 'Salvando treino...' : isLastExercise ? 'Finalizar treino' : 'Próximo exercício'}
+                </Text>
+                {saving ? (
+                  <ActivityIndicator size="small" color="#001f24" />
+                ) : (
+                  <Icon name="arrow-right" size={16} color="#001f24" strokeWidth={2.5} />
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+          ) : (
+            <View style={[styles.primaryCta, styles.primaryCtaDisabled]}>
+              <Text style={[styles.primaryCtaText, { color: KINETIC.textMuted }]}>
+                {isLastExercise ? 'Finalizar treino' : 'Próximo exercício'}
+              </Text>
+              <Icon name="arrow-right" size={16} color={KINETIC.textMuted} strokeWidth={2.5} />
+            </View>
+          )}
+        </View>
+
+        <WorkoutCompleteSheet
+          workout={finished}
+          onSkip={() => leaveScreen()}
+          onPost={() => {
+            if (!finished) return;
+            allowLeaveRef.current = true;
+            navigation.replace('WorkoutCamera', { workout: finished });
+          }}
+        />
+      </KeyboardAvoider>
     </SafeAreaView>
   );
 }

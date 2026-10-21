@@ -77,6 +77,7 @@ public class AccountDeletionService {
             throw new IllegalArgumentException("A conta ROOT não pode ser excluída pelo app.");
         }
         UUID userId = user.getId();
+        String avatarUrl = user.getAvatarUrl();
 
         // Lido antes do DELETE: depois do commit as linhas já não existem.
         List<String> mediaKeys = mediaKeysOf(userId);
@@ -123,11 +124,12 @@ public class AccountDeletionService {
 
         // Mídia só sai do Storage depois do commit: se a transação voltar, os posts
         // continuam com as imagens.
-        if (!mediaKeys.isEmpty()) {
+        if (!mediaKeys.isEmpty() || avatarUrl != null) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
                     mediaKeys.forEach(storageService::deleteByKey);
+                    storageService.deleteAvatar(avatarUrl);
                 }
             });
         }

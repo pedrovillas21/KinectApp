@@ -125,6 +125,20 @@ public class AsaasPaymentGateway implements PaymentGateway {
                 .toBodilessEntity());
     }
 
+    @Override
+    public GatewayCharge createCharge(String customerId, int priceCents, String description, LocalDate dueDate,
+                                      String externalReference) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("customer", customerId);
+        body.put("billingType", "UNDEFINED");
+        body.put("value", BigDecimal.valueOf(priceCents, 2));
+        body.put("dueDate", dueDate.toString());
+        body.put("description", description);
+        body.put("externalReference", externalReference);
+        JsonNode payment = post("/payments", body);
+        return new GatewayCharge(payment.path("id").asText(), payment.path("invoiceUrl").asText(null));
+    }
+
     // ── Webhook ─────────────────────────────────────────────────────────────
 
     /** Confere o token que o Asaas manda no header {@code asaas-access-token} (comparação em tempo constante). */
@@ -143,12 +157,14 @@ public class AsaasPaymentGateway implements PaymentGateway {
         JsonNode payment = body.path("payment");
         return switch (event) {
             case "PAYMENT_CONFIRMED", "PAYMENT_RECEIVED" -> new GatewayEvent(eventId, GatewayEvent.Type.PAYMENT_PAID,
-                    payment.path("subscription").asText(null), parseDate(payment.path("dueDate").asText(null)));
+                    payment.path("subscription").asText(null), payment.path("id").asText(null),
+                    parseDate(payment.path("dueDate").asText(null)));
             case "PAYMENT_OVERDUE" -> new GatewayEvent(eventId, GatewayEvent.Type.PAYMENT_OVERDUE,
-                    payment.path("subscription").asText(null), parseDate(payment.path("dueDate").asText(null)));
+                    payment.path("subscription").asText(null), payment.path("id").asText(null),
+                    parseDate(payment.path("dueDate").asText(null)));
             case "SUBSCRIPTION_DELETED", "SUBSCRIPTION_INACTIVATED" -> new GatewayEvent(eventId,
-                    GatewayEvent.Type.SUBSCRIPTION_ENDED, body.path("subscription").path("id").asText(null), null);
-            default -> new GatewayEvent(eventId, GatewayEvent.Type.IGNORED, null, null);
+                    GatewayEvent.Type.SUBSCRIPTION_ENDED, body.path("subscription").path("id").asText(null), null, null);
+            default -> new GatewayEvent(eventId, GatewayEvent.Type.IGNORED, null, null, null);
         };
     }
 
@@ -199,7 +215,8 @@ public class AsaasPaymentGateway implements PaymentGateway {
     }
 
     private static String description(BillingPlan plan) {
-        return "Kinetic – plano " + plan.getDisplayName() + " (até " + plan.getMaxStudents() + " alunos)";
+        return "Kinetic – plano " + plan.getDisplayName() + (plan.getMaxStudents() == null
+                ? " (alunos ilimitados)" : " (até " + plan.getMaxStudents() + " alunos)");
     }
 
     private static LocalDate parseDate(String value) {

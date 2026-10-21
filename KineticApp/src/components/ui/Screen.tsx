@@ -2,6 +2,7 @@ import React from 'react';
 import { RefreshControlProps, ScrollView, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { Edge, SafeAreaView } from 'react-native-safe-area-context';
 import { KINETIC } from '../../theme/kinetic';
+import KeyboardAvoider from './KeyboardAvoider';
 
 export interface ScreenProps {
   children: React.ReactNode;
@@ -32,21 +33,23 @@ export default function Screen({
 }: ScreenProps) {
   return (
     <SafeAreaView style={styles.root} edges={edges}>
-      {header}
-      {scroll ? (
-        <ScrollView
-          style={styles.flex}
-          contentContainerStyle={[styles.content, contentStyle]}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-          refreshControl={refreshControl}
-        >
-          {children}
-        </ScrollView>
-      ) : (
-        <View style={[styles.flex, contentStyle]}>{children}</View>
-      )}
-      {footer}
+      <KeyboardAvoider>
+        {header}
+        {scroll ? (
+          <ScrollView
+            style={styles.flex}
+            contentContainerStyle={[styles.content, contentStyle]}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            refreshControl={refreshControl}
+          >
+            {children}
+          </ScrollView>
+        ) : (
+          <View style={[styles.flex, contentStyle]}>{children}</View>
+        )}
+        {footer}
+      </KeyboardAvoider>
     </SafeAreaView>
   );
 }

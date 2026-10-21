@@ -16,7 +16,9 @@ import com.kinetic.repositories.TrainerClientRepository;
 import com.kinetic.repositories.TrainerInviteCodeRepository;
 import com.kinetic.repositories.UserRepository;
 import com.kinetic.repositories.WorkoutPlanRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +27,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -38,10 +41,11 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Caixa de entrada "Hoje" do personal: junta numa lista só o que pede ação —
- * cobranças atrasadas ou vencendo, alunos em risco de abandono, prévias de IA
- * esperando revisão, reavaliações e fichas antigas, convites vencendo.
- * Cada item aponta para a tela onde se resolve.
+ * Caixa de entrada "Hoje" do personal: os a-fazeres do dia — cobranças atrasadas
+ * ou vencendo, alunos que deveriam ter treinado hoje e não treinaram (só à noite),
+ * prévias de IA esperando revisão, reavaliações e fichas antigas, convites vencendo.
+ * Cada item aponta para a tela onde se resolve. Os casos graves de abandono ficam
+ * no painel de risco, não aqui.
  */
 @Service
 @RequiredArgsConstructor
@@ -53,6 +57,8 @@ public class TrainerTodayService {
     static final int PLAN_STALE_AFTER_DAYS = 56;
     /** Cobranças vencendo nos próximos N dias também entram. */
     static final int CHARGE_LOOKAHEAD_DAYS = 3;
+    /** A partir desta hora (Brasília) quem não treinou no dia esperado vira a-fazer. */
+    static final int DAILY_NUDGE_FROM_HOUR = 18;
 
     private static final DateTimeFormatter DAY_MONTH = DateTimeFormatter.ofPattern("dd/MM");
 
@@ -64,6 +70,7 @@ public class TrainerTodayService {
     private final PhysicalAssessmentRepository assessmentRepository;
     private final WorkoutPlanRepository workoutPlanRepository;
     private final TrainerInviteCodeRepository inviteCodeRepository;
+    private final BillingService billingService;
 
     @Transactional
     public List<TodayItemDTO> today(String trainerEmail) {
@@ -73,8 +80,13 @@ public class TrainerTodayService {
                 .findByTrainerAndStatusFetchStudent(trainer.getId(), TrainerLinkStatus.ATIVO);
         Map<UUID, User> students = new HashMap<>();
         Map<UUID, LocalDate> linkedSince = new HashMap<>();
+        Set<UUID> dismissedToday = new HashSet<>();
+        // Aluno congelado (acima do limite do Grátis) não gera a-fazer: o personal não pode agir sobre ele.
+        Set<UUID> frozen = billingService.frozenStudentIds(trainer);
         for (TrainerClient l : links) {
+            if (frozen.contains(l.getStudent().getId())) continue;
             students.put(l.getStudent().getId(), l.getStudent());
+            if (today.equals(l.getDailyNudgeDismissedOn())) dismissedToday.add(l.getStudent().getId());
             LocalDateTime since = l.getRespondedAt() != null ? l.getRespondedAt() : l.getCreatedAt();
             linkedSince.put(l.getStudent().getId(), since != null ? since.toLocalDate() : today);
         }
@@ -82,7 +94,9 @@ public class TrainerTodayService {
         List<TodayItemDTO> items = new ArrayList<>();
         addCharges(items, trainer, today);
         if (!students.isEmpty()) {
-            addRisk(items, trainerEmail, students);
+            if (LocalTime.now(AppTime.ZONE).getHour() >= DAILY_NUDGE_FROM_HOUR) {
+                addMissedToday(items, trainerEmail, students, dismissedToday);
+            }
             addAiPreviews(items, trainer, students.keySet());
             addReassessments(items, students, linkedSince, today);
             addStalePlans(items, students, today);
@@ -110,13 +124,41 @@ public class TrainerTodayService {
         }
     }
 
-    private void addRisk(List<TodayItemDTO> items, String trainerEmail, Map<UUID, User> students) {
+    private void addMissedToday(List<TodayItemDTO> items, String trainerEmail, Map<UUID, User> students,
+                                Set<UUID> dismissedToday) {
         for (StudentEngagementDTO e : engagementService.engagement(trainerEmail)) {
-            if (StudentRiskRules.OK.equals(e.risk()) || e.alerts().isEmpty()) continue;
             User s = students.get(e.studentId());
-            items.add(new TodayItemDTO("RISCO", e.risk(), e.studentId(), s != null ? s.getNome() : null,
-                    e.alerts().get(0).message(), "Risco de abandono · fale com o aluno", "/students/" + e.studentId()));
+            if (s == null || dismissedToday.contains(e.studentId()) || !expectedToday(e)) continue;
+            items.add(new TodayItemDTO("TREINO_HOJE", "MEDIO", e.studentId(), s.getNome(),
+                    "Ainda não treinou hoje",
+                    "Último treino há " + e.daysSinceLastSession() + (e.daysSinceLastSession() == 1 ? " dia" : " dias")
+                            + " · meta de " + e.weeklyTarget() + "x por semana",
+                    "/students/" + e.studentId(), s.getPhone()));
         }
+    }
+
+    /**
+     * Pela meta semanal, o aluno já deveria ter treinado hoje: não treinou hoje e
+     * o intervalo desde o último treino chegou ao normal dele (7 / meta, para cima:
+     * 5x → 2 dias, 3x → 3, 2x → 4). Fica de fora quem nunca treinou, quem está com
+     * os alertas pausados e quem já está em risco ALTO (esse vai para o painel de risco).
+     */
+    static boolean expectedToday(StudentEngagementDTO e) {
+        Integer target = e.weeklyTarget();
+        Integer days = e.daysSinceLastSession();
+        if (target == null || target <= 0 || days == null || days == 0) return false;
+        if (e.pause() != null || StudentRiskRules.ALTO.equals(e.risk())) return false;
+        return days >= (int) Math.ceil(7.0 / target);
+    }
+
+    /** "Ignorar": tira o lembrete "ainda não treinou hoje" do aluno até amanhã. */
+    @Transactional
+    public void dismissMissedToday(String trainerEmail, @NonNull UUID studentId) {
+        User trainer = userRepository.getByEmailOrThrow(trainerEmail);
+        TrainerClient link = trainerClientRepository
+                .findByTrainerIdAndStudentIdAndStatus(trainer.getId(), studentId, TrainerLinkStatus.ATIVO)
+                .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado."));
+        link.setDailyNudgeDismissedOn(AppTime.today());
     }
 
     private void addAiPreviews(List<TodayItemDTO> items, User trainer, Set<UUID> activeStudents) {

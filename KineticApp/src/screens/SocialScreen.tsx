@@ -14,6 +14,8 @@ import Icon, { IconName } from '../components/Icon';
 import { Text, UnderlineTabs } from '../components/ui';
 import { AuthContext } from '../contexts/AuthContext';
 import useSquadStatus from '../hooks/useSquadStatus';
+import useFocusResource from '../hooks/useFocusResource';
+import { getPublicProfile } from '../services/profileService';
 import api from '../services/api';
 import {
   getFeed,
@@ -24,7 +26,7 @@ import {
   likePost,
   unlikePost,
 } from '../services/socialService';
-import { FONT, KINETIC, RADIUS } from '../theme/kinetic';
+import { KINETIC, RADIUS } from '../theme/kinetic';
 import type { MainTabScreenProps } from '../navigation/types';
 import type { FeedPostData, HomeDashboardResponseDTO, RankingEntryDTO, SquadMember, StoryGroup } from '../types';
 
@@ -48,6 +50,8 @@ function HeaderButton({ icon, label, onPress, badge }: { icon: IconName; label: 
 export default function SocialScreen({ navigation, route }: MainTabScreenProps<'Social'>) {
   const { currentUser } = useContext(AuthContext);
   const myId = currentUser ? String(currentUser.id) : null;
+  // Mesma chave do Perfil e de Configurações: a foto vem do cache compartilhado.
+  const myProfile = useFocusResource(myId ? `profile/${myId}` : null, () => getPublicProfile(myId!));
 
   const [tab, setTab] = useState<SocialTab>('following');
 
@@ -234,6 +238,7 @@ export default function SocialScreen({ navigation, route }: MainTabScreenProps<'
           ListHeaderComponent={
             <SquadBar
               items={squadMembers}
+              me={myId ? { id: myId, nome: currentUser?.nome ?? '', avatarUrl: myProfile.data?.avatarUrl } : null}
               storyUserIds={storyGroups.map((g) => g.userId)}
               onAddStory={() => setShowNewStory(true)}
               onOpenStory={openStory}
@@ -296,10 +301,7 @@ export default function SocialScreen({ navigation, route }: MainTabScreenProps<'
           onPress={() => setShowNewPost(true)}
           style={({ pressed }) => [styles.publish, pressed && styles.pressed]}
         >
-          <Icon name="plus" size={18} color={KINETIC.onPrimary} strokeWidth={2.2} />
-          <Text style={styles.publishText} color={KINETIC.onPrimary}>
-            Publicar
-          </Text>
+          <Icon name="plus" size={24} color={KINETIC.onPrimary} strokeWidth={2.4} />
         </Pressable>
       ) : null}
 
@@ -369,19 +371,17 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 20,
     bottom: 16,
-    height: 48,
-    paddingHorizontal: 18,
-    borderRadius: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: KINETIC.primary,
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'center',
     elevation: 6,
     shadowColor: '#000',
     shadowOpacity: 0.35,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
   },
-  publishText: { fontFamily: FONT.semibold, fontSize: 14, lineHeight: 18 },
   pressed: { opacity: 0.85 },
 });

@@ -55,6 +55,7 @@ public class StudentFinanceService {
     private final StudentChargeRepository chargeRepository;
     private final TrainerClientRepository trainerClientRepository;
     private final TrainerLinkService trainerLinkService;
+    private final BillingService billingService;
     private final UserRepository userRepository;
 
     // ── Consulta ────────────────────────────────────────────────────────────
@@ -126,7 +127,7 @@ public class StudentFinanceService {
     @Transactional
     public void setPlan(String trainerEmail, @NonNull UUID studentId, int amountCents, int dueDay) {
         User trainer = userRepository.getByEmailOrThrow(trainerEmail);
-        User student = trainerLinkService.resolveOwnedStudent(trainerEmail, studentId);
+        User student = trainerLinkService.resolveOwnedStudentForWrite(trainerEmail, studentId);
         LocalDate currentMonth = YearMonth.now().atDay(1);
 
         StudentBillingPlan plan = planRepository.findByTrainerIdAndStudentId(trainer.getId(), studentId)
@@ -222,11 +223,16 @@ public class StudentFinanceService {
 
     // ── Internos ────────────────────────────────────────────────────────────
 
-    /** Garante as cobranças do mês corrente (e dos 2 anteriores, se faltarem) de cada mensalidade ativa. */
+    /**
+     * Garante as cobranças do mês corrente (e dos 2 anteriores, se faltarem) de cada mensalidade ativa.
+     * Aluno congelado pelo limite do Grátis não gera cobrança nova (as já criadas seguem visíveis).
+     */
     private void ensureCharges(User trainer, LocalDate today) {
         Set<UUID> activeStudents = activeLinksByStudent(trainer).keySet();
+        Set<UUID> frozen = billingService.frozenStudentIds(trainer);
         for (StudentBillingPlan plan : planRepository.findActiveByTrainerFetchStudent(trainer.getId())) {
-            if (activeStudents.contains(plan.getStudent().getId())) {
+            UUID studentId = plan.getStudent().getId();
+            if (activeStudents.contains(studentId) && !frozen.contains(studentId)) {
                 createChargesFor(plan, today);
             }
         }

@@ -2,12 +2,11 @@ import React, { useCallback, useContext, useState } from 'react';
 import { Pressable, RefreshControl, Share, StyleSheet, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 
-import FeedPost from '../components/FeedPost';
-import CommentsSheet from '../components/CommentsSheet';
 import NewPostModal from '../components/NewPostModal';
 import InviteDialog from '../components/InviteDialog';
 import Icon, { IconName } from '../components/Icon';
 import ProfileHeader from '../components/profile/ProfileHeader';
+import AvatarViewer from '../components/profile/AvatarViewer';
 import useFocusResource from '../hooks/useFocusResource';
 import ProfileActivity from '../components/profile/ProfileActivity';
 import RecordsList from '../components/profile/RecordsList';
@@ -17,7 +16,7 @@ import { goalLabel, hasMedicalInfo, levelLabel } from '../constants/protocol';
 import usePaged from '../hooks/usePaged';
 import api from '../services/api';
 import { getPublicProfile, getUserWorkouts } from '../services/profileService';
-import { getUserPosts, likePost, unlikePost } from '../services/socialService';
+import { getUserPosts } from '../services/socialService';
 import { getMyTrainer } from '../services/trainerService';
 import { KINETIC, RADIUS } from '../theme/kinetic';
 import { formatMonthYear } from '../utils/formatters';
@@ -89,9 +88,8 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
   const [refreshing, setRefreshing] = useState(false);
   const [recordsOpen, setRecordsOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [avatarOpen, setAvatarOpen] = useState(false);
   const [newPostOpen, setNewPostOpen] = useState(false);
-  const [openPost, setOpenPost] = useState<FeedPostData | null>(null);
-  const [commentsPostId, setCommentsPostId] = useState<string | null>(null);
 
   const posts = usePaged<FeedPostData>(useCallback((page) => getUserPosts(myId, page, 12), [myId]));
   const workouts = usePaged<WorkoutSummary>(useCallback((page) => getUserWorkouts(myId, page, 10), [myId]));
@@ -173,6 +171,7 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
         name={name}
         avatarUrl={profile?.avatarUrl}
         seed={myId}
+        onAvatarPress={() => setAvatarOpen(true)}
         lines={profile?.memberSince ? [`Membro desde ${formatMonthYear(profile.memberSince)}`] : []}
         counters={[
           { label: 'Treinos', value: profile?.workoutsCount ?? '—' },
@@ -240,7 +239,15 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
           workouts={workouts}
           postsCount={profile?.postsCount ?? posts.items.length}
           workoutsCount={profile?.workoutsCount ?? 0}
-          onPressPost={setOpenPost}
+          onPressPost={(post) =>
+            navigation.navigate('ProfilePosts', {
+              userId: myId,
+              startId: post.id,
+              items: posts.items,
+              page: posts.page,
+              last: posts.last,
+            })
+          }
           onCreatePost={() => setNewPostOpen(true)}
           achievements={profile?.achievements ?? []}
           emptyPosts="Você ainda não publicou."
@@ -258,28 +265,6 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
         )}
       </Dialog>
 
-      <Dialog visible={!!openPost} onClose={() => setOpenPost(null)} title="Publicação">
-        {openPost ? (
-          <FeedPost
-            bare
-            post={openPost}
-            onToggleLike={(id, liked) => (liked ? likePost(id) : unlikePost(id))}
-            onOpenComments={(id) => {
-              setOpenPost(null);
-              setCommentsPostId(id);
-            }}
-          />
-        ) : null}
-      </Dialog>
-
-      <CommentsSheet
-        postId={commentsPostId}
-        visible={!!commentsPostId}
-        onClose={() => setCommentsPostId(null)}
-        onCommentsCountChange={(id, count) =>
-          posts.update((items) => items.map((x) => (x.id === id ? { ...x, commentsCount: count } : x)))
-        }
-      />
 
       <NewPostModal
         visible={newPostOpen}
@@ -288,6 +273,16 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
       />
 
       <InviteDialog visible={inviteOpen} onClose={() => setInviteOpen(false)} initialTab="trainer" onChanged={loadAll} />
+      <AvatarViewer
+        visible={avatarOpen}
+        onClose={() => setAvatarOpen(false)}
+        name={name}
+        seed={myId}
+        uri={profile?.avatarUrl}
+        editable
+        // Mesma chave de cache da Comunidade e de Configurações: as três telas pegam a foto nova.
+        onChanged={() => profileRes.refresh()}
+      />
     </Screen>
   );
 }

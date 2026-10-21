@@ -1,20 +1,19 @@
 import React, { useContext, useState } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
-  TextInput,
 } from 'react-native';
+import { Text, TextInput } from '../../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { AuthContext } from '../../contexts/AuthContext';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { showAlert } from '../../components/ui/AlertHost';
+import KeyboardAvoider from '../../components/ui/KeyboardAvoider';
+import { KINETIC } from '../../theme/kinetic';
 
 const A = {
   bg: '#131313',
@@ -191,9 +190,7 @@ export default function LoginScreen({ navigation, route }: Props) {
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safe}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.kav}
+        <KeyboardAvoider style={styles.kav}
         >
           {/* Header */}
           <View style={styles.header}>
@@ -248,7 +245,7 @@ export default function LoginScreen({ navigation, route }: Props) {
               <TextInput
                 style={styles.textInput}
                 placeholder="nome@email.com"
-                placeholderTextColor={A.text3}
+                placeholderTextColor={KINETIC.placeholder}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -269,7 +266,7 @@ export default function LoginScreen({ navigation, route }: Props) {
               <TextInput
                 style={styles.textInput}
                 placeholder="••••••••"
-                placeholderTextColor={A.text3}
+                placeholderTextColor={KINETIC.placeholder}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
@@ -317,7 +314,7 @@ export default function LoginScreen({ navigation, route }: Props) {
               </Text>
             </TouchableOpacity>
           </View>
-        </KeyboardAvoidingView>
+        </KeyboardAvoider>
       </SafeAreaView>
     </View>
   );

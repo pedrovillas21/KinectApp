@@ -1,12 +1,10 @@
 import React, { useContext, useState } from 'react';
 import {
-  Text,
   StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { Text } from '../../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
@@ -17,6 +15,7 @@ import HeaderLogo from '../../components/HeaderLogo';
 import CustomInput from '../../components/CustomInput';
 import PrimaryButton from '../../components/PrimaryButton';
 import { showAlert } from '../../components/ui/AlertHost';
+import KeyboardAvoider from '../../components/ui/KeyboardAvoider';
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
@@ -76,9 +75,7 @@ export default function ConfirmEmailScreen({ navigation, route }: Props) {
         { backgroundColor: isDarkMode ? COLORS.darkBackground : COLORS.lightBackground },
       ]}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.inner}
+      <KeyboardAvoider style={styles.inner}
       >
         <HeaderLogo showBack />
 
@@ -135,7 +132,7 @@ export default function ConfirmEmailScreen({ navigation, route }: Props) {
             </Text>
           </TouchableOpacity>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAvoider>
     </SafeAreaView>
   );
 }

@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -126,10 +127,11 @@ public class TrainerLinkService {
     @Transactional(readOnly = true)
     public List<TrainerLinkDTO> listStudents(String trainerEmail) {
         User trainer = userRepository.getByEmailOrThrow(trainerEmail);
+        Set<UUID> frozen = billingService.frozenStudentIds(trainer);
         return trainerClientRepository
                 .findByTrainerAndStatusFetchStudent(trainer.getId(), TrainerLinkStatus.ATIVO)
                 .stream()
-                .map(link -> toDto(link, link.getStudent()))
+                .map(link -> toDto(link, link.getStudent(), frozen.contains(link.getStudent().getId())))
                 .toList();
     }
 
@@ -154,6 +156,18 @@ public class TrainerLinkService {
         }
         return userRepository.findById(studentId)
                 .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado."));
+    }
+
+    /**
+     * Gate dos endpoints que <i>alteram</i> dados do aluno (ficha, IA, avaliação,
+     * protocolo, mensalidade): posse + aluno não congelado pelo limite do plano Grátis.
+     * Leitura continua por {@link #resolveOwnedStudent}.
+     */
+    @Transactional(readOnly = true)
+    public User resolveOwnedStudentForWrite(String trainerEmail, @NonNull UUID studentId) {
+        User student = resolveOwnedStudent(trainerEmail, studentId);
+        billingService.assertNotFrozen(userRepository.getByEmailOrThrow(trainerEmail), studentId);
+        return student;
     }
 
     /**
@@ -272,6 +286,10 @@ public class TrainerLinkService {
     }
 
     TrainerLinkDTO toDto(TrainerClient link, User peer) {
+        return toDto(link, peer, false);
+    }
+
+    private TrainerLinkDTO toDto(TrainerClient link, User peer, boolean frozen) {
         // Celular só circula entre quem já tem vínculo ativo — convite pendente não expõe.
         String phone = link.getStatus() == TrainerLinkStatus.ATIVO ? peer.getPhone() : null;
         return new TrainerLinkDTO(
@@ -280,7 +298,8 @@ public class TrainerLinkService {
                 link.getStatus().name(),
                 link.getSource().name(),
                 link.getCreatedAt(),
-                link.getRespondedAt()
+                link.getRespondedAt(),
+                frozen
         );
     }
 }

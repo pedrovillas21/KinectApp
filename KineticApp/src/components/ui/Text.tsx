@@ -1,5 +1,6 @@
 import React from 'react';
-import { Text as RNText, TextProps as RNTextProps } from 'react-native';
+import { TextProps as RNTextProps } from 'react-native';
+import { Text as ScaledText } from './scaled';
 import { KINETIC, TYPE, TypeVariant } from '../../theme/kinetic';
 
 export interface TextProps extends RNTextProps {
@@ -11,5 +12,5 @@ export interface TextProps extends RNTextProps {
 
 /** Texto com a fonte Geist e a escala do redesign. */
 export default function Text({ variant = 'body', color = KINETIC.text, style, ...rest }: TextProps) {
-  return <RNText {...rest} style={[TYPE[variant], { color }, style]} />;
+  return <ScaledText {...rest} style={[TYPE[variant], { color }, style]} />;
 }

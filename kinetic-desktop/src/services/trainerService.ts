@@ -4,6 +4,8 @@ import type {
   AiPlanContext,
   AiPlanPreview,
   AiPlanRequest,
+  AlertPause,
+  AlertPauseReason,
   MonthlyStatsResponseDTO,
   PlanEvolutionResponseDTO,
   StatsPeriodId,
@@ -77,10 +79,28 @@ export const getToday = async (): Promise<TodayItem[]> => {
   return res.data;
 };
 
+/** "Ignorar" o lembrete "ainda não treinou hoje" do aluno até amanhã. */
+export const dismissToday = async (studentId: string): Promise<void> => {
+  await api.post(`/trainer/students/${studentId}/today-dismiss`);
+};
+
 /** Painel de aderência: último treino, aderência recente e alertas de risco de cada aluno ativo. */
 export const getEngagement = async (): Promise<StudentEngagement[]> => {
   const res = await api.get<StudentEngagement[]>('/trainer/students/engagement');
   return res.data;
+};
+
+/** Esconde os alertas de risco do aluno por `days` dias (contando hoje), com motivo e nota. */
+export const pauseAlerts = async (
+  studentId: string,
+  body: { reason: AlertPauseReason; days: number; note: string },
+): Promise<AlertPause> => {
+  const res = await api.put<AlertPause>(`/trainer/students/${studentId}/alert-pause`, body);
+  return res.data;
+};
+
+export const resumeAlerts = async (studentId: string): Promise<void> => {
+  await api.delete(`/trainer/students/${studentId}/alert-pause`);
 };
 
 /** Resumo de estatísticas do aluno no período (exige vínculo ATIVO; 404 sem posse). */

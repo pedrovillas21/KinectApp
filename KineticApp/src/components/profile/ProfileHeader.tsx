@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { FONT, KINETIC } from '../../theme/kinetic';
 import { Avatar, Text } from '../ui';
 
@@ -15,14 +15,24 @@ interface ProfileHeaderProps {
   /** Linhas abaixo do nome (ex.: "Membro desde março de 2026"). */
   lines?: string[];
   counters: ProfileCounter[];
+  /** Toque na foto: abre a foto ampliada (e, no próprio perfil, a troca de foto). */
+  onAvatarPress?: () => void;
 }
 
 /** Avatar grande, nome e contadores (perfil próprio e de outros). */
-export default function ProfileHeader({ name, avatarUrl, seed, lines = [], counters }: ProfileHeaderProps) {
+export default function ProfileHeader({ name, avatarUrl, seed, lines = [], counters, onAvatarPress }: ProfileHeaderProps) {
   return (
     <View>
       <View style={styles.identity}>
-        <Avatar name={name} uri={avatarUrl} seed={seed ?? name} size={76} />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Ver foto de perfil"
+          onPress={onAvatarPress}
+          disabled={!onAvatarPress}
+          style={({ pressed }) => pressed && styles.pressed}
+        >
+          <Avatar name={name} uri={avatarUrl} seed={seed ?? name} size={76} />
+        </Pressable>
         <View style={styles.texts}>
           <Text style={styles.name} numberOfLines={2} accessibilityRole="header">
             {name}
@@ -62,5 +72,6 @@ const styles = StyleSheet.create({
     borderColor: KINETIC.hairline,
   },
   counter: { flex: 1, gap: 2 },
+  pressed: { opacity: 0.85 },
   counterValue: { fontFamily: FONT.monoSemibold, fontSize: 17, lineHeight: 22 },
 });

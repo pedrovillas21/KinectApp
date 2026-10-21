@@ -1,6 +1,7 @@
 import type { CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { FeedPostData } from '../types';
 
 /** Abas do app logado, na ordem da barra. */
 export type MainTabParamList = {
@@ -42,6 +43,11 @@ export type MainStackParamList = {
   Anamnesis: undefined;
   /** Perfil profissional do personal do aluno logado. */
   TrainerProfile: undefined;
+  /**
+   * Publicações de um perfil em lista (estilo Instagram), abrindo no post tocado.
+   * Recebe o que a grade já carregou para não buscar de novo.
+   */
+  ProfilePosts: { userId: string; startId: string; items: FeedPostData[]; page: number; last: boolean };
 };
 
 export type MainStackScreenProps<R extends keyof MainStackParamList> = NativeStackScreenProps<MainStackParamList, R>;

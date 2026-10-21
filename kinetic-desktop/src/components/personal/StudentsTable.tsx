@@ -77,7 +77,10 @@ export default function StudentsTable({
                       >
                         {link.peer.nome}
                       </Link>
-                      <span className="truncate text-xs text-k-text-muted">{link.peer.email}</span>
+                      <span className="truncate text-xs text-k-text-muted">
+                        {link.frozen ? <span className="text-k-warn">Congelado · </span> : null}
+                        {link.peer.email}
+                      </span>
                     </span>
                   </span>
                 </td>

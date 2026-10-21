@@ -54,7 +54,7 @@ public class TrainerPlanService {
     @Transactional
     public WorkoutPlanResponseDTO createPlan(String trainerEmail, @NonNull UUID studentId,
                                              TrainerWorkoutPlanRequestDTO request) {
-        User student = trainerLinkService.resolveOwnedStudent(trainerEmail, studentId);
+        User student = trainerLinkService.resolveOwnedStudentForWrite(trainerEmail, studentId);
         WorkoutPlan plan = buildPlan(student, userRepository.getByEmailOrThrow(trainerEmail), request);
         return WorkoutPlanResponseDTO.fromEntity(workoutPlanRepository.save(plan));
     }
@@ -85,7 +85,7 @@ public class TrainerPlanService {
     @Transactional
     public WorkoutPlanResponseDTO updatePlan(String trainerEmail, @NonNull UUID studentId,
                                              @NonNull UUID planId, TrainerWorkoutPlanRequestDTO request) {
-        User student = trainerLinkService.resolveOwnedStudent(trainerEmail, studentId);
+        User student = trainerLinkService.resolveOwnedStudentForWrite(trainerEmail, studentId);
         WorkoutPlan plan = findOwnedActivePlan(student, planId);
 
         // Editar uma ficha da IA a torna do personal: passa a exibir "prescrito por" no app
@@ -124,7 +124,7 @@ public class TrainerPlanService {
     /** Tira a ficha do app do aluno. Arquiva: sessões já registradas continuam apontando para ela. */
     @Transactional
     public void archivePlan(String trainerEmail, @NonNull UUID studentId, @NonNull UUID planId) {
-        User student = trainerLinkService.resolveOwnedStudent(trainerEmail, studentId);
+        User student = trainerLinkService.resolveOwnedStudentForWrite(trainerEmail, studentId);
         findOwnedActivePlan(student, planId).setStatus("archived");
     }
 

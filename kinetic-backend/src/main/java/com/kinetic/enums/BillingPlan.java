@@ -1,18 +1,22 @@
 package com.kinetic.enums;
 
 /**
- * Catálogo de planos do personal, por faixa de alunos ativos. Preço em
- * centavos para não arrastar erro de ponto flutuante até o gateway.
- * Fonte única de verdade: o painel lista os planos a partir daqui.
+ * Catálogo de planos do personal. Preço em centavos para não arrastar erro de
+ * ponto flutuante até o gateway. Fonte única de verdade: o painel lista os
+ * planos a partir daqui.
  *
- * <p>Cota de IA: gerações de prévia de ficha por mês (~4 por aluno do plano),
- * somadas na conta inteira — o personal distribui entre os alunos como quiser.
+ * <p>{@code maxStudents} nulo = alunos ilimitados. A cota de IA é de gerações de
+ * prévia de ficha por mês, somadas na conta inteira; além dela o personal pode
+ * comprar pacotes extras (ver {@code BillingService}).
+ *
+ * <p>FREE não é assinável: é o que vale sem plano pago (teste encerrado ou
+ * assinatura cancelada e vencida).
  */
 public enum BillingPlan {
-    START("Start", 5, 1990, 20, false),
-    PRO("Pro", 15, 4490, 60, false),
-    PLUS("Plus", 30, 7990, 120, false),
-    MAX("Max", 60, 12990, 240, false),
+    /** IA: 1 geração por aluno por mês do calendário, para provar o produto. */
+    FREE("Grátis", 3, 0, 3, false),
+    BASE("Base", 10, 1490, 15, false),
+    PRO("Pro", null, 4990, 100, false),
     /** Equipes/estúdios: ainda não vendável, aparece como "em breve". */
     BUSINESS("Business", null, null, null, true);
 

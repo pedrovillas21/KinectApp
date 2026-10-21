@@ -25,3 +25,24 @@ export const getCompareProgress = async (friendId: string): Promise<CompareProgr
 /** Status HTTP de um erro do axios, ou undefined. */
 export const httpStatus = (e: unknown): number | undefined =>
   (e as { response?: { status?: number } }).response?.status;
+
+/**
+ * Troca a foto de perfil do usuário logado e devolve o endereço público novo.
+ * A foto é pública (bucket próprio), diferente das fotos de posts.
+ */
+export const updateMyAvatar = async (uri: string): Promise<string> => {
+  const name = uri.split('/').pop() ?? `${Date.now()}.jpg`;
+  const ext = (/\.(\w+)$/.exec(name)?.[1] ?? 'jpg').toLowerCase();
+  const type = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
+  const form = new FormData();
+  form.append('file', { uri, name, type } as any);
+  const res = await api.put<{ avatarUrl: string }>('/users/me/avatar', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return res.data.avatarUrl;
+};
+
+/** Remove a foto de perfil (volta às iniciais do nome). */
+export const removeMyAvatar = async (): Promise<void> => {
+  await api.delete('/users/me/avatar');
+};

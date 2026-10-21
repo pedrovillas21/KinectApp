@@ -17,6 +17,7 @@ import {
 } from '@expo-google-fonts/geist-mono';
 import { ThemeProvider } from './src/contexts/ThemeContext';
 import { AuthProvider, AuthContext } from './src/contexts/AuthContext';
+import { TextScaleProvider, useTextScale } from './src/contexts/TextScaleContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AppRoutes from './src/routes/AppRoutes';
 import AlertHost from './src/components/ui/AlertHost';
@@ -26,6 +27,7 @@ SplashScreen.preventAutoHideAsync();
 
 function AppContent() {
   const { isLoadingAuth } = useContext(AuthContext);
+  const { ready: textScaleReady } = useTextScale();
   // Erro de carregamento cai no fallback do sistema em vez de travar o splash.
   const [fontsLoaded, fontError] = useFonts({
     Geist_400Regular,
@@ -36,7 +38,7 @@ function AppContent() {
     GeistMono_500Medium,
     GeistMono_600SemiBold,
   });
-  const fontsReady = fontsLoaded || !!fontError;
+  const fontsReady = (fontsLoaded || !!fontError) && textScaleReady;
 
   useEffect(() => {
     if (!isLoadingAuth && fontsReady) {
@@ -58,12 +60,14 @@ function AppContent() {
 export default function App() {
   return (
     <SafeAreaProvider>
-      <ThemeProvider>
-        <AuthProvider>
-          <AppContent />
-          <AlertHost />
-        </AuthProvider>
-      </ThemeProvider>
+      <TextScaleProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <AppContent />
+            <AlertHost />
+          </AuthProvider>
+        </ThemeProvider>
+      </TextScaleProvider>
     </SafeAreaProvider>
   );
 }

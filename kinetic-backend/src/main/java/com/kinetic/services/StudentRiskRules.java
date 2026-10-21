@@ -90,7 +90,7 @@ final class StudentRiskRules {
         int last7 = countIn(sessionDays, today.minusDays(6), today);
 
         return new StudentEngagementDTO(studentId, lastSessionDate, daysSince, hasTarget ? weeklyTarget : null,
-                adherence, windowDays, last7, risk, List.copyOf(alerts));
+                adherence, windowDays, last7, risk, List.copyOf(alerts), null);
     }
 
     private static int countIn(Set<LocalDate> days, LocalDate from, LocalDate to) {

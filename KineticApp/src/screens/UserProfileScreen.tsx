@@ -1,24 +1,21 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, RefreshControl, StyleSheet, View } from 'react-native';
 
-import FeedPost from '../components/FeedPost';
-import CommentsSheet from '../components/CommentsSheet';
 import Icon from '../components/Icon';
 import ProfileHeader from '../components/profile/ProfileHeader';
+import AvatarViewer from '../components/profile/AvatarViewer';
 import WeeklyMinutesCard from '../components/profile/WeeklyMinutesCard';
 import RecordsList from '../components/profile/RecordsList';
 import AchievementBadges from '../components/profile/AchievementBadges';
 import ProfileActivity from '../components/profile/ProfileActivity';
-import { Button, Dialog, Screen, StackHeader, Text } from '../components/ui';
+import { Button, Screen, StackHeader, Text } from '../components/ui';
 import usePaged from '../hooks/usePaged';
 import { getPublicProfile, getUserWorkouts, httpStatus } from '../services/profileService';
 import {
   acceptConnection,
   getUserPosts,
-  likePost,
   removeConnection,
   sendConnection,
-  unlikePost,
 } from '../services/socialService';
 import { KINETIC, RADIUS } from '../theme/kinetic';
 import { formatMonthYear } from '../utils/formatters';
@@ -32,11 +29,10 @@ export default function UserProfileScreen({ navigation, route }: MainStackScreen
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [error, setError] = useState<'notfound' | 'failed' | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [avatarOpen, setAvatarOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const posts = usePaged<FeedPostData>(useCallback((page) => getUserPosts(userId, page, 12), [userId]));
   const workouts = usePaged<WorkoutSummary>(useCallback((page) => getUserWorkouts(userId, page, 10), [userId]));
-  const [openPost, setOpenPost] = useState<FeedPostData | null>(null);
-  const [commentsPostId, setCommentsPostId] = useState<string | null>(null);
 
   const loadProfile = useCallback(async () => {
     try {
@@ -139,6 +135,7 @@ export default function UserProfileScreen({ navigation, route }: MainStackScreen
         name={profile.name}
         avatarUrl={profile.avatarUrl}
         seed={profile.id}
+        onAvatarPress={profile.avatarUrl ? () => setAvatarOpen(true) : undefined}
         lines={lines}
         counters={[
           { label: 'Treinos', value: profile.workoutsCount },
@@ -184,34 +181,27 @@ export default function UserProfileScreen({ navigation, route }: MainStackScreen
             workouts={workouts}
             postsCount={profile.postsCount}
             workoutsCount={profile.workoutsCount}
-            onPressPost={setOpenPost}
+            onPressPost={(post) =>
+              navigation.navigate('ProfilePosts', {
+                userId,
+                startId: post.id,
+                items: posts.items,
+                page: posts.page,
+                last: posts.last,
+              })
+            }
             emptyPosts={`${firstName} ainda não publicou.`}
             emptyWorkouts={`${firstName} ainda não registrou treinos.`}
           />
         </View>
       )}
 
-      <Dialog visible={!!openPost} onClose={() => setOpenPost(null)} title="Publicação">
-        {openPost ? (
-          <FeedPost
-            bare
-            post={openPost}
-            onToggleLike={(id, liked) => (liked ? likePost(id) : unlikePost(id))}
-            onOpenComments={(id) => {
-              setOpenPost(null);
-              setCommentsPostId(id);
-            }}
-          />
-        ) : null}
-      </Dialog>
-
-      <CommentsSheet
-        postId={commentsPostId}
-        visible={!!commentsPostId}
-        onClose={() => setCommentsPostId(null)}
-        onCommentsCountChange={(id, count) =>
-          posts.update((items) => items.map((x) => (x.id === id ? { ...x, commentsCount: count } : x)))
-        }
+      <AvatarViewer
+        visible={avatarOpen}
+        onClose={() => setAvatarOpen(false)}
+        name={profile.name}
+        seed={profile.id}
+        uri={profile.avatarUrl}
       />
     </Screen>
   );

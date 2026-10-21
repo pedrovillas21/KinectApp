@@ -255,11 +255,14 @@ export const Shell: React.FC<{
       <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: 12 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 12, borderRadius: 10, border: "1px solid rgba(255,255,255,0.07)", padding: 14 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-            <span style={{ fontSize: 13, fontWeight: 600 }}>Plano Plus</span>
+            <span style={{ fontSize: 13, fontWeight: 600 }}>Plano Pro</span>
             <span style={{ fontSize: 12, color: K.primary }}>Ver planos</span>
           </div>
-          <Meter label="Alunos ativos" used={24} limit={30} />
-          <Meter label="Fichas com IA" used={38} limit={120} />
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: K.textMuted }}>
+            <span>Alunos ativos</span>
+            <span style={{ fontFamily: mono, color: K.textSoft }}>24 · ilimitado</span>
+          </div>
+          <Meter label="Fichas com IA" used={38} limit={100} />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 6px" }}>
           <DeskAvatar name="Rafael Costa" size={32} />
@@ -333,7 +336,7 @@ export const Dashboard: React.FC<{ t: number; scroll?: number }> = ({ t, scroll 
   const kpiIn = (i: number) => ar(t, 0.3 + i * 0.1, 0.9 + i * 0.1);
   const count = ar(t, 0.4, 1.8, 0, 1, IN_OUT);
   const KPIS = [
-    { label: "Alunos ativos", value: `${Math.round(24 * count)}`, of: "/ 30", sub: "6 vagas livres no plano" },
+    { label: "Alunos ativos", value: `${Math.round(24 * count)}`, of: "", sub: "Plano Pro · alunos ilimitados" },
     { label: "Aderência média · mês", value: `${Math.round(78 * count)}`, of: "%", sub: "Entre alunos com meta de frequência", bar: 78 * count },
     { label: "Treinos concluídos · mês", value: `${Math.round(312 * count)}`, of: "/ 380", sub: "Somando as fichas de todos os alunos" },
     { label: "Precisam de atenção", value: `${Math.round(3 * count)}`, of: "", sub: "Inativos, sem treinar ou com queda", dot: true },

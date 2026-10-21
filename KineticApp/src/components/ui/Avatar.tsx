@@ -32,7 +32,8 @@ export const avatarTone = (seed: string | number | null | undefined) =>
 /** Foto de perfil ou iniciais coloridas. */
 export default function Avatar({ name, uri, seed, size = 40, ring }: AvatarProps) {
   const tone = avatarTone(seed ?? name);
-  const inner = ring ? size - 4 : size;
+  // Anel de 2px + respiro até a foto (menor em avatar pequeno, para a foto não sumir).
+  const inner = ring ? size - (size >= 48 ? 8 : 5) : size;
   const initials = initialsOf(name);
 
   const face = uri ? (
@@ -57,7 +58,7 @@ export default function Avatar({ name, uri, seed, size = 40, ring }: AvatarProps
           width: size,
           height: size,
           borderRadius: size / 2,
-          borderWidth: 1.5,
+          borderWidth: 2,
           borderColor: ring === 'unseen' ? KINETIC.primary : ring === 'live' ? KINETIC.success : 'rgba(255,255,255,0.14)',
         },
       ]}

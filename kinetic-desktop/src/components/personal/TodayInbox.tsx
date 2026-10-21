@@ -1,22 +1,27 @@
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
+import { toast } from 'sonner';
 import {
+  CalendarX,
   ChevronRight,
   ClipboardList,
   Dumbbell,
   Link2,
+  MessageCircle,
   Sparkles,
-  TriangleAlert,
   Wallet,
   type LucideIcon,
 } from 'lucide-react';
 import { EASE_OUT, SPRING_PILL } from '../motion/primitives';
+import { dismissToday } from '../../services/trainerService';
+import { qk, queryClient } from '../../services/queryClient';
+import { whatsappUrl } from '../../utils/whatsapp';
 import type { TodayItem, TodayItemType } from '../../types';
 
 const TYPE_META: Record<TodayItemType, { label: string; icon: LucideIcon }> = {
   PAGAMENTO: { label: 'Pagamentos', icon: Wallet },
-  RISCO: { label: 'Em risco', icon: TriangleAlert },
+  TREINO_HOJE: { label: 'Treino de hoje', icon: CalendarX },
   PREVIA_IA: { label: 'Prévias de IA', icon: Sparkles },
   REAVALIACAO: { label: 'Avaliações', icon: ClipboardList },
   FICHA_ANTIGA: { label: 'Fichas antigas', icon: Dumbbell },
@@ -31,10 +36,17 @@ const SEVERITY_DOT: Record<TodayItem['severity'], string> = {
 
 const COLLAPSED_LIMIT = 6;
 
+const missedTodayMessage = (studentName: string | null) => {
+  const first = studentName?.trim().split(/\s+/)[0];
+  return `Oi${first ? `, ${first}` : ''}! Senti sua falta no treino hoje. Está tudo bem?`;
+};
+
+const ACTION_CLASS =
+  'flex h-8 shrink-0 items-center gap-1 rounded-lg border border-white/[0.12] px-3 text-[13px] text-k-text transition-colors hover:bg-white/[0.06]';
+
 /** Âncoras da própria carteira rolam a página; o resto navega para a tela certa. */
 function ActionLink({ path, children }: { path: string; children: ReactNode }) {
-  const className =
-    'flex h-8 shrink-0 items-center gap-1 rounded-lg border border-white/[0.12] px-3 text-[13px] text-k-text transition-colors hover:bg-white/[0.06]';
+  const className = ACTION_CLASS;
   if (path.startsWith('#')) {
     return (
       <button
@@ -54,12 +66,26 @@ function ActionLink({ path, children }: { path: string; children: ReactNode }) {
 }
 
 /**
- * Caixa de entrada "Hoje": tudo o que pede ação do personal numa lista só,
- * filtrável por tipo, com atalho para a tela onde cada pendência se resolve.
+ * Caixa de entrada "Hoje": os a-fazeres do dia numa lista só, filtrável por tipo,
+ * com atalho para a tela onde cada pendência se resolve. "Ainda não treinou hoje"
+ * (só à noite) tem WhatsApp direto e "Ignorar", que limpa o item até amanhã.
  */
 export default function TodayInbox({ items }: { items: TodayItem[] }) {
   const [filter, setFilter] = useState<TodayItemType | 'ALL'>('ALL');
   const [expanded, setExpanded] = useState(false);
+  const [dismissing, setDismissing] = useState<string | null>(null);
+
+  const handleDismiss = async (studentId: string) => {
+    setDismissing(studentId);
+    try {
+      await dismissToday(studentId);
+      await queryClient.invalidateQueries({ queryKey: qk.today });
+    } catch {
+      toast.error('Não foi possível ignorar. Tente novamente.');
+    } finally {
+      setDismissing(null);
+    }
+  };
 
   const counts = items.reduce<Partial<Record<TodayItemType, number>>>((acc, i) => {
     acc[i.type] = (acc[i.type] ?? 0) + 1;
@@ -145,10 +171,34 @@ export default function TodayInbox({ items }: { items: TodayItem[] }) {
                     </p>
                     <p className="truncate text-[13px] text-k-text-muted">{item.detail}</p>
                   </div>
-                  <ActionLink path={item.actionPath}>
-                    Resolver
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  </ActionLink>
+                  {item.type === 'TREINO_HOJE' && item.studentId ? (
+                    <div className="flex shrink-0 items-center gap-2">
+                      {item.studentPhone && (
+                        <a
+                          href={whatsappUrl(item.studentPhone, missedTodayMessage(item.studentName))}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={ACTION_CLASS}
+                        >
+                          <MessageCircle className="h-3.5 w-3.5 text-k-success" />
+                          WhatsApp
+                        </a>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => void handleDismiss(item.studentId!)}
+                        disabled={dismissing === item.studentId}
+                        className="flex h-8 items-center rounded-lg px-2.5 text-[13px] text-k-text-dim transition-colors hover:bg-white/[0.06] hover:text-k-text disabled:opacity-50"
+                      >
+                        Ignorar
+                      </button>
+                    </div>
+                  ) : (
+                    <ActionLink path={item.actionPath}>
+                      Resolver
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </ActionLink>
+                  )}
                 </motion.li>
               );
             })}

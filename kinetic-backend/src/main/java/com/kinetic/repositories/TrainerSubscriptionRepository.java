@@ -16,6 +16,15 @@ public interface TrainerSubscriptionRepository extends JpaRepository<TrainerSubs
 
     Optional<TrainerSubscription> findByGatewaySubscriptionId(String gatewaySubscriptionId);
 
+    Optional<TrainerSubscription> findByAiPackPaymentId(String aiPackPaymentId);
+
+    /** Gasta 1 geração extra; devolve 0 quando o saldo já estava zerado. */
+    @Modifying
+    @Transactional
+    @Query("UPDATE TrainerSubscription s SET s.aiExtraCredits = s.aiExtraCredits - 1 "
+            + "WHERE s.trainer.id = :trainerId AND s.aiExtraCredits > 0")
+    int consumeAiExtraCredit(@Param("trainerId") UUID trainerId);
+
     /**
      * Marca um evento de webhook como processado. Devolve 0 quando ele já tinha
      * chegado antes (reenvio do gateway), e aí o evento é ignorado.

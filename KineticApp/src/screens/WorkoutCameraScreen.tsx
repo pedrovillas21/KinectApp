@@ -1,14 +1,14 @@
 import React, { useRef, useState } from 'react';
-import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions, type CameraType, type FlashMode } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
-import Svg, { Path } from 'react-native-svg';
 import Icon from '../components/Icon';
+import { FlipCameraButton, GalleryButton, RoundButton, ShutterButton } from '../components/CameraButtons';
 import WorkoutPhotoStrip from '../components/WorkoutPhotoStrip';
 import { Button, Text } from '../components/ui';
 import { showAlert } from '../components/ui/AlertHost';
-import { KINETIC, RADIUS } from '../theme/kinetic';
+import { KINETIC } from '../theme/kinetic';
 import type { MainStackScreenProps } from '../navigation/types';
 
 /** Câmera em tela cheia (estilo stories): botão de foto no centro, controles soltos sobre a imagem. */
@@ -119,60 +119,17 @@ export default function WorkoutCameraScreen({ navigation, route }: MainStackScre
       </View>
 
       <View style={[styles.controls, { bottom: insets.bottom + 28 }]}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Escolher da galeria" onPress={pickFromGallery} style={styles.gallery}>
-          <Icon name="image" size={18} color="rgba(255,255,255,0.8)" />
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Tirar foto"
-          accessibilityState={{ disabled: !ready }}
-          onPress={takePhoto}
-          style={({ pressed }) => [styles.shutter, pressed && styles.shutterPressed]}
-        >
-          <View style={styles.shutterInner} />
-        </Pressable>
-        <RoundButton label="Virar câmera" onPress={() => setFacing((f) => (f === 'back' ? 'front' : 'back'))}>
-          <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
-            <Path d="M20 11a8 8 0 0 0-14.3-4.9L4 8" />
-            <Path d="M4 3v5h5" />
-            <Path d="M4 13a8 8 0 0 0 14.3 4.9L20 16" />
-            <Path d="M20 21v-5h-5" />
-          </Svg>
-        </RoundButton>
+        <GalleryButton onPress={pickFromGallery} />
+        <ShutterButton onPress={takePhoto} ready={ready} />
+        <FlipCameraButton onPress={() => setFacing((f) => (f === 'back' ? 'front' : 'back'))} />
       </View>
     </View>
-  );
-}
-
-function RoundButton({
-  label,
-  onPress,
-  style,
-  children,
-}: {
-  label: string;
-  onPress: () => void;
-  style?: object;
-  children: React.ReactNode;
-}) {
-  return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={4} style={[styles.round, style]}>
-      {children}
-    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#000' },
   mask: { flex: 1, backgroundColor: 'rgba(0,0,0,0.42)' },
-  round: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(0,0,0,0.32)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   closeAbs: { position: 'absolute', left: 14 },
   rail: { position: 'absolute', right: 14, gap: 10 },
   controls: {
@@ -184,27 +141,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  gallery: {
-    width: 44,
-    height: 44,
-    borderRadius: RADIUS.md,
-    borderWidth: 2,
-    borderColor: '#fff',
-    backgroundColor: KINETIC.surfaceRaised,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  shutter: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 4,
-    borderColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  shutterPressed: { transform: [{ scale: 0.94 }] },
-  shutterInner: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#fff' },
   permission: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 10 },
   permissionActions: { alignSelf: 'stretch', gap: 10, marginTop: 18 },
   center: { textAlign: 'center' },

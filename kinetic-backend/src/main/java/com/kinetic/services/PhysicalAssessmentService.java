@@ -57,7 +57,7 @@ public class PhysicalAssessmentService {
     @Transactional
     public Response create(String trainerEmail, @NonNull UUID studentId, Request request) {
         requireMeasure(request);
-        User student = trainerLinkService.resolveOwnedStudent(trainerEmail, studentId);
+        User student = trainerLinkService.resolveOwnedStudentForWrite(trainerEmail, studentId);
         PhysicalAssessment a = new PhysicalAssessment();
         a.setStudent(student);
         a.setTrainer(userRepository.getByEmailOrThrow(trainerEmail));
@@ -94,7 +94,7 @@ public class PhysicalAssessmentService {
     // ── Internos ────────────────────────────────────────────────────────────
 
     private PhysicalAssessment owned(String trainerEmail, @NonNull UUID studentId, @NonNull UUID assessmentId) {
-        User student = trainerLinkService.resolveOwnedStudent(trainerEmail, studentId);
+        User student = trainerLinkService.resolveOwnedStudentForWrite(trainerEmail, studentId);
         PhysicalAssessment a = repository.findById(assessmentId)
                 .orElseThrow(() -> new EntityNotFoundException("Avaliação não encontrada."));
         if (!a.getStudent().getId().equals(student.getId())) {

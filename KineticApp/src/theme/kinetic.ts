@@ -27,6 +27,8 @@ export const KINETIC = {
   /** Legendas, metadados (contraste ≥ 4.5:1 sobre bg/surface1). */
   textSecondary: 'rgba(245,246,247,0.55)',
   textMuted: 'rgba(245,246,247,0.36)',
+  /** Placeholder de campo: 4.5:1 sobre bg/surface1 (textMuted não passa; leitura com vista cansada). */
+  placeholder: 'rgba(245,246,247,0.5)',
 
   ghost: 'rgba(255,255,255,0.08)',
   ghostHi: 'rgba(255,255,255,0.15)',

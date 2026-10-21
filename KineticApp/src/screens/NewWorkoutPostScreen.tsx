@@ -1,6 +1,8 @@
 import React, { useContext, useState } from 'react';
-import { Image, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { TextInput } from '../components/ui/scaled';
 import Icon from '../components/Icon';
+import IntensityPicker from '../components/IntensityPicker';
 import WorkoutPhotoStrip from '../components/WorkoutPhotoStrip';
 import { Avatar, Button, ListGroup, ListRow, Screen, StackHeader, Text } from '../components/ui';
 import { showAlert } from '../components/ui/AlertHost';
@@ -9,12 +11,6 @@ import { createPost, deleteMedia, uploadMedia } from '../services/socialService'
 import { FONT, KINETIC, RADIUS } from '../theme/kinetic';
 import type { MainStackScreenProps } from '../navigation/types';
 import type { PostIntensity } from '../types';
-
-const INTENSITIES: { value: PostIntensity; label: string }[] = [
-  { value: 'LEVE', label: 'Leve' },
-  { value: 'MODERADO', label: 'Moderado' },
-  { value: 'ALTA', label: 'Alta' },
-];
 
 /** Prévia e publicação da foto do treino recém-concluído, já ligada à sessão salva. */
 export default function NewWorkoutPostScreen({ navigation, route }: MainStackScreenProps<'NewWorkoutPost'>) {
@@ -52,87 +48,60 @@ export default function NewWorkoutPostScreen({ navigation, route }: MainStackScr
   );
 
   return (
-    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Screen
-        edges={['top', 'left', 'right', 'bottom']}
-        header={<StackHeader title="Nova publicação" onBack={() => navigation.goBack()} />}
-        footer={footer}
-        contentStyle={styles.content}
-      >
-        <View style={styles.photo}>
-          <Image source={{ uri: photoUri }} style={StyleSheet.absoluteFill} accessibilityLabel="Foto do treino" />
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Refazer foto"
-            onPress={() => navigation.goBack()}
-            style={styles.retake}
-          >
-            <Icon name="camera" size={16} color="#fff" />
-          </Pressable>
-          <WorkoutPhotoStrip volumeKg={workout.volumeKg} durationSeconds={workout.durationSeconds} title={workout.title} />
-        </View>
+    <Screen
+      edges={['top', 'left', 'right', 'bottom']}
+      header={<StackHeader title="Nova publicação" onBack={() => navigation.goBack()} />}
+      footer={footer}
+      contentStyle={styles.content}
+    >
+      <View style={styles.photo}>
+        <Image source={{ uri: photoUri }} style={StyleSheet.absoluteFill} accessibilityLabel="Foto do treino" />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Refazer foto"
+          onPress={() => navigation.goBack()}
+          style={styles.retake}
+        >
+          <Icon name="camera" size={16} color="#fff" />
+        </Pressable>
+        <WorkoutPhotoStrip volumeKg={workout.volumeKg} durationSeconds={workout.durationSeconds} title={workout.title} />
+      </View>
 
-        <View style={styles.captionRow}>
-          <Avatar name={currentUser?.nome} seed={currentUser?.id} size={36} />
-          <TextInput
-            style={styles.caption}
-            placeholder="Escreva uma legenda..."
-            placeholderTextColor={KINETIC.textMuted}
-            accessibilityLabel="Legenda"
-            value={caption}
-            onChangeText={setCaption}
-            maxLength={2200}
-            multiline
-          />
-        </View>
+      <View style={styles.captionRow}>
+        <Avatar name={currentUser?.nome} seed={currentUser?.id} size={36} />
+        <TextInput
+          style={styles.caption}
+          placeholder="Escreva uma legenda..."
+          placeholderTextColor={KINETIC.placeholder}
+          accessibilityLabel="Legenda"
+          value={caption}
+          onChangeText={setCaption}
+          maxLength={2200}
+          multiline
+        />
+      </View>
 
-        <ListGroup>
-          <ListRow
-            icon="dumbbell"
-            title={workout.title}
-            subtitle={`Hoje · ${workout.setsCount} séries · ${workout.exercisesCount} exercícios`}
-            accessory={
-              <View style={styles.tag}>
-                <Text variant="micro" color={KINETIC.primary}>
-                  Marcado
-                </Text>
-              </View>
-            }
-          />
-          <ListRow
-            icon="flame"
-            title="Intensidade"
-            accessory={
-              <View style={styles.chips} accessibilityRole="radiogroup">
-                {INTENSITIES.map((opt) => {
-                  const on = opt.value === intensity;
-                  return (
-                    <Pressable
-                      key={opt.value}
-                      accessibilityRole="radio"
-                      accessibilityState={{ checked: on }}
-                      onPress={() => setIntensity(opt.value)}
-                      hitSlop={6}
-                      style={[styles.chip, on && styles.chipOn]}
-                    >
-                      <Text variant="captionStrong" color={on ? KINETIC.onPrimary : KINETIC.textDim}>
-                        {opt.label}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            }
-          />
+      <ListGroup>
+        <ListRow
+          icon="dumbbell"
+          title={workout.title}
+          subtitle={`Hoje · ${workout.setsCount} séries · ${workout.exercisesCount} exercícios`}
+          accessory={
+            <View style={styles.tag}>
+              <Text variant="micro" color={KINETIC.primary}>
+                Marcado
+              </Text>
+            </View>
+          }
+        />
+          <IntensityPicker value={intensity} onChange={setIntensity} />
           <ListRow icon="users" title="Visível para" value="Amigos" />
         </ListGroup>
       </Screen>
-    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: KINETIC.bg },
   content: { gap: 16, paddingTop: 4 },
   photo: {
     marginHorizontal: 16,
@@ -164,16 +133,6 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   tag: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: RADIUS.xs, backgroundColor: KINETIC.primaryDim },
-  chips: { flexDirection: 'row', gap: 4 },
-  chip: {
-    height: 32,
-    paddingHorizontal: 10,
-    borderRadius: RADIUS.pill,
-    borderWidth: 1,
-    borderColor: KINETIC.ghostHi,
-    justifyContent: 'center',
-  },
-  chipOn: { backgroundColor: KINETIC.primary, borderColor: KINETIC.primary },
   footer: {
     paddingHorizontal: 16,
     paddingTop: 12,

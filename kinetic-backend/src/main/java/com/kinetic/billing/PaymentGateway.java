@@ -27,10 +27,17 @@ public interface PaymentGateway {
 
     void cancelSubscription(String subscriptionId);
 
+    /** Cobrança avulsa (pacote de IA) que vence em {@code dueDate}. */
+    GatewayCharge createCharge(String customerId, int priceCents, String description, LocalDate dueDate,
+                               String externalReference);
+
     /**
      * @param id          id da assinatura no provedor
      * @param checkoutUrl página onde o personal paga a 1ª cobrança (Pix, boleto
      *                    ou cartão); caminho relativo do painel no modo demo
      */
     record GatewaySubscription(String id, String checkoutUrl) {}
+
+    /** @param id id da cobrança no provedor; checkoutUrl como em {@link GatewaySubscription} */
+    record GatewayCharge(String id, String checkoutUrl) {}
 }

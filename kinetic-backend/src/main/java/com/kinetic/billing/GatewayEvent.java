@@ -7,10 +7,11 @@ import java.time.LocalDate;
  *
  * @param eventId        id do evento no provedor (idempotência); pode ser nulo
  * @param type           o que aconteceu
- * @param subscriptionId id da assinatura no provedor
+ * @param subscriptionId id da assinatura no provedor; nulo em cobrança avulsa (pacote de IA)
+ * @param paymentId      id da cobrança no provedor (nulo em eventos de assinatura)
  * @param dueDate        vencimento da cobrança paga/atrasada (nulo em eventos de assinatura)
  */
-public record GatewayEvent(String eventId, Type type, String subscriptionId, LocalDate dueDate) {
+public record GatewayEvent(String eventId, Type type, String subscriptionId, String paymentId, LocalDate dueDate) {
 
     public enum Type {
         /** Cobrança paga (Pix/boleto compensado ou cartão aprovado). */

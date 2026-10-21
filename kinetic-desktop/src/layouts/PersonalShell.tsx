@@ -5,7 +5,7 @@ import { CreditCard, IdCard, LayoutDashboard, LogOut, Wallet, type LucideIcon } 
 import { useAuth } from '../contexts/AuthContext';
 import KineticLogo from '../components/KineticLogo';
 import Avatar from '../components/Avatar';
-import { daysUntil, getBilling } from '../services/billingService';
+import { aiTotalLimit, daysUntil, getBilling } from '../services/billingService';
 import { qk } from '../services/queryClient';
 import { useAiDrafts, type AiDraft } from '../components/personal/ai/aiDraftStore';
 import type { BillingOverview } from '../types';
@@ -85,7 +85,7 @@ function planStatus(b: BillingOverview): { text: string; alert: boolean } {
   const trialDays = daysUntil(b.trialEndsAt);
   switch (b.status) {
     case 'TRIAL':
-      return { text: trialDays > 0 ? `Teste grátis · ${trialDays}d` : 'Teste encerrado', alert: trialDays <= 3 };
+      return { text: trialDays > 0 ? `Teste grátis · ${trialDays}d` : 'Plano Grátis', alert: trialDays > 0 && trialDays <= 3 };
     case 'PENDENTE':
       return { text: 'Pagamento pendente', alert: true };
     case 'ATRASADA':
@@ -95,18 +95,19 @@ function planStatus(b: BillingOverview): { text: string; alert: boolean } {
     default:
       return daysUntil(b.currentPeriodEnd) > 0
         ? { text: `Plano ${b.planName} · cancelado`, alert: false }
-        : { text: 'Sem plano', alert: true };
+        : { text: 'Plano Grátis', alert: false };
   }
 }
 
-function Meter({ label, used, limit }: { label: string; used: number; limit: number }) {
-  const pct = limit > 0 ? Math.min(100, (used / limit) * 100) : 100;
+/** `limit` null = ilimitado (barra vazia). */
+function Meter({ label, used, limit }: { label: string; used: number; limit: number | null }) {
+  const pct = limit === null ? 0 : limit > 0 ? Math.min(100, (used / limit) * 100) : 100;
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex justify-between text-xs text-k-text-muted">
         <span>{label}</span>
         <span className="font-mono text-k-text-soft">
-          {used} / {limit}
+          {used} / {limit ?? '∞'}
         </span>
       </div>
       <div className="h-1 rounded-full bg-white/[0.08]">
@@ -131,7 +132,7 @@ function PlanUsage() {
       </div>
       <Meter label="Alunos ativos" used={billing.activeStudents} limit={billing.studentLimit} />
       {billing.aiGenerationsLimit !== null && (
-        <Meter label="Fichas com IA" used={billing.aiGenerationsUsed} limit={billing.aiGenerationsLimit} />
+        <Meter label="Fichas com IA" used={billing.aiGenerationsUsed} limit={aiTotalLimit(billing)} />
       )}
     </div>
   );

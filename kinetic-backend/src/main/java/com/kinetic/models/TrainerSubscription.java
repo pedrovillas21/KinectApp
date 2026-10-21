@@ -59,6 +59,21 @@ public class TrainerSubscription {
     @Column(name = "checkout_url", length = 512)
     private String checkoutUrl;
 
+    /** Gerações de IA compradas em pacote e ainda não usadas (não expiram). */
+    @Column(name = "ai_extra_credits", nullable = false)
+    private int aiExtraCredits;
+
+    /** Cobrança avulsa do pacote de IA aguardando pagamento (some quando confirma). */
+    @Column(name = "ai_pack_payment_id", length = 64, unique = true)
+    private String aiPackPaymentId;
+
+    @Column(name = "ai_pack_checkout_url", length = 512)
+    private String aiPackCheckoutUrl;
+
+    /** Última troca de alunos ativos com a carteira já congelada. */
+    @Column(name = "active_chosen_at")
+    private Instant activeChosenAt;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 

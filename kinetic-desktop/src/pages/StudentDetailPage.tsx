@@ -3,7 +3,17 @@ import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
-import { ArrowLeft, BarChart3, Dumbbell, MessageCircle, Ruler, UserMinus, UserX } from 'lucide-react';
+import {
+  ArrowLeft,
+  BarChart3,
+  ChevronRight,
+  Dumbbell,
+  MessageCircle,
+  Ruler,
+  Snowflake,
+  UserMinus,
+  UserX,
+} from 'lucide-react';
 import { endStudentLink, getEngagement, getStudentPlanEvolution, listStudents } from '../services/trainerService';
 import { qk, refreshTrainerData } from '../services/queryClient';
 import { useAuth } from '../contexts/AuthContext';
@@ -155,6 +165,20 @@ export default function StudentDetailPage() {
         <span aria-hidden="true" className="text-k-text-muted/60">/</span>
         <span aria-current="page" className="truncate">{peer.nome}</span>
       </header>
+
+      {link?.frozen && (
+        <Link
+          to="/assinatura#carteira"
+          className="flex shrink-0 items-center gap-2.5 border-b border-k-warn/20 bg-k-warn/[0.06] px-8 py-2.5 text-[13px] text-k-text-soft hover:bg-k-warn/[0.1]"
+        >
+          <Snowflake className="h-4 w-4 shrink-0 text-k-warn" />
+          <span className="flex-1">
+            Aluno congelado: sua carteira passou do limite do plano Grátis. Você vê o histórico, mas não edita ficha,
+            avaliação, protocolo nem mensalidade. Assine um plano ou escolha-o como ativo.
+          </span>
+          <ChevronRight className="h-4 w-4 shrink-0 text-k-text-muted" />
+        </Link>
+      )}
 
       <ConfirmDialog
         open={endOpen}

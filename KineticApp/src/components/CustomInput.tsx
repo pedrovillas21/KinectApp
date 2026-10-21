@@ -1,12 +1,11 @@
 import React, { useContext, useState, ReactNode } from 'react';
 import {
-  TextInput,
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   KeyboardTypeOptions,
 } from 'react-native';
+import { Text, TextInput } from './ui/scaled';
 import { ThemeContext } from '../contexts/ThemeContext';
 import { COLORS } from '../theme/colors';
 import Icon from './Icon';

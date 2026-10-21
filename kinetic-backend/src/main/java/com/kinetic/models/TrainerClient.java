@@ -56,4 +56,26 @@ public class TrainerClient {
 
     @Column(name = "ended_at")
     private LocalDateTime endedAt;
+
+    /** Alertas de risco do aluno escondidos até esta data (inclusive); nulo = sem pausa. */
+    @Column(name = "alerts_paused_until")
+    private java.time.LocalDate alertsPausedUntil;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "alert_pause_reason", length = 16)
+    private com.kinetic.enums.AlertPauseReason alertPauseReason;
+
+    @Column(name = "alert_pause_note", length = 500)
+    private String alertPauseNote;
+
+    @Column(name = "alert_paused_at")
+    private LocalDateTime alertPausedAt;
+
+    /** Dia em que o personal ignorou o lembrete "ainda não treinou hoje" deste aluno. */
+    @Column(name = "daily_nudge_dismissed_on")
+    private java.time.LocalDate dailyNudgeDismissedOn;
+
+    /** Escolhido pelo personal para continuar ativo quando a carteira passa do limite do Grátis. */
+    @Column(name = "kept_on_downgrade", nullable = false)
+    private boolean keptOnDowngrade;
 }

@@ -62,6 +62,13 @@ public class StorageService {
     private String bucket;
 
     /**
+     * Bucket PÚBLICO só para fotos de perfil (visíveis a qualquer pessoa, como no
+     * Instagram). A URL pública não expira, então é ela que fica em users.avatar_url.
+     */
+    @Value("${supabase.storage.avatars-bucket:avatars}")
+    private String avatarsBucket;
+
+    /**
      * Validade da URL assinada. Curta de propósito: é a janela em que um link
      * copiado ainda funcionaria depois de a amizade ser desfeita. Precisa ser
      * maior que o tempo de rolagem de uma sessão de feed para as imagens não
@@ -93,6 +100,43 @@ public class StorageService {
      * {@link RuntimeException} (→ 500) em falha do Storage.
      */
     public String upload(MultipartFile file, String folder) {
+        String contentType = validatedImageType(file);
+
+        String safeFolder = (folder == null || folder.isBlank()) ? "posts" : folder.trim();
+        if (!ALLOWED_FOLDERS.contains(safeFolder)) {
+            throw new IllegalArgumentException("Pasta de destino inválida.");
+        }
+        // key = {folder}/{uuid}.{ext}: todos os componentes são controlados pelo servidor
+        // (folder via whitelist, UUID e extensão de um switch fixo), então não há entrada
+        // do usuário concatenada na URL do Storage.
+        String key = safeFolder + "/" + UUID.randomUUID() + "." + extensionFor(contentType);
+        putObject(bucket, key, contentType, file);
+        return key;
+    }
+
+    /**
+     * Sobe a foto de perfil de {@code userId} ao bucket público de avatares e devolve a
+     * URL pública. Nome novo a cada upload ({userId}/{uuid}.ext): a URL muda quando a
+     * foto muda, então nenhum cache mostra a foto antiga.
+     */
+    public String uploadAvatar(MultipartFile file, UUID userId) {
+        String contentType = validatedImageType(file);
+        String key = userId + "/" + UUID.randomUUID() + "." + extensionFor(contentType);
+        putObject(avatarsBucket, key, contentType, file);
+        return supabaseUrl + "/storage/v1/object/public/" + avatarsBucket + "/" + key;
+    }
+
+    /** Apaga a foto de perfil da URL pública informada; ignora URL que não seja do bucket de avatares. Best-effort. */
+    public void deleteAvatar(String publicUrl) {
+        if (publicUrl == null) return;
+        String marker = "/storage/v1/object/public/" + avatarsBucket + "/";
+        int idx = publicUrl.indexOf(marker);
+        if (idx < 0) return;
+        deleteObject(avatarsBucket, publicUrl.substring(idx + marker.length()));
+    }
+
+    /** Valida tipo e tamanho; devolve o content-type. Inválido → {@link IllegalArgumentException} (400). */
+    private static String validatedImageType(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("Arquivo de mídia vazio ou ausente.");
         }
@@ -103,16 +147,10 @@ public class StorageService {
         if (file.getSize() > MAX_FILE_SIZE) {
             throw new IllegalArgumentException("Arquivo excede o limite de 10MB.");
         }
+        return contentType;
+    }
 
-        String safeFolder = (folder == null || folder.isBlank()) ? "posts" : folder.trim();
-        if (!ALLOWED_FOLDERS.contains(safeFolder)) {
-            throw new IllegalArgumentException("Pasta de destino inválida.");
-        }
-        // key = {folder}/{uuid}.{ext}: todos os componentes são controlados pelo servidor
-        // (folder via whitelist, UUID e extensão de um switch fixo), então não há entrada
-        // do usuário concatenada na URL do Storage.
-        String key = safeFolder + "/" + UUID.randomUUID() + "." + extensionFor(contentType);
-
+    private void putObject(String targetBucket, String key, String contentType, MultipartFile file) {
         byte[] bytes;
         try {
             bytes = file.getBytes();
@@ -122,7 +160,7 @@ public class StorageService {
 
         try {
             restClient.post()
-                    .uri(supabaseUrl + "/storage/v1/object/" + bucket + "/" + key)
+                    .uri(supabaseUrl + "/storage/v1/object/" + targetBucket + "/" + key)
                     .header("apikey", serviceRoleKey)
                     .header("Authorization", "Bearer " + serviceRoleKey)
                     .header("x-upsert", "true")
@@ -135,8 +173,6 @@ public class StorageService {
                     e.getStatusCode(), e.getResponseBodyAsString());
             throw new RuntimeException("Falha ao subir a imagem para o Storage.", e);
         }
-
-        return key;
     }
 
     /**
@@ -220,9 +256,13 @@ public class StorageService {
 
     /** Remove o objeto identificado por {@code key} (ex: "posts/uuid.jpg"). Best-effort. */
     public void deleteByKey(String key) {
+        deleteObject(bucket, key);
+    }
+
+    private void deleteObject(String targetBucket, String key) {
         try {
             restClient.delete()
-                    .uri(supabaseUrl + "/storage/v1/object/" + bucket + "/" + key)
+                    .uri(supabaseUrl + "/storage/v1/object/" + targetBucket + "/" + key)
                     .header("apikey", serviceRoleKey)
                     .header("Authorization", "Bearer " + serviceRoleKey)
                     .retrieve()

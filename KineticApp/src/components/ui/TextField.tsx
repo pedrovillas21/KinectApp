@@ -1,5 +1,6 @@
 import React, { forwardRef, useState } from 'react';
-import { StyleProp, StyleSheet, TextInput, TextInputProps, View, ViewStyle } from 'react-native';
+import { StyleProp, StyleSheet, TextInputProps, View, ViewStyle } from 'react-native';
+import { TextInput } from './scaled';
 import { FONT, KINETIC, RADIUS } from '../../theme/kinetic';
 import Text from './Text';
 
@@ -28,7 +29,7 @@ const TextField = forwardRef<TextInput, TextFieldProps>(function TextField(
         {...rest}
         multiline={multiline}
         accessibilityLabel={rest.accessibilityLabel ?? label}
-        placeholderTextColor={KINETIC.textMuted}
+        placeholderTextColor={KINETIC.placeholder}
         onFocus={(e) => {
           setFocused(true);
           onFocus?.(e);

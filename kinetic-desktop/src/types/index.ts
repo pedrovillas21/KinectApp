@@ -128,6 +128,18 @@ export interface StudentEngagement {
   risk: RiskLevel;
   /** Do mais grave para o mais leve. */
   alerts: RiskAlert[];
+  /** Pausa dos alertas em vigor; null = alertas valendo. */
+  pause: AlertPause | null;
+}
+
+export type AlertPauseReason = 'LESAO' | 'VIAGEM' | 'CONTATO' | 'OUTRO';
+
+export interface AlertPause {
+  /** Alertas escondidos até esta data (inclusive), yyyy-mm-dd. */
+  until: string;
+  reason: AlertPauseReason | null;
+  note: string | null;
+  pausedAt: string | null;
 }
 
 // ── Financeiro do personal (GET /api/trainer/finance) ──────────────────────
@@ -214,7 +226,7 @@ export interface PhysicalAssessment extends AssessmentInput {
 
 // ── Caixa de entrada "Hoje" (GET /api/trainer/today) ───────────────────────
 
-export type TodayItemType = 'PAGAMENTO' | 'RISCO' | 'PREVIA_IA' | 'REAVALIACAO' | 'FICHA_ANTIGA' | 'CONVITE';
+export type TodayItemType = 'PAGAMENTO' | 'TREINO_HOJE' | 'PREVIA_IA' | 'REAVALIACAO' | 'FICHA_ANTIGA' | 'CONVITE';
 
 export interface TodayItem {
   type: TodayItemType;
@@ -225,6 +237,8 @@ export interface TodayItem {
   detail: string;
   /** Rota do painel ("/financeiro") ou âncora da carteira ("#convites-pendentes"). */
   actionPath: string;
+  /** Celular do aluno para o WhatsApp (só em TREINO_HOJE). */
+  studentPhone: string | null;
 }
 
 // ── Paginação genérica (Spring Page<T>) ────────────────────────────────────
@@ -257,6 +271,8 @@ export interface TrainerLink {
   source: 'INVITE' | 'COMPANY' | 'INVITE_CODE';
   createdAt: string;
   respondedAt: string | null;
+  /** Acima do limite do plano Grátis: o personal só vê, não edita (até assinar). */
+  frozen: boolean;
 }
 
 /**
@@ -279,7 +295,7 @@ export type SubscriptionStatus = 'TRIAL' | 'PENDENTE' | 'ATIVA' | 'ATRASADA' | '
 export interface BillingPlanOption {
   code: string;
   name: string;
-  /** null no plano "em breve". */
+  /** null = ilimitado (ou plano "em breve"). */
   maxStudents: number | null;
   priceCents: number | null;
   /** Gerações de prévia por IA por mês (somadas na conta). */
@@ -293,7 +309,8 @@ export interface BillingOverview {
   status: SubscriptionStatus;
   plan: string | null;
   planName: string | null;
-  studentLimit: number;
+  /** null = alunos ilimitados. */
+  studentLimit: number | null;
   activeStudents: number;
   canAddStudents: boolean;
   trialEndsAt: string;
@@ -306,6 +323,15 @@ export interface BillingOverview {
   aiGenerationsLimit: number | null;
   /** Quando a cota renova; null no teste grátis (total único). */
   aiResetsAt: string | null;
+  /** Gerações de pacotes extras ainda não usadas (não expiram; gastas depois da cota). */
+  aiExtraCredits: number;
+  aiPack: { credits: number; priceCents: number };
+  /** Página do pacote de IA aguardando pagamento (caminho do painel no modo demo). */
+  aiPackCheckoutUrl: string | null;
+  /** Prazo para escolher quem fica ativo no Grátis; null fora do prazo. */
+  chooseActiveUntil: string | null;
+  /** Alunos congelados por passar do limite do Grátis. */
+  frozenStudents: number;
   plans: BillingPlanOption[];
 }
 

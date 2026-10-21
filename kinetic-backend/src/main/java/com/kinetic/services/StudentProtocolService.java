@@ -39,7 +39,7 @@ public class StudentProtocolService {
     @Transactional
     public StudentProtocolDTOs.Response updateByTrainer(String trainerEmail, @NonNull UUID studentId,
                                                         StudentProtocolDTOs.UpdateRequest request) {
-        User student = trainerLinkService.resolveOwnedStudent(trainerEmail, studentId);
+        User student = trainerLinkService.resolveOwnedStudentForWrite(trainerEmail, studentId);
         User trainer = userRepository.getByEmailOrThrow(trainerEmail);
 
         String goal = request.goal().trim();

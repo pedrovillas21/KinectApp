@@ -51,9 +51,11 @@ export interface ListRowProps {
   destructive?: boolean;
   /** Mostra o selo "Em breve" e desativa o toque. */
   comingSoon?: boolean;
+  /** Linha escolhida numa lista de seleção (anunciado pelo leitor de tela). */
+  selected?: boolean;
 }
 
-export function ListRow({ title, subtitle, icon, value, accessory, onPress, destructive, comingSoon }: ListRowProps) {
+export function ListRow({ title, subtitle, icon, value, accessory, onPress, destructive, comingSoon, selected }: ListRowProps) {
   const color = destructive ? KINETIC.danger : KINETIC.text;
   const pressable = !!onPress && !comingSoon;
   const body = (
@@ -96,6 +98,7 @@ export function ListRow({ title, subtitle, icon, value, accessory, onPress, dest
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={subtitle ? `${title}. ${subtitle}` : title}
+      accessibilityState={selected === undefined ? undefined : { selected }}
       onPress={onPress}
       android_ripple={{ color: 'rgba(255,255,255,0.05)' }}
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}

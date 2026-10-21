@@ -1,8 +1,18 @@
 import { useState, type FormEvent } from 'react';
 import { Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
+import { motion } from 'motion/react';
 import { useAuth } from '../contexts/AuthContext';
 import { homeForRole } from '../config/nav';
-import { Eye, EyeOff, Lock, Mail, Activity } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, Loader2, Smartphone, Sparkles, Users, Wallet } from 'lucide-react';
+import KineticLogo from '../components/KineticLogo';
+import { riseItem, staggerContainer } from '../components/motion/primitives';
+import AuthBrandPanel, { authInputClass } from '../components/AuthBrandPanel';
+
+const HIGHLIGHTS = [
+  { icon: Sparkles, title: 'Prescrição com IA', text: 'Monte planos de treino em minutos.' },
+  { icon: Users, title: 'Alunos em tempo real', text: 'Cargas, frequência e evolução num só lugar.' },
+  { icon: Wallet, title: 'Cobrança integrada', text: 'Mensalidades e financeiro sem planilha.' },
+];
 
 export default function LoginPage() {
   const { signIn, isLoggedIn, isLoadingAuth, currentUser } = useAuth();
@@ -44,91 +54,89 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative h-screen flex items-center justify-center bg-k-bg text-k-text overflow-hidden">
-      {/* Dynamic Background Glows */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-k-primary/10 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-k-primary/5 blur-[120px] pointer-events-none" />
+    <div className="min-h-screen grid lg:grid-cols-2 bg-k-bg text-k-text">
+      <aside className="hidden lg:block border-r border-k-ghost">
+        <AuthBrandPanel
+          contentKey="login"
+          eyebrow="Painel do Personal"
+          title={
+            <>
+              Treine mais alunos.
+              <br />
+              <span className="text-k-text-muted">Com menos esforço.</span>
+            </>
+          }
+          highlights={HIGHLIGHTS}
+        />
+      </aside>
 
-      {/* Main Container */}
-      <div className="relative w-full max-w-[420px] mx-4 z-10">
-        <form
+      {/* Formulário */}
+      <main className="flex items-center justify-center px-6 py-12">
+        <motion.form
           onSubmit={handleSubmit}
-          className="w-full flex flex-col gap-6 bg-k-surface1/85 backdrop-blur-xl border border-k-ghost rounded-2xl p-8 shadow-2xl hover:border-k-ghost-hi transition-colors duration-300"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="show"
+          className="w-full max-w-[380px] flex flex-col"
         >
-          {/* Header/Brand Section */}
-          <div className="flex flex-col items-center text-center gap-3">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-gradient-to-br from-k-primary to-k-primary-deep text-k-on-primary shadow-[0_0_20px_rgba(0,229,255,0.35)]">
-              <Activity className="w-8 h-8 stroke-[2.5]" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white to-k-text-dim bg-clip-text text-transparent">
-                Kinetic
-              </h1>
-              <p className="text-xs font-semibold uppercase tracking-wider text-k-primary mt-1">
-                Painel do Personal
-              </p>
-            </div>
-          </div>
+          <motion.div variants={riseItem} className="lg:hidden mb-10">
+            <KineticLogo size={20} />
+          </motion.div>
 
-          <div className="flex flex-col gap-4">
-            {/* Email Field */}
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="email" className="text-xs font-bold text-k-text-dim uppercase tracking-wider">
+          <motion.div variants={riseItem}>
+            <h1 className="font-display font-bold text-[28px] leading-tight tracking-tight">Bem-vindo de volta</h1>
+            <p className="mt-1.5 text-sm text-k-text-dim">Entre com seu e-mail para acessar o painel.</p>
+          </motion.div>
+
+          <motion.div variants={riseItem} className="mt-8 flex flex-col gap-5">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="email" className="text-sm font-medium text-k-text-soft">
                 E-mail
               </label>
-              <div className="relative flex items-center">
-                <span className="absolute left-4 text-k-text-muted">
-                  <Mail className="w-4 h-4" />
-                </span>
-                <input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  placeholder="voce@exemplo.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoFocus
-                  required
-                  className="w-full pl-12 pr-4 py-3 bg-k-surface2/60 border border-k-ghost rounded-xl outline-none focus:border-k-primary focus:ring-1 focus:ring-k-primary/30 transition-all text-sm placeholder:text-k-text-muted"
-                />
-              </div>
+              <input
+                id="email"
+                type="email"
+                autoComplete="email"
+                placeholder="voce@exemplo.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoFocus
+                required
+                className={authInputClass}
+              />
             </div>
 
-            {/* Password Field */}
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="password" className="text-xs font-bold text-k-text-dim uppercase tracking-wider">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="password" className="text-sm font-medium text-k-text-soft">
                 Senha
               </label>
-              <div className="relative flex items-center">
-                <span className="absolute left-4 text-k-text-muted">
-                  <Lock className="w-4 h-4" />
-                </span>
+              <div className="relative">
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="current-password"
-                  placeholder="••••••••"
+                  placeholder="Sua senha"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full pl-12 pr-12 py-3 bg-k-surface2/60 border border-k-ghost rounded-xl outline-none focus:border-k-primary focus:ring-1 focus:ring-k-primary/30 transition-all text-sm placeholder:text-k-text-muted"
+                  className={`${authInputClass} pr-11`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   tabIndex={-1}
                   aria-label={showPassword ? 'Ocultar senha' : 'Exibir senha'}
-                  className="absolute right-4 text-k-text-muted hover:text-k-primary focus-visible:text-k-primary transition-colors outline-none cursor-pointer"
+                  className="absolute inset-y-0 right-0 w-11 grid place-items-center text-k-text-muted hover:text-k-text transition-colors cursor-pointer"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {emailConfirmed && !error && (
             <div
-              className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-k-success/10 border border-k-success/30 text-k-success text-xs leading-relaxed"
+              className="mt-5 flex items-center gap-2.5 px-3.5 py-3 rounded-lg bg-k-success/10 border border-k-success/30 text-k-success text-sm"
               role="status"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-k-success shrink-0" />
@@ -136,10 +144,9 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* Error Message */}
           {error && (
             <div
-              className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-k-error/10 border border-k-error/30 text-k-error text-xs leading-relaxed"
+              className="mt-5 flex items-center gap-2.5 px-3.5 py-3 rounded-lg bg-k-error/10 border border-k-error/30 text-k-alert text-sm"
               role="alert"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-k-error shrink-0" />
@@ -147,30 +154,44 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={submitting || !email || !password}
-            className="w-full mt-2 py-3.5 rounded-xl bg-k-primary hover:bg-k-primary-deep text-k-on-primary font-extrabold text-sm tracking-wide shadow-lg hover:shadow-[0_0_20px_rgba(0,229,255,0.4)] transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+          <motion.div variants={riseItem} className="mt-7">
+            <button
+              type="submit"
+              disabled={submitting || !email || !password}
+              className="group w-full h-11 flex items-center justify-center gap-2 rounded-lg bg-k-primary text-k-on-primary font-semibold text-sm transition-[background-color,box-shadow,transform] hover:bg-k-primary-deep hover:shadow-[0_8px_24px_-8px_rgba(0,229,255,0.55)] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-k-primary/30 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Entrando…
+                </>
+              ) : (
+                <>
+                  Entrar no painel
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+                </>
+              )}
+            </button>
+
+            <p className="mt-6 text-center text-sm text-k-text-dim">
+              Ainda não tem conta?{' '}
+              <Link to="/register" className="font-semibold text-k-primary hover:underline underline-offset-4">
+                Cadastre-se
+              </Link>
+            </p>
+          </motion.div>
+
+          <motion.div
+            variants={riseItem}
+            className="mt-10 pt-6 border-t border-k-ghost flex items-start gap-3 text-xs text-k-text-muted leading-relaxed"
           >
-            {submitting ? 'Entrando…' : 'Entrar no Painel'}
-          </button>
-
-          {/* Register Link */}
-          <div className="text-center text-xs mt-1">
-            <span className="text-k-text-muted">Não possui uma conta? </span>
-            <Link to="/register" className="font-extrabold text-k-primary hover:text-white transition-colors">
-              Cadastre-se
-            </Link>
-          </div>
-
-          {/* Footer Note */}
-          <p className="text-[11px] text-k-text-muted text-center leading-normal mt-2">
-            Acesso exclusivo para personal trainers.<br />
-            Alunos devem utilizar o aplicativo mobile Kinetic.
-          </p>
-        </form>
-      </div>
+            <Smartphone className="w-4 h-4 shrink-0 mt-px" />
+            <span>
+              Acesso exclusivo para personal trainers. Alunos usam o aplicativo mobile Kinetic.
+            </span>
+          </motion.div>
+        </motion.form>
+      </main>
     </div>
   );
 }

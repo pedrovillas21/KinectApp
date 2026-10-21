@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { TextInput } from './ui/scaled';
 import { FONT, KINETIC, RADIUS } from '../theme/kinetic';
 import type { ConnectionState, PendingRequest, TrainerLink, UserCard } from '../types';
 import {
@@ -179,7 +180,7 @@ function FriendTab({ onChanged, onOpenProfile }: { onChanged: () => void; onOpen
           value={query}
           onChangeText={setQuery}
           placeholder="Nome ou @usuário"
-          placeholderTextColor={KINETIC.textMuted}
+          placeholderTextColor={KINETIC.placeholder}
           accessibilityLabel="Buscar por nome ou usuário"
           autoCapitalize="none"
           autoCorrect={false}
@@ -298,7 +299,7 @@ function TrainerTab({ onChanged }: { onChanged: () => void }) {
               setError(null);
             }}
             placeholder="ABCDE-23456"
-            placeholderTextColor={KINETIC.textMuted}
+            placeholderTextColor={KINETIC.placeholder}
             accessibilityLabel="Código de convite"
             autoCapitalize="characters"
             autoCorrect={false}

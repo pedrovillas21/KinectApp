@@ -8,6 +8,7 @@
  */
 import React from 'react';
 import Svg, { Circle, Line, Path, Polyline, Rect } from 'react-native-svg';
+import { useTextScale } from '../contexts/TextScaleContext';
 
 export type IconName =
   | 'close'
@@ -60,7 +61,8 @@ export type IconName =
   | 'globe'
   | 'logout'
   | 'doc'
-  | 'ticket';
+  | 'ticket'
+  | 'pencil';
 
 export interface IconProps {
   name: IconName;
@@ -72,7 +74,8 @@ export interface IconProps {
   strokeWidth?: number;
 }
 
-export default function Icon({ name, size = 22, color = '#00E5FF', strokeWidth = 1.8 }: IconProps) {
+export default function Icon({ name, size: baseSize = 22, color = '#00E5FF', strokeWidth = 1.8 }: IconProps) {
+  const size = baseSize * useTextScale().factor;
   const stroke = {
     fill: 'none' as const,
     stroke: color,
@@ -371,6 +374,9 @@ export default function Icon({ name, size = 22, color = '#00E5FF', strokeWidth =
             {...stroke}
           />
         );
+
+      case 'pencil':
+        return <Path d="M17 3a2.83 2.83 0 014 4L7.5 20.5 2 22l1.5-5.5zM15 5l4 4" {...stroke} />;
     }
   })();
 

@@ -6,8 +6,10 @@ import InviteDialog from '../components/InviteDialog';
 import PhoneDialog from '../components/settings/PhoneDialog';
 import ChangePasswordDialog from '../components/settings/ChangePasswordDialog';
 import DeleteAccountDialog from '../components/settings/DeleteAccountDialog';
-import { Avatar, ListGroup, ListRow, Screen, StackHeader, Text } from '../components/ui';
+import TextSizePicker from '../components/TextSizePicker';
+import { Avatar, Button, Dialog, ListGroup, ListRow, Screen, StackHeader, Text } from '../components/ui';
 import { AuthContext } from '../contexts/AuthContext';
+import { TEXT_SIZES, useTextScale } from '../contexts/TextScaleContext';
 import useFocusResource from '../hooks/useFocusResource';
 import api from '../services/api';
 import { exportMyData } from '../services/accountService';
@@ -27,6 +29,8 @@ export default function SettingsScreen({ navigation }: MainStackScreenProps<'Set
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [textSizeOpen, setTextSizeOpen] = useState(false);
+  const { size: textSize } = useTextScale();
 
   const myId = currentUser ? String(currentUser.id) : '';
   // Mesmas chaves do Perfil e da Home: as telas dividem o cache.
@@ -127,6 +131,16 @@ export default function SettingsScreen({ navigation }: MainStackScreenProps<'Set
         <ListRow icon="globe" title="Idioma" value="Português" />
       </ListGroup>
 
+      <ListGroup title="Acessibilidade">
+        <ListRow
+          icon="eye"
+          title="Tamanho do texto"
+          subtitle="Textos e ícones maiores"
+          value={TEXT_SIZES.find((s) => s.key === textSize)?.label}
+          onPress={() => setTextSizeOpen(true)}
+        />
+      </ListGroup>
+
       <ListGroup title="Personal">
         {trainer ? (
           <ListRow
@@ -174,6 +188,10 @@ export default function SettingsScreen({ navigation }: MainStackScreenProps<'Set
         </Text>
       ) : null}
 
+      <Dialog visible={textSizeOpen} onClose={() => setTextSizeOpen(false)} title="Tamanho do texto">
+        <TextSizePicker />
+        <Button label="Pronto" onPress={() => setTextSizeOpen(false)} style={styles.done} />
+      </Dialog>
       <PhoneDialog
         visible={phoneOpen}
         value={phone}
@@ -198,6 +216,7 @@ export default function SettingsScreen({ navigation }: MainStackScreenProps<'Set
 }
 
 const styles = StyleSheet.create({
+  done: { marginTop: 16 },
   content: { gap: 22, paddingBottom: 32 },
   flex: { flex: 1, minWidth: 0, gap: 2 },
   accountCard: {

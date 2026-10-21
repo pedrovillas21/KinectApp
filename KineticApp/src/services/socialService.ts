@@ -12,9 +12,6 @@ import type {
   CreateStoryRequest,
 } from '../types';
 
-export const avatarFallback = (id: string, url?: string | null): string =>
-  url ?? `https://i.pravatar.cc/150?u=${id}`;
-
 // Sobe um arquivo local (file://) para o Storage via backend e devolve o
 // identificador do arquivo — não um endereço navegável. O bucket é privado; quem
 // entrega link (temporário) é o feed/stories, só para conexões aceitas.

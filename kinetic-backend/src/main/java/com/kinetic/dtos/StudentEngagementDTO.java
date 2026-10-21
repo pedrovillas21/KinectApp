@@ -1,6 +1,7 @@
 package com.kinetic.dtos;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,6 +15,7 @@ import java.util.UUID;
  * @param adherenceWindowDays  tamanho da janela da aderência (até 28 dias; menor para quem entrou há pouco)
  * @param risk                 "ALTO", "MEDIO" ou "OK" — o pior alerta
  * @param alerts               motivos do risco, do mais grave para o mais leve
+ * @param pause                pausa dos alertas em vigor; nulo = alertas valendo
  */
 public record StudentEngagementDTO(
         UUID studentId,
@@ -24,8 +26,21 @@ public record StudentEngagementDTO(
         int adherenceWindowDays,
         int sessionsLast7Days,
         String risk,
-        List<Alert> alerts
+        List<Alert> alerts,
+        Pause pause
 ) {
+    public StudentEngagementDTO withPause(Pause p) {
+        return new StudentEngagementDTO(studentId, lastSessionDate, daysSinceLastSession, weeklyTarget,
+                adherencePercent, adherenceWindowDays, sessionsLast7Days, risk, alerts, p);
+    }
+
+    /**
+     * @param until    alertas escondidos até esta data (inclusive)
+     * @param reason   LESAO, VIAGEM, CONTATO ou OUTRO
+     * @param note     o que o personal anotou (opcional)
+     */
+    public record Pause(LocalDate until, String reason, String note, LocalDateTime pausedAt) {}
+
     /**
      * @param type     NUNCA_TREINOU, INATIVO, QUEDA ou BAIXA_ADERENCIA
      * @param severity ALTO ou MEDIO

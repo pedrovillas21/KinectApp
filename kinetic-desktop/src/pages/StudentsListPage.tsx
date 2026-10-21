@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
-import { MessageCircle, Plus, Search, UserPlus } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ChevronRight, MessageCircle, Plus, Search, Snowflake, UserPlus } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   getEngagement,
@@ -20,7 +21,7 @@ import StudentsTable, { type StudentRow } from '../components/personal/StudentsT
 import PendingInvites from '../components/personal/PendingInvites';
 import RiskAlerts from '../components/personal/RiskAlerts';
 import TodayInbox from '../components/personal/TodayInbox';
-import { getBilling } from '../services/billingService';
+import { formatDate, getBilling } from '../services/billingService';
 import { StudentsEmpty, StudentsError, StudentsSkeleton } from '../components/personal/ListStates';
 import { SPRING_PILL } from '../components/motion/primitives';
 import { adherenceTone, toneRank } from '../components/personal/adherence';
@@ -122,7 +123,11 @@ export default function StudentsListPage() {
   };
 
   const riskCount = engagement
-    ? students.filter((l) => (engagement[l.peer.id]?.risk ?? 'OK') !== 'OK').length
+    ? students.filter((l) => {
+        // Mesmo critério do painel "Precisam de um contato".
+        const e = engagement[l.peer.id];
+        return e?.risk === 'ALTO' && !e.pause && !l.frozen;
+      }).length
     : null;
   const scrollToAlerts = () =>
     document.getElementById('alertas-de-risco')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -208,11 +213,13 @@ export default function StudentsListPage() {
             <Kpi
               label="Alunos ativos"
               value={loading ? null : students.length}
-              unit={billing ? `/ ${billing.studentLimit}` : undefined}
+              unit={billing?.studentLimit != null ? `/ ${billing.studentLimit}` : undefined}
               foot={
-                billing
+                billing?.studentLimit != null
                   ? `${Math.max(0, billing.studentLimit - students.length)} vagas livres no plano`
-                  : 'Vinculados à sua carteira'
+                  : billing
+                    ? 'Alunos ilimitados no seu plano'
+                    : 'Vinculados à sua carteira'
               }
               onClick={() => setFilter('all')}
             />
@@ -233,10 +240,25 @@ export default function StudentsListPage() {
               label="Precisam de atenção"
               value={riskCount}
               dot={(riskCount ?? 0) > 0}
-              foot="Inativos, sem treinar ou com queda"
+              foot="Risco alto: muito tempo sem treinar ou queda forte"
               onClick={(riskCount ?? 0) > 0 ? scrollToAlerts : undefined}
             />
           </section>
+
+          {billing && (billing.chooseActiveUntil || billing.frozenStudents > 0) && (
+            <Link
+              to="/assinatura#carteira"
+              className="flex items-center gap-3 rounded-xl border border-k-warn/30 bg-k-warn/[0.05] px-5 py-3.5 text-sm transition-colors hover:bg-k-warn/[0.09]"
+            >
+              <Snowflake className="h-4 w-4 shrink-0 text-k-warn" />
+              <span className="flex-1">
+                {billing.chooseActiveUntil
+                  ? `Sua carteira passou do limite do plano Grátis. Escolha até ${formatDate(billing.chooseActiveUntil)} quais alunos continuam ativos.`
+                  : `${billing.frozenStudents} ${billing.frozenStudents === 1 ? 'aluno congelado' : 'alunos congelados'}: você vê, mas não edita. Assine para liberar.`}
+              </span>
+              <ChevronRight className="h-4 w-4 shrink-0 text-k-text-muted" />
+            </Link>
+          )}
 
           {/* Fila: o que pede ação hoje */}
           {!loadError && today && <TodayInbox items={today} />}

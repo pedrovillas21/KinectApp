@@ -51,4 +51,12 @@ public class DemoPaymentGateway implements PaymentGateway {
     public void cancelSubscription(String subscriptionId) {
         log.info("[billing-demo] assinatura {} cancelada.", subscriptionId);
     }
+
+    @Override
+    public GatewayCharge createCharge(String customerId, int priceCents, String description, LocalDate dueDate,
+                                      String externalReference) {
+        String id = "demo_pay_" + UUID.randomUUID();
+        log.info("[billing-demo] cobrança avulsa {} criada: {} (nenhuma cobrança real).", id, description);
+        return new GatewayCharge(id, CHECKOUT_PATH + "?item=ai-pack");
+    }
 }

@@ -9,6 +9,7 @@ import com.kinetic.dtos.UpdatePhoneRequestDTO;
 import com.kinetic.dtos.UpdateWeightRequestDTO;
 import com.kinetic.dtos.UserProfileResponseDTO;
 import com.kinetic.services.AccountDeletionService;
+import com.kinetic.services.AvatarService;
 import com.kinetic.services.DataExportService;
 import com.kinetic.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,6 +18,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,7 +26,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
@@ -39,13 +43,16 @@ public class UserController extends BaseController {
     private final UserService userService;
     private final DataExportService dataExportService;
     private final AccountDeletionService accountDeletionService;
+    private final AvatarService avatarService;
 
     public UserController(UserService userService,
                           DataExportService dataExportService,
-                          AccountDeletionService accountDeletionService) {
+                          AccountDeletionService accountDeletionService,
+                          AvatarService avatarService) {
         this.userService = userService;
         this.dataExportService = dataExportService;
         this.accountDeletionService = accountDeletionService;
+        this.avatarService = avatarService;
     }
 
     @Operation(
@@ -143,6 +150,28 @@ public class UserController extends BaseController {
     @DeleteMapping("/me")
     public ResponseEntity<Void> deleteMyAccount(@Valid @RequestBody DeleteAccountRequestDTO request) {
         accountDeletionService.deleteAccount(currentUserEmail(), request.password());
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Trocar a foto de perfil",
+            description = "Recebe a imagem (campo \"file\", formulário multipart, até 10MB), grava como foto de perfil "
+                    + "do usuário logado e devolve o endereço público dela em \"avatarUrl\". A foto anterior é "
+                    + "apagada. A foto de perfil é pública (qualquer pessoa com o endereço consegue ver)."
+    )
+    @PutMapping(value = "/me/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, String>> updateAvatar(@RequestPart("file") MultipartFile file) {
+        String url = avatarService.updateAvatar(currentUserEmail(), file);
+        return ResponseEntity.ok(Map.of("avatarUrl", url));
+    }
+
+    @Operation(
+            summary = "Remover a foto de perfil",
+            description = "Apaga a foto de perfil do usuário logado; o app volta a mostrar as iniciais do nome."
+    )
+    @DeleteMapping("/me/avatar")
+    public ResponseEntity<Void> removeAvatar() {
+        avatarService.removeAvatar(currentUserEmail());
         return ResponseEntity.noContent().build();
     }
 }

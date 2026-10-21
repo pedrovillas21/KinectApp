@@ -7,6 +7,8 @@ import { Avatar, Text } from './ui';
 
 interface Props {
   items: SquadMember[];
+  /** Usuário logado: o primeiro círculo é a foto dele com o "+" no canto. */
+  me?: { id: string; nome: string; avatarUrl?: string | null } | null;
   /** Ids de membros com story ativa — recebem anel ciano e abrem o visualizador. */
   storyUserIds?: string[];
   onAddStory?: () => void;
@@ -15,10 +17,11 @@ interface Props {
   onMemberPress?: (member: SquadMember) => void;
 }
 
-const SIZE = 52;
+const SIZE = 68;
+const BADGE = 24;
 
 /** Faixa de stories compacta: "Seu story" + amigos (ciano = story nova, verde = treinando agora). */
-export default function SquadBar({ items, storyUserIds, onAddStory, onOpenStory, onMemberPress }: Props) {
+export default function SquadBar({ items, me, storyUserIds, onAddStory, onOpenStory, onMemberPress }: Props) {
   const renderItem: ListRenderItem<SquadMember> = ({ item }) => {
     const hasStory = storyUserIds?.includes(item.id) ?? false;
     const training = item.status === 'TRAINING';
@@ -39,23 +42,42 @@ export default function SquadBar({ items, storyUserIds, onAddStory, onOpenStory,
           size={SIZE}
           ring={hasStory ? 'unseen' : training ? 'live' : undefined}
         />
-        <Text variant="micro" color={KINETIC.textDim} numberOfLines={1} style={styles.name}>
+        <Text variant="caption" color={KINETIC.textDim} numberOfLines={1} style={styles.name}>
           {firstName}
         </Text>
       </Pressable>
     );
   };
 
-  const renderStoryButton = () => (
-    <Pressable accessibilityRole="button" accessibilityLabel="Publicar story" style={styles.item} onPress={onAddStory}>
-      <View style={styles.addStory}>
-        <Icon name="plus" size={18} color={KINETIC.primary} strokeWidth={2} />
+  // Estilo Instagram: tocar na foto vê a própria story (se houver); o "+" do canto sempre cria uma nova.
+  const renderMine = () => {
+    const mineHasStory = !!me && (storyUserIds?.includes(me.id) ?? false);
+    return (
+      <View style={styles.item}>
+        <View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={mineHasStory ? 'Ver seu story' : 'Publicar story'}
+            onPress={() => (mineHasStory && me ? onOpenStory?.(me.id) : onAddStory?.())}
+          >
+            <Avatar name={me?.nome} uri={me?.avatarUrl || null} seed={me?.id} size={SIZE} ring={mineHasStory ? 'unseen' : undefined} />
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Publicar story"
+            onPress={onAddStory}
+            hitSlop={10}
+            style={({ pressed }) => [styles.badge, pressed && styles.pressed]}
+          >
+            <Icon name="plus" size={14} color={KINETIC.onPrimary} strokeWidth={2.6} />
+          </Pressable>
+        </View>
+        <Text variant="caption" color={KINETIC.textDim} numberOfLines={1} style={styles.name}>
+          Seu story
+        </Text>
       </View>
-      <Text variant="micro" color={KINETIC.textDim} numberOfLines={1} style={styles.name}>
-        Seu story
-      </Text>
-    </Pressable>
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -65,7 +87,7 @@ export default function SquadBar({ items, storyUserIds, onAddStory, onOpenStory,
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        ListHeaderComponent={renderStoryButton}
+        ListHeaderComponent={renderMine}
         contentContainerStyle={styles.list}
       />
     </View>
@@ -75,16 +97,20 @@ export default function SquadBar({ items, storyUserIds, onAddStory, onOpenStory,
 const styles = StyleSheet.create({
   container: { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: KINETIC.hairline },
   list: { paddingHorizontal: 20, gap: 14 },
-  item: { width: 56, alignItems: 'center', gap: 6 },
-  addStory: {
-    width: SIZE,
-    height: SIZE,
-    borderRadius: SIZE / 2,
-    backgroundColor: KINETIC.surface1,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+  item: { width: SIZE + 4, alignItems: 'center', gap: 6 },
+  badge: {
+    position: 'absolute',
+    right: -2,
+    bottom: -2,
+    width: BADGE,
+    height: BADGE,
+    borderRadius: BADGE / 2,
+    borderWidth: 3,
+    borderColor: KINETIC.bg,
+    backgroundColor: KINETIC.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  name: { maxWidth: 56 },
+  pressed: { opacity: 0.85 },
+  name: { maxWidth: SIZE + 4 },
 });

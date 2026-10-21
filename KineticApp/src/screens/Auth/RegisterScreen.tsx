@@ -1,14 +1,11 @@
 import React, { useContext, useState } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
-  TextInput,
 } from 'react-native';
+import { Text, TextInput } from '../../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthContext } from '../../contexts/AuthContext';
@@ -16,6 +13,8 @@ import Svg, { Path, Circle } from 'react-native-svg';
 import { isValidCellPhone, maskCellPhone } from '../../utils/whatsapp';
 import { savePendingInviteCode } from '../../services/trainerService';
 import { showAlert } from '../../components/ui/AlertHost';
+import KeyboardAvoider from '../../components/ui/KeyboardAvoider';
+import { KINETIC } from '../../theme/kinetic';
 
 const A = {
   bg: '#131313',
@@ -259,9 +258,7 @@ export default function RegisterScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safe}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.kav}
+        <KeyboardAvoider style={styles.kav}
         >
           {/* Header */}
           <View style={styles.header}>
@@ -289,7 +286,7 @@ export default function RegisterScreen({ navigation }: Props) {
               <TextInput
                 style={styles.textInput}
                 placeholder="Seu nome completo"
-                placeholderTextColor={A.text3}
+                placeholderTextColor={KINETIC.placeholder}
                 value={name}
                 onChangeText={setName}
                 autoCapitalize="words"
@@ -304,7 +301,7 @@ export default function RegisterScreen({ navigation }: Props) {
               <TextInput
                 style={styles.textInput}
                 placeholder="seu-email@exemplo.com"
-                placeholderTextColor={A.text3}
+                placeholderTextColor={KINETIC.placeholder}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -320,7 +317,7 @@ export default function RegisterScreen({ navigation }: Props) {
               <TextInput
                 style={styles.textInput}
                 placeholder="(11) 98765-4321"
-                placeholderTextColor={A.text3}
+                placeholderTextColor={KINETIC.placeholder}
                 value={phone}
                 onChangeText={(v) => setPhone(maskCellPhone(v))}
                 keyboardType="phone-pad"
@@ -341,7 +338,7 @@ export default function RegisterScreen({ navigation }: Props) {
               <TextInput
                 style={styles.textInput}
                 placeholder="Ex.: ABCDE-23456"
-                placeholderTextColor={A.text3}
+                placeholderTextColor={KINETIC.placeholder}
                 value={inviteCode}
                 onChangeText={(v) => setInviteCode(v.toUpperCase())}
                 autoCapitalize="characters"
@@ -360,7 +357,7 @@ export default function RegisterScreen({ navigation }: Props) {
               <TextInput
                 style={styles.textInput}
                 placeholder="Mínimo 8 caracteres"
-                placeholderTextColor={A.text3}
+                placeholderTextColor={KINETIC.placeholder}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
@@ -410,7 +407,7 @@ export default function RegisterScreen({ navigation }: Props) {
               </Text>
             </TouchableOpacity>
           </View>
-        </KeyboardAvoidingView>
+        </KeyboardAvoider>
       </SafeAreaView>
     </View>
   );

@@ -2,8 +2,11 @@ package com.kinetic.services;
 
 import com.kinetic.utils.AppTime;
 
+import com.kinetic.dtos.AlertPauseRequestDTO;
 import com.kinetic.dtos.StudentEngagementDTO;
 import com.kinetic.enums.TrainerLinkStatus;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.lang.NonNull;
 import com.kinetic.models.TrainerClient;
 import com.kinetic.models.User;
 import com.kinetic.repositories.TrainerClientRepository;
@@ -70,8 +73,49 @@ public class TrainerEngagementService {
                             lastSession.get(student.getId()),
                             since != null ? since.toLocalDate() : today,
                             student.getFrequency(),
-                            today);
+                            today).withPause(pauseOf(link, today));
                 })
                 .toList();
+    }
+
+    /** Esconde os alertas de risco do aluno por {@code days} dias (contando hoje), com o motivo. */
+    @Transactional
+    public StudentEngagementDTO.Pause pauseAlerts(String trainerEmail, @NonNull UUID studentId,
+                                                  AlertPauseRequestDTO request) {
+        TrainerClient link = ownedLink(trainerEmail, studentId);
+        String note = request.getNote() == null || request.getNote().isBlank() ? null : request.getNote().trim();
+        link.setAlertsPausedUntil(AppTime.today().plusDays(request.getDays() - 1L));
+        link.setAlertPauseReason(request.getReason());
+        link.setAlertPauseNote(note);
+        link.setAlertPausedAt(LocalDateTime.now());
+        return pauseOf(link, AppTime.today());
+    }
+
+    /** Volta a mostrar os alertas do aluno. */
+    @Transactional
+    public void resumeAlerts(String trainerEmail, @NonNull UUID studentId) {
+        TrainerClient link = ownedLink(trainerEmail, studentId);
+        link.setAlertsPausedUntil(null);
+        link.setAlertPauseReason(null);
+        link.setAlertPauseNote(null);
+        link.setAlertPausedAt(null);
+    }
+
+    private TrainerClient ownedLink(String trainerEmail, UUID studentId) {
+        User trainer = userRepository.getByEmailOrThrow(trainerEmail);
+        return trainerClientRepository
+                .findByTrainerIdAndStudentIdAndStatus(trainer.getId(), studentId, TrainerLinkStatus.ATIVO)
+                .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado."));
+    }
+
+    /** Pausa em vigor hoje; vencida conta como sem pausa. */
+    static StudentEngagementDTO.Pause pauseOf(TrainerClient link, LocalDate today) {
+        LocalDate until = link.getAlertsPausedUntil();
+        if (until == null || until.isBefore(today)) {
+            return null;
+        }
+        return new StudentEngagementDTO.Pause(until,
+                link.getAlertPauseReason() != null ? link.getAlertPauseReason().name() : null,
+                link.getAlertPauseNote(), link.getAlertPausedAt());
     }
 }

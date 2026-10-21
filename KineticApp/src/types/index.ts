@@ -258,7 +258,7 @@ export type PostIntensity = 'LEVE' | 'MODERADO' | 'ALTA';
 export interface SquadMember {
   id: string;
   nome: string;
-  avatarUrl: string;
+  avatarUrl: string | null;
   status: PresenceStatus;
   hasNewUpdate: boolean;
 }
@@ -266,7 +266,7 @@ export interface SquadMember {
 export interface FeedAuthor {
   id: string;
   nome: string;
-  avatarUrl: string;
+  avatarUrl: string | null;
 }
 
 export interface FeedPostData {
@@ -319,7 +319,7 @@ export interface Story {
 export interface StoryGroup {
   userId: string;
   nome: string;
-  avatarUrl: string;
+  avatarUrl: string | null;
   stories: Story[];
 }
 
@@ -331,7 +331,7 @@ export interface CreateStoryRequest {
 export interface UserCard {
   id: string;
   nome: string;
-  avatarUrl: string;
+  avatarUrl: string | null;
   connectionState: ConnectionState;
 }
 
@@ -340,7 +340,7 @@ export interface PendingRequest {
   /** Id de quem enviou — usado para aceitar/recusar (accept/remove operam por id de usuário). */
   requesterId: string;
   nome: string;
-  avatarUrl: string;
+  avatarUrl: string | null;
   requestedAt: string;
 }
 
@@ -348,7 +348,7 @@ export interface Comment {
   id: string;
   authorId: string;
   authorName: string;
-  authorAvatarUrl: string;
+  authorAvatarUrl: string | null;
   body: string;
   createdAt: string;
 }
@@ -363,6 +363,8 @@ export interface CreatePostRequest {
   badge?: string;
   /** Mesmo id enviado em /sessions/log: liga o post ao treino (volume, tempo, título). */
   clientSessionId?: string;
+  /** Id da sessão já salva (ex.: escolhida no histórico de 7 dias do NewPostModal). */
+  workoutSessionId?: string;
 }
 
 export interface Page<T> {

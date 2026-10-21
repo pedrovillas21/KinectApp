@@ -45,7 +45,7 @@ class StudentProtocolServiceTest {
         student.setMedicalConditions("Dor no joelho");
         student.setAnamnesisConfirmedAt(LocalDateTime.now().minusDays(1));
 
-        when(links.resolveOwnedStudent(trainer.getEmail(), student.getId())).thenReturn(student);
+        when(links.resolveOwnedStudentForWrite(trainer.getEmail(), student.getId())).thenReturn(student);
         when(users.getByEmailOrThrow(trainer.getEmail())).thenReturn(trainer);
         when(users.getByEmailOrThrow(student.getEmail())).thenReturn(student);
         when(users.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
