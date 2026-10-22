@@ -9,6 +9,7 @@ import com.kinetic.services.WorkoutService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -44,7 +45,7 @@ public class WorkoutController extends BaseController {
                     + "resposta. Pode demorar alguns segundos, pois depende de uma chamada externa à IA."
     )
     @PostMapping("/generate")
-    public ResponseEntity<?> generateWorkout(@RequestBody GenerateWorkoutRequestDto request) {
+    public ResponseEntity<?> generateWorkout(@Valid @RequestBody GenerateWorkoutRequestDto request) {
         String userEmail = currentUserEmail();
 
         try {

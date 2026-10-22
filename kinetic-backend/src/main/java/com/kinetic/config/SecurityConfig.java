@@ -1,5 +1,6 @@
 package com.kinetic.config;
 
+import com.kinetic.security.AuthRateLimitFilter;
 import com.kinetic.security.CustomUserDetailsService;
 import com.kinetic.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -23,6 +25,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 import java.util.Arrays;
 import java.util.List;
@@ -36,8 +39,14 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final CustomUserDetailsService customUserDetailsService;
 
+    // Fora do contexto (sem @Component) para não ser registrado de novo como filtro do servlet.
+    private final AuthRateLimitFilter authRateLimitFilter = new AuthRateLimitFilter();
+
     @Value("${cors.allowed-origins}")
     private String allowedOrigins;
+
+    @Value("${docs.enabled}")
+    private boolean docsEnabled;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -55,14 +64,17 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
                 // Webhooks de provedores: autenticados por token próprio no controller.
                 .requestMatchers(HttpMethod.POST, "/api/webhooks/**").permitAll()
-                // Documentação da API (Scalar UI + spec OpenAPI gerada pelo springdoc)
-                .requestMatchers("/docs.html", "/v3/api-docs/**").permitAll()
+                // Documentação da API (Scalar UI + spec OpenAPI): só com docs.enabled=true.
+                .requestMatchers("/docs.html", "/v3/api-docs/**")
+                    .access((authentication, context) -> new AuthorizationDecision(docsEnabled))
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authenticationProvider(authenticationProvider())
+            // Depois do CORS: o 429 sai com os cabeçalhos CORS e o painel web consegue ler a mensagem.
+            .addFilterAfter(authRateLimitFilter, CorsFilter.class)
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

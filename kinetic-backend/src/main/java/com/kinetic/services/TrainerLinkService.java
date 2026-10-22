@@ -172,42 +172,42 @@ public class TrainerLinkService {
 
     /**
      * Write-path corporativo: a EMPRESA atribui um aluno a um personal seu,
-     * criando um vínculo já ATIVO com source=COMPANY. Respeita a mesma regra de
-     * "1 personal ATIVO por aluno" (checagem + índice único parcial → 409).
+     * criando um convite PENDENTE com source=COMPANY. O personal só ganha acesso
+     * aos dados do aluno depois que ele aceitar pelo fluxo de convites do app
+     * ({@link #accept}). Personal fora da empresa ou e-mail que não é de aluno
+     * respondem o mesmo 404, para não revelar o papel das contas.
      */
     @Transactional
     public TrainerLinkDTO assignStudentToTrainer(UUID companyId, UUID trainerId, UUID studentId) {
         User trainer = userRepository.findById(trainerId)
+                .filter(t -> t.getRole() == Role.PERSONAL && companyId.equals(t.getCompanyId()))
                 .orElseThrow(() -> new EntityNotFoundException("Personal não encontrado."));
         User student = userRepository.findById(studentId)
+                .filter(s -> s.getRole() == Role.ALUNO)
                 .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado."));
 
-        if (trainer.getRole() != Role.PERSONAL) {
-            throw new IllegalArgumentException("O funcionário informado não é um personal.");
-        }
-        if (student.getRole() != Role.ALUNO) {
-            throw new IllegalArgumentException("O e-mail informado não pertence a um aluno.");
-        }
-        if (!companyId.equals(trainer.getCompanyId())) {
-            throw new IllegalArgumentException("Este personal não pertence à sua empresa.");
-        }
         if (trainerClientRepository.existsByStudentIdAndStatus(student.getId(), TrainerLinkStatus.ATIVO)) {
             throw new ActiveTrainerConflictException("Este aluno já possui um personal ativo.");
+        }
+        if (trainerClientRepository.existsByTrainerIdAndStudentIdAndStatus(
+                trainer.getId(), student.getId(), TrainerLinkStatus.PENDENTE)) {
+            throw new ActiveTrainerConflictException("Já existe um convite pendente para este aluno.");
         }
 
         TrainerClient link = new TrainerClient();
         link.setTrainer(trainer);
         link.setStudent(student);
-        link.setStatus(TrainerLinkStatus.ATIVO);
+        link.setStatus(TrainerLinkStatus.PENDENTE);
         link.setSource(TrainerLinkSource.COMPANY);
         link.setCompanyId(companyId);
-        link.setRespondedAt(LocalDateTime.now());
 
         try {
-            return toDto(trainerClientRepository.saveAndFlush(link), student);
+            TrainerLinkDTO dto = toDto(trainerClientRepository.saveAndFlush(link), student);
+            trainerEventService.publishAfterCommit(trainer.getId(), "students", student.getId());
+            return dto;
         } catch (DataIntegrityViolationException e) {
-            // Corrida: o índice único parcial barrou um segundo vínculo ATIVO.
-            throw new ActiveTrainerConflictException("Este aluno já possui um personal ativo.");
+            // Corrida com outro convite: o índice único parcial barrou.
+            throw new ActiveTrainerConflictException("Já existe um convite pendente para este aluno.");
         }
     }
 
@@ -235,8 +235,9 @@ public class TrainerLinkService {
 
     /**
      * O aluno encerra o vínculo com o próprio personal (botão "Encerrar vínculo"
-     * do app). Mesmo efeito de {@link #endLinkByTrainer}; vínculo atribuído pela
-     * empresa só a empresa encerra.
+     * do app). Mesmo efeito de {@link #endLinkByTrainer}. Vale também para
+     * vínculo atribuído pela empresa: o acesso aos dados de saúde depende do
+     * consentimento do aluno, que pode ser retirado a qualquer momento.
      */
     @Transactional
     public void endLinkByStudent(String studentEmail) {
@@ -244,10 +245,6 @@ public class TrainerLinkService {
         TrainerClient link = trainerClientRepository
                 .findByStudentIdAndStatus(student.getId(), TrainerLinkStatus.ATIVO)
                 .orElseThrow(() -> new EntityNotFoundException("Você não possui personal ativo."));
-        if (link.getSource() == TrainerLinkSource.COMPANY) {
-            throw new IllegalArgumentException(
-                    "Este personal foi atribuído pela sua academia. Peça à academia para encerrar o vínculo.");
-        }
         link.setStatus(TrainerLinkStatus.ENCERRADO);
         link.setEndedAt(LocalDateTime.now());
         trainerClientRepository.save(link);

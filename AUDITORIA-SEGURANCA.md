@@ -120,6 +120,30 @@ Era uma lacuna de produto e reforça os itens 9 e "e-mail como identidade".
 
 ---
 
+## Correções aplicadas em 2026-10-21
+
+> Não commitadas nem em produção. Backend: 88 testes passando; `tsc` limpo no app e no desktop. Nada testado de ponta a ponta. A run-2 deve revalidar todos os itens abaixo.
+
+| # | O que mudou |
+|---|---|
+| 2 | Vínculo criado pela empresa nasce `PENDENTE` (origem `COMPANY`); o aluno aceita/recusa pelo convite já existente (`/api/me/invites`) e pode encerrar com `DELETE /api/me/trainer`. Personal fora da empresa ou papel errado → 404 uniforme. Painel da empresa avisa que é um convite. |
+| 3 | Não se aplica mais: o chat/WebSocket foi removido do backend. |
+| 4 | `requireVisiblePost` (dono ou conexão ACCEPTED, senão 404) em curtir, descurtir, listar e criar comentário. |
+| 6 | `vincularFuncionario` responde 409 se o personal já é de outra empresa; mesma empresa continua idempotente. |
+| 7, 8 | Keys de mídia passam a carregar o dono (`posts/{userId}_{uuid}.ext`). `requireOwnMediaKey` (regex exata + dono) guarda o delete de mídia e o `imageUrl` de post/story → 403. Keys antigas sem dono não podem mais ser apagadas por essa rota. |
+| 5 | `@Max(21600)` na duração, data entre hoje−7 e hoje+1, CHECK `NOT VALID` na migration `V47`. App limita o cronômetro a 6 h. |
+| 12 | `@Valid` + `@Size` no `/workouts/generate`; até 5 tentativas por aluno por hora (429), além da cota de 30 dias. |
+| 13 | Geração sem `@Transactional`; a gravação roda num `TransactionTemplate` no fim. `spring.jpa.open-in-view=false`, para a conexão não ficar presa durante a IA (vale também para a prévia do personal e o gateway de cobrança). Revisão estática: nenhum acesso a relação lazy fora de transação; testes de integração não existem, então convém um teste manual das telas antes do deploy. |
+| 14 | `size` do feed limitado a 1–50. |
+| 15 | `/docs.html` e `/v3/api-docs` desligados por padrão (`DOCS_ENABLED=false`). SRI não foi adicionado. |
+| Lacuna 4 | Chave do Gemini vai no header `x-goog-api-key`, não mais na URL. |
+| Abertos do item 1 | `/api/auth/verify-email` removido. Rate limit por IP+rota em `/api/auth/**` (10/min; refresh 60/min), em memória e por instância. Atrás de proxy, configurar `SERVER_FORWARD_HEADERS_STRATEGY=native`, senão todos dividem o IP do proxy. |
+| Hardening | `goal`/`medicalConditions` delimitados como dados no prompt do aluno e limitados em tamanho. |
+
+**Continuam em aberto:** itens 10 e 11 (consultas no Supabase); o prompt do `TrainerAiPlanService` ainda não delimita os dados do aluno; linhas antigas com duração absurda (limpar e depois `VALIDATE CONSTRAINT`); um convite de empresa pendente pode ser aceito depois que o personal sai da empresa (`company_id` antigo).
+
+---
+
 ## Resumo
 
 | # | Severidade | Achado | Estado final |

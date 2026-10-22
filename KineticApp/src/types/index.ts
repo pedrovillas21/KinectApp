@@ -568,7 +568,7 @@ export interface TrainerPlanItem {
 export interface MyTrainerProfile {
   linkId: string;
   linkSource: 'INVITE' | 'COMPANY' | 'INVITE_CODE';
-  /** False quando o vínculo foi atribuído pela empresa. */
+  /** Hoje sempre true: o aluno pode encerrar qualquer vínculo, inclusive o da empresa. */
   canEndLink: boolean;
   linkedSince: string | null;
   trainer: TrainerPublicProfile;

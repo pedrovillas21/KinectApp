@@ -1,7 +1,6 @@
 package com.kinetic.services;
 
 import com.kinetic.dtos.TrainerProfileDTOs;
-import com.kinetic.enums.TrainerLinkSource;
 import com.kinetic.enums.TrainerLinkStatus;
 import com.kinetic.models.TrainerClient;
 import com.kinetic.models.TrainerProfile;
@@ -102,8 +101,9 @@ public class TrainerProfileService {
         return new TrainerProfileDTOs.StudentView(
                 link.getId(),
                 link.getSource().name(),
-                link.getSource() != TrainerLinkSource.COMPANY,
-                // Convite aceito: vale o aceite; código/empresa já nascem ATIVOS.
+                // O aluno pode encerrar qualquer vínculo, inclusive o da empresa.
+                true,
+                // Convite aceito (inclusive o da empresa): vale o aceite; código já nasce ATIVO.
                 link.getRespondedAt() != null ? link.getRespondedAt() : link.getCreatedAt(),
                 toResponse(trainer, trainerProfileRepository.findById(trainer.getId()).orElse(null)),
                 plans.size(),

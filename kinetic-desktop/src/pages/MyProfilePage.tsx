@@ -1,13 +1,18 @@
-import { useEffect, useMemo, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
-import { ArrowLeft, BadgeCheck, Clock, MessageCircle, Plus, ShieldCheck, X } from 'lucide-react';
+import { ArrowLeft, BadgeCheck, Camera, Clock, Loader2, MessageCircle, Plus, ShieldCheck, Trash2, X } from 'lucide-react';
 import Avatar from '../components/Avatar';
 import { formInputClass, formLabelClass } from '../components/personal/FormDialog';
 import { riseItem, staggerContainer } from '../components/motion/primitives';
-import { getMyTrainerProfile, saveMyTrainerProfile } from '../services/trainerProfileService';
+import {
+  getMyTrainerProfile,
+  removeMyAvatar,
+  saveMyTrainerProfile,
+  updateMyAvatar,
+} from '../services/trainerProfileService';
 import { qk, queryClient } from '../services/queryClient';
 import type { TrainerEducation, TrainerProfile, TrainerProfileInput } from '../types';
 
@@ -199,6 +204,10 @@ export default function MyProfilePage() {
                 }}
                 className="flex flex-col gap-5"
               >
+                <Section title="Foto de perfil" hint="Aparece para seus alunos no app. JPG, PNG ou WEBP, até 10 MB.">
+                  <AvatarPicker name={profile.nome} avatarUrl={profile.avatarUrl} />
+                </Section>
+
                 <Section title="Registro profissional" hint="Os alunos veem o selo de verificado depois que o Kinetic confere o seu CREF.">
                   <label className="flex flex-col gap-2">
                     <span className={formLabelClass}>CREF</span>
@@ -406,6 +415,98 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
       </div>
       {children}
     </motion.section>
+  );
+}
+
+const AVATAR_MAX_BYTES = 10 * 1024 * 1024;
+
+/** Foto salva na hora (fora do botão "Salvar perfil"), igual ao app do aluno. */
+function AvatarPicker({ name, avatarUrl }: { name: string; avatarUrl: string | null }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState<'upload' | 'remove' | null>(null);
+
+  const setAvatar = (url: string | null) =>
+    queryClient.setQueryData<TrainerProfile>(qk.profile, (p) => (p ? { ...p, avatarUrl: url } : p));
+
+  const onFile = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // permite escolher o mesmo arquivo de novo
+    if (!file) return;
+    if (!file.type.startsWith('image/')) return void toast.error('Escolha um arquivo de imagem.');
+    if (file.size > AVATAR_MAX_BYTES) return void toast.error('A imagem passa de 10 MB.');
+    setBusy('upload');
+    try {
+      setAvatar(await updateMyAvatar(file));
+      toast.success('Foto atualizada');
+    } catch (err) {
+      toast.error(errorText(err, 'Não foi possível enviar a foto.'));
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const onRemove = async () => {
+    setBusy('remove');
+    try {
+      await removeMyAvatar();
+      setAvatar(null);
+      toast.success('Foto removida');
+    } catch (err) {
+      toast.error(errorText(err, 'Não foi possível remover a foto.'));
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  return (
+    <div className="flex flex-wrap items-center gap-5">
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        disabled={!!busy}
+        aria-label="Trocar foto de perfil"
+        className="group relative shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-k-primary"
+      >
+        {/* key: remonta o Avatar quando a URL muda, zerando o estado de erro de carregamento */}
+        <Avatar key={avatarUrl ?? 'none'} name={name} avatarUrl={avatarUrl} size={88} />
+        <span
+          className={`absolute inset-0 flex items-center justify-center rounded-full bg-black/55 text-white transition-opacity ${
+            busy === 'upload' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+          }`}
+        >
+          {busy === 'upload' ? <Loader2 className="h-6 w-6 animate-spin" /> : <Camera className="h-6 w-6" />}
+        </span>
+      </button>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={!!busy}
+          className="flex h-11 items-center gap-1.5 rounded-xl border border-white/10 bg-k-surface2 px-4 text-sm font-semibold text-k-text transition-colors hover:bg-white/[0.08] disabled:opacity-50"
+        >
+          <Camera className="h-4 w-4" />
+          {busy === 'upload' ? 'Enviando…' : avatarUrl ? 'Trocar foto' : 'Enviar foto'}
+        </button>
+        {avatarUrl && (
+          <button
+            type="button"
+            onClick={() => void onRemove()}
+            disabled={!!busy}
+            className="flex h-11 items-center gap-1.5 rounded-xl border border-white/10 px-4 text-sm font-semibold text-k-text-dim transition-colors hover:border-k-alert/40 hover:text-k-alert disabled:opacity-50"
+          >
+            <Trash2 className="h-4 w-4" />
+            {busy === 'remove' ? 'Removendo…' : 'Remover'}
+          </button>
+        )}
+      </div>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        onChange={(e) => void onFile(e)}
+        className="hidden"
+      />
+    </div>
   );
 }
 

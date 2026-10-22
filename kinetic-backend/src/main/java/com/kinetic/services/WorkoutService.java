@@ -19,6 +19,7 @@ import com.kinetic.repositories.WorkoutExecutionLogRepository;
 import com.kinetic.repositories.WorkoutPlanRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import lombok.extern.slf4j.Slf4j;
 
 import java.text.Normalizer;
@@ -34,6 +35,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
@@ -41,6 +43,18 @@ public class WorkoutService {
 
     /** Intervalo mínimo entre fichas geradas por IA para o próprio aluno (cota do app). */
     static final Duration STUDENT_AI_COOLDOWN = Duration.ofDays(30);
+
+    /**
+     * Tentativas de geração por aluno por hora. A cota de 30 dias só conta fichas salvas:
+     * sem isto, uma resposta inválida da IA (ou duplo toque) permitia chamadas pagas sem fim.
+     */
+    static final int MAX_AI_ATTEMPTS_PER_HOUR = 5;
+    private static final long ATTEMPT_WINDOW_MS = Duration.ofHours(1).toMillis();
+
+    private record AttemptWindow(long start, int count) {}
+
+    // shortcut: em memória e por instância (com N réplicas o limite vira N×), trocar por Redis ao escalar horizontalmente.
+    private final Map<UUID, AttemptWindow> aiAttempts = new ConcurrentHashMap<>();
 
     private static final Set<String> SECTIONS = Set.of("AQUECIMENTO", "PRINCIPAL", "FINALIZACAO");
     private static final String DEFAULT_SECTION = "PRINCIPAL";
@@ -51,22 +65,28 @@ public class WorkoutService {
     private final PlanCycleSnapshotService planCycleSnapshotService;
     private final WorkoutExecutionLogRepository workoutExecutionLogRepository;
     private final TrainerClientRepository trainerClientRepository;
+    private final TransactionTemplate transactionTemplate;
 
     public WorkoutService(GeminiService geminiService,
                           WorkoutPlanRepository workoutPlanRepository,
                           UserRepository userRepository,
                           PlanCycleSnapshotService planCycleSnapshotService,
                           WorkoutExecutionLogRepository workoutExecutionLogRepository,
-                          TrainerClientRepository trainerClientRepository) {
+                          TrainerClientRepository trainerClientRepository,
+                          TransactionTemplate transactionTemplate) {
         this.geminiService = geminiService;
         this.workoutPlanRepository = workoutPlanRepository;
         this.userRepository = userRepository;
         this.planCycleSnapshotService = planCycleSnapshotService;
         this.workoutExecutionLogRepository = workoutExecutionLogRepository;
         this.trainerClientRepository = trainerClientRepository;
+        this.transactionTemplate = transactionTemplate;
     }
 
-    @Transactional
+    /**
+     * Sem @Transactional: a chamada à IA leva até minutos e não pode segurar uma conexão
+     * do pool. As checagens leem fora de transação; a gravação é atômica no fim.
+     */
     public List<WorkoutPlanResponseDTO> generateWorkoutForUser(String userEmail, GenerateWorkoutRequestDto request) {
         log.info("Iniciando requisição de geração para o usuário: {}", userEmail);
         validateRequest(request);
@@ -103,13 +123,9 @@ public class WorkoutService {
                                     + next.format(DateTimeFormatter.ofPattern("dd/MM")) + ".");
                 });
 
-        log.info("Usuário encontrado. Atualizando perfil... (Idade calculada com data {}: {} anos)", request.birthDate(), age);
+        acquireAiAttempt(user.getId());
 
-        // Captura estado pré-regeneração antes de sobrescrever o perfil
-        String oldGoal = user.getGoal();
-        double oldWeight = user.getWeight() != null ? user.getWeight() : 0.0;
-        Optional<java.time.LocalDateTime> earliestActivePlan =
-                workoutPlanRepository.findEarliestActiveCreatedAt(user.getId());
+        log.info("Usuário encontrado. (Idade calculada com data {}: {} anos)", request.birthDate(), age);
 
         double heightCm = request.height() < 3 ? request.height() * 100 : request.height();
 
@@ -128,6 +144,20 @@ public class WorkoutService {
         if (generatedDtos == null || generatedDtos.isEmpty()) {
             throw new IllegalStateException("Falha na geração: a lista de planos está nula ou vazia.");
         }
+
+        return transactionTemplate.execute(status -> saveGeneratedPlans(userEmail, request, heightCm, generatedDtos));
+    }
+
+    private List<WorkoutPlanResponseDTO> saveGeneratedPlans(String userEmail, GenerateWorkoutRequestDto request,
+                                                            double heightCm, List<GeneratedWorkoutPlanDto> generatedDtos) {
+        // Recarrega dentro da transação: o perfil pode ter mudado durante a chamada à IA.
+        User user = findUserByEmail(userEmail);
+
+        // Captura estado pré-regeneração antes de sobrescrever o perfil
+        String oldGoal = user.getGoal();
+        double oldWeight = user.getWeight() != null ? user.getWeight() : 0.0;
+        Optional<java.time.LocalDateTime> earliestActivePlan =
+                workoutPlanRepository.findEarliestActiveCreatedAt(user.getId());
 
         List<WorkoutPlan> workoutPlansToSave = new ArrayList<>();
         for (GeneratedWorkoutPlanDto generatedDto : generatedDtos) {
@@ -201,7 +231,7 @@ public class WorkoutService {
         });
 
         // Arquiva o plano vigente (preserva historico) antes de promover o novo a 'active'.
-        // Apos a geracao bem-sucedida do Gemini, ja na mesma transacao: se algo falhar, tudo reverte.
+        // Apos a geracao bem-sucedida do Gemini, na transacao da gravacao: se algo falhar, tudo reverte.
         workoutPlanRepository.archiveActivePlans(user.getId());
 
         List<WorkoutPlan> savedPlans = workoutPlanRepository.saveAll(workoutPlansToSave);
@@ -241,6 +271,17 @@ public class WorkoutService {
             map.put(planId, last);
         }
         return map;
+    }
+
+    private void acquireAiAttempt(UUID userId) {
+        long now = System.currentTimeMillis();
+        aiAttempts.values().removeIf(w -> now - w.start() >= ATTEMPT_WINDOW_MS);
+        AttemptWindow window = aiAttempts.compute(userId, (id, current) ->
+                current == null ? new AttemptWindow(now, 1) : new AttemptWindow(current.start(), current.count() + 1));
+        if (window.count() > MAX_AI_ATTEMPTS_PER_HOUR) {
+            throw new AiQuotaExceededException(
+                    "Muitas tentativas de gerar a ficha. Aguarde uma hora e tente novamente.");
+        }
     }
 
     private User findUserByEmail(String userEmail) {

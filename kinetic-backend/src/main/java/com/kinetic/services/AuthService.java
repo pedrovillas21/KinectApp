@@ -128,8 +128,4 @@ public class AuthService {
     public void logout(String rawRefreshToken) {
         refreshTokenService.revoke(rawRefreshToken);
     }
-
-    public boolean checkEmailExists(String email) {
-        return userRepository.existsByEmail(email);
-    }
 }

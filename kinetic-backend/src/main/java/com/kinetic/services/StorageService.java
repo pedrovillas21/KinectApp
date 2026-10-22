@@ -2,6 +2,7 @@ package com.kinetic.services;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.kinetic.exceptions.ForbiddenException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +28,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Sobe arquivos de imagem para o Supabase Storage usando a service_role key (que
@@ -49,6 +52,14 @@ public class StorageService {
 
     /** Pastas permitidas no bucket — evita path traversal a partir do {@code folder} do cliente. */
     private static final Set<String> ALLOWED_FOLDERS = Set.of("posts", "stories");
+
+    /**
+     * Formato exato das keys geradas por {@link #upload}: {@code {pasta}/{dono}_{uuid}.{ext}}.
+     * Plano (sem subpasta por usuário) para a listagem de um nível do
+     * OrphanMediaCleanupService continuar enxergando os objetos.
+     */
+    private static final Pattern MEDIA_KEY = Pattern.compile(
+            "^(posts|stories)/([0-9a-f-]{36})_[0-9a-f-]{36}\\.(jpg|png|webp|gif)$");
 
     private final RestClient restClient;
 
@@ -92,24 +103,25 @@ public class StorageService {
     }
 
     /**
-     * Sobe {@code file} para {@code {bucket}/{folder}/{uuid}.{ext}} e retorna a
-     * <b>storage key</b> (ex.: {@code posts/<uuid>.jpg}) — não uma URL. É esse
+     * Sobe {@code file} para {@code {bucket}/{folder}/{ownerId}_{uuid}.{ext}} e retorna a
+     * <b>storage key</b> (ex.: {@code posts/<ownerId>_<uuid>.jpg}) — não uma URL. É esse
      * valor que deve ser persistido no post/story; a URL de leitura é gerada
      * depois por {@link #signUrls(Collection)}. Lança
      * {@link IllegalArgumentException} (→ 400) para arquivos inválidos e
      * {@link RuntimeException} (→ 500) em falha do Storage.
      */
-    public String upload(MultipartFile file, String folder) {
+    public String upload(MultipartFile file, String folder, UUID ownerId) {
         String contentType = validatedImageType(file);
 
         String safeFolder = (folder == null || folder.isBlank()) ? "posts" : folder.trim();
         if (!ALLOWED_FOLDERS.contains(safeFolder)) {
             throw new IllegalArgumentException("Pasta de destino inválida.");
         }
-        // key = {folder}/{uuid}.{ext}: todos os componentes são controlados pelo servidor
-        // (folder via whitelist, UUID e extensão de um switch fixo), então não há entrada
-        // do usuário concatenada na URL do Storage.
-        String key = safeFolder + "/" + UUID.randomUUID() + "." + extensionFor(contentType);
+        // key = {folder}/{ownerId}_{uuid}.{ext}: todos os componentes são controlados pelo
+        // servidor (folder via whitelist, ids e extensão de um switch fixo), então não há
+        // entrada do usuário concatenada na URL do Storage. O ownerId no nome é o que
+        // permite a requireOwnMediaKey checar o dono depois.
+        String key = safeFolder + "/" + ownerId + "_" + UUID.randomUUID() + "." + extensionFor(contentType);
         putObject(bucket, key, contentType, file);
         return key;
     }
@@ -252,6 +264,22 @@ public class StorageService {
             return;
         }
         deleteByKey(key);
+    }
+
+    /**
+     * Key de mídia social enviada por {@code ownerId}, normalizada (aceita a URL pública
+     * legada). Vazio → null. Qualquer outra coisa (mídia de outro usuário, key antiga sem
+     * dono, "..", barra inicial, outro bucket) → {@link ForbiddenException} (403): sem
+     * isso o cliente poderia apagar ou reassinar objetos alheios com a service_role.
+     */
+    public String requireOwnMediaKey(String urlOrKey, UUID ownerId) {
+        if (urlOrKey == null || urlOrKey.isBlank()) return null;
+        String key = normalizeKey(urlOrKey);
+        Matcher m = key != null ? MEDIA_KEY.matcher(key) : null;
+        if (m == null || !m.matches() || !m.group(2).equals(ownerId.toString())) {
+            throw new ForbiddenException("Mídia inválida ou de outro usuário.");
+        }
+        return key;
     }
 
     /** Remove o objeto identificado por {@code key} (ex: "posts/uuid.jpg"). Best-effort. */

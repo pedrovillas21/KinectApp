@@ -64,15 +64,16 @@ export default function ClientesPage() {
     setSubmitting(true);
     try {
       await vincularAluno(form.studentEmail.trim(), form.trainerEmail.trim());
-      toast.success('Aluno vinculado ao personal.');
+      toast.success('Convite enviado. O aluno aparece aqui quando aceitar no app.');
       setOpen(false);
       setForm({ studentEmail: '', trainerEmail: '' });
       await load();
     } catch (err: unknown) {
-      const status = (err as { response?: { status?: number } }).response?.status;
-      if (status === 409) toast.error('Este aluno já possui um personal ativo.');
+      const res = (err as { response?: { status?: number; data?: unknown } }).response;
+      const status = res?.status;
+      // 409 = personal ativo ou convite já pendente; a mensagem do servidor diz qual.
+      if (status === 409) toast.error(typeof res?.data === 'string' && res.data ? res.data : 'Este aluno já possui um personal ativo.');
       else if (status === 404) toast.error('Aluno ou personal não encontrado.');
-      else if (status === 400) toast.error('Verifique os dados: o personal deve ser da sua empresa.');
       else toast.error('Não foi possível vincular o aluno.');
     } finally {
       setSubmitting(false);

@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import KineticLogo from '../components/KineticLogo';
 import Avatar from '../components/Avatar';
 import { aiTotalLimit, daysUntil, getBilling } from '../services/billingService';
+import { getMyTrainerProfile } from '../services/trainerProfileService';
 import { qk } from '../services/queryClient';
 import { useAiDrafts, type AiDraft } from '../components/personal/ai/aiDraftStore';
 import type { BillingOverview } from '../types';
@@ -25,6 +26,7 @@ export default function PersonalShell() {
   const { currentUser, signOut } = useAuth();
   // Repassa o contexto do PhoneGate (celular do personal) para as telas.
   const outlet = useOutletContext();
+  const { data: profile } = useQuery({ queryKey: qk.profile, queryFn: getMyTrainerProfile });
 
   return (
     <div className="flex h-screen overflow-hidden bg-k-bg text-k-text">
@@ -55,7 +57,7 @@ export default function PersonalShell() {
         <div className="mt-auto flex flex-col gap-3">
           <PlanUsage />
           <div className="flex items-center gap-2.5 px-1.5">
-            <Avatar name={currentUser?.nome ?? ''} size={32} />
+            <Avatar key={profile?.avatarUrl ?? 'none'} name={currentUser?.nome ?? ''} avatarUrl={profile?.avatarUrl} size={32} />
             <div className="min-w-0 flex-1 leading-tight">
               <p className="truncate text-[13px] font-medium">{currentUser?.nome}</p>
               <p className="truncate text-xs text-k-text-muted">{currentUser?.email}</p>

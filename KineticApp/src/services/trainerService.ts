@@ -59,7 +59,7 @@ export const confirmMyAnamnesis = async (): Promise<StudentProtocol> => {
 
 /**
  * O aluno encerra o vínculo: o personal perde o acesso aos dados dele; o histórico
- * de treinos fica. 400 = vínculo atribuído pela empresa (não pode encerrar pelo app).
+ * de treinos fica. Vale também para o vínculo atribuído pela empresa.
  */
 export const endMyTrainerLink = async (): Promise<void> => {
   await api.delete('/me/trainer');

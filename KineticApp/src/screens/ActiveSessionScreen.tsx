@@ -18,6 +18,9 @@ import { showAlert } from '../components/ui/AlertHost';
 import WorkoutCompleteSheet from '../components/WorkoutCompleteSheet';
 import type { FinishedWorkout } from '../navigation/types';
 
+// Teto do backend (LogSessionRequestDTO @Max): cronômetro esquecido aberto não perde o treino.
+const MAX_SESSION_SECONDS = 6 * 60 * 60;
+
 interface SetData {
   weight: string;
   reps: string;
@@ -260,7 +263,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
     const saveAndLeave = () => {
       if (!startSaving()) return;
       const payload: LogSessionRequestDTO = {
-        durationInSeconds: elapsedTime,
+        durationInSeconds: Math.min(elapsedTime, MAX_SESSION_SECONDS),
         date: localDateString(),
         exercisesLog: allLogs,
         workoutPlanId,
@@ -336,7 +339,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
     }
 
     const payload: LogSessionRequestDTO = {
-      durationInSeconds: elapsedTime,
+      durationInSeconds: Math.min(elapsedTime, MAX_SESSION_SECONDS),
       date: localDateString(),
       exercisesLog: finalLogs,
       workoutPlanId,

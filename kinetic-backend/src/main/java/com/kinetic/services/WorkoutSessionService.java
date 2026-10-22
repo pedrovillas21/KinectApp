@@ -83,6 +83,20 @@ public class WorkoutSessionService {
         };
     }
 
+    /** Treino só conta no ranking da semana em que foi feito: aceita até 7 dias atrás. */
+    static final int MAX_SESSION_AGE_DAYS = 7;
+
+    /**
+     * O app manda a data local do aparelho; 1 dia à frente cobre fuso/relógio adiantado.
+     * Fora disso a data é inventada e serviria para inflar uma semana do ranking.
+     */
+    static void requirePlausibleDate(LocalDate date, LocalDate today) {
+        if (date.isBefore(today.minusDays(MAX_SESSION_AGE_DAYS)) || date.isAfter(today.plusDays(1))) {
+            throw new IllegalArgumentException("Data do treino inválida: registre treinos de até "
+                    + MAX_SESSION_AGE_DAYS + " dias atrás.");
+        }
+    }
+
     @Transactional
     public boolean logSession(String userEmail, LogSessionRequestDTO request) {
         User user = findUserByEmail(userEmail);
@@ -92,6 +106,7 @@ public class WorkoutSessionService {
                 && workoutSessionRepository.existsByUserIdAndClientSessionId(user.getId(), clientSessionId)) {
             return false;
         }
+        requirePlausibleDate(request.date(), AppTime.today());
 
         WorkoutSession session = new WorkoutSession();
         session.setUser(user);

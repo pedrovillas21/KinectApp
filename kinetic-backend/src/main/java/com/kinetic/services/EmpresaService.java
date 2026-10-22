@@ -10,6 +10,7 @@ import com.kinetic.dtos.TrainerLinkDTO.PeerDTO;
 import com.kinetic.dtos.UserAdminDTO;
 import com.kinetic.enums.Role;
 import com.kinetic.enums.TrainerLinkStatus;
+import com.kinetic.exceptions.ActiveTrainerConflictException;
 import com.kinetic.models.User;
 import com.kinetic.repositories.TrainerClientRepository;
 import com.kinetic.repositories.UserRepository;
@@ -65,9 +66,13 @@ public class EmpresaService {
     @Transactional
     public UserAdminDTO vincularFuncionario(String empresaEmail, String personalEmail) {
         UUID companyId = resolveCompanyId(empresaEmail);
-        User personal = userRepository.getByEmailOrThrow(personalEmail);
-        if (personal.getRole() != Role.PERSONAL) {
-            throw new IllegalArgumentException("O e-mail informado não pertence a um personal.");
+        // Mesmo 404 para e-mail inexistente e conta que não é personal: não revela o papel da conta.
+        User personal = userRepository.findByEmail(personalEmail)
+                .filter(u -> u.getRole() == Role.PERSONAL)
+                .orElseThrow(() -> new EntityNotFoundException("Personal não encontrado."));
+        if (personal.getCompanyId() != null && !companyId.equals(personal.getCompanyId())) {
+            // Sem isso, outra empresa sobrescreveria o company_id e "roubaria" o funcionário.
+            throw new ActiveTrainerConflictException("Este personal já está vinculado a outra empresa.");
         }
         personal.setCompanyId(companyId);
         return UserAdminDTO.fromEntity(userRepository.save(personal));
@@ -105,8 +110,11 @@ public class EmpresaService {
     @Transactional
     public TrainerLinkDTO vincularAluno(String empresaEmail, String studentEmail, String trainerEmail) {
         UUID companyId = resolveCompanyId(empresaEmail);
-        User trainer = userRepository.getByEmailOrThrow(trainerEmail);
-        User student = userRepository.getByEmailOrThrow(studentEmail);
+        User trainer = userRepository.findByEmail(trainerEmail)
+                .orElseThrow(() -> new EntityNotFoundException("Personal não encontrado."));
+        User student = userRepository.findByEmail(studentEmail)
+                .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado."));
+        // Cria um convite PENDENTE: o vínculo só fica ATIVO quando o aluno aceitar no app.
         return trainerLinkService.assignStudentToTrainer(companyId, trainer.getId(), student.getId());
     }
 

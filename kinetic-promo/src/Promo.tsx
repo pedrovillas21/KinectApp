@@ -489,10 +489,12 @@ const PROG = [
 ];
 const Progress: React.FC<{ dur: number }> = ({ dur }) => {
   const frame = useCurrentFrame();
-  const i = Math.min(Math.floor(frame / BEAT), PROG.length - 1);
+  // cada print fica o máximo de batidas inteiras que cabe na cena
+  const step = Math.max(1, Math.floor(dur / BEAT / PROG.length)) * BEAT;
+  const i = Math.min(Math.floor(frame / step), PROG.length - 1);
   const { id, bg } = PROG[i];
   const c = onBg(bg);
-  const f = frame - Math.round(i * BEAT);
+  const f = frame - Math.round(i * step);
   const pop = 0.93 + 0.07 * spring({ frame: f, fps: 30, config: { damping: 12, mass: 0.5, stiffness: 200 } });
   const t = frame / dur;
   return (
@@ -775,13 +777,13 @@ const SCENES: Scene[] = [
   { b: 4, el: (d) => <Hook dur={d} /> },
   { b: 10, el: () => <AiTitle /> },
   { b: 12, el: (d) => <AiAsk dur={d} /> },
-  { b: 16, el: (d) => <AiSteps dur={d} /> },
-  { b: 19, el: (d, b0) => <AiRows dur={d} b0={b0} /> },
-  { b: 24, el: (d, b0) => <Approve dur={d} b0={b0} /> },
-  { b: 28, el: (d) => <Delivered dur={d} /> },
-  { b: 31, el: () => <StudentTitle /> },
+  { b: 19, el: (d) => <AiSteps dur={d} /> },
+  { b: 24, el: (d, b0) => <AiRows dur={d} b0={b0} /> },
+  { b: 33, el: (d, b0) => <Approve dur={d} b0={b0} /> },
+  { b: 41, el: (d) => <Delivered dur={d} /> },
+  { b: 46, el: () => <StudentTitle /> },
   {
-    b: 33,
+    b: 49,
     el: (d) => (
       <Breakout
         dur={d}
@@ -796,7 +798,7 @@ const SCENES: Scene[] = [
     ),
   },
   {
-    b: 37,
+    b: 56,
     el: (d) => (
       <Breakout
         dur={d}
@@ -811,18 +813,23 @@ const SCENES: Scene[] = [
       />
     ),
   },
-  { b: 40, el: (d) => <Progress dur={d} /> },
-  { b: 44, el: () => <SectionTitle kicker="03 — ACOMPANHAMENTO" lines={["SAIBA QUEM", "VAI PARAR", "ANTES DELE."]} size={140} /> },
-  { b: 46, el: (d, b0) => <Portfolio dur={d} b0={b0} /> },
-  { b: 50, el: (d, b0) => <Risk dur={d} b0={b0} /> },
-  { b: 54, el: (d, b0) => <Performance dur={d} b0={b0} /> },
-  { b: 57, el: (d, b0) => <Assess dur={d} b0={b0} /> },
-  { b: 60, el: (d) => <Finance dur={d} /> },
-  { b: 64, el: (d, b0) => <Plans dur={d} b0={b0} /> },
-  { b: 69, el: () => <EndCard /> },
+  { b: 62, el: (d) => <Progress dur={d} /> },
+  { b: 70, el: () => <SectionTitle kicker="03 — ACOMPANHAMENTO" lines={["SAIBA QUEM", "VAI PARAR", "ANTES DELE."]} size={140} /> },
+  { b: 73, el: (d, b0) => <Portfolio dur={d} b0={b0} /> },
+  { b: 81, el: (d, b0) => <Risk dur={d} b0={b0} /> },
+  { b: 89, el: (d, b0) => <Performance dur={d} b0={b0} /> },
+  { b: 95, el: (d, b0) => <Assess dur={d} b0={b0} /> },
+  { b: 101, el: (d) => <Finance dur={d} /> },
+  { b: 109, el: (d, b0) => <Plans dur={d} b0={b0} /> },
+  { b: 118, el: () => <EndCard /> },
 ];
-const END_BEAT = 81;
+const END_BEAT = 130;
 export const DURATION = beat(END_BEAT);
+
+/** A trilha tem 58 s: na batida 96 volta para a 32 (mesma posição na frase de 16), com crossfade. */
+const SPLICE = beat(96);
+const LOOP_TO = 32;
+const XF = 8;
 
 export const Promo: React.FC = () => {
   const { durationInFrames } = useVideoConfig();
@@ -830,8 +837,16 @@ export const Promo: React.FC = () => {
     <AbsoluteFill style={{ background: K.bg }}>
       <Audio
         src={staticFile("music.mp3")}
-        volume={(f) => interpolate(f, [0, 6, durationInFrames - 45, durationInFrames], [0, 0.9, 0.9, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })}
+        durationInFrames={SPLICE + XF}
+        volume={(f) => interpolate(f, [0, 6, SPLICE - XF, SPLICE + XF], [0, 0.9, 0.9, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })}
       />
+      <Sequence from={SPLICE - XF}>
+        <Audio
+          src={staticFile("music.mp3")}
+          trimBefore={beat(LOOP_TO) - XF}
+          volume={(f) => interpolate(f, [0, 2 * XF, durationInFrames - SPLICE - 45, durationInFrames - SPLICE + XF], [0, 0.9, 0.9, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })}
+        />
+      </Sequence>
       {SCENES.map((s, i) => {
         const from = beat(s.b);
         const to = beat(SCENES[i + 1]?.b ?? END_BEAT);

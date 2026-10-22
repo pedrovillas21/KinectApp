@@ -3,7 +3,6 @@ package com.kinetic.controllers;
 import com.kinetic.dtos.*;
 import com.kinetic.services.PublicProfileService;
 import com.kinetic.services.SocialService;
-import com.kinetic.services.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,18 +29,15 @@ import java.util.UUID;
 public class SocialController extends BaseController {
 
     private final SocialService socialService;
-    private final StorageService storageService;
     private final PublicProfileService publicProfileService;
 
-    public SocialController(SocialService socialService, StorageService storageService,
-                            PublicProfileService publicProfileService) {
+    public SocialController(SocialService socialService, PublicProfileService publicProfileService) {
         this.socialService = socialService;
-        this.storageService = storageService;
         this.publicProfileService = publicProfileService;
     }
 
-    /** Teto de itens por página nas listas do perfil. */
-    private static final int MAX_PROFILE_PAGE_SIZE = 50;
+    /** Teto de itens por página nas listas paginadas (feed e perfil). */
+    private static final int MAX_PAGE_SIZE = 50;
 
     // ── Media ─────────────────────────────────────────────────────────────────
 
@@ -60,7 +56,7 @@ public class SocialController extends BaseController {
             @RequestParam(defaultValue = "posts") String folder,
             @Parameter(description = "Arquivo de imagem/vídeo a enviar.")
             @RequestPart("file") MultipartFile file) {
-        String url = storageService.upload(file, folder);
+        String url = socialService.uploadMedia(currentUserEmail(), file, folder);
         return ResponseEntity.status(HttpStatus.CREATED).body(new MediaUploadResponse(url));
     }
 
@@ -68,11 +64,11 @@ public class SocialController extends BaseController {
             summary = "Apagar uma mídia enviada",
             description = "Remove do armazenamento o arquivo cuja URL for informada. Usado para limpar o arquivo "
                     + "quando o upload deu certo mas a criação do post/story falhou depois — evita deixar arquivo "
-                    + "\"órfão\" ocupando espaço."
+                    + "\"órfão\" ocupando espaço. Só aceita mídia enviada pelo próprio usuário; outra → 403."
     )
     @DeleteMapping("/media")
     public ResponseEntity<Void> deleteMedia(@Parameter(description = "Identificador devolvido pelo upload.") @RequestParam String url) {
-        storageService.delete(url);
+        socialService.deleteMedia(currentUserEmail(), url);
         return ResponseEntity.noContent().build();
     }
 
@@ -205,9 +201,9 @@ public class SocialController extends BaseController {
     public ResponseEntity<Page<FeedPostDTO>> getFeed(
             @Parameter(description = "Número da página, começando em 0. Padrão: 0.")
             @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Quantidade de posts por página. Padrão: 10.")
+            @Parameter(description = "Quantidade de posts por página (máx. 50). Padrão: 10.")
             @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(socialService.getFeed(currentUserEmail(), PageRequest.of(page, size)));
+        return ResponseEntity.ok(socialService.getFeed(currentUserEmail(), pageOf(page, size)));
     }
 
     @Operation(
@@ -276,7 +272,7 @@ public class SocialController extends BaseController {
     )
     @GetMapping("/posts/{id}/comments")
     public ResponseEntity<List<CommentDTO>> listComments(@PathVariable UUID id) {
-        return ResponseEntity.ok(socialService.listComments(id));
+        return ResponseEntity.ok(socialService.listComments(currentUserEmail(), id));
     }
 
     @Operation(
@@ -316,7 +312,7 @@ public class SocialController extends BaseController {
             @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Itens por página (máx. 50). Padrão: 12.")
             @RequestParam(defaultValue = "12") int size) {
-        return ResponseEntity.ok(socialService.getUserPosts(currentUserEmail(), id, profilePage(page, size)));
+        return ResponseEntity.ok(socialService.getUserPosts(currentUserEmail(), id, pageOf(page, size)));
     }
 
     @Operation(
@@ -332,7 +328,7 @@ public class SocialController extends BaseController {
             @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Itens por página (máx. 50). Padrão: 10.")
             @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(publicProfileService.getUserWorkouts(currentUserEmail(), id, profilePage(page, size)));
+        return ResponseEntity.ok(publicProfileService.getUserWorkouts(currentUserEmail(), id, pageOf(page, size)));
     }
 
     @Operation(
@@ -346,7 +342,7 @@ public class SocialController extends BaseController {
         return ResponseEntity.ok(publicProfileService.compare(currentUserEmail(), friendId));
     }
 
-    private static PageRequest profilePage(int page, int size) {
-        return PageRequest.of(Math.max(0, page), Math.min(Math.max(1, size), MAX_PROFILE_PAGE_SIZE));
+    private static PageRequest pageOf(int page, int size) {
+        return PageRequest.of(Math.max(0, page), Math.min(Math.max(1, size), MAX_PAGE_SIZE));
     }
 }

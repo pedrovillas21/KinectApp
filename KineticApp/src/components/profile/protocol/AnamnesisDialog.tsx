@@ -38,6 +38,7 @@ export default function AnamnesisDialog({ visible, value, onSave, onClose }: Ana
           placeholder="Ex: hérnia de disco L4-L5, dor no ombro direito, asma…"
           multiline
           numberOfLines={4}
+          maxLength={2000}
           hint="Deixe em branco se não houver restrições."
         />
         <View style={styles.row}>

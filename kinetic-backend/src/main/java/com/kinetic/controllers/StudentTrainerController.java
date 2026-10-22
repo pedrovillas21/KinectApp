@@ -114,7 +114,7 @@ public class StudentTrainerController extends BaseController {
             summary = "Encerrar o vínculo com o meu personal",
             description = "O aluno deixa de ser acompanhado pelo personal: o personal perde o acesso aos dados "
                     + "dele e o aluno volta a controlar as próprias fichas. O histórico de treinos não é apagado. "
-                    + "404 = sem personal ativo; 400 = vínculo atribuído pela empresa."
+                    + "Vale também para vínculo atribuído pela empresa. 404 = sem personal ativo."
     )
     @DeleteMapping("/trainer")
     public ResponseEntity<Void> endMyTrainerLink() {

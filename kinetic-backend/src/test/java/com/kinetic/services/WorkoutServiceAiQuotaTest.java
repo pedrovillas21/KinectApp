@@ -9,6 +9,8 @@ import com.kinetic.repositories.WorkoutExecutionLogRepository;
 import com.kinetic.repositories.WorkoutPlanRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -22,6 +24,7 @@ import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -33,7 +36,7 @@ class WorkoutServiceAiQuotaTest {
     private final UserRepository users = mock(UserRepository.class);
     private final WorkoutService service = new WorkoutService(gemini, plans, users,
             mock(PlanCycleSnapshotService.class), mock(WorkoutExecutionLogRepository.class),
-            mock(TrainerClientRepository.class));
+            mock(TrainerClientRepository.class), new TransactionTemplate(mock(PlatformTransactionManager.class)));
 
     private final User student = new User();
     private final GenerateWorkoutRequestDto request = new GenerateWorkoutRequestDto(
@@ -73,5 +76,17 @@ class WorkoutServiceAiQuotaTest {
 
         assertThrows(IllegalStateException.class, () -> service.generateWorkoutForUser(student.getEmail(), request));
         verify(gemini).generateWorkoutPlan(any(), anyInt(), anyDouble(), anyDouble(), any(), anyInt(), any());
+    }
+
+    @Test
+    void failedAttemptsAreCappedPerHourEvenWithoutASavedPlan() {
+        when(plans.findLatestAiCreatedAt(student.getId())).thenReturn(Optional.empty());
+
+        for (int i = 0; i < WorkoutService.MAX_AI_ATTEMPTS_PER_HOUR; i++) {
+            assertThrows(IllegalStateException.class, () -> service.generateWorkoutForUser(student.getEmail(), request));
+        }
+        assertThrows(AiQuotaExceededException.class, () -> service.generateWorkoutForUser(student.getEmail(), request));
+        verify(gemini, times(WorkoutService.MAX_AI_ATTEMPTS_PER_HOUR))
+                .generateWorkoutPlan(any(), anyInt(), anyDouble(), anyDouble(), any(), anyInt(), any());
     }
 }

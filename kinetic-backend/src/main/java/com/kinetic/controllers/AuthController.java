@@ -190,21 +190,6 @@ public class AuthController {
     }
 
     @Operation(
-            summary = "Checar se um e-mail já existe",
-            description = "Consulta no banco se já existe uma conta com esse e-mail. Útil na tela de cadastro para "
-                    + "avisar o usuário antes de ele preencher o formulário inteiro."
-    )
-    @PostMapping("/verify-email")
-    public ResponseEntity<?> verifyEmail(@Valid @RequestBody VerifyEmailDTO dto) {
-        boolean exists = authService.checkEmailExists(dto.getEmail());
-        if (exists) {
-            return ResponseEntity.ok("E-mail encontrado.");
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("E-mail não encontrado.");
-        }
-    }
-
-    @Operation(
             summary = "Esqueci minha senha (envia código por e-mail)",
             description = "Se o e-mail pertencer a uma conta ativa, envia um código de 6 dígitos válido por 15 minutos. "
                     + "A resposta é sempre a mesma, exista a conta ou não, para não revelar quem está cadastrado. "

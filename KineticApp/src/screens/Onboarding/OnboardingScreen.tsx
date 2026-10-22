@@ -507,6 +507,7 @@ function StepAnamnesis({ value, onChange, isDark }: StepAnamnesisProps) {
             numberOfLines={5}
             value={freeText}
             onChangeText={handleFreeTextChange}
+            maxLength={1900} // junto com os chips, cabe no limite de 2000 da anamnese no backend
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
             placeholder="Ex: hérnia de disco L4-L5, dor no ombro direito, asma..."

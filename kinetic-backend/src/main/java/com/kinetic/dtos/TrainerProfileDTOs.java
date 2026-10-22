@@ -70,7 +70,7 @@ public final class TrainerProfileDTOs {
     /**
      * Tela "Seu personal" do app. {@code lastReviewAt} = ficha mais recente que o
      * personal montou para o aluno (vigente ou arquivada); nulo se nunca montou.
-     * {@code canEndLink} é false para vínculo atribuído pela empresa.
+     * {@code canEndLink} é sempre true: o aluno pode encerrar qualquer vínculo, inclusive o da empresa.
      */
     public record StudentView(
             UUID linkId,

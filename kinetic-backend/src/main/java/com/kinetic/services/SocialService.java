@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -46,6 +47,19 @@ public class SocialService {
         this.storageService = storageService;
         this.workoutSessionRepository = workoutSessionRepository;
         this.trainingSummaryService = trainingSummaryService;
+    }
+
+    // ── Media ────────────────────────────────────────────────────────────────
+
+    /** Sobe a mídia com o id do autor na key, para as checagens de dono abaixo. */
+    public String uploadMedia(String email, MultipartFile file, String folder) {
+        return storageService.upload(file, folder, findByEmail(email).getId());
+    }
+
+    /** Só apaga mídia enviada pelo próprio usuário; outra key → 403. */
+    public void deleteMedia(String email, String urlOrKey) {
+        String key = storageService.requireOwnMediaKey(urlOrKey, findByEmail(email).getId());
+        if (key != null) storageService.deleteByKey(key);
     }
 
     // ── Search ──────────────────────────────────────────────────────────────
@@ -205,9 +219,9 @@ public class SocialService {
         post.setDurationMinutes(req.durationMinutes());
         post.setCalories(req.calories());
         post.setCaption(req.caption());
-        // Versões antigas do app ainda mandam a URL pública devolvida pelo upload
-        // anterior; normalizeKey aceita as duas formas e grava sempre a key.
-        post.setImageUrl(storageService.normalizeKey(req.imageUrl()));
+        // Só mídia enviada por mim: a key é reassinada a cada leitura do feed, então
+        // aceitar key alheia vazaria a imagem de quem eu não posso ver.
+        post.setImageUrl(storageService.requireOwnMediaKey(req.imageUrl(), me.getId()));
         post.setBadge(req.badge());
         post.setWorkoutSession(resolveOwnSession(me, req.workoutSessionId(), req.clientSessionId()));
         // saveAndFlush: created_at só é preenchido no INSERT (@CreationTimestamp).
@@ -241,7 +255,7 @@ public class SocialService {
         SocialPost story = new SocialPost();
         story.setAuthor(me);
         story.setKind("STORY");
-        story.setImageUrl(storageService.normalizeKey(req.imageUrl()));
+        story.setImageUrl(storageService.requireOwnMediaKey(req.imageUrl(), me.getId()));
         story.setCaption(req.caption());
         story.setExpiresAt(LocalDateTime.now().plusHours(24));
         postRepository.saveAndFlush(story);
@@ -292,9 +306,8 @@ public class SocialService {
     @Transactional
     public long likePost(String email, UUID postId) {
         User me = findByEmail(email);
+        SocialPost post = requireVisiblePost(me, postId);
         if (!likeRepository.existsByPostIdAndUserId(postId, me.getId())) {
-            SocialPost post = postRepository.findById(postId)
-                    .orElseThrow(() -> new EntityNotFoundException("Post not found"));
             PostLike like = new PostLike();
             like.setPost(post);
             like.setUser(me);
@@ -306,6 +319,7 @@ public class SocialService {
     @Transactional
     public long unlikePost(String email, UUID postId) {
         User me = findByEmail(email);
+        requireVisiblePost(me, postId);
         likeRepository.deleteByPostIdAndUserId(postId, me.getId());
         return likeRepository.countByPostId(postId);
     }
@@ -313,7 +327,8 @@ public class SocialService {
     // ── Comments ─────────────────────────────────────────────────────────────
 
     @Transactional(readOnly = true)
-    public List<CommentDTO> listComments(UUID postId) {
+    public List<CommentDTO> listComments(String email, UUID postId) {
+        requireVisiblePost(findByEmail(email), postId);
         return commentRepository.findByPostIdOrderByCreatedAtAsc(postId).stream()
                 .map(c -> new CommentDTO(
                         c.getId(),
@@ -329,8 +344,7 @@ public class SocialService {
     @Transactional
     public CommentDTO addComment(String email, UUID postId, AddCommentRequest req) {
         User me = findByEmail(email);
-        SocialPost post = postRepository.findById(postId)
-                .orElseThrow(() -> new EntityNotFoundException("Post not found"));
+        SocialPost post = requireVisiblePost(me, postId);
         PostComment comment = new PostComment();
         comment.setPost(post);
         comment.setUser(me);
@@ -340,6 +354,16 @@ public class SocialService {
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    /**
+     * Post que {@code me} pode ver pela mesma regra do feed (meu ou de conexão ACCEPTED).
+     * Fora disso → 404, para não revelar que o post existe (ex.: amizade desfeita).
+     */
+    SocialPost requireVisiblePost(User me, UUID postId) {
+        return postRepository.findById(postId)
+                .filter(p -> canSeeActivity(me, p.getAuthor()))
+                .orElseThrow(() -> new EntityNotFoundException("Post not found"));
+    }
 
     private PresenceStatus derivePresence(User u) {
         if (u.getLastActive() == null) return PresenceStatus.OFFLINE;

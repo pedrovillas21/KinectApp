@@ -72,7 +72,7 @@ export default function FuncionariosPage() {
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } }).response?.status;
       if (status === 404) toast.error('Nenhum personal cadastrado com este e-mail.');
-      else if (status === 400) toast.error('O e-mail informado não pertence a um personal.');
+      else if (status === 409) toast.error('Este personal já está vinculado a outra empresa.');
       else toast.error('Não foi possível vincular o personal.');
     } finally {
       setSubmitting(false);
