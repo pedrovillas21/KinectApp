@@ -19,3 +19,7 @@ target/
 # OS
 .DS_Store
 Thumbs.db
+
+# Migração do Supabase: dump com dados de produção
+*.dump
+!scripts/migracao-supabase/.env.migracao.example
