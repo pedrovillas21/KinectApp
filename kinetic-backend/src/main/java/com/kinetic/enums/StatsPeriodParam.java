@@ -1,5 +1,7 @@
 package com.kinetic.enums;
 
+import com.kinetic.utils.AppTime;
+
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
@@ -7,25 +9,25 @@ import java.time.temporal.TemporalAdjusters;
 public enum StatsPeriodParam {
 
     WEEK {
-        @Override public LocalDate startDate()         { return LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)); }
+        @Override public LocalDate startDate()         { return AppTime.today().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)); }
         @Override public int targetWeeks()             { return 1; }
         @Override public String insightTag()           { return "Foco da semana"; }
         @Override public String id()                   { return "week"; }
     },
     MONTH {
-        @Override public LocalDate startDate()         { return LocalDate.now().withDayOfMonth(1); }
+        @Override public LocalDate startDate()         { return AppTime.today().withDayOfMonth(1); }
         @Override public int targetWeeks()             { return 4; }
         @Override public String insightTag()           { return "Destaque do mês"; }
         @Override public String id()                   { return "month"; }
     },
     Q {
-        @Override public LocalDate startDate()         { return LocalDate.now().minusDays(89); }
+        @Override public LocalDate startDate()         { return AppTime.today().minusDays(89); }
         @Override public int targetWeeks()             { return 13; }
         @Override public String insightTag()           { return "Tendência trimestral"; }
         @Override public String id()                   { return "q"; }
     },
     YEAR {
-        @Override public LocalDate startDate()         { return LocalDate.now().minusDays(364); }
+        @Override public LocalDate startDate()         { return AppTime.today().minusDays(364); }
         @Override public int targetWeeks()             { return 52; }
         @Override public String insightTag()           { return "Visão anual"; }
         @Override public String id()                   { return "year"; }
@@ -37,7 +39,7 @@ public enum StatsPeriodParam {
     public abstract String id();
 
     public LocalDate endDate() {
-        return LocalDate.now();
+        return AppTime.today();
     }
 
     /** Início do período anterior (mesmo comprimento que o atual). */

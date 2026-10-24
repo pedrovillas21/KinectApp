@@ -10,7 +10,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
-package-lock.json     # opcional: comente se quiser versionar
+# Lockfiles dos subprojetos são versionados (build reprodutível); só o da raiz,
+# que não tem package.json, é lixo.
+/package-lock.json
 # yarn.lock           # opcional: descomente se usar Yarn
 
 # ─── Expo ────────────────────────────────────
@@ -105,10 +107,17 @@ $RECYCLE.BIN/
 **/target/
 .vscode/*
 !.vscode/settings.json
-.github/
+# Saída de ferramentas do Copilot (java-upgrade, modernize); os workflows do
+# GitHub Actions (deploy) continuam versionados.
+**/.github/*
+!**/.github/workflows/
 .agents/
 
 .claude/
+
+# ─── Supabase CLI (estado local, inclui o project ref) ─
+supabase/.temp/
+supabase/.branches/
 
 # ==========================================
 # Graphify (Mapeamento do Projeto)
@@ -122,8 +131,28 @@ graphify-out/cost.json
 graphify-out/cache/
 
 # Ignorar o cofre do Obsidian/Wiki gerado para leitura local
-graphify-out/obsidian/ 
+graphify-out/obsidian/
+graphify-out/.obsidian/
 
 # Ignorar todos os arquivos de estado intermediário (arquivos ocultos .json)
 graphify-out/.*.json
 graphify-out/.graphify_root
+graphify-out/.graphify_*.sig
+graphify-out/.graphify_*.txt
+
+# Snapshots datados de execuções anteriores (backup local, regeneráveis)
+graphify-out/20*/
+
+# Documentos convertidos para extração (regeneráveis)
+graphify-out/converted/
+
+# Visualização gerada a partir do graph.json (~5 MB, regenerável)
+graphify-out/graph.html
+
+# Estado do graphify gravado na raiz (caminho do Python é desta máquina)
+/.graphify_*
+security-audit-skill
+
+# Grafo e relatório gerados localmente (regenerar com: graphify update .)
+graphify-out/graph.json
+graphify-out/GRAPH_REPORT.md

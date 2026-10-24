@@ -7,6 +7,8 @@ public record GeneratedExerciseDto(
         Integer sets,
         String reps,
         String weight,
+        /** EXTERNAL, BODYWEIGHT ou NONE; se a IA errar, deduz pelo rótulo de carga. */
+        String loadType,
         String restTime,
         String section
 ) {}

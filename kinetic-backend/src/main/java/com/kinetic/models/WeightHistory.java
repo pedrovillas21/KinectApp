@@ -1,5 +1,7 @@
 package com.kinetic.models;
 
+import com.kinetic.utils.AppTime;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -38,5 +40,5 @@ public class WeightHistory {
     private Double weight;
 
     @Column(name = "logged_at", nullable = false)
-    private LocalDate loggedAt = LocalDate.now();
+    private LocalDate loggedAt = AppTime.today();
 }

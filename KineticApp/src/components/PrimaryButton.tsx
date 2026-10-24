@@ -1,11 +1,11 @@
 import React, { ReactNode } from 'react';
 import {
   TouchableOpacity,
-  Text,
   ActivityIndicator,
   StyleSheet,
   View,
 } from 'react-native';
+import { Text } from './ui/scaled';
 import { COLORS } from '../theme/colors';
 
 interface Props {

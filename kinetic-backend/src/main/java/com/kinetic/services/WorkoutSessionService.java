@@ -1,8 +1,13 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.SetLimits;
+
+import com.kinetic.utils.AppTime;
+
 import com.kinetic.dtos.MonthlyStatsResponseDTO;
 import com.kinetic.dtos.WeeklyActivityDayDTO;
 import com.kinetic.dtos.WeeklyActivityResponseDTO;
+import com.kinetic.exceptions.DuplicateWorkoutSessionException;
 import com.kinetic.models.User;
 import com.kinetic.models.WorkoutExecutionLog;
 import com.kinetic.models.WorkoutSession;
@@ -16,6 +21,7 @@ import com.kinetic.repositories.WorkoutExecutionLogRepository;
 import com.kinetic.repositories.WorkoutPlanRepository;
 import com.kinetic.repositories.WorkoutSessionRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,14 +59,60 @@ public class WorkoutSessionService {
         this.presenceService = presenceService;
     }
 
+    /**
+     * Grava o treino executado. Idempotente por {@code clientSessionId}: reenvio do
+     * mesmo treino devolve {@code false} sem gravar nada de novo.
+     *
+     * @return {@code true} se o treino foi criado agora, {@code false} se já existia
+     */
+    /**
+     * Peso gravado na série. Peso corporal entra como o peso atual do aluno + carga
+     * extra: é aproximação, mas dá volume e progressão em vez de 0 kg. Sem carga
+     * grava 0 seja o que for enviado.
+     */
+    static double effectiveWeight(Exercise exercise, User user, SetLogDto set) {
+        double typed = set.weightUsed();
+        if (!SetLimits.isPlausible(typed, set.repsPerformed())) {
+            throw new IllegalArgumentException("Série de " + exercise.getName() + " com "
+                    + set.repsPerformed() + " reps e " + typed + " kg está fora do possível. Confira os valores.");
+        }
+        return switch (exercise.effectiveLoadType()) {
+            case NONE -> 0;
+            case BODYWEIGHT -> (user.getWeight() != null ? user.getWeight() : 0) + typed;
+            case EXTERNAL -> typed;
+        };
+    }
+
+    /** Treino só conta no ranking da semana em que foi feito: aceita até 7 dias atrás. */
+    static final int MAX_SESSION_AGE_DAYS = 7;
+
+    /**
+     * O app manda a data local do aparelho; 1 dia à frente cobre fuso/relógio adiantado.
+     * Fora disso a data é inventada e serviria para inflar uma semana do ranking.
+     */
+    static void requirePlausibleDate(LocalDate date, LocalDate today) {
+        if (date.isBefore(today.minusDays(MAX_SESSION_AGE_DAYS)) || date.isAfter(today.plusDays(1))) {
+            throw new IllegalArgumentException("Data do treino inválida: registre treinos de até "
+                    + MAX_SESSION_AGE_DAYS + " dias atrás.");
+        }
+    }
+
     @Transactional
-    public void logSession(String userEmail, LogSessionRequestDTO request) {
+    public boolean logSession(String userEmail, LogSessionRequestDTO request) {
         User user = findUserByEmail(userEmail);
+
+        UUID clientSessionId = request.clientSessionId();
+        if (clientSessionId != null
+                && workoutSessionRepository.existsByUserIdAndClientSessionId(user.getId(), clientSessionId)) {
+            return false;
+        }
+        requirePlausibleDate(request.date(), AppTime.today());
 
         WorkoutSession session = new WorkoutSession();
         session.setUser(user);
         session.setDurationInSeconds(request.durationInSeconds());
         session.setSessionDate(request.date());
+        session.setClientSessionId(clientSessionId);
 
         for (SetLogDto setDto : request.exercisesLog()) {
             Exercise exercise = exerciseRepository.findById(Objects.requireNonNull(setDto.exerciseId()))
@@ -70,13 +122,24 @@ public class WorkoutSessionService {
             setLog.setExercise(exercise);
             setLog.setSetNumber(setDto.setNumber());
             setLog.setRepsPerformed(setDto.repsPerformed());
-            setLog.setWeightUsed(setDto.weightUsed());
+            setLog.setWeightUsed(effectiveWeight(exercise, user, setDto));
             setLog.setWorkoutSession(session);
 
             session.getSetLogs().add(setLog);
         }
 
-        workoutSessionRepository.save(session);
+        // Flush já aqui: se dois envios do mesmo treino passaram juntos pelo exists acima,
+        // o índice único barra o segundo antes de ele gravar o log de execução.
+        try {
+            workoutSessionRepository.saveAndFlush(session);
+        } catch (DataIntegrityViolationException e) {
+            String detail = e.getMostSpecificCause().getMessage();
+            if (clientSessionId != null && detail != null
+                    && detail.contains("uq_workout_sessions_user_client_session")) {
+                throw new DuplicateWorkoutSessionException();
+            }
+            throw e;
+        }
         presenceService.endSession(userEmail);
 
         UUID planId = request.workoutPlanId();
@@ -92,6 +155,7 @@ public class WorkoutSessionService {
                         workoutExecutionLogRepository.save(log);
                     });
         }
+        return true;
     }
 
     @Transactional(readOnly = true)
@@ -103,7 +167,7 @@ public class WorkoutSessionService {
         }
 
         int targetSessions = user.getFrequency() * 4;
-        LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
+        LocalDate startOfMonth = AppTime.today().withDayOfMonth(1);
         LocalDate startOfNextMonth = startOfMonth.plusMonths(1);
         long completedSessions = workoutSessionRepository
                 .countByUserIdAndSessionDateGreaterThanEqualAndSessionDateLessThan(
@@ -126,7 +190,7 @@ public class WorkoutSessionService {
     public WeeklyActivityResponseDTO getWeeklyActivity(String userEmail) {
         User user = findUserByEmail(userEmail);
 
-        LocalDate today = LocalDate.now();
+        LocalDate today = AppTime.today();
         int daysFromSunday = today.getDayOfWeek() == DayOfWeek.SUNDAY
                 ? 0
                 : today.getDayOfWeek().getValue();

@@ -12,13 +12,12 @@ import type {
   CreateStoryRequest,
 } from '../types';
 
-export const avatarFallback = (id: string, url?: string | null): string =>
-  url ?? `https://i.pravatar.cc/150?u=${id}`;
-
-// Sobe um arquivo local (file://) para o Storage via backend e devolve a URL
-// pública. Sobrescreve o Content-Type para multipart por requisição: o axios
-// usa application/json por padrão (api.ts), e o React Native só monta o
-// boundary correto quando o header é multipart/form-data.
+// Sobe um arquivo local (file://) para o Storage via backend e devolve o
+// identificador do arquivo — não um endereço navegável. O bucket é privado; quem
+// entrega link (temporário) é o feed/stories, só para conexões aceitas.
+// Sobrescreve o Content-Type para multipart por requisição: o axios usa
+// application/json por padrão (api.ts), e o React Native só monta o boundary
+// correto quando o header é multipart/form-data.
 export const uploadMedia = async (
   uri: string,
   folder: 'posts' | 'stories' = 'posts',
@@ -81,6 +80,12 @@ export const getSquadStatus = async (): Promise<SquadMember[]> => {
 
 export const getFeed = async (page = 0, size = 10): Promise<Page<FeedPostData>> => {
   const res = await api.get<Page<FeedPostData>>('/social/feed', { params: { page, size } });
+  return res.data;
+};
+
+/** Posts de um usuário (o próprio ou amigo aceito; os demais recebem 403). */
+export const getUserPosts = async (userId: string, page = 0, size = 12): Promise<Page<FeedPostData>> => {
+  const res = await api.get<Page<FeedPostData>>(`/social/users/${userId}/posts`, { params: { page, size } });
   return res.data;
 };
 

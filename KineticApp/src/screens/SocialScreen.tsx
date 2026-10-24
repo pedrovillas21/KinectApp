@@ -1,246 +1,315 @@
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  Text,
-  RefreshControl,
-  ActivityIndicator,
-} from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
-import { ThemeContext } from '../contexts/ThemeContext';
-import { COLORS } from '../theme/colors';
-import AppHeader from '../components/AppHeader';
+
 import SquadBar from '../components/SquadBar';
 import FeedPost from '../components/FeedPost';
-import UserSearchModal from '../components/UserSearchModal';
-import ConnectionRequestsModal from '../components/ConnectionRequestsModal';
+import InviteDialog from '../components/InviteDialog';
 import CommentsSheet from '../components/CommentsSheet';
 import NewPostModal from '../components/NewPostModal';
 import NewStoryModal from '../components/NewStoryModal';
 import StoryViewer from '../components/StoryViewer';
+import ArenaRanking from '../components/social/ArenaRanking';
+import Icon, { IconName } from '../components/Icon';
+import { Text, UnderlineTabs } from '../components/ui';
+import { AuthContext } from '../contexts/AuthContext';
 import useSquadStatus from '../hooks/useSquadStatus';
+import useFocusResource from '../hooks/useFocusResource';
+import { getPublicProfile } from '../services/profileService';
+import api from '../services/api';
 import {
   getFeed,
+  getPendingRequests,
+  getSquad,
+  getStories,
+  getUserPosts,
   likePost,
   unlikePost,
-  getSquad,
-  getPendingRequests,
-  acceptConnection,
-  removeConnection,
-  getStories,
 } from '../services/socialService';
-import type { FeedPostData, SquadMember, PendingRequest, StoryGroup } from '../types';
+import { KINETIC, RADIUS } from '../theme/kinetic';
+import type { MainTabScreenProps } from '../navigation/types';
+import type { FeedPostData, HomeDashboardResponseDTO, RankingEntryDTO, SquadMember, StoryGroup } from '../types';
 
-export default function SocialScreen() {
-  const { isDarkMode } = useContext(ThemeContext);
-  const tabBarHeight = useBottomTabBarHeight();
+type SocialTab = 'following' | 'arena' | 'mine';
 
+const TABS: { key: SocialTab; label: string }[] = [
+  { key: 'following', label: 'Seguindo' },
+  { key: 'arena', label: 'Arena' },
+  { key: 'mine', label: 'Você' },
+];
+
+function HeaderButton({ icon, label, onPress, badge }: { icon: IconName; label: string; onPress: () => void; badge?: boolean }) {
+  return (
+    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={styles.headerBtn}>
+      <Icon name={icon} size={18} color={KINETIC.text} />
+      {badge ? <View style={styles.badge} /> : null}
+    </Pressable>
+  );
+}
+
+export default function SocialScreen({ navigation, route }: MainTabScreenProps<'Social'>) {
+  const { currentUser } = useContext(AuthContext);
+  const myId = currentUser ? String(currentUser.id) : null;
+  // Mesma chave do Perfil e de Configurações: a foto vem do cache compartilhado.
+  const myProfile = useFocusResource(myId ? `profile/${myId}` : null, () => getPublicProfile(myId!));
+
+  const [tab, setTab] = useState<SocialTab>('following');
+
+  // Seguindo
   const [feed, setFeed] = useState<FeedPostData[]>([]);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loadingFeed, setLoadingFeed] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [squadMembers, setSquadMembers] = useState<SquadMember[]>([]);
+  const [storyGroups, setStoryGroups] = useState<StoryGroup[]>([]);
+  const [pendingCount, setPendingCount] = useState(0);
+
+  // Arena e Você (carregam ao abrir a aba)
+  const [ranking, setRanking] = useState<RankingEntryDTO[] | null>(null);
+  const [myPosts, setMyPosts] = useState<FeedPostData[] | null>(null);
+
+  // Sobreposições
   const [activeCommentsPostId, setActiveCommentsPostId] = useState<string | null>(null);
-  const [showSearchModal, setShowSearchModal] = useState(false);
-  const [showRequests, setShowRequests] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
   const [showNewPost, setShowNewPost] = useState(false);
   const [showNewStory, setShowNewStory] = useState(false);
-  const [squadMembers, setSquadMembers] = useState<SquadMember[]>([]);
-  const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>([]);
-  const [storyGroups, setStoryGroups] = useState<StoryGroup[]>([]);
   const [storyViewerIndex, setStoryViewerIndex] = useState<number | null>(null);
 
   const liveSquad = useSquadStatus();
-  const isFirstMount = useRef(true);
+  const loadingFeedRef = useRef(false);
 
   // Prefer live polling data once available, seed from initial REST load
   useEffect(() => {
     if (liveSquad.length > 0) setSquadMembers(liveSquad);
   }, [liveSquad]);
 
-  const loadFeedPage = async (pageNum: number, reset = false) => {
-    if (loadingFeed && !reset) return;
+  const loadFeedPage = useCallback(async (pageNum: number, reset = false) => {
+    if (loadingFeedRef.current && !reset) return;
+    loadingFeedRef.current = true;
     setLoadingFeed(true);
     try {
       const data = await getFeed(pageNum, 10);
-      setFeed((prev) => reset ? data.content : [...prev, ...data.content]);
+      setFeed((prev) => (reset ? data.content : [...prev, ...data.content]));
       setPage(pageNum);
       setHasMore(!data.last);
     } catch {
-      // silent
+      // mantém o que já estava na tela
     } finally {
+      loadingFeedRef.current = false;
       setLoadingFeed(false);
     }
-  };
+  }, []);
 
-  const loadSquad = async () => {
-    try {
-      const data = await getSquad();
-      setSquadMembers(data);
-    } catch {
-      // silent
-    }
-  };
-
-  const loadRequests = async () => {
-    try {
-      const data = await getPendingRequests();
-      setPendingRequests(data);
-    } catch {
-      // silent
-    }
-  };
-
-  const loadStories = async () => {
-    try {
-      const data = await getStories();
-      setStoryGroups(data);
-    } catch {
-      // silent
-    }
-  };
+  const loadSquad = useCallback(() => getSquad().then(setSquadMembers).catch(() => {}), []);
+  const loadStories = useCallback(() => getStories().then(setStoryGroups).catch(() => {}), []);
+  const loadPending = useCallback(
+    () => getPendingRequests().then((r) => setPendingCount(r.length)).catch(() => {}),
+    [],
+  );
+  const loadRanking = useCallback(
+    () =>
+      api
+        .get<HomeDashboardResponseDTO>('/home/dashboard')
+        .then((res) => setRanking(res.data.ranking ?? []))
+        .catch(() => setRanking([])),
+    [],
+  );
+  const loadMyPosts = useCallback(() => {
+    if (!myId) return Promise.resolve();
+    return getUserPosts(myId, 0, 20)
+      .then((p) => setMyPosts(p.content))
+      .catch(() => setMyPosts([]));
+  }, [myId]);
 
   useEffect(() => {
     loadFeedPage(0, true);
     loadSquad();
-    loadRequests();
     loadStories();
-  }, []);
+    loadPending();
+  }, [loadFeedPage, loadSquad, loadStories, loadPending]);
+
+  // Volta de "Nova publicação" com um post novo: a aba já montada recarrega o feed.
+  const refreshAt = route.params?.refreshAt;
+  useEffect(() => {
+    if (refreshAt) loadFeedPage(0, true);
+  }, [refreshAt, loadFeedPage]);
+
+  useEffect(() => {
+    if (tab === 'arena' && ranking === null) loadRanking();
+    if (tab === 'mine' && myPosts === null) loadMyPosts();
+  }, [tab, ranking, myPosts, loadRanking, loadMyPosts]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([loadFeedPage(0, true), loadSquad(), loadRequests(), loadStories()]);
+    if (tab === 'following') {
+      await Promise.all([loadFeedPage(0, true), loadSquad(), loadStories(), loadPending()]);
+    } else if (tab === 'arena') {
+      await loadRanking();
+    } else {
+      await loadMyPosts();
+    }
     setRefreshing(false);
-  }, []);
-
-  // Aceitar conexão: vira amizade → atualiza solicitações, squad e feed.
-  const handleAcceptRequest = useCallback(async (requesterId: string) => {
-    setPendingRequests((prev) => prev.filter((r) => r.requesterId !== requesterId));
-    try {
-      await acceptConnection(requesterId);
-      await Promise.all([loadSquad(), loadFeedPage(0, true), loadRequests()]);
-    } catch {
-      loadRequests();
-    }
-  }, []);
-
-  const handleDeclineRequest = useCallback(async (requesterId: string) => {
-    setPendingRequests((prev) => prev.filter((r) => r.requesterId !== requesterId));
-    try {
-      await removeConnection(requesterId);
-    } catch {
-      loadRequests();
-    }
-  }, []);
+  }, [tab, loadFeedPage, loadSquad, loadStories, loadPending, loadRanking, loadMyPosts]);
 
   const handleEndReached = useCallback(() => {
-    if (!loadingFeed && hasMore) {
-      loadFeedPage(page + 1);
-    }
-  }, [loadingFeed, hasMore, page]);
+    if (!loadingFeedRef.current && hasMore) loadFeedPage(page + 1);
+  }, [hasMore, page, loadFeedPage]);
 
-  const handleToggleLike = async (postId: string, liked: boolean): Promise<number> => {
-    return liked ? likePost(postId) : unlikePost(postId);
-  };
+  const handleToggleLike = (postId: string, liked: boolean): Promise<number> =>
+    liked ? likePost(postId) : unlikePost(postId);
 
   const handleCommentsCountChange = (postId: string, count: number) => {
-    setFeed((prev) =>
-      prev.map((p) => p.id === postId ? { ...p, commentsCount: count } : p)
-    );
+    const update = (list: FeedPostData[]) => list.map((p) => (p.id === postId ? { ...p, commentsCount: count } : p));
+    setFeed(update);
+    setMyPosts((prev) => (prev ? update(prev) : prev));
   };
 
   const handleNewPost = (post: FeedPostData) => {
     setFeed((prev) => [post, ...prev]);
+    setMyPosts((prev) => (prev ? [post, ...prev] : prev));
   };
+
+  const openProfile = useCallback(
+    (userId: string) => {
+      if (userId === myId) {
+        navigation.navigate('Profile');
+        return;
+      }
+      navigation.navigate('UserProfile', { userId });
+    },
+    [myId, navigation],
+  );
 
   const openStory = (userId: string) => {
     const index = storyGroups.findIndex((g) => g.userId === userId);
     if (index >= 0) setStoryViewerIndex(index);
   };
 
-  const handleSearchClose = () => {
-    setShowSearchModal(false);
+  const handleInviteChanged = () => {
     loadSquad();
-    loadRequests();
+    loadPending();
+    loadFeedPage(0, true);
+    setRanking(null);
   };
 
+  const refreshControl = (
+    <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={KINETIC.primary} />
+  );
+
+  const renderPost = ({ item }: { item: FeedPostData }) => (
+    <FeedPost
+      post={item}
+      onToggleLike={handleToggleLike}
+      onOpenComments={setActiveCommentsPostId}
+      onPressAuthor={openProfile}
+    />
+  );
+
   return (
-    <SafeAreaView
-      style={[
-        styles.container,
-        { backgroundColor: isDarkMode ? COLORS.darkBackground : COLORS.lightBackground },
-      ]}
-    >
-      <AppHeader
-        onPressNotifications={() => setShowRequests(true)}
-        hasUnreadNotifications={pendingRequests.length > 0}
-      />
-
-      <FlatList
-        data={feed}
-        keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContent}
-        ListHeaderComponent={
-          <SquadBar
-            items={squadMembers}
-            storyUserIds={storyGroups.map((g) => g.userId)}
-            onAddPress={() => setShowSearchModal(true)}
-            onAddStory={() => setShowNewStory(true)}
-            onOpenStory={openStory}
+    <SafeAreaView edges={['top', 'left', 'right']} style={styles.container}>
+      <View style={styles.header}>
+        <Text variant="display" accessibilityRole="header">
+          Comunidade
+        </Text>
+        <View style={styles.headerActions}>
+          {/* Um botão só: a busca de pessoas fica dentro do balão de convite (aba Amigo). */}
+          <HeaderButton
+            icon="user-plus"
+            label={
+              pendingCount > 0
+                ? `Buscar e convidar pessoas. ${pendingCount} pedidos recebidos`
+                : 'Buscar e convidar pessoas'
+            }
+            onPress={() => setInviteOpen(true)}
+            badge={pendingCount > 0}
           />
-        }
-        renderItem={({ item }) => (
-          <FeedPost
-            post={item}
-            onToggleLike={handleToggleLike}
-            onOpenComments={(id) => setActiveCommentsPostId(id)}
-          />
-        )}
-        onEndReached={handleEndReached}
-        onEndReachedThreshold={0.4}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor={COLORS.neonBlue}
-          />
-        }
-        ListEmptyComponent={
-          !loadingFeed ? (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyText}>Sem posts ainda.</Text>
-              <Text style={styles.emptySubText}>
-                Adicione pessoas ao seu squad e veja os treinos delas aqui!
-              </Text>
-            </View>
-          ) : null
-        }
-        ListFooterComponent={
-          loadingFeed && feed.length > 0 ? (
-            <ActivityIndicator color={COLORS.neonBlue} style={styles.footerLoader} />
-          ) : null
-        }
-      />
+        </View>
+      </View>
 
-      <TouchableOpacity
-        style={[styles.fab, { bottom: tabBarHeight + 16 }]}
-        onPress={() => setShowNewPost(true)}
-      >
-        <Text style={styles.fabIcon}>+</Text>
-      </TouchableOpacity>
+      <UnderlineTabs tabs={TABS} value={tab} onChange={setTab} />
 
-      <UserSearchModal visible={showSearchModal} onClose={handleSearchClose} />
+      {tab === 'following' ? (
+        <FlatList
+          data={feed}
+          keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
+          ListHeaderComponent={
+            <SquadBar
+              items={squadMembers}
+              me={myId ? { id: myId, nome: currentUser?.nome ?? '', avatarUrl: myProfile.data?.avatarUrl } : null}
+              storyUserIds={storyGroups.map((g) => g.userId)}
+              onAddStory={() => setShowNewStory(true)}
+              onOpenStory={openStory}
+              onMemberPress={(m) => openProfile(m.id)}
+            />
+          }
+          renderItem={renderPost}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.4}
+          refreshControl={refreshControl}
+          ListEmptyComponent={
+            !loadingFeed ? (
+              <View style={styles.empty}>
+                <Text variant="bodyStrong">Sem posts ainda</Text>
+                <Text variant="body" color={KINETIC.textSecondary} style={styles.center}>
+                  Adicione amigos e veja os treinos deles aqui.
+                </Text>
+              </View>
+            ) : null
+          }
+          ListFooterComponent={
+            loadingFeed && feed.length > 0 ? <ActivityIndicator color={KINETIC.primary} style={styles.loader} /> : null
+          }
+        />
+      ) : tab === 'arena' ? (
+        <ScrollView contentContainerStyle={styles.listContent} refreshControl={refreshControl}>
+          {ranking === null ? (
+            <ActivityIndicator color={KINETIC.primary} style={styles.loader} />
+          ) : (
+            <ArenaRanking entries={ranking} onPressUser={openProfile} />
+          )}
+        </ScrollView>
+      ) : (
+        <FlatList
+          data={myPosts ?? []}
+          keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
+          renderItem={renderPost}
+          refreshControl={refreshControl}
+          ListEmptyComponent={
+            myPosts === null ? (
+              <ActivityIndicator color={KINETIC.primary} style={styles.loader} />
+            ) : (
+              <View style={styles.empty}>
+                <Text variant="bodyStrong">Você ainda não publicou</Text>
+                <Text variant="body" color={KINETIC.textSecondary} style={styles.center}>
+                  Compartilhe um treino com seus amigos.
+                </Text>
+              </View>
+            )
+          }
+        />
+      )}
 
-      <ConnectionRequestsModal
-        visible={showRequests}
-        requests={pendingRequests}
-        onClose={() => setShowRequests(false)}
-        onAccept={handleAcceptRequest}
-        onDecline={handleDeclineRequest}
+      {tab !== 'arena' ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Nova publicação"
+          onPress={() => setShowNewPost(true)}
+          style={({ pressed }) => [styles.publish, pressed && styles.pressed]}
+        >
+          <Icon name="plus" size={24} color={KINETIC.onPrimary} strokeWidth={2.4} />
+        </Pressable>
+      ) : null}
+
+      <InviteDialog
+        visible={inviteOpen}
+        onClose={() => setInviteOpen(false)}
+        onChanged={handleInviteChanged}
+        onOpenProfile={openProfile}
       />
 
       <CommentsSheet
@@ -250,17 +319,9 @@ export default function SocialScreen() {
         onCommentsCountChange={handleCommentsCountChange}
       />
 
-      <NewPostModal
-        visible={showNewPost}
-        onClose={() => setShowNewPost(false)}
-        onPostCreated={handleNewPost}
-      />
+      <NewPostModal visible={showNewPost} onClose={() => setShowNewPost(false)} onPostCreated={handleNewPost} />
 
-      <NewStoryModal
-        visible={showNewStory}
-        onClose={() => setShowNewStory(false)}
-        onStoryCreated={loadStories}
-      />
+      <NewStoryModal visible={showNewStory} onClose={() => setShowNewStory(false)} onStoryCreated={loadStories} />
 
       <StoryViewer
         visible={storyViewerIndex !== null}
@@ -273,35 +334,54 @@ export default function SocialScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  listContent: { paddingBottom: 100 },
-  fab: {
-    position: 'absolute',
-    right: 24,
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: COLORS.neonBlue,
+  container: { flex: 1, backgroundColor: KINETIC.bg },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 18,
+    paddingBottom: 6,
+  },
+  headerActions: { flexDirection: 'row', gap: 8 },
+  headerBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: KINETIC.ghost,
+    backgroundColor: KINETIC.surface1,
+    alignItems: 'center',
     justifyContent: 'center',
+  },
+  badge: {
+    position: 'absolute',
+    top: 8,
+    right: 9,
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: KINETIC.primary,
+  },
+  listContent: { paddingBottom: 88 },
+  empty: { alignItems: 'center', paddingTop: 48, paddingHorizontal: 32, gap: 6 },
+  center: { textAlign: 'center' },
+  loader: { marginVertical: 24 },
+  publish: {
+    position: 'absolute',
+    right: 20,
+    bottom: 16,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: KINETIC.primary,
     alignItems: 'center',
-    shadowColor: COLORS.neonBlue,
+    justifyContent: 'center',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 8,
   },
-  fabIcon: {
-    color: COLORS.darkBackground,
-    fontSize: 32,
-    fontWeight: 'bold',
-    lineHeight: 34,
-  },
-  emptyState: {
-    alignItems: 'center',
-    paddingTop: 60,
-    paddingHorizontal: 32,
-  },
-  emptyText: { color: '#FFF', fontSize: 18, fontWeight: 'bold', marginBottom: 8 },
-  emptySubText: { color: '#888', fontSize: 14, textAlign: 'center', lineHeight: 20 },
-  footerLoader: { marginVertical: 20 },
+  pressed: { opacity: 0.85 },
 });

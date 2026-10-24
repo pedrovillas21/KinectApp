@@ -1,23 +1,22 @@
 import React, { useContext, useEffect, useState } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
   Animated,
   Easing,
-  TextInput,
-  Alert,
-  Platform,
-  KeyboardAvoidingView,
 } from 'react-native';
+import { Text, TextInput } from '../../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { AuthContext } from '../../contexts/AuthContext';
 import Icon from '../../components/Icon';
+import { showAlert } from '../../components/ui/AlertHost';
+import KeyboardAvoider from '../../components/ui/KeyboardAvoider';
+import { KINETIC } from '../../theme/kinetic';
 
 // ─── Design tokens ───────────────────────────────────────────────────────────
 const A = {
@@ -227,7 +226,16 @@ export default function RecurringUserScreen({ navigation }: Props) {
     const result = await signIn({ email: rememberedUser?.email ?? '', password });
     setLoginLoading(false);
     if (!result.success) {
-      Alert.alert('Erro ao entrar', result.error);
+      if (result.needsEmailVerification) {
+        showAlert('Confirme seu e-mail', result.error, [
+          {
+            text: 'Digitar código',
+            onPress: () => navigation.navigate('ConfirmEmail', { email: rememberedUser?.email ?? '' }),
+          },
+        ]);
+        return;
+      }
+      showAlert('Erro ao entrar', result.error);
     }
   };
 
@@ -274,9 +282,7 @@ export default function RecurringUserScreen({ navigation }: Props) {
       />
 
       <SafeAreaView style={styles.safe}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.kav}
+        <KeyboardAvoider style={styles.kav}
           enabled={showPasswordMode}
         >
           {/* Header: label + trocar conta */}
@@ -402,7 +408,7 @@ export default function RecurringUserScreen({ navigation }: Props) {
                   <TextInput
                     style={styles.inlineInput}
                     placeholder="Senha"
-                    placeholderTextColor={A.text3}
+                    placeholderTextColor={KINETIC.placeholder}
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry={!showPwd}
@@ -426,7 +432,7 @@ export default function RecurringUserScreen({ navigation }: Props) {
               </View>
             )}
           </View>
-        </KeyboardAvoidingView>
+        </KeyboardAvoider>
       </SafeAreaView>
     </View>
   );

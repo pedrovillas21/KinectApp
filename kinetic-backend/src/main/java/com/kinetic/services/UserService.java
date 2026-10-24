@@ -1,15 +1,22 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.AppTime;
+
 import com.kinetic.dtos.ChangePasswordDTO;
+import com.kinetic.dtos.UpdatePhoneRequestDTO;
 import com.kinetic.dtos.UpdateWeightRequestDTO;
 import com.kinetic.dtos.UserProfileResponseDTO;
+import com.kinetic.enums.TrainerLinkStatus;
+import com.kinetic.exceptions.TrainerManagedPlanException;
 import com.kinetic.models.User;
 import com.kinetic.models.UserLoginStreak;
 import com.kinetic.models.WeightHistory;
+import com.kinetic.repositories.TrainerClientRepository;
 import com.kinetic.repositories.UserLoginStreakRepository;
 import com.kinetic.repositories.UserRepository;
 import com.kinetic.repositories.WeightHistoryRepository;
 import com.kinetic.repositories.WorkoutExecutionLogRepository;
+import com.kinetic.utils.DocumentValidator;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,29 +36,36 @@ public class UserService {
     private final WorkoutExecutionLogRepository workoutExecutionLogRepository;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenService refreshTokenService;
+    private final TrainerClientRepository trainerClientRepository;
 
     public UserService(UserRepository userRepository,
                        WeightHistoryRepository weightHistoryRepository,
                        UserLoginStreakRepository userLoginStreakRepository,
                        WorkoutExecutionLogRepository workoutExecutionLogRepository,
                        PasswordEncoder passwordEncoder,
-                       RefreshTokenService refreshTokenService) {
+                       RefreshTokenService refreshTokenService,
+                       TrainerClientRepository trainerClientRepository) {
         this.userRepository = userRepository;
         this.weightHistoryRepository = weightHistoryRepository;
         this.userLoginStreakRepository = userLoginStreakRepository;
         this.workoutExecutionLogRepository = workoutExecutionLogRepository;
         this.passwordEncoder = passwordEncoder;
         this.refreshTokenService = refreshTokenService;
+        this.trainerClientRepository = trainerClientRepository;
     }
 
     @Transactional
     public void updateUserWeight(String userEmail, UpdateWeightRequestDTO dto) {
         User user = userRepository.getByEmailOrThrow(userEmail);
+        if (isBodyManagedByTrainer(user)) {
+            throw new TrainerManagedPlanException(
+                    "Suas medidas são registradas pelo seu personal na avaliação física.");
+        }
 
         user.setWeight(dto.newWeight());
         userRepository.save(user);
 
-        LocalDate today = LocalDate.now();
+        LocalDate today = AppTime.today();
         Optional<WeightHistory> existingHistory = weightHistoryRepository.findByUserAndLoggedAt(user, today);
 
         if (existingHistory.isPresent()) {
@@ -87,12 +101,32 @@ public class UserService {
         refreshTokenService.revokeAllForUser(user);
     }
 
+    @Transactional
+    public String updatePhone(String userEmail, UpdatePhoneRequestDTO dto) {
+        String phone = DocumentValidator.normalizeCellPhone(dto.phone());
+        if (phone == null) {
+            throw new IllegalArgumentException("Celular inválido. Informe DDD + número, ex.: (11) 98765-4321.");
+        }
+
+        User user = userRepository.getByEmailOrThrow(userEmail);
+        userRepository.ensurePhoneAvailable(phone, user.getId());
+        user.setPhone(phone);
+        userRepository.saveCheckingPhone(user);
+        return phone;
+    }
+
+    /** Com personal ATIVO, peso e medidas vêm só das avaliações físicas dele. */
+    public boolean isBodyManagedByTrainer(User user) {
+        return trainerClientRepository.existsByStudentIdAndStatus(user.getId(), TrainerLinkStatus.ATIVO);
+    }
+
     public boolean needsWeightUpdate(String userEmail) {
         User user = userRepository.getByEmailOrThrow(userEmail);
+        if (isBodyManagedByTrainer(user)) return false;
 
         return weightHistoryRepository.findFirstByUserOrderByLoggedAtDesc(user)
                 .map(lastHistory -> {
-                    long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(lastHistory.getLoggedAt(), LocalDate.now());
+                    long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(lastHistory.getLoggedAt(), AppTime.today());
                     return daysBetween >= 30;
                 })
                 .orElse(false);
@@ -109,6 +143,7 @@ public class UserService {
         return new UserProfileResponseDTO(
                 user.getNome(),
                 user.getEmail(),
+                user.getPhone(),
                 memberSince,
                 streak,
                 totalWorkouts,
@@ -124,7 +159,7 @@ public class UserService {
 
     @Transactional
     public void recordDailyLogin(User user) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = AppTime.today();
 
         // Pula o insert se o login de hoje já foi registrado. Sem esta checagem,
         // um segundo login no mesmo dia violaria a constraint única
@@ -149,7 +184,7 @@ public class UserService {
     }
 
     private int calculateConsecutiveLoginStreak(User user) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = AppTime.today();
         Set<LocalDate> loginDates = new HashSet<>(
                 userLoginStreakRepository.findAllLoginDatesByUser(user)
         );

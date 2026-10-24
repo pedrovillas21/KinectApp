@@ -1,5 +1,7 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.AppTime;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kinetic.dtos.*;
@@ -7,6 +9,7 @@ import com.kinetic.enums.StatsPeriodParam;
 import com.kinetic.models.PlanCycleSnapshot;
 import com.kinetic.models.User;
 import com.kinetic.models.WeightHistory;
+import com.kinetic.models.WorkoutSession;
 import com.kinetic.repositories.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,9 +30,10 @@ public class StatsService {
     private final ExerciseSetLogRepository exerciseSetLogRepository;
     private final ExerciseRepository exerciseRepository;
     private final UserService userService;
-    private final CommunityStatsService communityStatsService;
+    private final UserConnectionRepository userConnectionRepository;
     private final PlanCycleSnapshotRepository planCycleSnapshotRepository;
     private final WorkoutPlanRepository workoutPlanRepository;
+    private final TrainingSummaryService trainingSummaryService;
     private final ObjectMapper objectMapper;
 
     public StatsService(WorkoutSessionRepository workoutSessionRepository,
@@ -38,9 +42,10 @@ public class StatsService {
                         ExerciseSetLogRepository exerciseSetLogRepository,
                         ExerciseRepository exerciseRepository,
                         UserService userService,
-                        CommunityStatsService communityStatsService,
+                        UserConnectionRepository userConnectionRepository,
                         PlanCycleSnapshotRepository planCycleSnapshotRepository,
                         WorkoutPlanRepository workoutPlanRepository,
+                        TrainingSummaryService trainingSummaryService,
                         ObjectMapper objectMapper) {
         this.workoutSessionRepository = workoutSessionRepository;
         this.userRepository = userRepository;
@@ -48,9 +53,10 @@ public class StatsService {
         this.exerciseSetLogRepository = exerciseSetLogRepository;
         this.exerciseRepository = exerciseRepository;
         this.userService = userService;
-        this.communityStatsService = communityStatsService;
+        this.userConnectionRepository = userConnectionRepository;
         this.planCycleSnapshotRepository = planCycleSnapshotRepository;
         this.workoutPlanRepository = workoutPlanRepository;
+        this.trainingSummaryService = trainingSummaryService;
         this.objectMapper = objectMapper;
     }
 
@@ -84,18 +90,35 @@ public class StatsService {
         // ── Volume ───────────────────────────────────────────────────────────
         VolumeSummaryDTO volumeSummary = buildVolumeSummary(user, start, end, prevStart, prevEnd);
 
-        // ── Comunidade ───────────────────────────────────────────────────────
-        int communityAvg = communityStatsService.getAverageEfficiency();
+        // ── Amigos ───────────────────────────────────────────────────────────
+        Integer friendsAvg = friendsAverageFor(user, period, start, end);
         CommunityComparisonDTO community = new CommunityComparisonDTO(
-                communityAvg,
-                efficiencyPercent >= communityAvg
+                friendsAvg,
+                friendsAvg == null ? null : efficiencyPercent >= friendsAvg
         );
 
         // ── Insight (motor de regras) ────────────────────────────────────────
         StatsInsightDTO insight = buildInsight(period, efficiencyPercent, weightSummary, volumeSummary);
 
+        // ── Tempo, recordes, sequência e barras de atividade ─────────────────
+        List<WorkoutSession> sessions = workoutSessionRepository
+                .findByUserIdAndSessionDateBetween(user.getId(), start, end);
+        int previousMinutes = totalMinutes(workoutSessionRepository
+                .findByUserIdAndSessionDateBetween(user.getId(), prevStart, prevEnd));
+        List<PersonalRecordDTO> records = trainingSummaryService.recordsBetween(user.getId(), start, end);
+        StatsTrainingDTO training = new StatsTrainingDTO(
+                totalMinutes(sessions),
+                previousMinutes,
+                records.size(),
+                records.isEmpty() ? null : records.get(0),
+                trainingSummaryService.streakDays(user.getId()),
+                trainingSummaryService.bestStreakDays(user.getId())
+        );
+        StatsActivityDTO activity = buildActivity(period, frequency, start, end, sessions);
+
         return new StatsSummaryResponseDTO(
                 needsWeightUpdate,
+                userService.isBodyManagedByTrainer(user),
                 period.id(),
                 efficiencyPercent,
                 completedSessions,
@@ -103,8 +126,115 @@ public class StatsService {
                 weightSummary,
                 volumeSummary,
                 community,
-                insight
+                insight,
+                training,
+                activity
         );
+    }
+
+    // ── Média dos amigos ──────────────────────────────────────────────────────
+
+    /** Abaixo disso a "média" exporia a aderência de uma pessoa só. */
+    static final int MIN_FRIENDS_FOR_AVERAGE = 2;
+
+    /**
+     * Aderência média das conexões aceitas (mesmo grupo do ranking da Home) no
+     * mesmo período e com a mesma fórmula do usuário. Null quando há menos de
+     * MIN_FRIENDS_FOR_AVERAGE amigos com frequência semanal definida.
+     */
+    private Integer friendsAverageFor(User user, StatsPeriodParam period, LocalDate start, LocalDate end) {
+        UUID meId = user.getId();
+        Set<UUID> friendIds = userConnectionRepository.findAcceptedFor(meId).stream()
+                .map(c -> c.getRequester().getId().equals(meId) ? c.getAddressee().getId() : c.getRequester().getId())
+                .collect(Collectors.toSet());
+        if (friendIds.size() < MIN_FRIENDS_FOR_AVERAGE) return null;
+
+        Map<UUID, Integer> frequencies = new HashMap<>();
+        for (Object[] row : userRepository.findIdAndFrequencyByIdIn(friendIds)) {
+            frequencies.put((UUID) row[0], ((Number) row[1]).intValue());
+        }
+        if (frequencies.size() < MIN_FRIENDS_FOR_AVERAGE) return null;
+
+        Map<UUID, Long> completed = new HashMap<>();
+        for (Object[] row : workoutSessionRepository.countSessionsPerUserBetween(frequencies.keySet(), start, end)) {
+            completed.put((UUID) row[0], ((Number) row[1]).longValue());
+        }
+        return friendsAverage(frequencies, completed, period);
+    }
+
+    static Integer friendsAverage(Map<UUID, Integer> frequencies, Map<UUID, Long> completed, StatsPeriodParam period) {
+        double total = 0;
+        int count = 0;
+        for (Map.Entry<UUID, Integer> entry : frequencies.entrySet()) {
+            int frequency = entry.getValue() == null ? 0 : entry.getValue();
+            if (frequency <= 0) continue;
+            long done = completed.getOrDefault(entry.getKey(), 0L);
+            total += Math.min(100, Math.round(done * 100.0 / period.targetSessions(frequency)));
+            count++;
+        }
+        return count < MIN_FRIENDS_FOR_AVERAGE ? null : (int) Math.round(total / count);
+    }
+
+    // ── Atividade (barras) ────────────────────────────────────────────────────
+
+    private static int totalMinutes(List<WorkoutSession> sessions) {
+        long seconds = 0;
+        for (WorkoutSession s : sessions) {
+            if (s.getDurationInSeconds() != null && s.getDurationInSeconds() > 0) seconds += s.getDurationInSeconds();
+        }
+        return (int) Math.round(seconds / 60.0);
+    }
+
+    /**
+     * Semana: os 7 dias (seg–dom, os futuros zerados). Mês e 3M: semanas de domingo que tocam o
+     * período. Ano: os últimos 12 meses. Só contam sessões dentro do período, então a soma das
+     * barras bate com {@code completedSessions} (no ano, os dias antes do 1º mês ficam de fora).
+     */
+    static StatsActivityDTO buildActivity(StatsPeriodParam period, int weeklyFrequency,
+                                          LocalDate start, LocalDate end, List<WorkoutSession> sessions) {
+        String granularity;
+        List<LocalDate> starts = new ArrayList<>();
+        java.util.function.UnaryOperator<LocalDate> keyOf;
+        Integer target;
+        switch (period) {
+            case WEEK -> {
+                granularity = "day";
+                for (int i = 0; i < 7; i++) starts.add(start.plusDays(i));
+                keyOf = d -> d;
+                target = null;
+            }
+            case YEAR -> {
+                granularity = "month";
+                LocalDate first = end.withDayOfMonth(1).minusMonths(11);
+                for (int i = 0; i < 12; i++) starts.add(first.plusMonths(i));
+                keyOf = d -> d.withDayOfMonth(1);
+                target = weeklyFrequency > 0 ? (int) Math.round(weeklyFrequency * 52 / 12.0) : null;
+            }
+            default -> {
+                granularity = "week";
+                for (LocalDate w = TrainingSummaryService.weekStart(start); !w.isAfter(end); w = w.plusWeeks(1)) {
+                    starts.add(w);
+                }
+                keyOf = TrainingSummaryService::weekStart;
+                target = weeklyFrequency > 0 ? weeklyFrequency : null;
+            }
+        }
+
+        Map<LocalDate, int[]> acc = new HashMap<>();
+        for (WorkoutSession s : sessions) {
+            LocalDate d = s.getSessionDate();
+            if (d == null || d.isBefore(start) || d.isAfter(end)) continue;
+            int[] a = acc.computeIfAbsent(keyOf.apply(d), k -> new int[2]);
+            a[0]++;
+            if (s.getDurationInSeconds() != null && s.getDurationInSeconds() > 0) a[1] += s.getDurationInSeconds();
+        }
+        List<StatsActivityDTO.ActivityBucketDTO> buckets = starts.stream()
+                .map(d -> {
+                    int[] a = acc.getOrDefault(d, new int[2]);
+                    return new StatsActivityDTO.ActivityBucketDTO(d, a[0], (int) Math.round(a[1] / 60.0));
+                })
+                .toList();
+        return new StatsActivityDTO(granularity, target, buckets);
     }
 
     // ── Peso ──────────────────────────────────────────────────────────────────
@@ -297,9 +427,9 @@ public class StatsService {
 
         LocalDate cycleStart = cycleStartOpt
                 .map(dt -> dt.toLocalDate())
-                .orElse(LocalDate.now());
+                .orElse(AppTime.today());
 
-        LocalDate today = LocalDate.now();
+        LocalDate today = AppTime.today();
 
         // Sessões do ciclo atual
         long currentCompletedRaw = workoutSessionRepository

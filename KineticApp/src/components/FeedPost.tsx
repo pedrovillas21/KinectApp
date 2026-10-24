@@ -1,25 +1,25 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  ImageBackground,
-} from 'react-native';
-import { BlurView } from 'expo-blur';
-import { COLORS } from '../theme/colors';
-import Icon from './Icon';
+import { Image, Pressable, Share, StyleSheet, View } from 'react-native';
+import { KINETIC, RADIUS } from '../theme/kinetic';
 import type { FeedPostData } from '../types';
-import { avatarFallback } from '../services/socialService';
+import { formatBestSet, formatDurationSeconds, formatThousands } from '../utils/formatters';
+import { formatPostTime } from '../utils/dateRelative';
+import Icon from './Icon';
+import WorkoutPhotoStrip from './WorkoutPhotoStrip';
+import { Avatar, StatRow, StatTile, Text } from './ui';
 
 interface Props {
   post: FeedPostData;
   onToggleLike?: (postId: string, liked: boolean) => Promise<number>;
   onOpenComments?: (postId: string) => void;
+  /** Toque no autor (avatar/nome) → perfil dele. */
+  onPressAuthor?: (userId: string) => void;
+  /** Sem margem lateral nem divisória (post aberto dentro de um balão). */
+  bare?: boolean;
 }
 
-export default function FeedPost({ post, onToggleLike, onOpenComments }: Props) {
+/** Post do feed no estilo do redesign: autor, treino resumido, foto, exercícios e ações. */
+export default function FeedPost({ post, onToggleLike, onOpenComments, onPressAuthor, bare }: Props) {
   const [isLiked, setIsLiked] = useState(post.isLikedByMe);
   const [likesCount, setLikesCount] = useState(post.likesCount);
 
@@ -39,173 +39,165 @@ export default function FeedPost({ post, onToggleLike, onOpenComments }: Props) 
     }
   };
 
-  const authorAvatar = avatarFallback(post.author.id, post.author.avatarUrl);
-  const authorName = post.author.nome;
+  const handleShare = () => {
+    const title = post.title ?? post.category;
+    const message = [`${post.author.nome} no Kinetic`, title, post.caption].filter(Boolean).join('\n');
+    Share.share({ message }).catch(() => {});
+  };
 
-  const durationParts = post.duration ? post.duration.split(' ') : [];
-  const caloriesParts = post.calories ? post.calories.split(' ') : [];
-
-  const hasMetrics = durationParts.length > 0 || caloriesParts.length > 0;
+  const title = post.title ?? (post.category || null);
+  // Post antigo sem treino ligado ainda pode trazer a duração como texto ("58 min").
+  const duration = post.durationSeconds ? formatDurationSeconds(post.durationSeconds) : post.duration || null;
+  const hasVolume = post.volumeKg != null && post.volumeKg > 0;
+  const records = post.recordsCount ?? 0;
+  // Foto de treino ligado: tonelagem/tempo/treino vão na faixa sobre a imagem, não na linha de números.
+  const photoStrip = !!post.imageUrl && !!post.title && hasVolume && !!post.durationSeconds;
+  const showStats = !photoStrip && (!!duration || hasVolume || records > 0);
+  const exercises = post.exercises ?? [];
+  const more = post.moreExercises ?? 0;
 
   return (
-    <View style={styles.container}>
+    <View style={bare ? styles.postBare : styles.post}>
       <View style={styles.header}>
-        <Image source={{ uri: authorAvatar }} style={styles.headerAvatar} />
-        <View style={styles.headerTextCol}>
-          <Text style={styles.headerName}>{authorName}</Text>
-          <Text style={styles.headerMeta}>
-            {post.timestamp}
-            {post.category ? ` • ${post.category}` : ''}
-          </Text>
-        </View>
-        <TouchableOpacity>
-          <Text style={styles.dots}>⋮</Text>
-        </TouchableOpacity>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Ver perfil de ${post.author.nome}`}
+          onPress={() => onPressAuthor?.(post.author.id)}
+          style={styles.author}
+        >
+          <Avatar name={post.author.nome} uri={post.author.avatarUrl || null} seed={post.author.id} size={40} />
+          <View style={styles.authorTexts}>
+            <Text variant="bodyStrong" numberOfLines={1}>
+              {post.author.nome}
+            </Text>
+            <Text variant="caption" color={KINETIC.textSecondary} numberOfLines={1}>
+              {formatPostTime(post.createdAt) ?? post.timestamp}
+            </Text>
+          </View>
+        </Pressable>
       </View>
+
+      {title ? (
+        <Text variant="headline" style={styles.title}>
+          {title}
+        </Text>
+      ) : null}
+      {post.caption ? (
+        <Text variant="body" color={KINETIC.textDim} style={styles.caption}>
+          {post.caption}
+        </Text>
+      ) : null}
+
+      {showStats ? (
+        <StatRow card={false} style={styles.stats}>
+          <StatTile size="sm" label="Duração" value={duration ?? '—'} />
+          <StatTile size="sm" label="Volume" value={hasVolume ? `${formatThousands(post.volumeKg!)} kg` : '—'} />
+          <StatTile size="sm" label="Recordes" value={records} color={records > 0 ? KINETIC.record : KINETIC.text} />
+        </StatRow>
+      ) : null}
 
       {post.imageUrl ? (
-        <View style={styles.imageWrapper}>
-          <ImageBackground
+        <View style={styles.image}>
+          <Image
             source={{ uri: post.imageUrl }}
-            style={styles.postImage}
-            imageStyle={{ borderRadius: 12 }}
-          >
-            {post.badge && (
-              <View style={styles.badgeWrap}>
-                <View style={styles.badgeDot} />
-                <Text style={styles.badgeText}>{post.badge}</Text>
-              </View>
-            )}
-
-            {hasMetrics && (
-              <BlurView intensity={20} tint="dark" style={styles.glassOverlay}>
-                <View style={styles.metricsRow}>
-                  <View style={styles.metricBlock}>
-                    <Text style={styles.metricLabel}>DURATION</Text>
-                    <Text style={styles.metricValue}>
-                      {durationParts[0] ?? '—'}
-                      {durationParts[1] ? (
-                        <Text style={{ fontSize: 12 }}> {durationParts[1]}</Text>
-                      ) : null}
-                    </Text>
-                  </View>
-                  <View style={styles.metricDivider} />
-                  <View style={styles.metricBlock}>
-                    <Text style={styles.metricLabel}>CALORIES</Text>
-                    <Text style={styles.metricValue}>
-                      {caloriesParts[0] ?? '—'}
-                      {caloriesParts[1] ? (
-                        <Text style={{ fontSize: 12 }}> {caloriesParts[1]}</Text>
-                      ) : null}
-                    </Text>
-                  </View>
-                </View>
-              </BlurView>
-            )}
-          </ImageBackground>
-        </View>
-      ) : null}
-
-      <View style={styles.footerActions}>
-        <TouchableOpacity style={styles.actionItem} onPress={handleLike}>
-          <Icon
-            name={isLiked ? 'heart-filled' : 'heart'}
-            size={20}
-            color={isLiked ? COLORS.neonBlue : '#CCC'}
+            style={StyleSheet.absoluteFill}
+            accessibilityLabel={title ? `Foto do treino ${title}` : 'Foto do post'}
           />
-          <Text style={styles.actionText}>{likesCount}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.actionItem} onPress={() => onOpenComments?.(post.id)}>
-          <Icon name="comment" size={20} color="#CCC" />
-          <Text style={styles.actionText}>{post.commentsCount}</Text>
-        </TouchableOpacity>
-      </View>
-
-      {post.caption ? (
-        <View style={styles.captionContainer}>
-          <Text style={styles.captionText}>
-            <Text style={styles.captionAuthor}>{authorName} </Text>
-            {post.caption}
-          </Text>
+          {photoStrip ? (
+            <WorkoutPhotoStrip volumeKg={post.volumeKg!} durationSeconds={post.durationSeconds!} title={post.title!} />
+          ) : null}
         </View>
       ) : null}
+
+      {exercises.length > 0 ? (
+        <View style={styles.exercises}>
+          {exercises.map((ex, i) => (
+            <View key={`${ex.name}-${i}`} style={styles.exercise}>
+              <View style={styles.exerciseIcon}>
+                <Icon name="dumbbell" size={16} color={KINETIC.textSecondary} />
+              </View>
+              <Text variant="body" numberOfLines={1} style={styles.exerciseName}>
+                <Text variant="monoBody" color={KINETIC.textDim}>
+                  {ex.setsCount}×{' '}
+                </Text>
+                {ex.name}
+              </Text>
+              <Text variant="mono" color={KINETIC.textDim}>
+                {formatBestSet(ex.bestSet)}
+              </Text>
+            </View>
+          ))}
+          {more > 0 ? (
+            <Text variant="body" color={KINETIC.textSecondary} style={styles.more}>
+              + {more} {more === 1 ? 'exercício' : 'exercícios'}
+            </Text>
+          ) : null}
+        </View>
+      ) : null}
+
+      <View style={styles.actions}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={isLiked ? 'Descurtir' : 'Curtir'}
+          accessibilityState={{ selected: isLiked }}
+          onPress={handleLike}
+          style={styles.action}
+        >
+          <Icon name={isLiked ? 'heart-filled' : 'heart'} size={19} color={isLiked ? KINETIC.primary : KINETIC.text} />
+          <Text variant="body">{likesCount}</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Comentários, ${post.commentsCount}`}
+          onPress={() => onOpenComments?.(post.id)}
+          style={styles.action}
+        >
+          <Icon name="comment" size={19} color={KINETIC.text} />
+          <Text variant="body">{post.commentsCount}</Text>
+        </Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel="Compartilhar" onPress={handleShare} style={styles.share}>
+          <Icon name="share" size={18} color={KINETIC.text} />
+        </Pressable>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#1E1E1E',
-    borderRadius: 16,
-    marginBottom: 24,
+  post: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: KINETIC.hairline,
+  },
+  postBare: { paddingTop: 4 },
+  header: { flexDirection: 'row', alignItems: 'center' },
+  author: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  authorTexts: { flex: 1, minWidth: 0, gap: 2 },
+  title: { marginTop: 12 },
+  caption: { marginTop: 4 },
+  stats: { marginTop: 12 },
+  image: {
+    marginTop: 14,
+    width: '100%',
+    aspectRatio: 4 / 5,
+    borderRadius: RADIUS.lg,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#2A2A2A',
+    backgroundColor: KINETIC.media,
   },
-  header: {
-    flexDirection: 'row',
+  exercises: { marginTop: 8 },
+  exercise: { flexDirection: 'row', alignItems: 'center', gap: 12, height: 44 },
+  exerciseIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: RADIUS.sm,
+    backgroundColor: KINETIC.surface1,
     alignItems: 'center',
-    padding: 16,
+    justifyContent: 'center',
   },
-  headerAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: '#333',
-    marginRight: 12,
-  },
-  headerTextCol: { flex: 1 },
-  headerName: { color: '#FFF', fontSize: 15, fontWeight: 'bold' },
-  headerMeta: { color: '#888', fontSize: 11, letterSpacing: 0.5, marginTop: 2 },
-  dots: { color: '#CCC', fontSize: 20, fontWeight: 'bold', marginLeft: 8 },
-  imageWrapper: { width: '100%', aspectRatio: 0.85 },
-  postImage: { flex: 1, justifyContent: 'space-between' },
-  badgeWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    alignSelf: 'flex-end',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    marginTop: 16,
-    marginRight: 16,
-  },
-  badgeDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: COLORS.neonBlue,
-    marginRight: 6,
-  },
-  badgeText: { color: '#FFF', fontSize: 11, fontWeight: 'bold', letterSpacing: 1 },
-  glassOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(20,20,20, 0.4)',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
-  },
-  metricsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  metricBlock: { flex: 1 },
-  metricDivider: { width: 1, height: '100%', backgroundColor: 'rgba(255,255,255,0.1)' },
-  metricLabel: { color: '#AAA', fontSize: 10, letterSpacing: 1, marginBottom: 4 },
-  metricValue: { color: '#FFF', fontSize: 22, fontWeight: '900' },
-  footerActions: { flexDirection: 'row', padding: 16, paddingBottom: 8 },
-  actionItem: { flexDirection: 'row', alignItems: 'center', marginRight: 24 },
-  actionIcon: { fontSize: 20, color: '#CCC' },
-  actionText: { color: '#CCC', fontSize: 14, fontWeight: 'bold', marginLeft: 8 },
-  captionContainer: { paddingHorizontal: 16, paddingBottom: 20 },
-  captionText: { color: '#CCC', fontSize: 13, lineHeight: 18 },
-  captionAuthor: { color: '#FFF', fontWeight: 'bold' },
+  exerciseName: { flex: 1 },
+  more: { paddingVertical: 2 },
+  actions: { flexDirection: 'row', alignItems: 'center', marginTop: 6, marginHorizontal: -8, paddingBottom: 6 },
+  action: { minHeight: 44, paddingHorizontal: 8, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  share: { marginLeft: 'auto', width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
 });

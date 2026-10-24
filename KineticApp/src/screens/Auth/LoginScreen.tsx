@@ -1,20 +1,19 @@
 import React, { useContext, useState } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
   ScrollView,
-  TextInput,
 } from 'react-native';
+import { Text, TextInput } from '../../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { AuthContext } from '../../contexts/AuthContext';
 import Svg, { Path, Circle } from 'react-native-svg';
+import { showAlert } from '../../components/ui/AlertHost';
+import KeyboardAvoider from '../../components/ui/KeyboardAvoider';
+import { KINETIC } from '../../theme/kinetic';
 
 const A = {
   bg: '#131313',
@@ -174,20 +173,24 @@ export default function LoginScreen({ navigation, route }: Props) {
     const result = await signIn({ email: email.trim(), password });
     setLoading(false);
     if (!result.success) {
-      Alert.alert('Erro ao entrar', result.error);
+      if (result.needsEmailVerification) {
+        showAlert('Confirme seu e-mail', result.error, [
+          { text: 'Digitar código', onPress: () => navigation.navigate('ConfirmEmail', { email: email.trim() }) },
+        ]);
+        return;
+      }
+      showAlert('Erro ao entrar', result.error);
     }
   };
 
   const handleSocial = (provider: string) => {
-    Alert.alert('Em breve', `Login com ${provider} estará disponível em breve.`);
+    showAlert('Em breve', `Login com ${provider} estará disponível em breve.`);
   };
 
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safe}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.kav}
+        <KeyboardAvoider style={styles.kav}
         >
           {/* Header */}
           <View style={styles.header}>
@@ -242,7 +245,7 @@ export default function LoginScreen({ navigation, route }: Props) {
               <TextInput
                 style={styles.textInput}
                 placeholder="nome@email.com"
-                placeholderTextColor={A.text3}
+                placeholderTextColor={KINETIC.placeholder}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -263,7 +266,7 @@ export default function LoginScreen({ navigation, route }: Props) {
               <TextInput
                 style={styles.textInput}
                 placeholder="••••••••"
-                placeholderTextColor={A.text3}
+                placeholderTextColor={KINETIC.placeholder}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
@@ -311,7 +314,7 @@ export default function LoginScreen({ navigation, route }: Props) {
               </Text>
             </TouchableOpacity>
           </View>
-        </KeyboardAvoidingView>
+        </KeyboardAvoider>
       </SafeAreaView>
     </View>
   );

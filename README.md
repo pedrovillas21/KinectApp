@@ -245,5 +245,7 @@ KinectApp/
   precisa criar o seu localmente.
 - O backend exige conexão com um PostgreSQL válido na inicialização; sem isso, as
   migrações do Flyway falham e a aplicação não sobe.
-</content>
-</invoke>
+- Stories duram 24h e são apagados (linha + foto) por um job agendado; a limpeza de
+  fotos órfãs roda em modo simulação até `MEDIA_CLEANUP_DRY_RUN=false`. Detalhes e a
+  lista de todos os jobs em
+  [`kinetic-backend/docs/ciclo-de-vida-stories-e-midia.md`](kinetic-backend/docs/ciclo-de-vida-stories-e-midia.md).

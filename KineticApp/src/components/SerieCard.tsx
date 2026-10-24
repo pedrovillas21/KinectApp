@@ -1,8 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, TextInput } from './ui/scaled';
 import { LinearGradient } from 'expo-linear-gradient';
 import { KINETIC } from '../theme/kinetic';
 import Icon from './Icon';
+import type { LoadType } from '../types';
+import { MAX_REPS } from '../utils/setLimits';
 
 // Tokens locais que estendem a paleta KINETIC com os tons de "sucesso" (série
 // confirmada) usados no mock desta tela.
@@ -19,7 +22,9 @@ interface Props {
   cargaLabel: string;
   /** Rótulo de descanso, ex.: "30s descanso". */
   restLabel: string;
-  /** Quando false, o campo de peso é opcional (peso corporal / sem carga). */
+  /** EXTERNAL: peso da série; BODYWEIGHT: carga extra (opcional); NONE: sem campo de peso. */
+  loadType: LoadType;
+  /** Carga externa prescrita: o peso é obrigatório. */
   weightRequired: boolean;
   status: SerieStatus;
   weightValue: string;
@@ -35,6 +40,7 @@ export default function SerieCard({
   targetReps,
   cargaLabel,
   restLabel,
+  loadType,
   weightRequired,
   status,
   weightValue,
@@ -47,6 +53,16 @@ export default function SerieCard({
   const confirmada = status === 'confirmada';
   const atual = status === 'atual';
   const locked = status === 'locked';
+
+  // "8-10 reps" → "8-10"; tirar só os não-dígitos colava a faixa em "810".
+  const repsHint = targetReps.match(/\d+(\s*(?:-|–|a)\s*\d+)?/)?.[0].replace(/\s*(?:-|–|a)\s*/, '-') ?? '0';
+  const extraKg = Number(weightValue.replace(',', '.')) || 0;
+  const weightSummary =
+    loadType === 'NONE'
+      ? 'Sem carga'
+      : loadType === 'BODYWEIGHT'
+      ? extraKg > 0 ? `Corporal + ${weightValue} kg` : 'Corporal'
+      : weightValue.trim() ? `${weightValue} kg` : '—';
 
   const podeConfirmar =
     atual &&
@@ -111,9 +127,7 @@ export default function SerieCard({
         <View style={styles.summaryRow}>
           <View>
             <Text style={styles.summaryLabel}>PESO REALIZADO</Text>
-            <Text style={styles.summaryValue}>
-              {weightRequired ? `${weightValue} kg` : '—'}
-            </Text>
+            <Text style={styles.summaryValue}>{weightSummary}</Text>
           </View>
           <View>
             <Text style={styles.summaryLabel}>REPS REALIZADAS</Text>
@@ -124,18 +138,23 @@ export default function SerieCard({
         /* Estado ativo/bloqueado: inputs + confirmar */
         <View style={styles.inputsBlock}>
           <View style={styles.inputsRow}>
-            <View style={styles.inputCol}>
-              <Text style={styles.inputLabel}>PESO REALIZADO (KG)</Text>
-              <TextInput
-                style={[styles.inputBox, atual ? styles.inputBoxActive : styles.inputBoxLocked]}
-                value={weightValue}
-                onChangeText={onWeightChange}
-                editable={atual}
-                keyboardType="decimal-pad"
-                placeholder={weightRequired ? '0' : '— (sem carga)'}
-                placeholderTextColor={KINETIC.textMuted}
-              />
-            </View>
+            {loadType !== 'NONE' && (
+              <View style={styles.inputCol}>
+                <Text style={styles.inputLabel}>
+                  {loadType === 'BODYWEIGHT' ? 'CARGA EXTRA (KG)' : 'PESO REALIZADO (KG)'}
+                </Text>
+                <TextInput
+                  style={[styles.inputBox, atual ? styles.inputBoxActive : styles.inputBoxLocked]}
+                  value={weightValue}
+                  onChangeText={onWeightChange}
+                  editable={atual}
+                  keyboardType="decimal-pad"
+                  maxLength={6}
+                  placeholder={loadType === 'BODYWEIGHT' ? '0 (só o corpo)' : '0'}
+                  placeholderTextColor={KINETIC.placeholder}
+                />
+              </View>
+            )}
 
             <View style={styles.inputCol}>
               <Text style={styles.inputLabel}>REPS REALIZADAS</Text>
@@ -145,8 +164,9 @@ export default function SerieCard({
                 onChangeText={onRepsChange}
                 editable={atual}
                 keyboardType="number-pad"
-                placeholder={targetReps.replace(/\D/g, '') || '0'}
-                placeholderTextColor={KINETIC.textMuted}
+                maxLength={String(MAX_REPS).length}
+                placeholder={repsHint}
+                placeholderTextColor={KINETIC.placeholder}
               />
             </View>
           </View>

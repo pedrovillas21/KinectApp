@@ -1,0 +1,77 @@
+package com.kinetic.services;
+
+import com.kinetic.enums.Role;
+import com.kinetic.exceptions.ActiveTrainerConflictException;
+import com.kinetic.models.User;
+import com.kinetic.repositories.TrainerClientRepository;
+import com.kinetic.repositories.UserRepository;
+import com.kinetic.repositories.WorkoutSessionRepository;
+import jakarta.persistence.EntityNotFoundException;
+import org.junit.jupiter.api.Test;
+
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+/** Vincular funcionário: uma empresa não pode tomar o personal de outra. */
+class EmpresaServiceFuncionarioTest {
+
+    private final UserRepository users = mock(UserRepository.class);
+    private final EmpresaService service = new EmpresaService(
+            users, mock(TrainerClientRepository.class), mock(WorkoutSessionRepository.class),
+            mock(TrainerLinkService.class), mock(FeedbackService.class));
+
+    private final UUID companyId = UUID.randomUUID();
+    private final User empresa = user("empresa@test.local", Role.EMPRESA, companyId);
+
+    @Test
+    void personalOfAnotherCompanyIsConflict() {
+        User personal = user("personal@test.local", Role.PERSONAL, UUID.randomUUID());
+        stub(personal);
+
+        assertThrows(ActiveTrainerConflictException.class,
+                () -> service.vincularFuncionario(empresa.getEmail(), personal.getEmail()));
+        verify(users, never()).save(any());
+    }
+
+    @Test
+    void relinkingToTheSameCompanyIsIdempotent() {
+        User personal = user("personal@test.local", Role.PERSONAL, companyId);
+        stub(personal);
+        when(users.save(personal)).thenReturn(personal);
+
+        service.vincularFuncionario(empresa.getEmail(), personal.getEmail());
+
+        assertEquals(companyId, personal.getCompanyId());
+    }
+
+    @Test
+    void nonPersonalEmailGetsTheSameNotFound() {
+        User aluno = user("aluno@test.local", Role.ALUNO, null);
+        stub(aluno);
+
+        assertThrows(EntityNotFoundException.class,
+                () -> service.vincularFuncionario(empresa.getEmail(), aluno.getEmail()));
+    }
+
+    private void stub(User target) {
+        when(users.getByEmailOrThrow(empresa.getEmail())).thenReturn(empresa);
+        when(users.findByEmail(target.getEmail())).thenReturn(Optional.of(target));
+    }
+
+    private static User user(String email, Role role, UUID companyId) {
+        User u = new User();
+        u.setId(UUID.randomUUID());
+        u.setEmail(email);
+        u.setRole(role);
+        u.setCompanyId(companyId);
+        return u;
+    }
+}

@@ -4,9 +4,9 @@ import {
   Pressable,
   StatusBar,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
+import { Text } from './ui/scaled';
 import Svg, { Path } from 'react-native-svg';
 import { COLORS } from '../theme/colors';
 import { KINETIC } from '../theme/kinetic';

@@ -1,57 +1,97 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.AppTime;
+
 import com.kinetic.dtos.GenerateWorkoutRequestDto;
 import com.kinetic.dtos.GeneratedExerciseDto;
+import com.kinetic.enums.LoadType;
 import com.kinetic.dtos.GeneratedWorkoutPlanDto;
 import com.kinetic.dtos.WorkoutPlanResponseDTO;
+import com.kinetic.enums.TrainerLinkStatus;
+import com.kinetic.exceptions.AiQuotaExceededException;
+import com.kinetic.exceptions.TrainerManagedPlanException;
 import com.kinetic.models.Exercise;
 import com.kinetic.models.User;
 import com.kinetic.models.WorkoutPlan;
+import com.kinetic.repositories.TrainerClientRepository;
 import com.kinetic.repositories.UserRepository;
 import com.kinetic.repositories.WorkoutExecutionLogRepository;
 import com.kinetic.repositories.WorkoutPlanRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.LocalDate;
+import java.text.Normalizer;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.Period;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
 public class WorkoutService {
+
+    /** Intervalo mínimo entre fichas geradas por IA para o próprio aluno (cota do app). */
+    static final Duration STUDENT_AI_COOLDOWN = Duration.ofDays(30);
+
+    /**
+     * Tentativas de geração por aluno por hora. A cota de 30 dias só conta fichas salvas:
+     * sem isto, uma resposta inválida da IA (ou duplo toque) permitia chamadas pagas sem fim.
+     */
+    static final int MAX_AI_ATTEMPTS_PER_HOUR = 5;
+    private static final long ATTEMPT_WINDOW_MS = Duration.ofHours(1).toMillis();
+
+    private record AttemptWindow(long start, int count) {}
+
+    // shortcut: em memória e por instância (com N réplicas o limite vira N×), trocar por Redis ao escalar horizontalmente.
+    private final Map<UUID, AttemptWindow> aiAttempts = new ConcurrentHashMap<>();
+
+    private static final Set<String> SECTIONS = Set.of("AQUECIMENTO", "PRINCIPAL", "FINALIZACAO");
+    private static final String DEFAULT_SECTION = "PRINCIPAL";
 
     private final GeminiService geminiService;
     private final WorkoutPlanRepository workoutPlanRepository;
     private final UserRepository userRepository;
     private final PlanCycleSnapshotService planCycleSnapshotService;
     private final WorkoutExecutionLogRepository workoutExecutionLogRepository;
+    private final TrainerClientRepository trainerClientRepository;
+    private final TransactionTemplate transactionTemplate;
 
     public WorkoutService(GeminiService geminiService,
                           WorkoutPlanRepository workoutPlanRepository,
                           UserRepository userRepository,
                           PlanCycleSnapshotService planCycleSnapshotService,
-                          WorkoutExecutionLogRepository workoutExecutionLogRepository) {
+                          WorkoutExecutionLogRepository workoutExecutionLogRepository,
+                          TrainerClientRepository trainerClientRepository,
+                          TransactionTemplate transactionTemplate) {
         this.geminiService = geminiService;
         this.workoutPlanRepository = workoutPlanRepository;
         this.userRepository = userRepository;
         this.planCycleSnapshotService = planCycleSnapshotService;
         this.workoutExecutionLogRepository = workoutExecutionLogRepository;
+        this.trainerClientRepository = trainerClientRepository;
+        this.transactionTemplate = transactionTemplate;
     }
 
-    @Transactional
+    /**
+     * Sem @Transactional: a chamada à IA leva até minutos e não pode segurar uma conexão
+     * do pool. As checagens leem fora de transação; a gravação é atômica no fim.
+     */
     public List<WorkoutPlanResponseDTO> generateWorkoutForUser(String userEmail, GenerateWorkoutRequestDto request) {
         log.info("Iniciando requisição de geração para o usuário: {}", userEmail);
         validateRequest(request);
 
-        int age = Period.between(request.birthDate(), LocalDate.now()).getYears();
+        int age = Period.between(request.birthDate(), AppTime.today()).getYears();
         if (age < 0) {
             throw new IllegalArgumentException("Data de nascimento nao pode ser no futuro.");
         }
@@ -60,13 +100,32 @@ public class WorkoutService {
         }
 
         User user = findUserByEmail(userEmail);
-        log.info("Usuário encontrado. Atualizando perfil... (Idade calculada com data {}: {} anos)", request.birthDate(), age);
 
-        // Captura estado pré-regeneração antes de sobrescrever o perfil
-        String oldGoal = user.getGoal();
-        double oldWeight = user.getWeight() != null ? user.getWeight() : 0.0;
-        Optional<java.time.LocalDateTime> earliestActivePlan =
-                workoutPlanRepository.findEarliestActiveCreatedAt(user.getId());
+        // Com vínculo ativo, protocolo e treino são do personal: depois do onboarding (ou se ele
+        // já montou alguma ficha) o aluno não regenera nem muda objetivo/nível/frequência por aqui.
+        // Bloqueia antes de gastar a chamada à IA. Com o vínculo encerrado o aluno volta a ter o controle.
+        if (trainerClientRepository.existsByStudentIdAndStatus(user.getId(), TrainerLinkStatus.ATIVO)
+                && (Boolean.TRUE.equals(user.getWorkoutOnboardingCompleted())
+                    || workoutPlanRepository.existsByUserIdAndStatusAndCreatedByIsNotNull(user.getId(), "active"))) {
+            throw new TrainerManagedPlanException(
+                    "Seu treino é montado pelo seu personal. Fale com ele pelo WhatsApp para ajustar a ficha.");
+        }
+
+        // Cota de IA do aluno: a 1ª ficha (onboarding) é livre; depois, uma nova a cada
+        // 30 dias. Acompanhamento contínuo é o serviço do personal — a IA grátis não compete com ele.
+        workoutPlanRepository.findLatestAiCreatedAt(user.getId())
+                .map(last -> last.plus(STUDENT_AI_COOLDOWN))
+                .filter(next -> next.isAfter(LocalDateTime.now()))
+                .ifPresent(next -> {
+                    throw new AiQuotaExceededException(
+                            "Você pode gerar uma nova ficha com IA a cada " + STUDENT_AI_COOLDOWN.toDays()
+                                    + " dias. A próxima fica liberada em "
+                                    + next.format(DateTimeFormatter.ofPattern("dd/MM")) + ".");
+                });
+
+        acquireAiAttempt(user.getId());
+
+        log.info("Usuário encontrado. (Idade calculada com data {}: {} anos)", request.birthDate(), age);
 
         double heightCm = request.height() < 3 ? request.height() * 100 : request.height();
 
@@ -86,6 +145,20 @@ public class WorkoutService {
             throw new IllegalStateException("Falha na geração: a lista de planos está nula ou vazia.");
         }
 
+        return transactionTemplate.execute(status -> saveGeneratedPlans(userEmail, request, heightCm, generatedDtos));
+    }
+
+    private List<WorkoutPlanResponseDTO> saveGeneratedPlans(String userEmail, GenerateWorkoutRequestDto request,
+                                                            double heightCm, List<GeneratedWorkoutPlanDto> generatedDtos) {
+        // Recarrega dentro da transação: o perfil pode ter mudado durante a chamada à IA.
+        User user = findUserByEmail(userEmail);
+
+        // Captura estado pré-regeneração antes de sobrescrever o perfil
+        String oldGoal = user.getGoal();
+        double oldWeight = user.getWeight() != null ? user.getWeight() : 0.0;
+        Optional<java.time.LocalDateTime> earliestActivePlan =
+                workoutPlanRepository.findEarliestActiveCreatedAt(user.getId());
+
         List<WorkoutPlan> workoutPlansToSave = new ArrayList<>();
         for (GeneratedWorkoutPlanDto generatedDto : generatedDtos) {
             if (generatedDto.title() == null || generatedDto.title().isBlank()) {
@@ -100,9 +173,10 @@ public class WorkoutService {
             workoutPlan.setSubtitle(generatedDto.subtitle());
             workoutPlan.setTag(generatedDto.tag());
             workoutPlan.setLevel(request.level());
-            workoutPlan.setEstimatedDurationMinutes(generatedDto.estimatedDurationMinutes());
+            workoutPlan.setEstimatedDurationMinutes(normalizeDuration(generatedDto.estimatedDurationMinutes()));
             workoutPlan.setUser(user);
 
+            int sortOrder = 0;
             for (GeneratedExerciseDto exDto : generatedDto.data()) {
                 if (exDto.name() == null || exDto.name().isBlank() || exDto.sets() == null || exDto.reps() == null) {
                     throw new IllegalStateException("Falha na geração: exercício com campos obrigatórios ausentes.");
@@ -114,8 +188,10 @@ public class WorkoutService {
                 exercise.setSets(exDto.sets());
                 exercise.setReps(exDto.reps());
                 exercise.setWeight(exDto.weight());
+                exercise.setLoadType(LoadType.resolve(exDto.loadType(), exDto.weight()));
                 exercise.setRestTime(exDto.restTime());
-                exercise.setSection(exDto.section());
+                exercise.setSection(normalizeSection(exDto.section()));
+                exercise.setSortOrder(sortOrder++);
                 exercise.setWorkoutPlan(workoutPlan);
                 workoutPlan.getExercises().add(exercise);
             }
@@ -124,14 +200,20 @@ public class WorkoutService {
         }
 
         user.setBirthDate(request.birthDate());
-        user.setWeight(request.weight());
-        user.setHeight(heightCm);
+        // Com personal ativo, peso e altura vêm das avaliações físicas dele.
+        if (!trainerClientRepository.existsByStudentIdAndStatus(user.getId(), TrainerLinkStatus.ATIVO)) {
+            user.setWeight(request.weight());
+            user.setHeight(heightCm);
+        }
         user.setGoal(request.goal());
         user.setFrequency(request.frequency());
         user.setLevel(request.level());
+        boolean anamnesisChanged = request.medicalConditions() != null
+                && !request.medicalConditions().equals(user.getMedicalConditions());
         if (request.medicalConditions() != null) {
             user.setMedicalConditions(request.medicalConditions());
         }
+        StudentProtocolService.recordStudentEdit(user, anamnesisChanged);
         user.setWorkoutOnboardingCompleted(true);
         userRepository.save(user);
 
@@ -149,7 +231,7 @@ public class WorkoutService {
         });
 
         // Arquiva o plano vigente (preserva historico) antes de promover o novo a 'active'.
-        // Apos a geracao bem-sucedida do Gemini, ja na mesma transacao: se algo falhar, tudo reverte.
+        // Apos a geracao bem-sucedida do Gemini, na transacao da gravacao: se algo falhar, tudo reverte.
         workoutPlanRepository.archiveActivePlans(user.getId());
 
         List<WorkoutPlan> savedPlans = workoutPlanRepository.saveAll(workoutPlansToSave);
@@ -166,7 +248,8 @@ public class WorkoutService {
         // Uma unica query agregada (sem N+1): ultima conclusao por plano do usuario.
         Map<UUID, LocalDateTime> lastCompletionByPlan = buildLastCompletionMap(user.getId());
 
-        return workoutPlanRepository.findByUserIdAndStatus(user.getId(), "active").stream()
+        // Ordem de criação: o app atribui as letras A/B/C pela posição, então ela precisa ser estável.
+        return workoutPlanRepository.findByUserIdAndStatusOrderByCreatedAtAsc(user.getId(), "active").stream()
                 .map(plan -> WorkoutPlanResponseDTO.fromEntity(plan, lastCompletionByPlan.get(plan.getId())))
                 .toList();
     }
@@ -190,8 +273,36 @@ public class WorkoutService {
         return map;
     }
 
+    private void acquireAiAttempt(UUID userId) {
+        long now = System.currentTimeMillis();
+        aiAttempts.values().removeIf(w -> now - w.start() >= ATTEMPT_WINDOW_MS);
+        AttemptWindow window = aiAttempts.compute(userId, (id, current) ->
+                current == null ? new AttemptWindow(now, 1) : new AttemptWindow(current.start(), current.count() + 1));
+        if (window.count() > MAX_AI_ATTEMPTS_PER_HOUR) {
+            throw new AiQuotaExceededException(
+                    "Muitas tentativas de gerar a ficha. Aguarde uma hora e tente novamente.");
+        }
+    }
+
     private User findUserByEmail(String userEmail) {
         return userRepository.getByEmailOrThrow(userEmail);
+    }
+
+    /**
+     * A IA as vezes devolve a secao com acento ou em minusculas ("Finalização");
+     * o banco so aceita os tres valores canonicos (chk_exercises_section).
+     */
+    private static String normalizeSection(String raw) {
+        if (raw == null || raw.isBlank()) return DEFAULT_SECTION;
+        String section = Normalizer.normalize(raw.trim(), Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toUpperCase(Locale.ROOT);
+        return SECTIONS.contains(section) ? section : DEFAULT_SECTION;
+    }
+
+    /** Estimativa fora de 5–240 min e descartada: o DTO cai no fallback heuristico. */
+    private static Integer normalizeDuration(Integer minutes) {
+        return minutes != null && minutes >= 5 && minutes <= 240 ? minutes : null;
     }
 
     private void validateRequest(GenerateWorkoutRequestDto request) {

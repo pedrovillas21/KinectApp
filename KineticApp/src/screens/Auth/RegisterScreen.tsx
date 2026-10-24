@@ -1,19 +1,20 @@
 import React, { useContext, useState } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
   ScrollView,
-  TextInput,
 } from 'react-native';
+import { Text, TextInput } from '../../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthContext } from '../../contexts/AuthContext';
 import Svg, { Path, Circle } from 'react-native-svg';
+import { isValidCellPhone, maskCellPhone } from '../../utils/whatsapp';
+import { savePendingInviteCode } from '../../services/trainerService';
+import { showAlert } from '../../components/ui/AlertHost';
+import KeyboardAvoider from '../../components/ui/KeyboardAvoider';
+import { KINETIC } from '../../theme/kinetic';
 
 const A = {
   bg: '#131313',
@@ -67,6 +68,20 @@ function EmailIcon({ size = 16, color = A.text3 }: { size?: number; color?: stri
       />
       <Path
         d="M22 6l-10 7L2 6"
+        stroke={color}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function PhoneIcon({ size = 16, color = A.text3 }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"
         stroke={color}
         strokeWidth={1.5}
         strokeLinecap="round"
@@ -199,7 +214,9 @@ export default function RegisterScreen({ navigation }: Props) {
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -210,32 +227,38 @@ export default function RegisterScreen({ navigation }: Props) {
   const hasSymbol = /[!@#$%^&*]/.test(password);
   const isPasswordValid = hasMinLength && hasUppercase && hasLowercase && hasNumber && hasSymbol;
 
-  const canSubmit = name.trim().length > 0 && email.trim().length > 0 && isPasswordValid;
+  const isPhoneValid = isValidCellPhone(phone);
+  const canSubmit =
+    name.trim().length > 0 && email.trim().length > 0 && isPhoneValid && isPasswordValid;
 
   const handleRegister = async () => {
     if (!canSubmit || loading) return;
     setLoading(true);
-    const result = await register({ name: name.trim(), email: email.trim(), password });
+    const result = await register({ name: name.trim(), email: email.trim(), phone, password });
     setLoading(false);
 
     if (!result.success) {
-      Alert.alert('Erro no cadastro', result.error);
+      showAlert('Erro no cadastro', result.error);
       return;
     }
 
-    Alert.alert(
+    // Resgatado no primeiro login (ver usePendingInviteRedeem): antes disso o
+    // e-mail precisa ser confirmado e ainda não há sessão.
+    if (inviteCode.trim()) {
+      await savePendingInviteCode(inviteCode);
+    }
+
+    showAlert(
       'Cadastro realizado!',
-      `Bem-vindo, ${name.trim()}! Agora faça login com suas credenciais.`,
-      [{ text: 'Fazer Login', onPress: () => navigation.navigate('Login') }],
+      `Bem-vindo, ${name.trim()}! Enviamos um código para ${email.trim()}. Confirme seu e-mail para entrar.`,
+      [{ text: 'Confirmar e-mail', onPress: () => navigation.navigate('ConfirmEmail', { email: email.trim() }) }],
     );
   };
 
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safe}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.kav}
+        <KeyboardAvoider style={styles.kav}
         >
           {/* Header */}
           <View style={styles.header}>
@@ -263,7 +286,7 @@ export default function RegisterScreen({ navigation }: Props) {
               <TextInput
                 style={styles.textInput}
                 placeholder="Seu nome completo"
-                placeholderTextColor={A.text3}
+                placeholderTextColor={KINETIC.placeholder}
                 value={name}
                 onChangeText={setName}
                 autoCapitalize="words"
@@ -278,7 +301,7 @@ export default function RegisterScreen({ navigation }: Props) {
               <TextInput
                 style={styles.textInput}
                 placeholder="seu-email@exemplo.com"
-                placeholderTextColor={A.text3}
+                placeholderTextColor={KINETIC.placeholder}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -287,6 +310,46 @@ export default function RegisterScreen({ navigation }: Props) {
               />
             </View>
 
+            {/* Phone field */}
+            <Text style={[styles.fieldLabel, { marginTop: 16 }]}>CELULAR (WHATSAPP)</Text>
+            <View style={styles.inputWrap}>
+              <PhoneIcon />
+              <TextInput
+                style={styles.textInput}
+                placeholder="(11) 98765-4321"
+                placeholderTextColor={KINETIC.placeholder}
+                value={phone}
+                onChangeText={(v) => setPhone(maskCellPhone(v))}
+                keyboardType="phone-pad"
+                textContentType="telephoneNumber"
+                autoComplete="tel"
+                maxLength={15}
+              />
+            </View>
+            <Text style={styles.fieldHint}>
+              {phone.length > 0 && !isPhoneValid
+                ? 'Informe DDD + número do celular.'
+                : 'Seu personal usa este número para falar com você pelo WhatsApp.'}
+            </Text>
+
+            {/* Invite code field (opcional) */}
+            <Text style={[styles.fieldLabel, { marginTop: 16 }]}>CÓDIGO DE CONVITE (OPCIONAL)</Text>
+            <View style={styles.inputWrap}>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Ex.: ABCDE-23456"
+                placeholderTextColor={KINETIC.placeholder}
+                value={inviteCode}
+                onChangeText={(v) => setInviteCode(v.toUpperCase())}
+                autoCapitalize="characters"
+                autoCorrect={false}
+                maxLength={16}
+              />
+            </View>
+            <Text style={styles.fieldHint}>
+              Recebeu um link do seu personal? Digite o código para entrar na carteira dele.
+            </Text>
+
             {/* Password field */}
             <Text style={[styles.fieldLabel, { marginTop: 16 }]}>SENHA</Text>
             <View style={styles.inputWrap}>
@@ -294,7 +357,7 @@ export default function RegisterScreen({ navigation }: Props) {
               <TextInput
                 style={styles.textInput}
                 placeholder="Mínimo 8 caracteres"
-                placeholderTextColor={A.text3}
+                placeholderTextColor={KINETIC.placeholder}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
@@ -344,7 +407,7 @@ export default function RegisterScreen({ navigation }: Props) {
               </Text>
             </TouchableOpacity>
           </View>
-        </KeyboardAvoidingView>
+        </KeyboardAvoider>
       </SafeAreaView>
     </View>
   );
@@ -409,6 +472,11 @@ const styles = StyleSheet.create({
     borderColor: A.ghostHi,
     paddingHorizontal: 14,
     height: 52,
+  },
+  fieldHint: {
+    fontSize: 12,
+    color: A.text3,
+    marginTop: 6,
   },
   textInput: {
     flex: 1,

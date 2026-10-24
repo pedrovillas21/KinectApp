@@ -16,6 +16,6 @@ public interface ExerciseRepository extends JpaRepository<Exercise, UUID> {
      * Retorna os grupos musculares distintos presentes nos planos de treino do usuário.
      * Usado para identificar quais grupos foram planejados mas não treinados no período (isRest).
      */
-    @Query("SELECT DISTINCT e.muscles FROM Exercise e WHERE e.workoutPlan.user.id = :userId AND e.muscles IS NOT NULL")
+    @Query("SELECT DISTINCT e.muscles FROM Exercise e WHERE e.workoutPlan.user.id = :userId AND e.muscles IS NOT NULL AND e.archived = false")
     List<String> findDistinctMusclesByUserId(@Param("userId") UUID userId);
 }

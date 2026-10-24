@@ -1,7 +1,34 @@
 services:
   backend:
     build: .
+    # Só a própria máquina alcança a 8080 (no PC: o painel/app em dev; na VM: o Caddy,
+    # pela rede do Docker). Da internet, a API só entra pelo Caddy.
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     env_file:
       - .env
+    environment:
+      # IP real do cliente vem no X-Forwarded-For que o Caddy monta. Seguro porque a
+      # 8080 não fica exposta: só proxies internos (Docker/localhost) são aceitos.
+      SERVER_FORWARD_HEADERS_STRATEGY: native
+    restart: unless-stopped
+
+  # HTTPS na VM. Sobe só com: docker compose --profile prod up -d --build
+  caddy:
+    image: caddy:2.10-alpine
+    profiles: ["prod"]
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./caddy/certs:/certs:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:

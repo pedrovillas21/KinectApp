@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,7 +66,7 @@ public class RefreshTokenService {
         User user = existing.getUser();
         refreshTokenRepository.delete(existing);
 
-        String newAccessToken = jwtUtil.generateToken(user.getEmail());
+        String newAccessToken = jwtUtil.generateToken(user.getEmail(), user.getRole());
         String newRawRefresh = createForUser(user);
 
         return new RotationResult(newAccessToken, newRawRefresh, user.getEmail());
@@ -87,6 +88,7 @@ public class RefreshTokenService {
      * job de estatísticas (03:00) para não competir pela thread do scheduler.
      */
     @Scheduled(cron = "0 0 4 * * *")
+    @SchedulerLock(name = "purgeExpiredRefreshTokens")
     @Transactional
     public void purgeExpiredTokens() {
         int deleted = refreshTokenRepository.deleteAllExpired(Instant.now());

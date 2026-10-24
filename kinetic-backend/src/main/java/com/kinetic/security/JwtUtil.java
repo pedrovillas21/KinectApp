@@ -1,5 +1,6 @@
 package com.kinetic.security;
 
+import com.kinetic.enums.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -47,8 +48,15 @@ public class JwtUtil {
         return extractExpiration(token).before(new Date());
     }
 
-    public String generateToken(String username) {
+    public String extractRole(String token) {
+        return extractClaim(token, claims -> claims.get("role", String.class));
+    }
+
+    public String generateToken(String username, Role role) {
         Map<String, Object> claims = new HashMap<>();
+        if (role != null) {
+            claims.put("role", role.name());
+        }
         return Jwts.builder()
                 .claims(claims)
                 .subject(username)

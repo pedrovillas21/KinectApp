@@ -1,0 +1,52 @@
+{
+    "model":  "opus[1m]",
+    "hooks":  {
+                  "PreToolUse":  [
+                                     {
+                                         "matcher":  "Bash",
+                                         "hooks":  [
+                                                       {
+                                                           "type":  "command",
+                                                           "command":  "rtk hook claude"
+                                                       }
+                                                   ]
+                                     }
+                                 ]
+              },
+    "enabledPlugins":  {
+                           "effortless@effortless":  true,
+                           "ponytail@ponytail":  true
+                       },
+    "extraKnownMarketplaces":  {
+                                   "effortless":  {
+                                                      "source":  {
+                                                                     "source":  "github",
+                                                                     "repo":  "HeyCubit/effortless"
+                                                                 }
+                                                  },
+                                   "ponytail":  {
+                                                    "source":  {
+                                                                   "source":  "git",
+                                                                   "url":  "https://github.com/DietrichGebert/ponytail.git"
+                                                               }
+                                                }
+                               },
+    "effortLevel":  "high",
+    "pluginConfigs":  {
+                          "effortless@effortless":  {
+                                                        "options":  {
+                                                                        "effortCeiling":  "xhigh",
+                                                                        "helpers":  "off",
+                                                                        "judge":  "haiku",
+                                                                        "swampAt":  "80",
+                                                                        "layout":  "default",
+                                                                        "theme":  "orange"
+                                                                    }
+                                                    }
+                      },
+    "statusLine":  {
+                       "type":  "command",
+                       "command":  "powershell -ExecutionPolicy Bypass -File \"__CLAUDE_DIR__\\ponytail-statusline.ps1\""
+                   },
+    "theme":  "dark"
+}

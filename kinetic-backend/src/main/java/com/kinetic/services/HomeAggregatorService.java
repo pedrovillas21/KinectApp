@@ -1,8 +1,13 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.AppTime;
+
 import com.kinetic.dtos.HomeDashboardResponseDTO;
+import com.kinetic.dtos.HomeWeekDayDTO;
+import com.kinetic.dtos.NextWorkoutExerciseDTO;
 import com.kinetic.dtos.NextWorkoutResponseDTO;
 import com.kinetic.dtos.RankingEntryDTO;
+import com.kinetic.dtos.UserRefDTO;
 import com.kinetic.dtos.WeeklyActivityPointDTO;
 import com.kinetic.dtos.WorkoutPlanResponseDTO;
 import com.kinetic.models.Exercise;
@@ -26,13 +31,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -45,17 +48,20 @@ public class HomeAggregatorService {
     private final WorkoutExecutionLogRepository workoutExecutionLogRepository;
     private final WorkoutSessionRepository workoutSessionRepository;
     private final UserConnectionRepository userConnectionRepository;
+    private final TrainingSummaryService trainingSummaryService;
 
     public HomeAggregatorService(UserRepository userRepository,
                                  WorkoutPlanRepository workoutPlanRepository,
                                  WorkoutExecutionLogRepository workoutExecutionLogRepository,
                                  WorkoutSessionRepository workoutSessionRepository,
-                                 UserConnectionRepository userConnectionRepository) {
+                                 UserConnectionRepository userConnectionRepository,
+                                 TrainingSummaryService trainingSummaryService) {
         this.userRepository = userRepository;
         this.workoutPlanRepository = workoutPlanRepository;
         this.workoutExecutionLogRepository = workoutExecutionLogRepository;
         this.workoutSessionRepository = workoutSessionRepository;
         this.userConnectionRepository = userConnectionRepository;
+        this.trainingSummaryService = trainingSummaryService;
     }
 
     @Transactional(readOnly = true)
@@ -66,12 +72,20 @@ public class HomeAggregatorService {
         List<WorkoutPlan> plans = workoutPlanRepository.findByUserIdAndStatusOrderByCreatedAtAsc(user.getId(), "active");
         boolean onboardingCompleted = Boolean.TRUE.equals(user.getWorkoutOnboardingCompleted()) || !plans.isEmpty();
 
+        // Campos novos do redesign (faixa da semana, sessões do mês, volume 7d): baratos e
+        // úteis mesmo antes do onboarding, então vêm nos dois caminhos.
+        LocalDate today = AppTime.today();
+        long monthSessions = trainingSummaryService.sessionsThisMonth(user.getId());
+        double volume7dKg = trainingSummaryService.volumeBetween(user.getId(), today.minusDays(6), today);
+        List<HomeWeekDayDTO> week = trainingSummaryService.currentWeek(user.getId());
+
         if (!onboardingCompleted) {
-            return new HomeDashboardResponseDTO(false, firstName, 0, 0, 0, 0, null, List.of(), List.of());
+            return new HomeDashboardResponseDTO(false, firstName, 0, 0, 0, 0, null, List.of(), List.of(),
+                    monthSessions, volume7dKg, week);
         }
 
         NextWorkoutResponseDTO nextWorkout = buildNextWorkout(user.getId(), plans);
-        int streak = calculateStreak(user.getId());
+        int streak = trainingSummaryService.streakDays(user.getId());
         int[] adherence = calculateAdherence(user);
         List<WeeklyActivityPointDTO> weeklyActivity = buildWeeklyActivity(user.getId());
         List<RankingEntryDTO> ranking = buildRanking(user);
@@ -85,7 +99,10 @@ public class HomeAggregatorService {
                 adherence[2],
                 nextWorkout,
                 ranking,
-                weeklyActivity
+                weeklyActivity,
+                monthSessions,
+                volume7dKg,
+                week
         );
     }
 
@@ -138,26 +155,20 @@ public class HomeAggregatorService {
                 : (plan.getSubtitle() != null ? plan.getSubtitle().toUpperCase() : "TREINO");
         String name = plan.getTitle() != null ? plan.getTitle() : "Próximo treino";
 
+        List<NextWorkoutExerciseDTO> firstExercises = exercises.stream()
+                .limit(3)
+                .map(e -> new NextWorkoutExerciseDTO(e.getName(), e.getSets(), e.getReps()))
+                .toList();
+
         return new NextWorkoutResponseDTO(tag, name, durationInMinutes, exercises.size(), muscleGroups,
-                plan.getId().toString());
+                plan.getId().toString(), firstExercises, prescriberOf(plan));
     }
 
-    private int calculateStreak(UUID userId) {
-        LocalDate today = LocalDate.now();
-        Set<LocalDate> sessionDates = new HashSet<>(
-                workoutSessionRepository.findSessionDatesByUserIdBetween(userId, today.minusDays(365), today)
-        );
-        int streak = 0;
-        for (int i = 0; i < 366; i++) {
-            LocalDate checkDate = today.minusDays(i);
-            if (sessionDates.contains(checkDate)) {
-                streak++;
-            } else if (i > 0) {
-                // gap found after today — stop; if today has no session yet the streak still continues from yesterday
-                break;
-            }
-        }
-        return streak;
+    /** Personal que montou a ficha pelo painel; nulo quando a ficha é do próprio aluno (IA do app). */
+    private UserRefDTO prescriberOf(WorkoutPlan plan) {
+        User creator = plan.getCreatedBy();
+        if (creator == null || creator.getId().equals(plan.getUser().getId())) return null;
+        return new UserRefDTO(creator.getId(), safeName(creator), creator.getAvatarUrl());
     }
 
     private int[] calculateAdherence(User user) {
@@ -165,7 +176,7 @@ public class HomeAggregatorService {
             return new int[]{0, 0, 0};
         }
         int targetSessions = user.getFrequency() * 4;
-        LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
+        LocalDate startOfMonth = AppTime.today().withDayOfMonth(1);
         LocalDate startOfNextMonth = startOfMonth.plusMonths(1);
         long completed = workoutSessionRepository
                 .countByUserIdAndSessionDateGreaterThanEqualAndSessionDateLessThan(
@@ -175,7 +186,7 @@ public class HomeAggregatorService {
     }
 
     private List<WeeklyActivityPointDTO> buildWeeklyActivity(UUID userId) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = AppTime.today();
         int daysFromSunday = today.getDayOfWeek() == DayOfWeek.SUNDAY ? 0 : today.getDayOfWeek().getValue();
         LocalDate weekStart = today.minusDays(daysFromSunday);
         LocalDate weekEnd = weekStart.plusDays(6);
@@ -221,7 +232,7 @@ public class HomeAggregatorService {
         }
 
         // Mesma convenção de semana do WeeklyChart: começa no domingo.
-        LocalDate today = LocalDate.now();
+        LocalDate today = AppTime.today();
         int daysFromSunday = today.getDayOfWeek() == DayOfWeek.SUNDAY ? 0 : today.getDayOfWeek().getValue();
         LocalDate weekStart = today.minusDays(daysFromSunday);
 

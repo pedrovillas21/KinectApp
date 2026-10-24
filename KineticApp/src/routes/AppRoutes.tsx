@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import { AuthContext } from '../contexts/AuthContext';
+import usePendingInviteRedeem from '../hooks/usePendingInviteRedeem';
 import BottomTabBar from '../components/BottomTabBar';
 
 import WelcomeScreen from '../screens/Auth/WelcomeScreen';
@@ -12,6 +13,8 @@ import RegisterScreen from '../screens/Auth/RegisterScreen';
 import ForgotPasswordScreen from '../screens/Auth/ForgotPasswordScreen';
 import VerifyCodeScreen from '../screens/Auth/VerifyCodeScreen';
 import ResetPasswordScreen from '../screens/Auth/ResetPasswordScreen';
+import ConfirmEmailScreen from '../screens/Auth/ConfirmEmailScreen';
+import PhoneRequiredScreen from '../screens/Auth/PhoneRequiredScreen';
 
 import OnboardingScreen from '../screens/Onboarding/OnboardingScreen';
 
@@ -21,9 +24,20 @@ import StatsScreen from '../screens/StatsScreen';
 import SocialScreen from '../screens/SocialScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ActiveSessionScreen from '../screens/ActiveSessionScreen';
+import WorkoutCameraScreen from '../screens/WorkoutCameraScreen';
+import NewWorkoutPostScreen from '../screens/NewWorkoutPostScreen';
+import ProfilePostsScreen from '../screens/ProfilePostsScreen';
+import UserProfileScreen from '../screens/UserProfileScreen';
+import CompareProgressScreen from '../screens/CompareProgressScreen';
+import SettingsScreen from '../screens/SettingsScreen';
+import TrainerProfileScreen from '../screens/TrainerProfileScreen';
+import ProtocolScreen from '../screens/ProtocolScreen';
+import AnamnesisScreen from '../screens/AnamnesisScreen';
+import type { MainStackParamList, MainTabParamList } from '../navigation/types';
 
 const Stack = createNativeStackNavigator();
-const Tab = createBottomTabNavigator();
+const MainStack = createNativeStackNavigator<MainStackParamList>();
+const Tab = createBottomTabNavigator<MainTabParamList>();
 
 function MainTabs(): React.ReactElement {
   return (
@@ -33,16 +47,17 @@ function MainTabs(): React.ReactElement {
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Train" component={WorkoutScreen} />
-      <Tab.Screen name="Stats" component={StatsScreen} />
       <Tab.Screen name="Social" component={SocialScreen} />
+      <Tab.Screen name="Stats" component={StatsScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );
 }
 
 export default function AppRoutes(): React.ReactElement | null {
-  const { isLoggedIn, hasOnboarded, isLoadingAuth, rememberedUser, justLoggedOut } =
+  const { isLoggedIn, hasOnboarded, isLoadingAuth, rememberedUser, justLoggedOut, currentUser } =
     useContext(AuthContext);
+  usePendingInviteRedeem(isLoggedIn);
 
   if (isLoadingAuth) {
     return null;
@@ -72,6 +87,17 @@ export default function AppRoutes(): React.ReactElement | null {
         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
         <Stack.Screen name="VerifyCode" component={VerifyCodeScreen} />
         <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+        <Stack.Screen name="ConfirmEmail" component={ConfirmEmailScreen} />
+      </Stack.Navigator>
+    );
+  }
+
+  // Celular virou obrigatório (atalho de WhatsApp com o personal): conta antiga sem ele
+  // não passa daqui até cadastrar.
+  if (!currentUser?.phone) {
+    return (
+      <Stack.Navigator key="phone-stack" screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="PhoneRequired" component={PhoneRequiredScreen} />
       </Stack.Navigator>
     );
   }
@@ -85,16 +111,29 @@ export default function AppRoutes(): React.ReactElement | null {
   }
 
   return (
-    <Stack.Navigator key="main-stack" screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="MainTabs" component={MainTabs} />
+    <MainStack.Navigator key="main-stack" screenOptions={{ headerShown: false }}>
+      <MainStack.Screen name="MainTabs" component={MainTabs} />
       {/* gestureEnabled: false — no native-stack o swipe-back do iOS completa nativamente
           antes do beforeRemove conseguir bloquear; sem isso o usuário sai da sessão
           arrastando pro lado e pula a confirmação/salvamento parcial do treino. */}
-      <Stack.Screen
+      <MainStack.Screen
         name="ActiveSession"
         component={ActiveSessionScreen}
         options={{ gestureEnabled: false }}
       />
-    </Stack.Navigator>
+      <MainStack.Screen
+        name="WorkoutCamera"
+        component={WorkoutCameraScreen}
+        options={{ animation: 'fade', statusBarHidden: true }}
+      />
+      <MainStack.Screen name="NewWorkoutPost" component={NewWorkoutPostScreen} />
+      <MainStack.Screen name="UserProfile" component={UserProfileScreen} />
+      <MainStack.Screen name="CompareProgress" component={CompareProgressScreen} />
+      <MainStack.Screen name="Settings" component={SettingsScreen} />
+      <MainStack.Screen name="Protocol" component={ProtocolScreen} />
+      <MainStack.Screen name="Anamnesis" component={AnamnesisScreen} />
+      <MainStack.Screen name="TrainerProfile" component={TrainerProfileScreen} />
+      <MainStack.Screen name="ProfilePosts" component={ProfilePostsScreen} />
+    </MainStack.Navigator>
   );
 }
