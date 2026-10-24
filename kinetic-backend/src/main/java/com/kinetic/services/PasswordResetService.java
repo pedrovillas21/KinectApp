@@ -6,6 +6,7 @@ import com.kinetic.models.PasswordResetCode;
 import com.kinetic.models.User;
 import com.kinetic.repositories.PasswordResetCodeRepository;
 import com.kinetic.repositories.UserRepository;
+import com.kinetic.utils.EmailTemplates;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -136,28 +137,15 @@ public class PasswordResetService {
         }
     }
 
+    private static final String EMAIL_INTRO = "Recebemos um pedido para redefinir a senha da sua conta Kinetic. Use o código abaixo para criar uma nova senha:";
+    private static final String EMAIL_FOOTNOTE = "Se você não pediu a troca de senha, ignore este e-mail: sua senha atual continua valendo.";
+
     private String buildText(String nome, String code) {
-        return "Olá" + greetingName(nome) + ",\n\n"
-                + "Seu código para redefinir a senha do Kinetic é: " + code + "\n\n"
-                + "Ele vale por " + CODE_TTL.toMinutes() + " minutos. "
-                + "Se você não pediu a troca de senha, ignore este e-mail; sua senha atual continua valendo.";
+        return EmailTemplates.codeText(nome, EMAIL_INTRO, code, CODE_TTL.toMinutes(), EMAIL_FOOTNOTE);
     }
 
     private String buildHtml(String nome, String code) {
-        return "<div style=\"font-family:Arial,sans-serif;max-width:480px;margin:auto\">"
-                + "<p>Olá" + escapeHtml(greetingName(nome)) + ",</p>"
-                + "<p>Seu código para redefinir a senha do <strong>Kinetic</strong> é:</p>"
-                + "<p style=\"font-size:32px;font-weight:bold;letter-spacing:6px\">" + code + "</p>"
-                + "<p>Ele vale por " + CODE_TTL.toMinutes() + " minutos.</p>"
-                + "<p style=\"color:#666;font-size:13px\">Se você não pediu a troca de senha, ignore este e-mail; "
-                + "sua senha atual continua valendo.</p></div>";
-    }
-
-    private String greetingName(String nome) {
-        return (nome == null || nome.isBlank()) ? "" : " " + nome.trim();
-    }
-
-    private String escapeHtml(String s) {
-        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
+        return EmailTemplates.codeEmail(nome, "Seu código para redefinir a senha do Kinetic.", "Redefina sua senha", EMAIL_INTRO,
+                code, CODE_TTL.toMinutes(), EMAIL_FOOTNOTE);
     }
 }

@@ -10,7 +10,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.LongSupplier;
 
 /**
@@ -38,20 +37,14 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
             "/api/auth/refresh", 60
     );
 
-    private record Window(long start, int count) {}
-
-    // shortcut: em memória e por instância (com N réplicas o limite efetivo vira N×), trocar por Redis/bucket4j ao escalar horizontalmente.
-    private final Map<String, Window> windows = new ConcurrentHashMap<>();
-    private final LongSupplier clock;
-    private volatile long lastSweep;
+    private final FixedWindowRateLimiter limiter;
 
     public AuthRateLimitFilter() {
         this(System::currentTimeMillis);
     }
 
     AuthRateLimitFilter(LongSupplier clock) {
-        this.clock = clock;
-        this.lastSweep = clock.getAsLong();
+        this.limiter = new FixedWindowRateLimiter(clock);
     }
 
     @Override
@@ -77,25 +70,10 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
     }
 
     boolean tryAcquire(String ip, String route) {
-        long now = clock.getAsLong();
-        evictExpired(now);
-        Window window = windows.compute(ip + " " + route, (key, current) ->
-                current == null || now - current.start() >= WINDOW_MS
-                        ? new Window(now, 1)
-                        : new Window(current.start(), current.count() + 1));
-        return window.count() <= LIMITS.getOrDefault(route, 0);
-    }
-
-    // Memória limitada às chaves vistas na última janela: varre no máximo uma vez por minuto.
-    private void evictExpired(long now) {
-        if (now - lastSweep < WINDOW_MS) {
-            return;
-        }
-        lastSweep = now;
-        windows.values().removeIf(w -> now - w.start() >= WINDOW_MS);
+        return limiter.acquire(ip + " " + route, LIMITS.getOrDefault(route, 0), WINDOW_MS) == 0;
     }
 
     int trackedKeys() {
-        return windows.size();
+        return limiter.trackedKeys();
     }
 }

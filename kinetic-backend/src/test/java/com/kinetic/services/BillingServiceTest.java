@@ -116,6 +116,32 @@ class BillingServiceTest {
         assertTrue(service.assertCanGenerateAi(trainer));
     }
 
+    @Test
+    void hourlyCapBlocksBurstsEvenWithMonthlyQuotaLeft() {
+        sub.setStatus(SubscriptionStatus.ATIVA);
+        sub.setPlan(BillingPlan.PRO);
+        sub.setCurrentPeriodEnd(Instant.now().plus(Duration.ofDays(10)));
+        LocalDateTime twoHoursAgo = LocalDateTime.now().minusHours(2);
+        long[] lastHour = {BillingService.AI_HOURLY_CAP - 1};
+        // Janela de 1 hora → lastHour; período do plano → bem abaixo da cota mensal.
+        when(generations.countByTrainerIdAndCreatedAtGreaterThanEqual(any(), any())).thenAnswer(inv ->
+                inv.<LocalDateTime>getArgument(1).isAfter(twoHoursAgo) ? lastHour[0] : 40L);
+
+        assertDoesNotThrow(() -> service.assertCanGenerateAi(trainer));
+
+        lastHour[0] = BillingService.AI_HOURLY_CAP;
+        // A mais antiga da janela foi há 40 min: libera daqui a 20 min.
+        LocalDateTime oldest = LocalDateTime.now().minusMinutes(40);
+        when(generations.findOldestCreatedAtSince(any(), any())).thenReturn(oldest);
+        String expected = oldest.plusHours(1).atZone(java.time.ZoneId.systemDefault())
+                .withZoneSameInstant(java.time.ZoneId.of("America/Sao_Paulo"))
+                .format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
+
+        AiQuotaExceededException e = assertThrows(AiQuotaExceededException.class,
+                () -> service.assertCanGenerateAi(trainer));
+        assertTrue(e.getMessage().endsWith("Você pode gerar de novo às " + expected + "."), e.getMessage());
+    }
+
     private List<TrainerClient> links(int n) {
         List<TrainerClient> list = new ArrayList<>();
         for (int i = 0; i < n; i++) {

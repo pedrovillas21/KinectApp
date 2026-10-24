@@ -8,6 +8,7 @@ import { homeForRole } from './config/nav';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ConfirmEmailPage from './pages/ConfirmEmailPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import InvitePage from './pages/InvitePage';
 import BillingPage from './pages/BillingPage';
 import DemoCheckoutPage from './pages/DemoCheckoutPage';
@@ -41,6 +42,7 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/confirm-email" element={<ConfirmEmailPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       {/* Link de convite do personal: público, aberto pelo aluno no celular. */}
       <Route path="/convite/:code" element={<InvitePage />} />
 

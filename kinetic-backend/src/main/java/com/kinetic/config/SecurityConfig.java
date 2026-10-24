@@ -1,5 +1,6 @@
 package com.kinetic.config;
 
+import com.kinetic.security.ApiRateLimitFilter;
 import com.kinetic.security.AuthRateLimitFilter;
 import com.kinetic.security.CustomUserDetailsService;
 import com.kinetic.security.JwtAuthenticationFilter;
@@ -41,6 +42,7 @@ public class SecurityConfig {
 
     // Fora do contexto (sem @Component) para não ser registrado de novo como filtro do servlet.
     private final AuthRateLimitFilter authRateLimitFilter = new AuthRateLimitFilter();
+    private final ApiRateLimitFilter apiRateLimitFilter = new ApiRateLimitFilter();
 
     @Value("${cors.allowed-origins}")
     private String allowedOrigins;
@@ -75,7 +77,9 @@ public class SecurityConfig {
             .authenticationProvider(authenticationProvider())
             // Depois do CORS: o 429 sai com os cabeçalhos CORS e o painel web consegue ler a mensagem.
             .addFilterAfter(authRateLimitFilter, CorsFilter.class)
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+            // Depois do JWT: o limite geral conta por usuário logado (sem login, por IP).
+            .addFilterAfter(apiRateLimitFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

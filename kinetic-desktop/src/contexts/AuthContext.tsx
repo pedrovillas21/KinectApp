@@ -57,6 +57,8 @@ interface AuthContextValue {
   }) => Promise<AuthResult>;
   confirmEmail: (email: string, code: string) => Promise<AuthResult>;
   resendConfirmation: (email: string) => Promise<AuthResult>;
+  requestPasswordReset: (email: string) => Promise<AuthResult>;
+  resetPassword: (email: string, code: string, newPassword: string) => Promise<AuthResult>;
 }
 
 interface LoginResponse {
@@ -207,6 +209,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Resposta uniforme, exista a conta ou não; só falha por rede ou e-mail malformado.
+  const requestPasswordReset = async (email: string): Promise<AuthResult> => {
+    try {
+      await api.post('/auth/forgot-password', { email: email.trim() });
+      return { success: true };
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: unknown } };
+      const message = err.response?.data || 'Não foi possível enviar o código. Tente novamente.';
+      return {
+        success: false,
+        error: typeof message === 'string' ? message : JSON.stringify(message),
+      };
+    }
+  };
+
+  const resetPassword = async (email: string, code: string, newPassword: string): Promise<AuthResult> => {
+    try {
+      await api.post('/auth/reset-password', { email: email.trim(), code, newPassword });
+      return { success: true };
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: unknown } };
+      const message = err.response?.data || 'Não foi possível redefinir a senha.';
+      return {
+        success: false,
+        error: typeof message === 'string' ? message : JSON.stringify(message),
+      };
+    }
+  };
+
   /** Cadastro de personal — envia role PERSONAL (whitelist do backend). */
   const register = async ({
     name,
@@ -315,6 +346,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         registerCompany,
         confirmEmail,
         resendConfirmation,
+        requestPasswordReset,
+        resetPassword,
       }}
     >
       {children}

@@ -69,7 +69,7 @@ public class BillingService {
     /** Gerações de IA no teste grátis inteiro (não renova). */
     static final int TRIAL_AI_GENERATIONS = 10;
     /** Trava anti-abuso (bug, script, uso indevido), vale para todo personal. */
-    static final int AI_DAILY_CAP = 30;
+    static final int AI_HOURLY_CAP = 20;
     /** Pacote extra de IA: gerações por compra e preço (centavos). */
     static final int AI_PACK_CREDITS = 20;
     static final int AI_PACK_PRICE_CENTS = 990;
@@ -81,6 +81,8 @@ public class BillingService {
     /** Depois do prazo, trocar quem fica ativo só a cada N dias. */
     static final int ACTIVE_SWAP_COOLDOWN_DAYS = 30;
     private static final DateTimeFormatter DAY_MONTH = DateTimeFormatter.ofPattern("dd/MM").withZone(
+            ZoneId.of("America/Sao_Paulo"));
+    private static final DateTimeFormatter HOUR_MINUTE = DateTimeFormatter.ofPattern("HH:mm").withZone(
             ZoneId.of("America/Sao_Paulo"));
     private static final ZoneId BILLING_ZONE = ZoneId.of("America/Sao_Paulo");
 
@@ -352,9 +354,15 @@ public class BillingService {
      */
     public boolean assertCanGenerateAi(User trainer) {
         Instant now = Instant.now();
-        if (countAiSince(trainer, now.minus(Duration.ofDays(1))) >= AI_DAILY_CAP) {
-            throw new AiQuotaExceededException("Você atingiu o limite de " + AI_DAILY_CAP
-                    + " gerações de IA nas últimas 24 horas. Tente de novo mais tarde.");
+        Instant hourAgo = now.minus(Duration.ofHours(1));
+        if (countAiSince(trainer, hourAgo) >= AI_HOURLY_CAP) {
+            // Libera quando a geração mais antiga da janela completa 1 hora.
+            LocalDateTime oldest = aiPlanGenerationRepository.findOldestCreatedAtSince(
+                    trainer.getId(), LocalDateTime.ofInstant(hourAgo, ZoneId.systemDefault()));
+            String when = oldest == null ? "em alguns minutos"
+                    : "às " + HOUR_MINUTE.format(oldest.atZone(ZoneId.systemDefault()).plusHours(1).toInstant());
+            throw new AiQuotaExceededException("Você atingiu o limite de " + AI_HOURLY_CAP
+                    + " gerações de IA por hora. Você pode gerar de novo " + when + ".");
         }
 
         TrainerSubscription sub = getOrCreate(trainer);

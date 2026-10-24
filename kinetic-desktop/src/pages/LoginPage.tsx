@@ -18,7 +18,9 @@ export default function LoginPage() {
   const { signIn, isLoggedIn, isLoadingAuth, currentUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const emailConfirmed = (location.state as { emailConfirmed?: boolean } | null)?.emailConfirmed ?? false;
+  const navState = location.state as { emailConfirmed?: boolean; passwordReset?: boolean } | null;
+  const emailConfirmed = navState?.emailConfirmed ?? false;
+  const passwordReset = navState?.passwordReset ?? false;
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -107,9 +109,18 @@ export default function LoginPage() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <label htmlFor="password" className="text-sm font-medium text-k-text-soft">
-                Senha
-              </label>
+              <div className="flex items-center justify-between">
+                <label htmlFor="password" className="text-sm font-medium text-k-text-soft">
+                  Senha
+                </label>
+                <Link
+                  to="/forgot-password"
+                  state={{ email: email.trim() }}
+                  className="text-xs font-medium text-k-text-dim hover:text-k-primary transition-colors"
+                >
+                  Esqueci minha senha
+                </Link>
+              </div>
               <div className="relative">
                 <input
                   id="password"
@@ -141,6 +152,16 @@ export default function LoginPage() {
             >
               <span className="w-1.5 h-1.5 rounded-full bg-k-success shrink-0" />
               <span>E-mail confirmado. Agora é só entrar.</span>
+            </div>
+          )}
+
+          {passwordReset && !error && (
+            <div
+              className="mt-5 flex items-center gap-2.5 px-3.5 py-3 rounded-lg bg-k-success/10 border border-k-success/30 text-k-success text-sm"
+              role="status"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-k-success shrink-0" />
+              <span>Senha redefinida. Entre com a nova senha.</span>
             </div>
           )}
 

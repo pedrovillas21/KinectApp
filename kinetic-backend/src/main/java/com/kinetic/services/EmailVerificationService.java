@@ -6,6 +6,7 @@ import com.kinetic.models.EmailVerificationCode;
 import com.kinetic.models.User;
 import com.kinetic.repositories.EmailVerificationCodeRepository;
 import com.kinetic.repositories.UserRepository;
+import com.kinetic.utils.EmailTemplates;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,28 +138,15 @@ public class EmailVerificationService {
         }
     }
 
+    private static final String EMAIL_INTRO = "Falta pouco para ativar sua conta Kinetic. Use o código abaixo para confirmar seu e-mail:";
+    private static final String EMAIL_FOOTNOTE = "Se você não criou uma conta no Kinetic, ignore este e-mail.";
+
     private String buildText(String nome, String code) {
-        return "Olá" + greetingName(nome) + ",\n\n"
-                + "Seu código para confirmar o e-mail da sua conta Kinetic é: " + code + "\n\n"
-                + "Ele vale por " + CODE_TTL.toMinutes() + " minutos. "
-                + "Se você não criou uma conta no Kinetic, ignore este e-mail.";
+        return EmailTemplates.codeText(nome, EMAIL_INTRO, code, CODE_TTL.toMinutes(), EMAIL_FOOTNOTE);
     }
 
     private String buildHtml(String nome, String code) {
-        return "<div style=\"font-family:Arial,sans-serif;max-width:480px;margin:auto\">"
-                + "<p>Olá" + escapeHtml(greetingName(nome)) + ",</p>"
-                + "<p>Seu código para confirmar o e-mail da sua conta <strong>Kinetic</strong> é:</p>"
-                + "<p style=\"font-size:32px;font-weight:bold;letter-spacing:6px\">" + code + "</p>"
-                + "<p>Ele vale por " + CODE_TTL.toMinutes() + " minutos.</p>"
-                + "<p style=\"color:#666;font-size:13px\">Se você não criou uma conta no Kinetic, ignore este e-mail.</p>"
-                + "</div>";
-    }
-
-    private String greetingName(String nome) {
-        return (nome == null || nome.isBlank()) ? "" : " " + nome.trim();
-    }
-
-    private String escapeHtml(String s) {
-        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
+        return EmailTemplates.codeEmail(nome, "Seu código para confirmar o e-mail no Kinetic.", "Confirme seu e-mail", EMAIL_INTRO,
+                code, CODE_TTL.toMinutes(), EMAIL_FOOTNOTE);
     }
 }
