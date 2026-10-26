@@ -6,6 +6,8 @@ import { toast } from 'sonner';
 import { ArrowLeft, BadgeCheck, Camera, Clock, Loader2, MessageCircle, Plus, ShieldCheck, Trash2, X } from 'lucide-react';
 import Avatar from '../components/Avatar';
 import AccountPrivacySection from '../components/personal/AccountPrivacySection';
+import CompanySection from '../components/personal/CompanySection';
+import { compressImage } from '../utils/compressImage';
 import { formInputClass, formLabelClass } from '../components/personal/FormDialog';
 import { riseItem, staggerContainer } from '../components/motion/primitives';
 import {
@@ -206,7 +208,7 @@ export default function MyProfilePage() {
                   }}
                   className="flex flex-col gap-5"
                 >
-                  <Section title="Foto de perfil" hint="Aparece para seus alunos no app. JPG, PNG ou WEBP, até 10 MB.">
+                  <Section title="Foto de perfil" hint="Aparece para seus alunos no app. JPG, PNG ou WEBP; a foto é reduzida antes do envio.">
                     <AvatarPicker name={profile.nome} avatarUrl={profile.avatarUrl} />
                   </Section>
 
@@ -390,6 +392,7 @@ export default function MyProfilePage() {
                     </div>
                   </Section>
                 </motion.form>
+                <CompanySection />
                 <AccountPrivacySection />
               </div>
 
@@ -422,7 +425,8 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
   );
 }
 
-const AVATAR_MAX_BYTES = 10 * 1024 * 1024;
+// Vale depois da redução no navegador (compressImage); o backend recusa acima de 3 MB.
+const AVATAR_MAX_BYTES = 3 * 1024 * 1024;
 
 /** Foto salva na hora (fora do botão "Salvar perfil"), igual ao app do aluno. */
 function AvatarPicker({ name, avatarUrl }: { name: string; avatarUrl: string | null }) {
@@ -437,10 +441,11 @@ function AvatarPicker({ name, avatarUrl }: { name: string; avatarUrl: string | n
     e.target.value = ''; // permite escolher o mesmo arquivo de novo
     if (!file) return;
     if (!file.type.startsWith('image/')) return void toast.error('Escolha um arquivo de imagem.');
-    if (file.size > AVATAR_MAX_BYTES) return void toast.error('A imagem passa de 10 MB.');
     setBusy('upload');
     try {
-      setAvatar(await updateMyAvatar(file));
+      const compressed = await compressImage(file);
+      if (compressed.size > AVATAR_MAX_BYTES) return void toast.error('A imagem passa de 3 MB.');
+      setAvatar(await updateMyAvatar(compressed));
       toast.success('Foto atualizada');
     } catch (err) {
       toast.error(errorText(err, 'Não foi possível enviar a foto.'));

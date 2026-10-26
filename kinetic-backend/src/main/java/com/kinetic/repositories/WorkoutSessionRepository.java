@@ -25,6 +25,11 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
 
     boolean existsByUserIdAndSessionDate(UUID userId, LocalDate sessionDate);
 
+    /** Segundos de treino já gravados pelo usuário no dia. */
+    @Query("SELECT COALESCE(SUM(ws.durationInSeconds), 0) FROM WorkoutSession ws "
+            + "WHERE ws.user.id = :userId AND ws.sessionDate = :date")
+    long sumDurationByUserIdAndSessionDate(@Param("userId") UUID userId, @Param("date") LocalDate date);
+
     boolean existsByUserIdAndClientSessionId(UUID userId, UUID clientSessionId);
 
     List<WorkoutSession> findByUserIdAndSessionDateBetween(

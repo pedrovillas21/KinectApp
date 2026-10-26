@@ -100,6 +100,12 @@ public class PhysicalAssessmentService {
         if (!a.getStudent().getId().equals(student.getId())) {
             throw new EntityNotFoundException("Avaliação não encontrada.");
         }
+        // Avaliação é registro profissional de quem a fez: o personal atual vê o histórico
+        // do aluno, mas não altera nem apaga o que outro personal assinou.
+        User trainer = userRepository.getByEmailOrThrow(trainerEmail);
+        if (a.getTrainer() == null || !a.getTrainer().getId().equals(trainer.getId())) {
+            throw new IllegalArgumentException("Só o personal que fez esta avaliação pode alterá-la ou excluí-la.");
+        }
         return a;
     }
 

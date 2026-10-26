@@ -5,6 +5,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * Contadores na tabela rate_limit_counters (V48): todas as cópias do backend somam no
  * mesmo contador, e um deploy não zera os limites.
@@ -22,6 +25,13 @@ public class PostgresRateLimiter implements RateLimiter {
 
     private final JdbcTemplate jdbc;
 
+    /**
+     * Chaves já estouradas nesta cópia, com o fim da janela. Enquanto a janela não vira,
+     * o pedido é recusado sem ir ao banco: uma rajada bloqueada não vira uma escrita no
+     * Postgres por requisição.
+     */
+    private final Map<String, Long> blockedUntil = new ConcurrentHashMap<>();
+
     public PostgresRateLimiter(JdbcTemplate jdbc) {
         this.jdbc = jdbc;
     }
@@ -29,14 +39,29 @@ public class PostgresRateLimiter implements RateLimiter {
     @Override
     public long acquire(String key, int limit, long windowMs) {
         long now = System.currentTimeMillis();
+        Long blocked = blockedUntil.get(key);
+        if (blocked != null && blocked > now) {
+            return blocked - now;
+        }
         long windowEnd = now - Math.floorMod(now, windowMs) + windowMs;
         Integer count = jdbc.queryForObject(INCREMENT, Integer.class, key, windowEnd);
-        return count != null && count <= limit ? 0 : Math.max(1, windowEnd - now);
+        if (count != null && count <= limit) {
+            return 0;
+        }
+        blockedUntil.put(key, windowEnd);
+        return Math.max(1, windowEnd - now);
     }
 
     @Scheduled(cron = "0 */10 * * * *")
     @SchedulerLock(name = "purgeRateLimitCounters")
     public void purgeExpired() {
         jdbc.update("DELETE FROM rate_limit_counters WHERE window_end < ?", System.currentTimeMillis());
+    }
+
+    /** Sem trava: cada cópia limpa o próprio cache. */
+    @Scheduled(fixedDelay = 60_000)
+    public void purgeLocalBlocks() {
+        long now = System.currentTimeMillis();
+        blockedUntil.values().removeIf(end -> end <= now);
     }
 }

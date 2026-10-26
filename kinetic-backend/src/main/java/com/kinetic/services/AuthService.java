@@ -10,6 +10,7 @@ import com.kinetic.dtos.AuthResponseDTO;
 import com.kinetic.dtos.RefreshResponseDTO;
 import com.kinetic.exceptions.EmailAlreadyInUseException;
 import com.kinetic.exceptions.EmailNotVerifiedException;
+import com.kinetic.exceptions.SecondFactorRequiredException;
 import com.kinetic.exceptions.TooManyAttemptsException;
 import com.kinetic.security.JwtUtil;
 import com.kinetic.security.RateLimiter;
@@ -84,18 +85,26 @@ public class AuthService {
     }
 
     public AuthResponseDTO login(LoginDTO dto, String ip) {
-        // Por IP + e-mail: freia tentar senhas numa conta sem bloquear quem divide o IP
+        String identifier = dto.getEmail().trim().toLowerCase(Locale.ROOT);
+        // Por IP + identificador: freia tentar senhas numa conta sem bloquear quem divide o IP
         // (alunos no Wi-Fi da academia). Conta antes do bcrypt, que é a parte cara.
-        String key = "login:" + ip + " " + dto.getEmail().trim().toLowerCase(Locale.ROOT);
+        String key = "login:" + ip + " " + identifier;
         if (rateLimiter.acquire(key, LOGIN_ATTEMPTS_PER_MINUTE, LOGIN_WINDOW_MS) > 0) {
             throw new TooManyAttemptsException("Muitas tentativas. Aguarde um minuto e tente novamente.");
         }
 
+        // Filial entra pelo usuário (rede.filial); internamente a conta segue identificada
+        // pelo e-mail interno dela, como todas as outras. Usuário inexistente cai no mesmo
+        // "credenciais inválidas" de uma senha errada.
+        String email = identifier.contains("@")
+                ? dto.getEmail().trim()
+                : userRepository.findByUsername(identifier).map(User::getEmail).orElse(identifier);
+
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getSenha())
+                new UsernamePasswordAuthenticationToken(email, dto.getSenha())
         );
 
-        User user = userRepository.findByEmail(dto.getEmail())
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));
 
         // Só depois da senha conferir: não revela a ninguém quais contas existem.
@@ -106,6 +115,17 @@ public class AuthService {
                     "Confirme seu e-mail para entrar. Enviamos um código para " + user.getEmail() + ".");
         }
 
+        // Contas de gestão (dono, filial, ROOT): a senha sozinha não entra; falta o código
+        // do app autenticador (TotpService).
+        if (TotpService.requiresSecondFactor(user)) {
+            throw new SecondFactorRequiredException(user.getTotpEnabledAt() == null,
+                    jwtUtil.generateChallengeToken(user.getEmail()));
+        }
+        return issueSession(user, ip);
+    }
+
+    /** Abre a sessão (access + refresh) de quem já passou por todas as etapas do login. */
+    public AuthResponseDTO issueSession(User user, String ip) {
         // Registro de streak é best-effort: uma falha aqui (ex.: corrida no
         // insert diário) jamais deve impedir um login com credenciais válidas.
         recordDailyLoginSafely(user);

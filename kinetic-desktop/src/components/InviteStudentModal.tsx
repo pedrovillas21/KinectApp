@@ -141,13 +141,14 @@ export default function InviteStudentModal({
       const res = (err as { response?: { status?: number; data?: unknown } }).response;
       if (handlePlanLimit(res)) return;
       const status = res?.status;
-      if (status === 404) {
-        setError('Nenhum aluno cadastrado com este e-mail. Use o convite por link: ele serve para quem ainda não tem conta.');
-      } else if (status === 409) {
-        setError('Este aluno já possui um personal ativo ou um convite pendente.');
-      } else if (status === 400) {
-        const data = (err as { response?: { data?: { message?: string } } }).response?.data;
-        setError(data?.message ?? 'E-mail inválido.');
+      // O servidor responde igual para e-mail sem conta, conta que não é de aluno e aluno
+      // que já tem personal (não revela quem usa o app); a mensagem dele já orienta.
+      if (status === 400 || status === 409) {
+        const data = res?.data;
+        setError(
+          (typeof data === 'string' && data) ||
+            'Não foi possível convidar este e-mail. Se o aluno ainda não tem conta, use o convite por link.',
+        );
       } else {
         setError('Não foi possível enviar o convite. Tente novamente.');
       }

@@ -1,5 +1,5 @@
 import api from './api';
-import type { TrainerProfile, TrainerProfileInput } from '../types';
+import type { TrainerCompany, TrainerProfile, TrainerProfileInput } from '../types';
 
 /**
  * Perfil profissional do personal logado — o que os alunos vinculados veem em
@@ -29,4 +29,26 @@ export const updateMyAvatar = async (file: File): Promise<string> => {
 /** Remove a foto de perfil (volta às iniciais do nome). */
 export const removeMyAvatar = async (): Promise<void> => {
   await api.delete('/users/me/avatar');
+};
+
+// ── Empresa do personal ─────────────────────────────────────────────────────
+
+/** Empresa da qual o personal é funcionário e convite que aguarda o aceite dele. */
+export const getMyCompany = async (): Promise<TrainerCompany> => {
+  const res = await api.get<TrainerCompany>('/trainer/company');
+  return res.data;
+};
+
+export const acceptCompanyInvite = async (): Promise<TrainerCompany> => {
+  const res = await api.post<TrainerCompany>('/trainer/company/accept');
+  return res.data;
+};
+
+export const declineCompanyInvite = async (): Promise<void> => {
+  await api.post('/trainer/company/decline');
+};
+
+/** Sai da empresa: volta à cobrança individual e encerra os alunos atribuídos por ela. */
+export const leaveCompany = async (): Promise<void> => {
+  await api.delete('/trainer/company');
 };

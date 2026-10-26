@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
-import { Building2, Plus } from 'lucide-react';
+import { Building2, KeyRound, Plus, ShieldOff } from 'lucide-react';
 import PageHeader from '../../components/PageHeader';
 import { EmptyCard } from '../../components/stat-primitives';
 import StatusBadge from '../../components/StatusBadge';
@@ -25,12 +25,21 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { createCompany, listCompanies } from '../../services/rootService';
+import { createCompany, listCompanies, regeneratePassword, resetSecondFactor } from '../../services/rootService';
+import { formatCnpj, slugify } from '../../utils/company';
 import type { Company } from '../../types';
 
 const formatDate = (iso: string): string =>
   new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
+const EMPTY_FORM = { companyName: '', companyCnpj: '', slug: '', ownerName: '', ownerEmail: '' };
+
+const errorText = (err: unknown, fallback: string): string => {
+  const data = (err as { response?: { data?: unknown } }).response?.data;
+  return typeof data === 'string' && data ? data : fallback;
+};
+
+/** Redes de empresas: o ROOT cria a rede e o acesso do dono; as filiais são do dono. */
 export default function CompaniesPage() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,7 +47,9 @@ export default function CompaniesPage() {
 
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState({ companyName: '', ownerName: '', ownerEmail: '', ownerPassword: '' });
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [slugTouched, setSlugTouched] = useState(false);
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -57,37 +68,55 @@ export default function CompaniesPage() {
     void load();
   }, []);
 
-  const resetForm = () => setForm({ companyName: '', ownerName: '', ownerEmail: '', ownerPassword: '' });
-
   const handleCreate = async (e: FormEvent) => {
     e.preventDefault();
     if (submitting) return;
     setSubmitting(true);
     try {
-      const created = await createCompany(form);
-      toast.success(`Empresa "${created.nome}" criada.`);
+      const created = await createCompany({ ...form, slug: form.slug.replace(/-+$/, '') });
+      toast.success(`Rede "${created.nome}" criada. O acesso foi enviado para ${created.ownerEmail}.`);
       setOpen(false);
-      resetForm();
+      setForm(EMPTY_FORM);
+      setSlugTouched(false);
       await load();
     } catch (err: unknown) {
-      const status = (err as { response?: { status?: number } }).response?.status;
-      if (status === 409) {
-        toast.error('Já existe um usuário com este e-mail.');
-      } else if (status === 400) {
-        toast.error('Dados inválidos. Revise os campos.');
-      } else {
-        toast.error('Não foi possível criar a empresa.');
-      }
+      toast.error(errorText(err, 'Não foi possível criar a empresa.'));
     } finally {
       setSubmitting(false);
     }
   };
 
+  const ownerAction = async (c: Company, action: 'senha' | '2fa') => {
+    if (!c.ownerId) return;
+    setBusyId(c.ownerId);
+    try {
+      if (action === 'senha') {
+        await regeneratePassword(c.ownerId);
+        toast.success(`Nova senha enviada para ${c.ownerEmail}.`);
+      } else {
+        await resetSecondFactor(c.ownerId);
+        toast.success('App autenticador redefinido. No próximo login o dono cadastra o app de novo.');
+      }
+    } catch (err: unknown) {
+      toast.error(errorText(err, 'Não foi possível concluir.'));
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const set = (key: keyof typeof EMPTY_FORM, value: string) =>
+    setForm((f) => {
+      const next = { ...f, [key]: value };
+      // O apelido acompanha o nome até ser editado à mão.
+      if (key === 'companyName' && !slugTouched) next.slug = slugify(value);
+      return next;
+    });
+
   return (
     <div className="flex flex-col min-h-full">
       <PageHeader
         title="Empresas"
-        subtitle="Provisionamento e gestão de academias/estúdios"
+        subtitle="Redes de academias/estúdios e o acesso de cada dono"
         icon={<Building2 className="w-5 h-5" />}
         actions={
           <Dialog open={open} onOpenChange={setOpen}>
@@ -101,7 +130,8 @@ export default function CompaniesPage() {
                 <DialogHeader>
                   <DialogTitle>Nova Empresa</DialogTitle>
                   <DialogDescription>
-                    Cria a empresa e o usuário responsável (papel EMPRESA), que acessa o painel com a senha inicial.
+                    Cria a rede e o acesso do dono. A senha é gerada pelo sistema e enviada ao e-mail do dono; no
+                    primeiro login ele cadastra o app autenticador e depois cadastra as filiais.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="flex flex-col gap-4 py-4">
@@ -110,45 +140,62 @@ export default function CompaniesPage() {
                     <Input
                       id="companyName"
                       value={form.companyName}
-                      onChange={(e) => setForm((f) => ({ ...f, companyName: e.target.value }))}
+                      onChange={(e) => set('companyName', e.target.value)}
                       required
                       autoFocus
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="ownerName">Responsável</Label>
+                    <Label htmlFor="companyCnpj">CNPJ</Label>
                     <Input
-                      id="ownerName"
-                      value={form.ownerName}
-                      onChange={(e) => setForm((f) => ({ ...f, ownerName: e.target.value }))}
+                      id="companyCnpj"
+                      inputMode="numeric"
+                      placeholder="00.000.000/0000-00"
+                      value={form.companyCnpj}
+                      onChange={(e) => set('companyCnpj', formatCnpj(e.target.value))}
                       required
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="ownerEmail">E-mail do responsável</Label>
+                    <Label htmlFor="slug">Apelido da rede</Label>
+                    <Input
+                      id="slug"
+                      placeholder="academiax"
+                      value={form.slug}
+                      onChange={(e) => {
+                        setSlugTouched(true);
+                        set('slug', slugify(e.target.value));
+                      }}
+                      required
+                    />
+                    <p className="text-xs text-k-text-muted">
+                      As filiais entram com <span className="font-mono">{form.slug || 'apelido'}.filial</span>. Não
+                      muda depois.
+                    </p>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="ownerName">Nome do dono</Label>
+                    <Input
+                      id="ownerName"
+                      value={form.ownerName}
+                      onChange={(e) => set('ownerName', e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="ownerEmail">E-mail do dono</Label>
                     <Input
                       id="ownerEmail"
                       type="email"
                       value={form.ownerEmail}
-                      onChange={(e) => setForm((f) => ({ ...f, ownerEmail: e.target.value }))}
-                      required
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="ownerPassword">Senha inicial</Label>
-                    <Input
-                      id="ownerPassword"
-                      type="password"
-                      value={form.ownerPassword}
-                      onChange={(e) => setForm((f) => ({ ...f, ownerPassword: e.target.value }))}
-                      minLength={6}
+                      onChange={(e) => set('ownerEmail', e.target.value)}
                       required
                     />
                   </div>
                 </div>
                 <DialogFooter>
                   <Button type="submit" disabled={submitting}>
-                    {submitting ? 'Criando…' : 'Criar empresa'}
+                    {submitting ? 'Criando…' : 'Criar e enviar acesso'}
                   </Button>
                 </DialogFooter>
               </form>
@@ -174,23 +221,55 @@ export default function CompaniesPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Empresa</TableHead>
-                  <TableHead>Responsável</TableHead>
+                  <TableHead>Dono</TableHead>
+                  <TableHead>Filiais</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Criada em</TableHead>
+                  <TableHead className="text-right">Acesso do dono</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {companies.map((c) => (
                   <TableRow key={c.id}>
-                    <TableCell className="font-bold">{c.nome}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="font-bold">{c.nome}</span>
+                        <span className="text-[11px] text-k-text-muted">
+                          {c.cnpj ? formatCnpj(c.cnpj) : '—'} · {c.slug ?? '—'}
+                        </span>
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <div className="flex flex-col">
                         <span className="text-xs font-semibold">{c.ownerName ?? '—'}</span>
                         <span className="text-[11px] text-k-text-muted">{c.ownerEmail ?? '—'}</span>
                       </div>
                     </TableCell>
+                    <TableCell className="text-k-text-dim">{c.units}</TableCell>
                     <TableCell>{c.ownerStatus ? <StatusBadge status={c.ownerStatus} /> : '—'}</TableCell>
                     <TableCell className="text-k-text-dim">{formatDate(c.createdAt)}</TableCell>
+                    <TableCell className="text-right">
+                      {c.ownerId && (
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={busyId === c.ownerId}
+                            onClick={() => void ownerAction(c, 'senha')}
+                          >
+                            <KeyRound className="w-4 h-4" /> Nova senha
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={busyId === c.ownerId}
+                            onClick={() => void ownerAction(c, '2fa')}
+                          >
+                            <ShieldOff className="w-4 h-4" /> Redefinir 2FA
+                          </Button>
+                        </div>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

@@ -2,6 +2,7 @@ package com.kinetic.services;
 
 import com.kinetic.dtos.AccountExportDTO;
 import com.kinetic.dtos.AccountExportDTO.*;
+import com.kinetic.enums.TrainerLinkStatus;
 import com.kinetic.models.*;
 import com.kinetic.repositories.UserRepository;
 import jakarta.persistence.EntityManager;
@@ -13,6 +14,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -61,10 +63,22 @@ public class DataExportService {
                                 c.getEndWeight(), c.getTotalVolume(), c.getCompletedSessions(), c.getTargetSessions(),
                                 c.getAdherencePercentage(), c.getVolumeByMuscle(), c.getCreatedAt()))
                         .toList(),
-                assessments(id),
+                assessments(id, activeStudents(id)),
                 social(id),
-                trainer(id)
+                trainer(id, activeStudents(id))
         );
+    }
+
+    /**
+     * Alunos com vínculo ATIVO com o usuário (como personal). Dado de saúde de ex-aluno
+     * não vai na exportação do personal: é do aluno, que tem a própria exportação.
+     */
+    private Set<UUID> activeStudents(UUID trainerId) {
+        return Set.copyOf(em.createQuery("SELECT t.student.id FROM TrainerClient t "
+                        + "WHERE t.trainer.id = :id AND t.status = :status", UUID.class)
+                .setParameter("id", trainerId)
+                .setParameter("status", TrainerLinkStatus.ATIVO)
+                .getResultList());
     }
 
     private static Profile profile(User u) {
@@ -110,11 +124,12 @@ public class DataExportService {
                 .toList();
     }
 
-    /** Avaliações em que o usuário é o aluno avaliado ou o personal que avaliou. */
-    private List<Assessment> assessments(UUID id) {
+    /** Avaliações em que o usuário é o aluno avaliado ou o personal que avaliou (só de alunos ativos). */
+    private List<Assessment> assessments(UUID id, Set<UUID> activeStudents) {
         return list("SELECT a FROM PhysicalAssessment a JOIN FETCH a.student LEFT JOIN FETCH a.trainer "
                         + "WHERE a.student.id = :id OR a.trainer.id = :id ORDER BY a.assessedOn",
                 PhysicalAssessment.class, id).stream()
+                .filter(a -> a.getStudent().getId().equals(id) || activeStudents.contains(a.getStudent().getId()))
                 .map(a -> new Assessment(a.getId(), a.getAssessedOn(), ref(a.getStudent()), ref(a.getTrainer()),
                         a.getWeightKg(), a.getHeightCm(), a.getBodyFatPct(), a.getMuscleMassKg(), a.getRestingHr(),
                         a.getChestCm(), a.getWaistCm(), a.getAbdomenCm(), a.getHipCm(),
@@ -155,7 +170,7 @@ public class DataExportService {
         return new Social(posts, comments, likes, connections);
     }
 
-    private Trainer trainer(UUID id) {
+    private Trainer trainer(UUID id, Set<UUID> activeStudents) {
         List<Link> links = list("SELECT t FROM TrainerClient t JOIN FETCH t.trainer JOIN FETCH t.student "
                         + "WHERE t.trainer.id = :id OR t.student.id = :id ORDER BY t.createdAt",
                 TrainerClient.class, id).stream()
@@ -212,12 +227,16 @@ public class DataExportService {
         List<PlanRef> plansForOthers = list("SELECT p FROM WorkoutPlan p JOIN FETCH p.user "
                         + "WHERE p.createdBy.id = :id AND p.user.id <> :id ORDER BY p.createdAt",
                 WorkoutPlan.class, id).stream()
+                .filter(p -> activeStudents.contains(p.getUser().getId()))
                 .map(p -> new PlanRef(p.getId(), p.getTitle(), ref(p.getUser()), p.getStatus(), p.getCreatedAt()))
                 .toList();
 
         List<AiGeneration> aiGenerations = list("SELECT g FROM AiPlanGeneration g LEFT JOIN FETCH g.trainer "
                         + "LEFT JOIN FETCH g.student WHERE g.trainer.id = :id OR g.student.id = :id ORDER BY g.createdAt",
                 AiPlanGeneration.class, id).stream()
+                // Como personal, só as gerações de alunos ativos (a geração traz a anamnese do aluno).
+                .filter(g -> g.getStudent() != null && (g.getStudent().getId().equals(id)
+                        || activeStudents.contains(g.getStudent().getId())))
                 .map(g -> {
                     boolean isTrainer = g.getTrainer() != null && g.getTrainer().getId().equals(id);
                     return new AiGeneration(g.getId(), isTrainer ? "TRAINER" : "STUDENT",

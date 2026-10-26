@@ -8,6 +8,9 @@ package com.kinetic.enums;
 public enum Role {
     ALUNO,
     PERSONAL,
+    /** Conta de uma filial (unidade); entra por usuário (rede.filial), criada pelo DONO. */
     EMPRESA,
+    /** Dono de uma rede de empresas: cadastra as filiais e acompanha todas. Criado pelo ROOT. */
+    DONO,
     ROOT
 }

@@ -17,10 +17,11 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.Deque;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 /**
  * Avisos em tempo real para o painel do personal (GET /api/trainer/events, SSE).
@@ -53,8 +54,15 @@ public class TrainerEventService {
     private final JdbcTemplate jdbc;
     private final TransactionTemplate newTransaction;
 
-    /** Conexões SSE abertas nesta cópia. */
-    private final Map<UUID, Set<SseEmitter>> emitters = new ConcurrentHashMap<>();
+    /**
+     * Conexões abertas por personal nesta cópia (abas do painel). Passou disso, a mais
+     * antiga é fechada: cada conexão segura uma thread/socket, e sem teto um único login
+     * esgotaria o servidor.
+     */
+    static final int MAX_EMITTERS_PER_TRAINER = 5;
+
+    /** Conexões SSE abertas nesta cópia, da mais antiga para a mais nova. */
+    private final Map<UUID, Deque<SseEmitter>> emitters = new ConcurrentHashMap<>();
 
     /** Último evento da tabela já entregue por esta cópia; -1 até a primeira leitura. */
     private long lastEventId = -1;
@@ -73,7 +81,14 @@ public class TrainerEventService {
     public SseEmitter subscribe(String trainerEmail) {
         UUID trainerId = userRepository.getByEmailOrThrow(trainerEmail).getId();
         SseEmitter emitter = new SseEmitter(EMITTER_TIMEOUT_MS);
-        emitters.computeIfAbsent(trainerId, k -> ConcurrentHashMap.newKeySet()).add(emitter);
+        Deque<SseEmitter> open = emitters.computeIfAbsent(trainerId, k -> new ConcurrentLinkedDeque<>());
+        open.addLast(emitter);
+        while (open.size() > MAX_EMITTERS_PER_TRAINER) {
+            SseEmitter oldest = open.pollFirst();
+            if (oldest != null) {
+                oldest.complete();
+            }
+        }
         Runnable remove = () -> emitters.computeIfPresent(trainerId, (k, set) -> {
             set.remove(emitter);
             return set.isEmpty() ? null : set;
@@ -150,7 +165,7 @@ public class TrainerEventService {
     }
 
     private void deliver(UUID trainerId, String type, UUID studentId) {
-        Set<SseEmitter> set = emitters.get(trainerId);
+        Deque<SseEmitter> set = emitters.get(trainerId);
         if (set == null) return;
         for (SseEmitter emitter : set) {
             send(trainerId, emitter, SseEmitter.event().name("change").data(new TrainerEvent(type, studentId)));

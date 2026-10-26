@@ -2,10 +2,12 @@ package com.kinetic.services;
 
 import com.kinetic.enums.UserStatus;
 import com.kinetic.exceptions.InvalidCodeException;
+import com.kinetic.exceptions.TooManyAttemptsException;
 import com.kinetic.models.EmailVerificationCode;
 import com.kinetic.models.User;
 import com.kinetic.repositories.EmailVerificationCodeRepository;
 import com.kinetic.repositories.UserRepository;
+import com.kinetic.security.RateLimiter;
 import com.kinetic.utils.EmailTemplates;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -20,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 /**
@@ -39,12 +42,18 @@ public class EmailVerificationService {
     static final Duration RESEND_COOLDOWN = Duration.ofSeconds(60);
     static final int MAX_ATTEMPTS = 5;
 
+    /** Palpites por conta somando todos os códigos da janela (o reenvio não zera). */
+    static final int MAX_GUESSES_PER_HOUR = 10;
+    static final long GUESS_WINDOW_MS = Duration.ofHours(1).toMillis();
+
     private static final String INVALID_CODE = "Código inválido ou expirado. Solicite um novo código.";
+    private static final String TOO_MANY_GUESSES = "Muitas tentativas com código errado. Aguarde uma hora e tente de novo.";
 
     private final UserRepository userRepository;
     private final EmailVerificationCodeRepository codeRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final RateLimiter rateLimiter;
 
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -108,6 +117,11 @@ public class EmailVerificationService {
         EmailVerificationCode verificationCode = codeRepository.findByUser(user)
                 .orElseThrow(() -> new InvalidCodeException(INVALID_CODE));
 
+        // Limite por conta que sobrevive ao reenvio (ver PasswordResetService).
+        if (rateLimiter.acquire("confirm-guess:" + user.getId(), MAX_GUESSES_PER_HOUR, GUESS_WINDOW_MS) > 0) {
+            throw new TooManyAttemptsException(TOO_MANY_GUESSES);
+        }
+
         // A tentativa é contada antes do bcrypt: em rajada paralela, cada requisição
         // espera a anterior e o limite de MAX_ATTEMPTS vale de verdade.
         if (codeRepository.reserveAttempt(verificationCode.getId(), MAX_ATTEMPTS, Instant.now()) == 0) {
@@ -135,6 +149,20 @@ public class EmailVerificationService {
         int deleted = codeRepository.deleteAllExpired(Instant.now());
         if (deleted > 0) {
             log.info("EmailVerificationService: {} código(s) de confirmação expirado(s) removido(s).", deleted);
+        }
+    }
+
+    /** Cadastro não confirmado depois disso é apagado e libera e-mail, celular e CPF. */
+    static final Duration UNVERIFIED_ACCOUNT_TTL = Duration.ofDays(3);
+
+    /** Remove diariamente às 05:15 os cadastros que nunca confirmaram o e-mail. */
+    @Scheduled(cron = "0 15 5 * * *")
+    @SchedulerLock(name = "purgeUnverifiedAccounts")
+    @Transactional
+    public void purgeUnverifiedAccounts() {
+        int deleted = userRepository.deleteStaleUnverified(LocalDateTime.now().minus(UNVERIFIED_ACCOUNT_TTL));
+        if (deleted > 0) {
+            log.info("EmailVerificationService: {} cadastro(s) não confirmado(s) removido(s).", deleted);
         }
     }
 

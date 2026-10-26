@@ -5,6 +5,7 @@ import com.kinetic.utils.AppTime;
 import com.kinetic.dtos.EmpresaAnalyticsDTO;
 import com.kinetic.dtos.EmpresaStudentLinkDTO;
 import com.kinetic.dtos.FeedbackDTO;
+import com.kinetic.dtos.TrainerCompanyDTO;
 import com.kinetic.dtos.TrainerLinkDTO;
 import com.kinetic.dtos.TrainerLinkDTO.PeerDTO;
 import com.kinetic.dtos.UserAdminDTO;
@@ -12,6 +13,7 @@ import com.kinetic.enums.Role;
 import com.kinetic.enums.TrainerLinkStatus;
 import com.kinetic.exceptions.ActiveTrainerConflictException;
 import com.kinetic.models.User;
+import com.kinetic.repositories.CompanyRepository;
 import com.kinetic.repositories.TrainerClientRepository;
 import com.kinetic.repositories.UserRepository;
 import com.kinetic.repositories.WorkoutSessionRepository;
@@ -41,6 +43,8 @@ public class EmpresaService {
     private final WorkoutSessionRepository workoutSessionRepository;
     private final TrainerLinkService trainerLinkService;
     private final FeedbackService feedbackService;
+    private final CompanyRepository companyRepository;
+    private final TrainerEventService trainerEventService;
 
     /** company_id do usuário EMPRESA logado; erro se a conta não tiver empresa. */
     @Transactional(readOnly = true)
@@ -55,14 +59,25 @@ public class EmpresaService {
 
     // ── Funcionários (personais) ──────────────────────────────────────────────
 
+    /** Funcionários e convites ainda não aceitos (estes vêm com companyId nulo). */
     @Transactional(readOnly = true)
     public List<UserAdminDTO> listFuncionarios(String empresaEmail) {
-        UUID companyId = resolveCompanyId(empresaEmail);
-        return userRepository.findByCompanyIdAndRole(companyId, Role.PERSONAL).stream()
-                .map(UserAdminDTO::fromEntity)
-                .toList();
+        return listFuncionariosOf(resolveCompanyId(empresaEmail));
     }
 
+    /** Mesma lista por id da filial (o dono da rede vê as filiais por aqui). */
+    @Transactional(readOnly = true)
+    public List<UserAdminDTO> listFuncionariosOf(UUID companyId) {
+        List<UserAdminDTO> result = new ArrayList<>();
+        userRepository.findByCompanyIdAndRole(companyId, Role.PERSONAL).forEach(u -> result.add(UserAdminDTO.fromEntity(u)));
+        userRepository.findByPendingCompanyIdAndRole(companyId, Role.PERSONAL).forEach(u -> result.add(UserAdminDTO.fromEntity(u)));
+        return result;
+    }
+
+    /**
+     * Convida o personal para a empresa. Ele só vira funcionário (e sai da cobrança
+     * individual) quando aceitar no painel; até lá nada muda na conta dele.
+     */
     @Transactional
     public UserAdminDTO vincularFuncionario(String empresaEmail, String personalEmail) {
         UUID companyId = resolveCompanyId(empresaEmail);
@@ -70,33 +85,105 @@ public class EmpresaService {
         User personal = userRepository.findByEmail(personalEmail)
                 .filter(u -> u.getRole() == Role.PERSONAL)
                 .orElseThrow(() -> new EntityNotFoundException("Personal não encontrado."));
-        if (personal.getCompanyId() != null && !companyId.equals(personal.getCompanyId())) {
+        if (companyId.equals(personal.getCompanyId())) {
+            return UserAdminDTO.fromEntity(personal);
+        }
+        if (personal.getCompanyId() != null) {
             // Sem isso, outra empresa sobrescreveria o company_id e "roubaria" o funcionário.
             throw new ActiveTrainerConflictException("Este personal já está vinculado a outra empresa.");
         }
-        personal.setCompanyId(companyId);
-        return UserAdminDTO.fromEntity(userRepository.save(personal));
+        if (personal.getPendingCompanyId() != null && !companyId.equals(personal.getPendingCompanyId())) {
+            throw new ActiveTrainerConflictException("Este personal já tem um convite pendente de outra empresa.");
+        }
+        personal.setPendingCompanyId(companyId);
+        User saved = userRepository.save(personal);
+        trainerEventService.publishAfterCommit(saved.getId(), "company", null);
+        return UserAdminDTO.fromEntity(saved);
     }
 
+    /** Desvincula um funcionário ou cancela o convite pendente dele. */
     @Transactional
     public void desvincularFuncionario(String empresaEmail, UUID personalId) {
         UUID companyId = resolveCompanyId(empresaEmail);
         User personal = userRepository.findById(personalId)
                 .orElseThrow(() -> new EntityNotFoundException("Personal não encontrado."));
+        if (companyId.equals(personal.getPendingCompanyId())) {
+            personal.setPendingCompanyId(null);
+            userRepository.save(personal);
+            return;
+        }
         if (!companyId.equals(personal.getCompanyId())) {
             throw new EntityNotFoundException("Personal não encontrado.");
         }
-        // Desvincula o funcionário; os vínculos com alunos ficam como estão
-        // (encerre-os individualmente em Clientes, se necessário).
+        leaveCompany(personal, companyId);
+    }
+
+    // ── Lado do personal: convite e saída da empresa ──────────────────────────
+
+    /** Empresa atual e convite pendente do personal logado (cada um pode ser nulo). */
+    @Transactional(readOnly = true)
+    public TrainerCompanyDTO getTrainerCompany(String personalEmail) {
+        User personal = userRepository.getByEmailOrThrow(personalEmail);
+        return new TrainerCompanyDTO(companyRef(personal.getCompanyId()), companyRef(personal.getPendingCompanyId()));
+    }
+
+    @Transactional
+    public TrainerCompanyDTO acceptCompanyInvite(String personalEmail) {
+        User personal = userRepository.getByEmailOrThrow(personalEmail);
+        if (personal.getPendingCompanyId() == null) {
+            throw new EntityNotFoundException("Nenhum convite de empresa pendente.");
+        }
+        if (personal.getCompanyId() != null) {
+            throw new ActiveTrainerConflictException("Saia da empresa atual antes de aceitar outro convite.");
+        }
+        personal.setCompanyId(personal.getPendingCompanyId());
+        personal.setPendingCompanyId(null);
+        userRepository.save(personal);
+        return getTrainerCompany(personalEmail);
+    }
+
+    @Transactional
+    public void declineCompanyInvite(String personalEmail) {
+        User personal = userRepository.getByEmailOrThrow(personalEmail);
+        personal.setPendingCompanyId(null);
+        userRepository.save(personal);
+    }
+
+    /** O personal sai da empresa por conta própria. */
+    @Transactional
+    public void leaveCompanyByTrainer(String personalEmail) {
+        User personal = userRepository.getByEmailOrThrow(personalEmail);
+        if (personal.getCompanyId() == null) {
+            throw new EntityNotFoundException("Você não está vinculado a nenhuma empresa.");
+        }
+        leaveCompany(personal, personal.getCompanyId());
+    }
+
+    /** Tira o personal da empresa e encerra os alunos que ela atribuiu a ele. */
+    private void leaveCompany(User personal, UUID companyId) {
         personal.setCompanyId(null);
         userRepository.save(personal);
+        trainerLinkService.endCompanyLinksOfTrainer(companyId, personal.getId());
+    }
+
+    private TrainerCompanyDTO.CompanyRef companyRef(UUID companyId) {
+        if (companyId == null) {
+            return null;
+        }
+        return companyRepository.findById(companyId)
+                .map(c -> new TrainerCompanyDTO.CompanyRef(c.getId(), c.getNome()))
+                .orElse(null);
     }
 
     // ── Clientes (alunos via vínculo COMPANY) ─────────────────────────────────
 
     @Transactional(readOnly = true)
     public List<EmpresaStudentLinkDTO> listClientes(String empresaEmail) {
-        UUID companyId = resolveCompanyId(empresaEmail);
+        return listClientesOf(resolveCompanyId(empresaEmail));
+    }
+
+    @Transactional(readOnly = true)
+    public List<EmpresaStudentLinkDTO> listClientesOf(UUID companyId) {
         return trainerClientRepository
                 .findByCompanyAndStatusFetch(companyId, TrainerLinkStatus.ATIVO).stream()
                 .map(link -> new EmpresaStudentLinkDTO(
@@ -113,7 +200,7 @@ public class EmpresaService {
         User trainer = userRepository.findByEmail(trainerEmail)
                 .orElseThrow(() -> new EntityNotFoundException("Personal não encontrado."));
         User student = userRepository.findByEmail(studentEmail)
-                .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado."));
+                .orElseThrow(() -> new IllegalArgumentException(TrainerLinkService.INVITE_NOT_POSSIBLE));
         // Cria um convite PENDENTE: o vínculo só fica ATIVO quando o aluno aceitar no app.
         return trainerLinkService.assignStudentToTrainer(companyId, trainer.getId(), student.getId());
     }
@@ -135,7 +222,11 @@ public class EmpresaService {
 
     @Transactional(readOnly = true)
     public EmpresaAnalyticsDTO getAnalytics(String empresaEmail, String period) {
-        UUID companyId = resolveCompanyId(empresaEmail);
+        return getAnalyticsOf(resolveCompanyId(empresaEmail), period);
+    }
+
+    @Transactional(readOnly = true)
+    public EmpresaAnalyticsDTO getAnalyticsOf(UUID companyId, String period) {
         LocalDate startDate = periodStartDate(period);
         LocalDateTime startDateTime = startDate.atStartOfDay();
         LocalDate today = AppTime.today();

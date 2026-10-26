@@ -9,18 +9,18 @@ import {
 import { showAlert } from '../components/ui/AlertHost';
 
 /**
- * Assim que o aluno entra, resgata o código de convite digitado no cadastro.
- * Erro definitivo (400/402/404/409) descarta o código guardado e avisa o aluno
- * (com 402 o código segue válido e pode ser usado depois em Perfil); falha de
- * rede mantém para a próxima entrada.
+ * Assim que o aluno entra, resgata o código de convite digitado no cadastro, só se
+ * foi esta conta que o digitou. Erro definitivo (400/402/404/409) descarta o código
+ * guardado e avisa o aluno (com 402 o código segue válido e pode ser usado depois em
+ * Perfil); falha de rede mantém para a próxima entrada.
  */
-export default function usePendingInviteRedeem(isLoggedIn: boolean) {
+export default function usePendingInviteRedeem(userEmail: string | null) {
   useEffect(() => {
-    if (!isLoggedIn) return;
+    if (!userEmail) return;
     let cancelled = false;
 
     (async () => {
-      const code = await getPendingInviteCode();
+      const code = await getPendingInviteCode(userEmail);
       if (!code || cancelled) return;
       try {
         const link = await redeemInviteCode(code);
@@ -38,5 +38,5 @@ export default function usePendingInviteRedeem(isLoggedIn: boolean) {
     return () => {
       cancelled = true;
     };
-  }, [isLoggedIn]);
+  }, [userEmail]);
 }

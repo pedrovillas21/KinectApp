@@ -1,4 +1,5 @@
 import api from './api';
+import { compressImage } from '../utils/compressImage';
 import type { CompareProgress, Page, PublicProfile, WorkoutSummary } from '../types';
 
 /**
@@ -30,7 +31,8 @@ export const httpStatus = (e: unknown): number | undefined =>
  * Troca a foto de perfil do usuário logado e devolve o endereço público novo.
  * A foto é pública (bucket próprio), diferente das fotos de posts.
  */
-export const updateMyAvatar = async (uri: string): Promise<string> => {
+export const updateMyAvatar = async (originalUri: string): Promise<string> => {
+  const uri = await compressImage(originalUri);
   const name = uri.split('/').pop() ?? `${Date.now()}.jpg`;
   const ext = (/\.(\w+)$/.exec(name)?.[1] ?? 'jpg').toLowerCase();
   const type = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';

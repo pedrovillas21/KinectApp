@@ -2,10 +2,12 @@ package com.kinetic.services;
 
 import com.kinetic.enums.UserStatus;
 import com.kinetic.exceptions.InvalidCodeException;
+import com.kinetic.exceptions.TooManyAttemptsException;
 import com.kinetic.models.PasswordResetCode;
 import com.kinetic.models.User;
 import com.kinetic.repositories.PasswordResetCodeRepository;
 import com.kinetic.repositories.UserRepository;
+import com.kinetic.security.RateLimiter;
 import com.kinetic.utils.EmailTemplates;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -38,14 +40,19 @@ public class PasswordResetService {
     static final Duration CODE_TTL = Duration.ofMinutes(15);
     static final Duration RESEND_COOLDOWN = Duration.ofSeconds(60);
     static final int MAX_ATTEMPTS = 5;
+    /** Palpites por conta somando todos os códigos da janela (o reenvio não zera). */
+    static final int MAX_GUESSES_PER_HOUR = 10;
+    static final long GUESS_WINDOW_MS = Duration.ofHours(1).toMillis();
 
     private static final String INVALID_CODE = "Código inválido ou expirado. Solicite um novo código.";
+    static final String TOO_MANY_GUESSES = "Muitas tentativas com código errado. Aguarde uma hora e tente de novo.";
 
     private final UserRepository userRepository;
     private final PasswordResetCodeRepository codeRepository;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenService refreshTokenService;
     private final EmailService emailService;
+    private final RateLimiter rateLimiter;
 
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -56,7 +63,9 @@ public class PasswordResetService {
      */
     public void requestReset(String email) {
         Optional<User> found = userRepository.findByEmail(email.trim());
-        if (found.isEmpty() || found.get().getStatus() != UserStatus.ATIVO) {
+        // Filial não recupera a senha sozinha: o dono da rede gera outra (e o e-mail dela é interno).
+        if (found.isEmpty() || found.get().getStatus() != UserStatus.ATIVO
+                || found.get().getRole() == com.kinetic.enums.Role.EMPRESA) {
             return;
         }
         User user = found.get();
@@ -103,6 +112,12 @@ public class PasswordResetService {
         PasswordResetCode resetCode = codeRepository.findByUser(user)
                 .orElseThrow(() -> new InvalidCodeException(INVALID_CODE));
 
+        // Limite por conta que sobrevive ao reenvio: cada código novo zera as 5 tentativas
+        // dele, mas não este contador (senão daria para adivinhar pedindo códigos sem fim).
+        if (rateLimiter.acquire("reset-guess:" + user.getId(), MAX_GUESSES_PER_HOUR, GUESS_WINDOW_MS) > 0) {
+            throw new TooManyAttemptsException(TOO_MANY_GUESSES);
+        }
+
         // A tentativa é contada antes do bcrypt: em rajada paralela, cada requisição
         // espera a anterior e o limite de MAX_ATTEMPTS vale de verdade.
         if (codeRepository.reserveAttempt(resetCode.getId(), MAX_ATTEMPTS, Instant.now()) == 0) {
@@ -120,6 +135,7 @@ public class PasswordResetService {
         codeRepository.deleteByUser(user);
         refreshTokenService.revokeAllForUser(user);
         user.setSenha(passwordEncoder.encode(newPassword));
+        user.setCredentialsChangedAt(Instant.now());
         // Receber o código prova a posse da caixa: também confirma o e-mail. Assim o
         // dono real recupera uma conta que alguém cadastrou com o e-mail dele.
         user.setEmailVerified(true);

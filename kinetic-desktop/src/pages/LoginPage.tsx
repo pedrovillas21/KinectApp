@@ -47,6 +47,11 @@ export default function LoginPage() {
           navigate('/confirm-email', { state: { email: email.trim() } });
           return;
         }
+        if (result.secondFactor) {
+          // Conta de gestão: a senha conferiu, falta o código do app autenticador.
+          navigate('/login/2fa', { state: result.secondFactor });
+          return;
+        }
         setError(result.error);
       }
       // Em caso de sucesso, o <Navigate> acima assume o redirect por papel.
@@ -87,19 +92,23 @@ export default function LoginPage() {
 
           <motion.div variants={riseItem}>
             <h1 className="font-display font-bold text-[28px] leading-tight tracking-tight">Bem-vindo de volta</h1>
-            <p className="mt-1.5 text-sm text-k-text-dim">Entre com seu e-mail para acessar o painel.</p>
+            <p className="mt-1.5 text-sm text-k-text-dim">
+              Entre com seu e-mail, ou com o usuário da filial, para acessar o painel.
+            </p>
           </motion.div>
 
           <motion.div variants={riseItem} className="mt-8 flex flex-col gap-5">
             <div className="flex flex-col gap-2">
               <label htmlFor="email" className="text-sm font-medium text-k-text-soft">
-                E-mail
+                E-mail ou usuário
               </label>
               <input
                 id="email"
-                type="email"
-                autoComplete="email"
-                placeholder="voce@exemplo.com"
+                type="text"
+                autoComplete="username"
+                autoCapitalize="none"
+                spellCheck={false}
+                placeholder="voce@exemplo.com ou rede.filial"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoFocus
@@ -208,7 +217,7 @@ export default function LoginPage() {
           >
             <Smartphone className="w-4 h-4 shrink-0 mt-px" />
             <span>
-              Acesso exclusivo para personal trainers. Alunos usam o aplicativo mobile Kinetic.
+              Acesso para personal trainers e empresas. Alunos usam o aplicativo mobile Kinetic.
             </span>
           </motion.div>
         </motion.form>

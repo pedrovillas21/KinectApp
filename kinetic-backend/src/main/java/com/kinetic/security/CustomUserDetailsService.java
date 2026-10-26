@@ -42,7 +42,8 @@ public class CustomUserDetailsService implements UserDetailsService {
                 accountNonLocked,
                 List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())),
                 phoneRequired,
-                !termsService.isAccepted(user)
+                !termsService.isAccepted(user),
+                user.getCredentialsChangedAt()
         );
     }
 }

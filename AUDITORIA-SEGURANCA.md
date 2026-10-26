@@ -14,7 +14,7 @@
   - `NEEDS-VALIDATION.md`, com trace, evidência e plano de teste de cada item
   - `findings.json`
   - `coverage-ledger.json`
-- **Nenhum achado "confirmado" nesta rodada.** Não foi possível rodar o backend num ambiente isolado. O Flyway começa na baseline V6 e assume que já existem tabelas criadas antes dele; num banco novo, a V3 falha com `relation "users" does not exist`, e o repositório não tem dump de schema. Por isso os 21 itens abaixo estão como **validação pendente, sem severidade**. Cada um teve o caminho no código conferido por um agente independente, mas falta executar o teste local ou o dono checar um fato de produção.
+- **Atualização de 2026-10-26 (tarde):** as pendências foram reexecutadas num banco de teste montado com o schema de produção. O resultado de cada item está em [Verificação local](#verificação-local-2026-10-26). Na rodada original, nenhum achado tinha sido confirmado porque o backend não subia num banco vazio: a baseline V6 do Flyway assume tabelas criadas antes dele.
 - **Situação dos itens da rodada 1:**
   - **Já resolvidos no código:**
     - reset de senha sem prova de identidade;
@@ -63,39 +63,107 @@
   
   O crítico final encontrou essa lacuna. Ela fica registrada como pendência para uma próxima rodada.
 
-### Próximo passo: banco de teste para confirmar as pendências
+### Verificação local (2026-10-26)
 
-As 21 pendências ficaram sem confirmação porque o backend não sobe num banco vazio. O Flyway parte da baseline V6, que assume tabelas criadas antes dele (pelo Hibernate, no início do projeto). Por isso, num Postgres novo, a V3 falha com `relation "users" does not exist`. Para destravar, o banco de teste precisa já ter essas tabelas. Assim o Flyway faz o baseline na V6 e aplica da V7 em diante, como aconteceu em produção.
+**Ambiente usado:**
+- **Código:** commit `12c2e1c`, com a imagem `kinetic-backend:latest` reconstruída.
+- **Banco:** dump só da estrutura de produção (`Documents/db_dump/kinetic-schema.sql`, sem `COPY`/`INSERT`), restaurado num `postgres:17-alpine`. A tabela `flyway_schema_history` do dump foi removida e o Flyway fez baseline na V49, porque produção já tem tudo até a V49. O Hibernate (`ddl-auto=validate`) aceitou o schema sem divergências.
+- **Rede:** Docker `--internal`, sem acesso externo e sem pastas do host montadas no backend.
+- **Serviços externos:** o Gemini foi substituído por um servidor falso dentro da rede, e o Supabase Storage apontou para um endereço morto.
+- **Contas:** só fictícias.
+- **Atalhos permitidos só no banco de teste:**
+  - marcar `email_verified=true` direto no banco;
+  - zerar `rate_limit_counters` entre os passos;
+  - recuar `created_at` do código de reset para simular os 60 s.
+- **Scripts:** ficam em [`kinetic-backend/scripts/teste-isolado/`](kinetic-backend/scripts/teste-isolado/). `run.py` cobre os testes com o gateway demo. `phase2.py` cobre o seeder de ROOT e o gateway Asaas.
 
-**Caminho A: dump só da estrutura de produção (recomendado, mais fiel).** O dump traz apenas o schema, nenhum dado de usuário. Ele copia índices, `CHECK`s e grants exatamente como estão em produção. A senha e o host são os mesmos do ensaio de migração em `kinetic-backend/scripts/migracao-supabase/README.md`:
+| # | Resultado | Evidência |
+|---|---|---|
+| 1 | **Confirmado** | 15 palpites errados na mesma conta em 3 rodadas. Cada novo `forgot-password` (após 60 s) recria o código com `attempts=0`. Na prática são 5 palpites/min por conta (~7.200/dia; 1 em 10⁶ por palpite), e o único freio extra é 10 req/min **por IP**. Vale igual para `confirm-email`, que tem o mesmo código. |
+| 2 | **Confirmado** | Empresa criada pelo `/register-company` público vinculou um personal. Resultado: `aiGenerationsLimit` passou de 10 para ilimitado e 7 convites seguidos foram aceitos (o teste grátis permite 5). O painel continua mostrando `studentLimit=5`, mas `assertCanAddStudent` sai cedo para quem tem `company_id`. |
+| 3 | **Confirmado com `BILLING_GATEWAY=demo`** | `subscribe PRO`, `demo/confirm-payment`, `ai-pack` e `demo/confirm-ai-pack` responderam 200: o personal ficou ATIVA/PRO e ganhou 20 créditos sem pagar. Em produção, isso depende só do `.env`. |
+| 4 | **Confirmado** | `POST /api/empresa/personais` com o e-mail de qualquer personal sem empresa respondeu 201, sem aceite do personal. Não existe rota para o personal sair da empresa. |
+| 5 | **Confirmado** | Com o Gemini fora do ar, 6 gerações fizeram 18 chamadas ao modelo (3 modelos cada) e a cota ficou em 0. 25 gerações simultâneas no teste grátis (cota 10, trava de 20/h) foram todas aceitas e gravadas: `aiGenerationsUsed=25`. |
+| 6 | **Confirmado em parte** | Depois de encerrar o vínculo, a exportação do personal traz a avaliação física (com notas) e o nome do ex-aluno. Depois que o aluno **exclui a conta**, a avaliação e a geração de IA somem da exportação. Fica valendo só a parte do ex-aluno. |
+| 7 | **Mitigado em parte** | Conta **não confirmada** com `ROOT_USER_EMAIL`: a promoção é recusada (continua ALUNO). Conta autocadastrada **e confirmada**: é promovida a ROOT e segue entrando com a senha de quem a criou, enquanto `ROOT_USER_PASSWORD` é ignorada (login 403). O risco que sobra depende de quem controla a caixa desse e-mail. |
+| 8 | **Confirmado** | Depois de `change-password` (200), o access token emitido antes da troca continua aceito em `/api/users/profile` (200). Ele vale até `JWT_EXPIRATION_MS`. |
+| 9 | **Confirmado** | Fluxo: BASE pago (`studentLimit=10`, IA 15) → cancelar → `subscribe PRO` sem pagar. Resultado: `status=PENDENTE`, `studentLimit` ilimitado e IA 100 até o fim do período pago como BASE. |
+| 10 | Não testável localmente | Depende de `storage.buckets` em produção. |
+| 11 | **Respondido pelo dump** | Produção tem `ALTER TABLE public.flyway_schema_history ENABLE ROW LEVEL SECURITY` e nenhuma policy. Com isso a Data API nega `anon`/`authenticated` mesmo com grants (o dump não traz grants). Baixo risco. |
+| 12 | **Confirmado no código do app** | O código vai para a chave fixa `@kinetic_pending_invite_code` no AsyncStorage (`trainerService.ts:94`), sem ligação com o e-mail cadastrado, e `usePendingInviteRedeem` resgata no próximo login, de qualquer conta. O app não foi executado. |
+| 13 | **Confirmado** | Cenário: o aluno sai do personal A e entra com B. B editou (200) e apagou (204) a avaliação criada por A, e depois da edição `trainer_id` continuou sendo A. |
+| 14 | **Confirmado** | Um cadastro não confirmado reserva o celular (409 "Este celular já está cadastrado em outra conta.") e o CPF (409 "CPF já está em uso."). |
+| 15 | **Confirmado** | Cada caso dá uma resposta diferente: e-mail inexistente 404; personal 400 "não pertence a um aluno"; aluno com personal 409 "já possui um personal ativo"; aluno livre 201. |
+| 16 | **Confirmado** | Com `BILLING_GATEWAY=asaas`, foram enviados os webhooks `PAYMENT_REFUNDED`, `PAYMENT_CHARGEBACK_REQUESTED`, `PAYMENT_CHARGEBACK_DISPUTE`, `PAYMENT_REFUND_IN_PROGRESS` e `PAYMENT_DELETED`. Todos voltaram 200 e foram ignorados: a assinatura seguiu ATIVA/PRO, com o mesmo `current_period_end` e os 20 créditos de IA. |
+| 17 | Confirmado no código | `social.media.cleanup.dry-run=${MEDIA_CLEANUP_DRY_RUN:true}`. Falta conferir o valor em produção. |
+| 18 | **Confirmado** | 40 conexões SSE simultâneas do mesmo personal em `/api/trainer/events`, todas aceitas (200). |
+| 19 | **Confirmado** | Uma única sessão com 5.000 séries: 201 em ~2 s e 5.000 linhas em `exercise_set_logs`. Cada série faz um `findById`, então o custo cresce linearmente com o tamanho da lista. |
+| 20 | **Confirmado** | 100 requisições anônimas a `/api/public/invite-codes/X`, das quais 70 foram bloqueadas com 429. Os contadores `ip:… *` e `ip:… convite-publico` chegaram a 100 cada: são 2 UPSERTs por requisição, inclusive nas bloqueadas. |
+| 21 | **Confirmado** | 4 sessões de 6 h no mesmo dia, todas aceitas (201): 24 h de treino gravadas num dia só, e tudo conta no ranking. |
+| Lacuna | **Confirmado** | A empresa vinculou um aluno ao personal e depois removeu o personal (204). O vínculo `COMPANY` continuou ATIVO e o personal removido seguiu lendo as avaliações do aluno (200). |
 
-```powershell
-# Na pasta onde quer salvar o arquivo, com o Docker Desktop aberto
-docker run --rm -e PGPASSWORD="SENHA_DO_BANCO" -v "${PWD}:/dump" postgres:17 `
-  pg_dump -h <host-do-session-pooler> -p 5432 -U postgres.<ref-do-projeto> -d postgres `
-  --schema=public --schema-only --no-owner --no-privileges -f /dump/kinetic-schema.sql
-```
+**Achado novo durante a verificação:** `POST /api/sessions/log` aceita `exerciseId` de uma ficha de **outro** usuário. O aluno B gravou uma série num exercício da ficha do aluno A e recebeu 201. Em `WorkoutSessionService.logSession` (`:118`), o `findById` não confere o dono. O impacto observado é de integridade: séries alheias ficam penduradas no exercício de A. Falta medir o efeito nas estatísticas de A.
 
-- Confira que o arquivo não tem `COPY` nem `INSERT`, ou seja, nenhum dado.
-- Depois, entregue o `kinetic-schema.sql` ao Claude e peça: "monte o banco de teste com este dump e reexecute a verificação das 21 pendências da run-2".
+**Checagens em produção (2026-10-26).** O app está em fase de piloto e o código auditado ainda não foi para a VPS.
+- **Bucket (item 10):** `social-media` está com `public=false`, ou seja, privado. O `avatars` está com `public=true`, como previsto (fotos de perfil). **Item fechado.**
+- **Cobrança (item 3):** nenhuma assinatura ATIVA com `gateway='DEMO'`. O Asaas ainda não está integrado, então produção roda no modo demo. **O item volta a valer antes de abrir cobrança real**: é preciso trocar para `asaas` ou bloquear as rotas `/demo/*`.
+- **ROOT (item 7):** não existe conta ROOT. Ao criar, usar um e-mail sem cadastro prévio, para o seeder criar a conta com `ROOT_USER_PASSWORD`.
+- **Empresas (itens 2 e 4):** não existe nenhuma empresa, nem criada nem vinculada. Ainda não houve abuso, mas a correção continua necessária.
+- **IA (item 5):** está prevista a troca do Gemini (plano gratuito) pelo Claude Haiku 5.5. A troca não corrige o item: a contagem de cota continua no código e precisa contar a tentativa, não só o sucesso gravado. Junto com a troca, definir um limite de gasto no Console da Anthropic.
 
-**Caminho B: montar localmente a partir do código (não toca em produção, menos fiel).**
+### Correções aplicadas (2026-10-26, branch `implementacaoWeb`, migration V50)
 
-1. Em um Postgres descartável, subir o backend uma vez com `SPRING_FLYWAY_ENABLED=false` e `SPRING_JPA_HIBERNATE_DDL_AUTO=create`, para o Hibernate criar as tabelas das entidades.
-2. Aplicar à mão os objetos que só existem nas migrations, por exemplo:
-   - `rate_limit_counters` e `trainer_events` (V48);
-   - as tabelas de retenção (V49);
-   - a tabela do ShedLock;
-   - índices únicos e `CHECK`s (V30, V36, V47).
-3. Marcar o Flyway como já aplicado até a V49 (`baseline-version=49`).
+Ainda **sem commit e sem deploy**. Resultados:
+- Backend: 105 testes passando.
+- `tsc` sem erros no painel e no app.
+- Cada item abaixo foi revalidado no ambiente isolado com o mesmo script da verificação.
 
-Restrições que só existem nas migrations podem ficar diferentes de produção, então este caminho exige tentativa e erro até o backend subir.
+| # | Correção | Revalidação |
+|---|---|---|
+| 1 | Limite de **10 palpites errados por hora por conta**, somando todos os códigos (o reenvio não zera), em `reset-password` e `confirm-email`. | 15 palpites em 3 códigos: 10 avaliados e 5 barrados com 429. |
+| 4 | A empresa **convida**: o convite fica em `users.pending_company_id` e o personal aceita ou recusa em "Meu perfil" no painel (`/api/trainer/company`). O personal pode **sair da empresa**. A lista de Funcionários mostra "Convite pendente". | O personal não entra na empresa sem aceitar. O aceite responde 200. |
+| Lacuna | Quando o personal sai da empresa ou é desvinculado por ela, os vínculos `COMPANY` dele (ativos e pendentes) são encerrados. | Vínculo ENCERRADO; o ex-funcionário recebe 404 nas avaliações do aluno. |
+| 6 | A exportação do personal traz avaliações, gerações de IA e fichas só dos alunos com vínculo **ATIVO**. Os alunos atribuídos pela empresa saem junto quando o personal deixa a empresa. O histórico do vínculo e as cobranças continuam na exportação, com o nome do aluno. | A avaliação do ex-aluno não aparece mais na exportação. |
+| 7 | O seeder promove a conta confirmada **trocando a senha pela `ROOT_USER_PASSWORD`** e encerra as sessões abertas. | Senha do cadastro: 403. `ROOT_USER_PASSWORD`: 200. |
+| 8 | `users.credentials_changed_at` é gravado na troca e na redefinição de senha. O filtro JWT recusa tokens emitidos antes disso (claim `iat_ms`, em milissegundos). | Token antigo depois do `change-password`: 401. |
+| 13 | Só o personal que fez a avaliação pode editá-la ou excluí-la. | O personal B recebe 400 ao editar ou apagar a avaliação de A. |
+| 14 | Job diário (05:15) apaga cadastros de aluno/personal **não confirmados há mais de 3 dias** e sem treinos. Isso libera e-mail, celular e CPF. | Pela mesma consulta: o cadastro de 4 dias foi apagado e o celular voltou a aceitar cadastro (201). O cron em si não rodou no teste. |
+| 18 | No máximo **5 conexões SSE por personal**; a mais antiga é fechada. | De 40 conexões abertas, 5 ficaram vivas. |
+| 19 | `exercisesLog` com no máximo **600 séries**. | 5.000 séries: 400. |
+| 20 | Chave que estourou o limite é barrada **em memória** até a janela virar, sem escrever no Postgres. | Contador da regra parou em 31, contra 100 antes. |
+| 21 | Teto de **6 h somadas por dia**, não por treino. | Primeira sessão de 6 h: 201. As 3 seguintes: 400. |
+| Extra | `/sessions/log` só aceita exercícios das fichas do próprio usuário. | Exercício da ficha de outro aluno: 404. |
+| 12 | O app guarda o código de convite **junto com o e-mail** de quem se cadastrou e só resgata para essa conta. O formato antigo, sem dono, é descartado. | Conferido no código e com `tsc`; o app não foi executado. |
 
-**Depois do banco de teste (qualquer caminho):**
+**Mantidos de propósito para a demo:**
+- 3, 9 e 16 (cobrança e Asaas);
+- 5 (cota de IA: contar falhas gastaria a cota nos testes);
+- 17 (dry-run).
 
-1. Subir `postgres:17-alpine` e o backend numa rede Docker `--internal`, sem acesso externo e sem montar pastas do host. Usar variáveis fictícias: `DEV_LOG_EMAIL_CONTENT=true`, para ler os códigos de e-mail no log; `BILLING_GATEWAY=demo`; Supabase e Gemini apontando para endereços mortos.
-2. A imagem `kinetic-backend:latest` precisa ser reconstruída se o código mudar depois de 2026-10-26.
-3. Reexecutar um verificador por pendência (cerca de 21) com teste reproduzível pela API e contas fictícias. As que se confirmarem ganham severidade. Os scripts da run-2 não ficaram salvos, então a skill os recria.
+### Redes de empresas, segundo fator e itens 2 e 15 (2026-10-26, migration V51)
+
+Ainda **sem commit e sem deploy**.
+- **Testes de unidade:** 105 do backend passando, mais os novos: TOTP com os vetores do RFC 6238, cifra do segredo, gerador de senha e convite com resposta única.
+- **Tipagem:** `tsc` sem erros no painel e no app.
+- **Teste isolado:** fluxo completo em [`scripts/teste-isolado/phase3.py`](kinetic-backend/scripts/teste-isolado/phase3.py).
+- **Navegador:** o painel foi aberto contra o backend de teste. Login do ROOT com QR code, criação da rede, primeiro acesso do dono e cadastro de filial funcionaram.
+
+| # | Correção | Revalidação |
+|---|---|---|
+| 2 | **Cadastro público de empresa removido** (`/api/auth/register-company` e a aba "Empresa" do painel). O ROOT cria a **rede** (CNPJ obrigatório, apelido usado no login) e o acesso do **dono** (papel `DONO`). O dono cadastra as **filiais**, cada uma com CNPJ obrigatório, endereço, telefone e responsável. Cada filial ganha o usuário `rede.filial`, com e-mail interno e senha forte gerada pelo sistema e enviada ao e-mail informado pelo dono (pode ser o mesmo para todas). A filial não troca nem recupera a própria senha: o dono ou o ROOT geram outra, e as sessões caem. A filial gerencia personais e alunos; o dono acompanha cada filial e o consolidado. | Cadastro público: 404. Filial sem CNPJ: 400. Duas filiais com o mesmo e-mail: 201. Filial tentando trocar a senha: 403. Nova senha pelo dono: token antigo recebe 401. Filial de outra rede: 404. |
+| 2FA | **App autenticador (TOTP, RFC 6238) obrigatório para DONO, EMPRESA e ROOT.** A senha certa devolve só um token de desafio de 5 min, que não serve como access token. O primeiro acesso mostra o QR code (gerado no navegador) e 8 códigos de recuperação de uso único, guardados só como hash. O segredo fica cifrado com AES-256-GCM (`TOTP_ENCRYPTION_KEY`). O mesmo código não entra duas vezes. Limite de 10 erros por hora por conta. O dono redefine o 2FA da filial e o ROOT redefine o de qualquer conta de gestão. | Só com senha: sem token. Desafio usado como Bearer: 401. Mesmo código duas vezes: 400. Código de recuperação usado duas vezes: 200 e depois 400. Depois do reset feito pelo ROOT, o login volta ao cadastro do app. 11 códigos errados: 429 a partir do limite. |
+| 15 | O convite do personal e o vínculo de aluno pela filial respondem **a mesma mensagem (400)** para e-mail sem conta, conta que não é de aluno, a própria conta e aluno que já tem personal. | Os três casos respondem a mesma mensagem 400. |
+| Fotos | O app (`expo-image-manipulator`) e o painel (canvas) reduzem a foto para até 1080 px em JPEG 80% antes do envio. O backend e o multipart aceitam no máximo 3 MB, com resposta 413 clara. | Conferido no código e com `tsc`. O envio de foto no app não foi executado. |
+
+**Resolvido junto:** o formulário de empresa do ROOT nunca enviava o CNPJ e falhava sempre.
+
+Os passos manuais estão em [CLOUDFLARE-PENDENCIAS.md](CLOUDFLARE-PENDENCIAS.md).
+
+**Para repetir a verificação**, com o Docker Desktop aberto:
+1. Restaure o dump numa rede `--internal` e remova a `flyway_schema_history`.
+2. Suba o backend com `SPRING_FLYWAY_BASELINE_VERSION=49`, `BILLING_GATEWAY=demo` e `GEMINI_API_BASEURL=http://fake-gemini:8000/v1beta/models`.
+3. Rode `python run.py` no container `kinetic-test-client` (imagem do `Dockerfile` da pasta de scripts).
+4. Para os itens 7 e 16, reinicie o backend com `ROOT_USER_EMAIL`/`ROOT_USER_PASSWORD` e `BILLING_GATEWAY=asaas` + `ASAAS_WEBHOOK_TOKEN=whtoken` e rode `phase2.py`.
 
 ### Checagens rápidas em produção (só leitura, fazem várias pendências avançar)
 

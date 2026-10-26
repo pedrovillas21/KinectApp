@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +17,8 @@ import java.util.function.Function;
 
 @Component
 public class JwtUtil {
+
+    static final String ISSUED_AT_MS_CLAIM = "iat_ms";
 
     @Value("${jwt.secret}")
     private String secret;
@@ -29,6 +32,21 @@ public class JwtUtil {
 
     public Date extractExpiration(String token) {
         return extractClaim(token, claims -> claims.getExpiration());
+    }
+
+    /**
+     * Momento da emissão em ms. O iat padrão do JWT só guarda segundos, o que deixaria
+     * valendo um token emitido no mesmo segundo da troca de senha; tokens antigos, sem o
+     * claim, caem no iat.
+     */
+    public Instant extractIssuedAt(String token) {
+        return extractClaim(token, claims -> {
+            Long ms = claims.get(ISSUED_AT_MS_CLAIM, Long.class);
+            if (ms != null) {
+                return Instant.ofEpochMilli(ms);
+            }
+            return claims.getIssuedAt() != null ? claims.getIssuedAt().toInstant() : null;
+        });
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
@@ -57,13 +75,48 @@ public class JwtUtil {
         if (role != null) {
             claims.put("role", role.name());
         }
+        long now = System.currentTimeMillis();
+        claims.put(ISSUED_AT_MS_CLAIM, now);
         return Jwts.builder()
                 .claims(claims)
                 .subject(username)
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .issuedAt(new Date(now))
+                .expiration(new Date(now + expiration))
                 .signWith(getSigningKey())
                 .compact();
+    }
+
+    /** Claim que marca um token de etapa intermediária (não serve como access token). */
+    public static final String PURPOSE_CLAIM = "purpose";
+    public static final String PURPOSE_TOTP = "totp";
+    static final long CHALLENGE_TTL_MS = 5 * 60_000L;
+
+    /**
+     * Prova de que a senha conferiu, válida por 5 minutos, para a etapa do código do app
+     * autenticador. O filtro JWT recusa qualquer token com {@link #PURPOSE_CLAIM}.
+     */
+    public String generateChallengeToken(String username) {
+        long now = System.currentTimeMillis();
+        return Jwts.builder()
+                .claims(Map.of(PURPOSE_CLAIM, PURPOSE_TOTP, ISSUED_AT_MS_CLAIM, now))
+                .subject(username)
+                .issuedAt(new Date(now))
+                .expiration(new Date(now + CHALLENGE_TTL_MS))
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    /** Dono do desafio TOTP; lança JwtException se o token for inválido, vencido ou de outro tipo. */
+    public String extractChallengeSubject(String token) {
+        Claims claims = extractAllClaims(token);
+        if (!PURPOSE_TOTP.equals(claims.get(PURPOSE_CLAIM, String.class))) {
+            throw new io.jsonwebtoken.JwtException("Token não é de desafio TOTP.");
+        }
+        return claims.getSubject();
+    }
+
+    public String extractPurpose(String token) {
+        return extractClaim(token, claims -> claims.get(PURPOSE_CLAIM, String.class));
     }
 
     public Boolean validateToken(String token, String username) {

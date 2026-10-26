@@ -18,19 +18,21 @@ import {
  * Consumido por AppSidebar, AuthContext, ProtectedRoute e LoginPage.
  */
 
-export type PanelRole = 'PERSONAL' | 'EMPRESA' | 'ROOT';
+/** EMPRESA = conta de uma filial; DONO = dono da rede, que cadastra e acompanha as filiais. */
+export type PanelRole = 'PERSONAL' | 'EMPRESA' | 'DONO' | 'ROOT';
 
-export const PANEL_ROLES: readonly PanelRole[] = ['PERSONAL', 'EMPRESA', 'ROOT'];
+export const PANEL_ROLES: readonly PanelRole[] = ['PERSONAL', 'EMPRESA', 'DONO', 'ROOT'];
 
 /** True só para papéis que podem logar no painel web (ALUNO é barrado). */
 export const isPanelRole = (role: string | null | undefined): role is PanelRole =>
-  role === 'PERSONAL' || role === 'EMPRESA' || role === 'ROOT';
+  role === 'PERSONAL' || role === 'EMPRESA' || role === 'DONO' || role === 'ROOT';
 
 /** Home de cada papel — usado no pós-login e nos redirects role-aware. */
 export const ROLE_HOME: Record<PanelRole, string> = {
   PERSONAL: '/students',
   ROOT: '/root',
   EMPRESA: '/empresa',
+  DONO: '/dono',
 };
 
 /** Rota inicial do papel; papéis fora do painel caem no /login. */
@@ -64,5 +66,9 @@ export const NAV_BY_ROLE: Record<PanelRole, NavItem[]> = {
     { label: 'Clientes', path: '/empresa/clientes', icon: Users },
     { label: 'Feedbacks', path: '/empresa/feedbacks', icon: MessageSquareText },
     { label: 'Analytics', path: '/empresa/analytics', icon: BarChart3 },
+  ],
+  DONO: [
+    { label: 'Visão Geral', path: '/dono', icon: LayoutDashboard },
+    { label: 'Filiais', path: '/dono/filiais', icon: Building2 },
   ],
 };

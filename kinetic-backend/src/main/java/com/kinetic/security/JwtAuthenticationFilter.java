@@ -46,6 +46,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             jwt = authHeader.substring(7);
+            // Token de desafio (senha certa, falta o código do app autenticador) não dá acesso.
+            if (jwtUtil.extractPurpose(jwt) != null) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Unauthorized: falta o código do app autenticador.");
+                return;
+            }
             userEmail = jwtUtil.extractUsername(jwt);
 
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -57,6 +63,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (!userDetails.isEnabled() || !userDetails.isAccountNonLocked()) {
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                     response.getWriter().write("Conta suspensa ou bloqueada.");
+                    return;
+                }
+
+                // Senha trocada/redefinida depois da emissão: o token pode estar com quem
+                // motivou a troca. Mesmo 401 de token inválido, para o cliente renovar ou sair.
+                if (userDetails instanceof KineticUserDetails details
+                        && details.isIssuedBeforeCredentialsChange(jwtUtil.extractIssuedAt(jwt))) {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.getWriter().write("Unauthorized: sessão encerrada após a troca de senha.");
                     return;
                 }
 

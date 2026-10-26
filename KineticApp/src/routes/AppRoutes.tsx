@@ -58,7 +58,7 @@ function MainTabs(): React.ReactElement {
 export default function AppRoutes(): React.ReactElement | null {
   const { isLoggedIn, hasOnboarded, isLoadingAuth, rememberedUser, justLoggedOut, currentUser } =
     useContext(AuthContext);
-  usePendingInviteRedeem(isLoggedIn);
+  usePendingInviteRedeem(isLoggedIn ? currentUser?.email ?? null : null);
 
   if (isLoadingAuth) {
     return null;

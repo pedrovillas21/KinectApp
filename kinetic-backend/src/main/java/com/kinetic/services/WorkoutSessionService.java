@@ -86,6 +86,9 @@ public class WorkoutSessionService {
     /** Treino só conta no ranking da semana em que foi feito: aceita até 7 dias atrás. */
     static final int MAX_SESSION_AGE_DAYS = 7;
 
+    /** Soma dos treinos de um dia (mesmo teto de um treino só). */
+    static final int MAX_SECONDS_PER_DAY = 21_600;
+
     /**
      * O app manda a data local do aparelho; 1 dia à frente cobre fuso/relógio adiantado.
      * Fora disso a data é inventada e serviria para inflar uma semana do ranking.
@@ -107,6 +110,12 @@ public class WorkoutSessionService {
             return false;
         }
         requirePlausibleDate(request.date(), AppTime.today());
+        // O teto de 6 h vale para o dia inteiro, não para cada treino: senão várias
+        // sessões seguidas inflariam o ranking da Arena.
+        long dayTotal = workoutSessionRepository.sumDurationByUserIdAndSessionDate(user.getId(), request.date());
+        if (dayTotal + request.durationInSeconds() > MAX_SECONDS_PER_DAY) {
+            throw new IllegalArgumentException("Limite de 6 horas de treino por dia atingido.");
+        }
 
         WorkoutSession session = new WorkoutSession();
         session.setUser(user);
@@ -114,9 +123,15 @@ public class WorkoutSessionService {
         session.setSessionDate(request.date());
         session.setClientSessionId(clientSessionId);
 
+        Map<UUID, Exercise> exercises = new HashMap<>();
         for (SetLogDto setDto : request.exercisesLog()) {
-            Exercise exercise = exerciseRepository.findById(Objects.requireNonNull(setDto.exerciseId()))
-                    .orElseThrow(() -> new EntityNotFoundException("Exercise not found with id: " + setDto.exerciseId()));
+            Exercise exercise = exercises.computeIfAbsent(Objects.requireNonNull(setDto.exerciseId()), id ->
+                    exerciseRepository.findById(id)
+                            // Só exercícios das fichas do próprio usuário: com o id de uma ficha
+                            // alheia, as séries iriam parar no histórico de outra pessoa.
+                            .filter(e -> e.getWorkoutPlan() != null && e.getWorkoutPlan().getUser() != null
+                                    && e.getWorkoutPlan().getUser().getId().equals(user.getId()))
+                            .orElseThrow(() -> new EntityNotFoundException("Exercise not found with id: " + id)));
 
             ExerciseSetLog setLog = new ExerciseSetLog();
             setLog.setExercise(exercise);

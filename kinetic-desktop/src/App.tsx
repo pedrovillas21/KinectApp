@@ -27,6 +27,10 @@ import FuncionariosPage from './pages/empresa/FuncionariosPage';
 import ClientesPage from './pages/empresa/ClientesPage';
 import FeedbacksPage from './pages/empresa/FeedbacksPage';
 import AnalyticsPage from './pages/empresa/AnalyticsPage';
+import TwoFactorPage from './pages/TwoFactorPage';
+import UnitsPage from './pages/dono/UnitsPage';
+import UnitDetailPage from './pages/dono/UnitDetailPage';
+import { getNetworkAnalytics } from './services/donoService';
 import LegalPage from './pages/LegalPage';
 import { PRIVACY_POLICY, TERMS_OF_USE } from './legal/documents';
 
@@ -42,6 +46,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      {/* Segunda etapa das contas de gestão (dono, filial, ROOT): app autenticador. */}
+      <Route path="/login/2fa" element={<TwoFactorPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/confirm-email" element={<ConfirmEmailPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -109,6 +115,29 @@ export default function App() {
         <Route path="clientes" element={<ClientesPage />} />
         <Route path="feedbacks" element={<FeedbacksPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
+      </Route>
+
+      {/* DONO — rede de empresas: cadastra e acompanha as filiais. */}
+      <Route
+        path="/dono"
+        element={
+          <ProtectedRoute allowedRoles={['DONO']}>
+            <AppShell />
+          </ProtectedRoute>
+        }
+      >
+        <Route
+          index
+          element={
+            <AnalyticsPage
+              load={getNetworkAnalytics}
+              title="Visão geral da rede"
+              subtitle="Todas as filiais somadas: retenção, volume e desempenho"
+            />
+          }
+        />
+        <Route path="filiais" element={<UnitsPage />} />
+        <Route path="filiais/:id" element={<UnitDetailPage />} />
       </Route>
 
       <Route path="*" element={<RoleAwareRedirect />} />

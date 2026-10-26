@@ -65,14 +65,18 @@ export default function FuncionariosPage() {
     setSubmitting(true);
     try {
       const linked = await vincularFuncionario(email.trim());
-      toast.success(`${linked.nome} vinculado à empresa.`);
+      toast.success(
+        linked.companyId
+          ? `${linked.nome} já é funcionário da empresa.`
+          : `Convite enviado. ${linked.nome} entra na empresa quando aceitar em "Meu perfil".`,
+      );
       setOpen(false);
       setEmail('');
       await load();
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } }).response?.status;
       if (status === 404) toast.error('Nenhum personal cadastrado com este e-mail.');
-      else if (status === 409) toast.error('Este personal já está vinculado a outra empresa.');
+      else if (status === 409) toast.error('Este personal já é de outra empresa ou tem convite pendente de outra.');
       else toast.error('Não foi possível vincular o personal.');
     } finally {
       setSubmitting(false);
@@ -113,7 +117,8 @@ export default function FuncionariosPage() {
                 <DialogHeader>
                   <DialogTitle>Vincular Personal</DialogTitle>
                   <DialogDescription>
-                    Informe o e-mail de um personal já cadastrado para vinculá-lo como funcionário da empresa.
+                    Informe o e-mail de um personal já cadastrado. Ele recebe o convite no painel e só vira
+                    funcionário da empresa depois de aceitar.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="flex flex-col gap-1.5 py-4">
@@ -129,7 +134,7 @@ export default function FuncionariosPage() {
                 </div>
                 <DialogFooter>
                   <Button type="submit" disabled={submitting || !email.trim()}>
-                    {submitting ? 'Vinculando…' : 'Vincular'}
+                    {submitting ? 'Enviando…' : 'Enviar convite'}
                   </Button>
                 </DialogFooter>
               </form>
@@ -166,7 +171,11 @@ export default function FuncionariosPage() {
                     <TableCell className="font-bold">{f.nome}</TableCell>
                     <TableCell className="text-k-text-dim">{f.email}</TableCell>
                     <TableCell>
-                      <StatusBadge status={f.status} />
+                      {f.companyId ? (
+                        <StatusBadge status={f.status} />
+                      ) : (
+                        <span className="text-[12.5px] font-semibold text-k-text-muted">Convite pendente</span>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button
@@ -176,7 +185,7 @@ export default function FuncionariosPage() {
                         onClick={() => setToRemove(f)}
                         className="text-k-text-dim hover:text-k-error"
                       >
-                        <Link2Off className="w-4 h-4" /> Desvincular
+                        <Link2Off className="w-4 h-4" /> {f.companyId ? 'Desvincular' : 'Cancelar convite'}
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -192,8 +201,16 @@ export default function FuncionariosPage() {
           <DialogHeader>
             <DialogTitle>Desvincular funcionário</DialogTitle>
             <DialogDescription>
-              <strong>{toRemove?.nome}</strong> deixará de ser funcionário da empresa. Os vínculos com alunos
-              existentes não são encerrados automaticamente.
+              {toRemove?.companyId ? (
+                <>
+                  <strong>{toRemove?.nome}</strong> deixará de ser funcionário da empresa, e os alunos que a empresa
+                  atribuiu a ele serão desvinculados.
+                </>
+              ) : (
+                <>
+                  O convite para <strong>{toRemove?.nome}</strong> será cancelado.
+                </>
+              )}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

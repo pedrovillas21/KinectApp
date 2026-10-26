@@ -3,30 +3,26 @@ package com.kinetic.dtos;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 /**
- * Provisionamento de uma empresa pelo ROOT: cria a Company e o usuário EMPRESA
- * dono (com senha inicial). O dono loga no painel com role EMPRESA.
+ * ROOT cria uma rede de empresas e o acesso do dono. A senha do dono é gerada pelo
+ * sistema e vai por e-mail; o slug vira o prefixo do usuário das filiais (slug.filial).
  */
 public record CreateCompanyRequestDTO(
         @NotBlank(message = "O nome da empresa é obrigatório.")
+        @Size(max = 255, message = "Nome da empresa longo demais.")
         String companyName,
-
         @NotBlank(message = "O CNPJ é obrigatório.")
         String companyCnpj,
-
-        @NotBlank(message = "O nome do responsável é obrigatório.")
+        @NotBlank(message = "Escolha o apelido da rede (usado no login das filiais).")
+        @Pattern(regexp = "^[a-z0-9]([a-z0-9-]{0,38}[a-z0-9])?$",
+                message = "Apelido: letras minúsculas, números e hífen, até 40 caracteres.")
+        String slug,
+        @NotBlank(message = "O nome do dono é obrigatório.")
         String ownerName,
-
-        @NotBlank(message = "O e-mail do responsável é obrigatório.")
+        @NotBlank(message = "O e-mail do dono é obrigatório.")
         @Email(message = "E-mail inválido.")
-        String ownerEmail,
-
-        @NotBlank(message = "A senha inicial é obrigatória.")
-        @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*_=+-]).{8,20}$", message = "A senha deve ter entre 8 e 20 caracteres, contendo pelo menos uma letra maiúscula, uma minúscula e um caractere especial.")
-        String ownerPassword,
-
-        /** Obrigatório no auto-cadastro (/api/auth/register-company); o ROOT não informa (o dono aceita no 1º acesso). */
-        Boolean termsAccepted
+        String ownerEmail
 ) {
 }

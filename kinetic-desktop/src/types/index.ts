@@ -505,11 +505,15 @@ export interface RootMetrics {
   growth: { date: string; count: number }[];
 }
 
-/** Espelha CompanyDTO. */
+/** Espelha CompanyDTO: uma rede de empresas e o dono dela. */
 export interface Company {
   id: string;
   nome: string;
+  cnpj: string | null;
+  slug: string | null;
   createdAt: string;
+  /** Quantidade de filiais cadastradas pelo dono. */
+  units: number;
   ownerId: string | null;
   ownerName: string | null;
   ownerEmail: string | null;
@@ -521,10 +525,55 @@ export interface UserAdmin {
   id: string;
   nome: string;
   email: string;
-  role: 'ALUNO' | 'PERSONAL' | 'EMPRESA' | 'ROOT';
+  role: 'ALUNO' | 'PERSONAL' | 'EMPRESA' | 'DONO' | 'ROOT';
   status: UserStatus;
   companyId: string | null;
   createdAt: string;
+}
+
+/** Espelha UnitDTOs.Response: filial da rede do dono. */
+export interface Unit {
+  id: string;
+  nome: string;
+  cnpj: string;
+  address: string | null;
+  phone: string | null;
+  responsibleName: string;
+  responsibleEmail: string;
+  /** Login da filial: rede.filial. */
+  username: string | null;
+  /** Conta da filial (para ações do ROOT). */
+  accountId: string | null;
+  active: boolean;
+  secondFactorEnabled: boolean;
+  personais: number;
+  alunosAtivos: number;
+  createdAt: string;
+}
+
+export interface UnitInput {
+  nome: string;
+  cnpj: string;
+  address: string;
+  phone: string;
+  responsibleName: string;
+  responsibleEmail: string;
+  /** Só na criação: vira rede.usuario. */
+  usuario?: string;
+}
+
+/** Espelha UnitDTOs.Network: a rede do dono logado. */
+export interface Network {
+  id: string;
+  nome: string;
+  cnpj: string | null;
+  slug: string | null;
+}
+
+/** Espelha TrainerCompanyDTO: empresa atual e convite pendente do personal (cada um pode ser nulo). */
+export interface TrainerCompany {
+  current: { id: string; nome: string } | null;
+  pending: { id: string; nome: string } | null;
 }
 
 // ── Painel EMPRESA ───────────────────────────────────────────────────────────

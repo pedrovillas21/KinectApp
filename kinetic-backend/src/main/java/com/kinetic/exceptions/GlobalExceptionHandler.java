@@ -89,6 +89,25 @@ public class GlobalExceptionHandler {
                 .body(Map.of("code", "EMAIL_NOT_VERIFIED", "message", ex.getMessage()));
     }
 
+    /**
+     * Senha certa de conta com segundo fator: mesmo formato do EMAIL_NOT_VERIFIED, com o
+     * token de desafio que a etapa do código (/api/auth/totp/*) recebe de volta.
+     */
+    @ExceptionHandler(SecondFactorRequiredException.class)
+    public ResponseEntity<Map<String, String>> handleSecondFactor(SecondFactorRequiredException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                "code", ex.isSetupRequired() ? "TOTP_SETUP_REQUIRED" : "TOTP_REQUIRED",
+                "message", ex.getMessage(),
+                "challengeToken", ex.getChallengeToken()));
+    }
+
+    /** Arquivo acima do limite do multipart (fotos são reduzidas no app/painel antes do envio). */
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public ResponseEntity<String> handleUploadTooLarge(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body("Arquivo grande demais. Envie uma imagem de até 3 MB.");
+    }
+
     @ExceptionHandler(ForbiddenException.class)
     public ResponseEntity<String> handleForbidden(ForbiddenException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());

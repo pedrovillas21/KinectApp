@@ -1,10 +1,12 @@
 package com.kinetic.services;
 
 import com.kinetic.exceptions.InvalidCodeException;
+import com.kinetic.exceptions.TooManyAttemptsException;
 import com.kinetic.models.PasswordResetCode;
 import com.kinetic.models.User;
 import com.kinetic.repositories.PasswordResetCodeRepository;
 import com.kinetic.repositories.UserRepository;
+import com.kinetic.security.InMemoryRateLimiter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,6 +15,7 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -30,8 +33,8 @@ class PasswordResetServiceTest {
     private final PasswordResetCodeRepository codes = mock(PasswordResetCodeRepository.class);
     private final PasswordEncoder encoder = mock(PasswordEncoder.class);
     private final RefreshTokenService refreshTokens = mock(RefreshTokenService.class);
-    private final PasswordResetService service =
-            new PasswordResetService(users, codes, encoder, refreshTokens, mock(EmailService.class));
+    private final PasswordResetService service = new PasswordResetService(users, codes, encoder, refreshTokens,
+            mock(EmailService.class), new InMemoryRateLimiter(System::currentTimeMillis));
 
     private final User user = new User();
     private final PasswordResetCode code = new PasswordResetCode();
@@ -88,5 +91,19 @@ class PasswordResetServiceTest {
         verify(codes).deleteByUser(user);
         verify(refreshTokens).revokeAllForUser(user);
         verify(users).save(user);
+        // Access tokens emitidos antes da troca deixam de valer (filtro JWT).
+        assertNotNull(user.getCredentialsChangedAt());
+    }
+
+    @Test
+    void newCodesDoNotResetTheAccountGuessLimit() {
+        // Cada código novo chega com as 5 tentativas dele, mas o limite da conta segue contando.
+        when(codes.reserveAttempt(any(), eq(PasswordResetService.MAX_ATTEMPTS), any())).thenReturn(1);
+        when(encoder.matches(anyString(), eq("hash"))).thenReturn(false);
+        for (int i = 0; i < PasswordResetService.MAX_GUESSES_PER_HOUR; i++) {
+            assertThrows(InvalidCodeException.class, () -> service.resetPassword(EMAIL, "000000", "nova-senha"));
+        }
+
+        assertThrows(TooManyAttemptsException.class, () -> service.resetPassword(EMAIL, "123456", "nova-senha"));
     }
 }

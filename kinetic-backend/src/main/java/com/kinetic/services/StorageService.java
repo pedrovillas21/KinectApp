@@ -48,7 +48,8 @@ public class StorageService {
     private static final Logger log = LoggerFactory.getLogger(StorageService.class);
 
     /** Limite de tamanho do arquivo (alinhado ao multipart em application.properties). */
-    private static final long MAX_FILE_SIZE = 10L * 1024 * 1024; // 10 MB
+    // App e painel reduzem a foto antes do envio; o bucket do plano grátis não tem limite próprio.
+    private static final long MAX_FILE_SIZE = 3L * 1024 * 1024; // 3 MB
 
     /** Pastas permitidas no bucket — evita path traversal a partir do {@code folder} do cliente. */
     private static final Set<String> ALLOWED_FOLDERS = Set.of("posts", "stories");
@@ -157,7 +158,7 @@ public class StorageService {
             throw new IllegalArgumentException("Tipo de arquivo inválido: apenas imagens são aceitas.");
         }
         if (file.getSize() > MAX_FILE_SIZE) {
-            throw new IllegalArgumentException("Arquivo excede o limite de 10MB.");
+            throw new IllegalArgumentException("Arquivo excede o limite de 3 MB.");
         }
         return contentType;
     }

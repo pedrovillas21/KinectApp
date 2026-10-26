@@ -72,6 +72,27 @@ class TrainerLinkServiceCompanyTest {
         verify(links).save(link);
     }
 
+    /** Item 15: o convite não revela se o e-mail tem conta, o papel dele ou se já tem personal. */
+    @Test
+    void inviteGivesTheSameAnswerForEveryUnavailableEmail() {
+        User own = user("eu@test.local", Role.PERSONAL, null);
+        User otherTrainer = user("outro@test.local", Role.PERSONAL, null);
+        User taken = user("comPersonal@test.local", Role.ALUNO, null);
+        when(users.getByEmailOrThrow(own.getEmail())).thenReturn(own);
+        when(users.findByEmail("ninguem@test.local")).thenReturn(Optional.empty());
+        when(users.findByEmail(otherTrainer.getEmail())).thenReturn(Optional.of(otherTrainer));
+        when(users.findByEmail(own.getEmail())).thenReturn(Optional.of(own));
+        when(users.findByEmail(taken.getEmail())).thenReturn(Optional.of(taken));
+        when(links.existsByStudentIdAndStatus(taken.getId(), TrainerLinkStatus.ATIVO)).thenReturn(true);
+
+        for (String email : new String[]{"ninguem@test.local", otherTrainer.getEmail(), own.getEmail(), taken.getEmail()}) {
+            IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+                    () -> service.invite(own.getEmail(), email));
+            assertEquals(TrainerLinkService.INVITE_NOT_POSSIBLE, e.getMessage());
+        }
+        verify(links, never()).saveAndFlush(any());
+    }
+
     private static User user(String email, Role role, UUID companyId) {
         User u = new User();
         u.setId(UUID.randomUUID());

@@ -81,7 +81,7 @@ const PUBLIC_ROUTES = [
   '/auth/login',
   '/auth/refresh',
   '/auth/logout',
-  '/auth/register-company',
+  '/auth/totp/',
   '/auth/forgot-password',
   '/auth/reset-password',
   '/auth/confirm-email',

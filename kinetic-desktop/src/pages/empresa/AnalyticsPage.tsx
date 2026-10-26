@@ -10,7 +10,18 @@ import type { EmpresaAnalytics, StatsPeriodId } from '../../types';
 
 const nf = new Intl.NumberFormat('pt-BR');
 
-export default function AnalyticsPage() {
+interface Props {
+  /** Fonte dos dados: a própria filial (padrão) ou uma filial/rede vista pelo dono. */
+  load?: (period: StatsPeriodId) => Promise<EmpresaAnalytics>;
+  title?: string;
+  subtitle?: string;
+}
+
+export default function AnalyticsPage({
+  load = getAnalytics,
+  title = 'Analytics',
+  subtitle = 'Retenção, volume e desempenho da unidade',
+}: Props) {
   const [period, setPeriod] = useState<StatsPeriodId>('month');
   const [data, setData] = useState<EmpresaAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
@@ -20,20 +31,20 @@ export default function AnalyticsPage() {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    getAnalytics(period)
+    load(period)
       .then((d) => !cancelled && setData(d))
       .catch(() => !cancelled && setError('Não foi possível carregar as analytics.'))
       .finally(() => !cancelled && setLoading(false));
     return () => {
       cancelled = true;
     };
-  }, [period]);
+  }, [period, load]);
 
   return (
     <div className="flex flex-col min-h-full">
       <PageHeader
-        title="Analytics"
-        subtitle="Retenção, volume e desempenho da unidade"
+        title={title}
+        subtitle={subtitle}
         icon={<BarChart3 className="w-5 h-5" />}
         actions={<PeriodTabs value={period} onChange={setPeriod} />}
       />

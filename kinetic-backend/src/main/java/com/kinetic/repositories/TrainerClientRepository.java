@@ -23,6 +23,10 @@ public interface TrainerClientRepository extends JpaRepository<TrainerClient, UU
      */
     boolean existsByStudentIdAndStatus(UUID studentId, TrainerLinkStatus status);
 
+    /** Vínculos corporativos de um personal numa empresa (para encerrar quando ele sai dela). */
+    List<TrainerClient> findByCompanyIdAndTrainerIdAndStatusIn(UUID companyId, UUID trainerId,
+                                                              List<TrainerLinkStatus> statuses);
+
     boolean existsByTrainerIdAndStudentIdAndStatus(UUID trainerId, UUID studentId, TrainerLinkStatus status);
 
     Optional<TrainerClient> findByStudentIdAndStatus(UUID studentId, TrainerLinkStatus status);

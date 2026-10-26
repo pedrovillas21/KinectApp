@@ -3,6 +3,7 @@ package com.kinetic.config;
 import com.kinetic.enums.Role;
 import com.kinetic.models.User;
 import com.kinetic.repositories.UserRepository;
+import com.kinetic.services.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +12,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+
+import java.time.Instant;
 
 /**
  * Semeia o usuário ROOT no boot. Credenciais vêm exclusivamente de variáveis
@@ -26,6 +29,7 @@ public class RootUserSeeder implements CommandLineRunner {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenService refreshTokenService;
 
     @Value("${root.user.email:}")
     private String rootEmail;
@@ -50,9 +54,15 @@ public class RootUserSeeder implements CommandLineRunner {
                             + "promoção a ROOT recusada. Confirme o e-mail dessa conta ou remova-a.");
                     return;
                 }
+                // A conta passa a usar a senha do operador (ROOT_USER_PASSWORD): a senha
+                // escolhida no cadastro público não vale para o painel ROOT, e as sessões
+                // abertas com ela são encerradas.
                 existing.setRole(Role.ROOT);
+                existing.setSenha(passwordEncoder.encode(rootPassword));
+                existing.setCredentialsChangedAt(Instant.now());
                 userRepository.save(existing);
-                log.info("RootUserSeeder: usuário existente promovido a ROOT.");
+                refreshTokenService.revokeAllForUser(existing);
+                log.info("RootUserSeeder: usuário existente promovido a ROOT com a senha de ROOT_USER_PASSWORD.");
             }
         }, () -> {
             User root = new User();

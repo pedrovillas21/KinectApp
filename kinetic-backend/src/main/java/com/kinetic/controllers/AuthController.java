@@ -9,15 +9,12 @@ import com.kinetic.dtos.RefreshTokenDTO;
 import com.kinetic.dtos.RegisterDTO;
 import com.kinetic.dtos.ResetPasswordDTO;
 import com.kinetic.dtos.VerifyEmailDTO;
+import com.kinetic.dtos.TotpDTOs;
 import com.kinetic.services.AuthService;
-import com.kinetic.services.CompanyService;
 import com.kinetic.services.EmailVerificationService;
 import com.kinetic.services.InvalidRefreshTokenException;
 import com.kinetic.services.PasswordResetService;
-import com.kinetic.services.LegalRetentionService;
-import com.kinetic.services.TermsService;
-import com.kinetic.dtos.CompanyDTO;
-import com.kinetic.dtos.CreateCompanyRequestDTO;
+import com.kinetic.services.TotpService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,11 +43,9 @@ public class AuthController {
     private static final String REFRESH_COOKIE = "kinetic_refresh_token";
 
     private final AuthService authService;
-    private final CompanyService companyService;
+    private final TotpService totpService;
     private final PasswordResetService passwordResetService;
     private final EmailVerificationService emailVerificationService;
-    private final TermsService termsService;
-    private final LegalRetentionService retentionService;
 
     @Value("${jwt.refresh-expiration}")
     private long refreshExpirationMs;
@@ -66,26 +61,6 @@ public class AuthController {
         emailVerificationService.sendCode(authService.register(dto));
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body("Usuário registrado. Enviamos um código de confirmação para o seu e-mail.");
-    }
-
-    @Operation(
-            summary = "Cadastrar uma empresa (cria a empresa e o usuário dono)",
-            description = "Endpoint público para auto-cadastro de empresas no painel. O dono recebe um código "
-                    + "por e-mail e só consegue fazer login depois de confirmá-lo em /api/auth/confirm-email."
-    )
-    @PostMapping("/register-company")
-    public ResponseEntity<?> registerCompany(@Valid @RequestBody CreateCompanyRequestDTO dto) {
-        if (!Boolean.TRUE.equals(dto.termsAccepted())) {
-            return ResponseEntity.badRequest().body("Para criar a conta, aceite os Termos de Uso e a Política de Privacidade.");
-        }
-        if (retentionService.isBlockedIdentity(dto.ownerEmail(), null)) {
-            return ResponseEntity.badRequest().body("Não foi possível criar a conta com estes dados. Fale com o suporte.");
-        }
-        CompanyDTO company = companyService.createCompany(dto);
-        termsService.accept(dto.ownerEmail());
-        // Fora da transação do createCompany: o envio do e-mail é uma chamada HTTP externa.
-        emailVerificationService.requestCode(dto.ownerEmail());
-        return ResponseEntity.status(HttpStatus.CREATED).body(company);
     }
 
     @Operation(
@@ -125,6 +100,46 @@ public class AuthController {
         AuthResponseDTO authResponse = authService.login(dto, request.getRemoteAddr());
         response.addHeader(HttpHeaders.SET_COOKIE, buildRefreshCookie(authResponse.refreshToken()).toString());
         return ResponseEntity.ok(authResponse);
+    }
+
+    // ── Segundo fator (contas DONO, EMPRESA e ROOT) ─────────────────────────────
+
+    @Operation(
+            summary = "Cadastrar o app autenticador (primeiro acesso)",
+            description = "Depois de um login que respondeu TOTP_SETUP_REQUIRED: recebe o challengeToken e devolve o "
+                    + "otpauth:// para o QR code e o segredo para digitar à mão. Confirme com /api/auth/totp/verify."
+    )
+    @PostMapping("/totp/setup")
+    public ResponseEntity<TotpDTOs.SetupResponse> totpSetup(@Valid @RequestBody TotpDTOs.ChallengeRequest dto) {
+        return ResponseEntity.ok(totpService.setup(dto.challengeToken()));
+    }
+
+    @Operation(
+            summary = "Entrar com o código do app autenticador",
+            description = "Recebe o challengeToken do login e o código de 6 dígitos. Responde a sessão (como o "
+                    + "login) e, no primeiro acesso, os códigos de recuperação. 400 = código errado; 429 = "
+                    + "tentativas demais na conta."
+    )
+    @PostMapping("/totp/verify")
+    public ResponseEntity<TotpDTOs.LoginResponse> totpVerify(@Valid @RequestBody TotpDTOs.CodeRequest dto,
+                                                             HttpServletRequest request,
+                                                             HttpServletResponse response) {
+        TotpDTOs.LoginResponse result = totpService.verify(dto.challengeToken(), dto.code(), request.getRemoteAddr());
+        response.addHeader(HttpHeaders.SET_COOKIE, buildRefreshCookie(result.session().refreshToken()).toString());
+        return ResponseEntity.ok(result);
+    }
+
+    @Operation(
+            summary = "Entrar com um código de recuperação",
+            description = "Para quem perdeu o celular: cada código de recuperação vale uma vez."
+    )
+    @PostMapping("/totp/recover")
+    public ResponseEntity<TotpDTOs.LoginResponse> totpRecover(@Valid @RequestBody TotpDTOs.CodeRequest dto,
+                                                              HttpServletRequest request,
+                                                              HttpServletResponse response) {
+        TotpDTOs.LoginResponse result = totpService.recover(dto.challengeToken(), dto.code(), request.getRemoteAddr());
+        response.addHeader(HttpHeaders.SET_COOKIE, buildRefreshCookie(result.session().refreshToken()).toString());
+        return ResponseEntity.ok(result);
     }
 
     @Operation(

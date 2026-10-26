@@ -71,9 +71,9 @@ export default function ClientesPage() {
     } catch (err: unknown) {
       const res = (err as { response?: { status?: number; data?: unknown } }).response;
       const status = res?.status;
-      // 409 = personal ativo ou convite já pendente; a mensagem do servidor diz qual.
-      if (status === 409) toast.error(typeof res?.data === 'string' && res.data ? res.data : 'Este aluno já possui um personal ativo.');
-      else if (status === 404) toast.error('Aluno ou personal não encontrado.');
+      // 400/409: a mensagem do servidor orienta (aluno indisponível tem resposta única).
+      if ((status === 400 || status === 409) && typeof res?.data === 'string' && res.data) toast.error(res.data);
+      else if (status === 404) toast.error('Personal não encontrado entre os funcionários da filial.');
       else toast.error('Não foi possível vincular o aluno.');
     } finally {
       setSubmitting(false);

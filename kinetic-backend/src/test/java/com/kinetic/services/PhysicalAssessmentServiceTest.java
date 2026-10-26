@@ -7,6 +7,7 @@ import com.kinetic.models.WeightHistory;
 import com.kinetic.repositories.PhysicalAssessmentRepository;
 import com.kinetic.repositories.UserRepository;
 import com.kinetic.repositories.WeightHistoryRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -16,6 +17,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -33,6 +35,11 @@ class PhysicalAssessmentServiceTest {
     private final User trainer = user("personal@test.local");
     private final User student = user("aluno@test.local");
     private final LocalDate day = LocalDate.of(2026, 10, 19);
+
+    @BeforeEach
+    void setUp() {
+        when(users.getByEmailOrThrow(trainer.getEmail())).thenReturn(trainer);
+    }
 
     @Test
     void createWritesTheWeightToTheStudentHistoryAndProfile() {
@@ -88,6 +95,22 @@ class PhysicalAssessmentServiceTest {
         service.delete(trainer.getEmail(), student.getId(), a.getId());
 
         verify(weights).delete(fromAssessment);
+    }
+
+    @Test
+    void currentTrainerCannotChangeAnAssessmentFromThePreviousOne() {
+        User previous = user("anterior@test.local");
+        PhysicalAssessment a = assessment(85.0, null);
+        a.setId(UUID.randomUUID());
+        a.setTrainer(previous);
+        when(links.resolveOwnedStudentForWrite(trainer.getEmail(), student.getId())).thenReturn(student);
+        when(assessments.findById(a.getId())).thenReturn(Optional.of(a));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.update(trainer.getEmail(), student.getId(), a.getId(), request(90.0, null)));
+        assertThrows(IllegalArgumentException.class,
+                () -> service.delete(trainer.getEmail(), student.getId(), a.getId()));
+        verify(assessments, never()).delete(any());
     }
 
     private PhysicalAssessment assessment(Double weightKg, Double heightCm) {

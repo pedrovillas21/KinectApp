@@ -7,6 +7,7 @@ import com.kinetic.models.User;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -23,6 +24,11 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     Optional<User> findByEmail(String email);
 
+    /** Conta de filial pelo usuário (rede.filial). */
+    Optional<User> findByUsername(String username);
+
+    boolean existsByUsername(String username);
+
     /** Busca por e-mail ou lança {@link EntityNotFoundException} (HTTP 404). Centraliza o padrão repetido nos services. */
     default User getByEmailOrThrow(String email) {
         return findByEmail(email)
@@ -31,6 +37,27 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     boolean existsByEmail(String email);
     boolean existsByCpf(String cpf);
+
+    /** Personais com convite pendente desta empresa. */
+    List<User> findByPendingCompanyIdAndRole(UUID pendingCompanyId, Role role);
+
+    /**
+     * Apaga cadastros de aluno/personal que nunca confirmaram o e-mail: sem isso, quem
+     * cadastrasse o celular ou o CPF de outra pessoa os reservaria para sempre. Conta não
+     * confirmada não entra no app; as tabelas sem ON DELETE CASCADE ficam de fora por garantia.
+     */
+    @Modifying
+    @Query(nativeQuery = true, value = """
+            DELETE FROM users u
+            WHERE u.email_verified = false
+              AND u.role IN ('ALUNO', 'PERSONAL')
+              AND u.created_at < :cutoff
+              AND NOT EXISTS (SELECT 1 FROM workout_plans p WHERE p.user_id = u.id)
+              AND NOT EXISTS (SELECT 1 FROM workout_sessions s WHERE s.user_id = u.id)
+              AND NOT EXISTS (SELECT 1 FROM workout_execution_logs l WHERE l.user_id = u.id)
+              AND NOT EXISTS (SELECT 1 FROM weight_history w WHERE w.user_id = u.id)
+            """)
+    int deleteStaleUnverified(@Param("cutoff") LocalDateTime cutoff);
 
     boolean existsByPhone(String phone);
     boolean existsByPhoneAndIdNot(String phone, UUID id);

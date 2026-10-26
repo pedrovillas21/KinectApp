@@ -41,7 +41,9 @@ public class RootController extends BaseController {
 
     // ── Empresas ────────────────────────────────────────────────────────────
 
-    @Operation(summary = "Provisionar uma empresa (cria a empresa + o usuário EMPRESA dono)")
+    @Operation(summary = "Criar uma rede de empresas e o acesso do dono",
+            description = "A senha do dono é gerada pelo sistema e enviada ao e-mail dele. O slug vira o prefixo "
+                    + "do usuário das filiais (slug.filial). No primeiro login o dono cadastra o app autenticador.")
     @PostMapping("/companies")
     public ResponseEntity<CompanyDTO> createCompany(@Valid @RequestBody CreateCompanyRequestDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(companyService.createCompany(dto));
@@ -86,6 +88,23 @@ public class RootController extends BaseController {
             @PathVariable UUID id,
             @Valid @RequestBody UpdateUserStatusRequestDTO dto) {
         return ResponseEntity.ok(companyService.setUserStatus(id, dto.status()));
+    }
+
+    @Operation(summary = "Gerar nova senha para um dono ou filial",
+            description = "A senha nova vai ao e-mail do dono (ou ao e-mail de contato da filial); as sessões abertas "
+                    + "são encerradas.")
+    @PostMapping("/users/{id}/nova-senha")
+    public ResponseEntity<Void> regeneratePassword(@PathVariable UUID id) {
+        companyService.regeneratePassword(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Redefinir o app autenticador de um dono ou filial",
+            description = "Para celular perdido: o próximo login volta ao cadastro do app. Encerra as sessões.")
+    @PostMapping("/users/{id}/reset-2fa")
+    public ResponseEntity<Void> resetSecondFactor(@PathVariable UUID id) {
+        companyService.resetSecondFactor(id);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Excluir (soft-delete) uma conta")

@@ -88,6 +88,11 @@ public class UserService {
     @Transactional
     public void changePassword(String userEmail, ChangePasswordDTO dto) {
         User user = userRepository.getByEmailOrThrow(userEmail);
+        // A senha da filial é do dono da rede (ou do ROOT): quem usa o acesso não a troca.
+        if (user.getRole() == com.kinetic.enums.Role.EMPRESA) {
+            throw new com.kinetic.exceptions.ForbiddenException(
+                    "A senha da filial é trocada pelo dono da rede, em Filiais → Gerar nova senha.");
+        }
 
         if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getSenha())) {
             throw new IllegalArgumentException("Senha atual incorreta.");
@@ -97,6 +102,7 @@ public class UserService {
         }
 
         user.setSenha(passwordEncoder.encode(dto.getNewPassword()));
+        user.setCredentialsChangedAt(java.time.Instant.now());
         userRepository.save(user);
 
         // Invalida todas as sessões (refresh tokens) após a troca: o usuário

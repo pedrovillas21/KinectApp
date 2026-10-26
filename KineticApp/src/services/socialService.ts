@@ -1,4 +1,5 @@
 import api from './api';
+import { compressImage } from '../utils/compressImage';
 import type {
   UserCard,
   SquadMember,
@@ -19,9 +20,10 @@ import type {
 // application/json por padrão (api.ts), e o React Native só monta o boundary
 // correto quando o header é multipart/form-data.
 export const uploadMedia = async (
-  uri: string,
+  originalUri: string,
   folder: 'posts' | 'stories' = 'posts',
 ): Promise<string> => {
+  const uri = await compressImage(originalUri);
   const name = uri.split('/').pop() ?? `${Date.now()}.jpg`;
   const match = /\.(\w+)$/.exec(name);
   const ext = (match?.[1] ?? 'jpg').toLowerCase();

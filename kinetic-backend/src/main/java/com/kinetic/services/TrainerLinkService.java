@@ -38,22 +38,21 @@ public class TrainerLinkService {
     private final BillingService billingService;
     private final TrainerEventService trainerEventService;
 
+    /**
+     * Mesma resposta para e-mail sem conta, conta que não é de aluno e aluno que já tem
+     * personal: o convite não pode servir para descobrir quem usa o Kinetic, o papel de
+     * cada e-mail ou com quem cada aluno treina.
+     */
+    static final String INVITE_NOT_POSSIBLE = "Não foi possível convidar este e-mail. Confira se é o e-mail da "
+            + "conta de aluno dele no app e se ele ainda não tem um personal.";
+
     @Transactional
     public TrainerLinkDTO invite(String trainerEmail, String studentEmail) {
         User trainer = userRepository.getByEmailOrThrow(trainerEmail);
         User student = userRepository.findByEmail(studentEmail)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Aluno não encontrado. No MVP o convite exige aluno já cadastrado."));
-
-        if (trainer.getId().equals(student.getId())) {
-            throw new IllegalArgumentException("Você não pode convidar a si mesmo.");
-        }
-        if (student.getRole() != Role.ALUNO) {
-            throw new IllegalArgumentException("O e-mail informado não pertence a um aluno.");
-        }
-        if (trainerClientRepository.existsByStudentIdAndStatus(student.getId(), TrainerLinkStatus.ATIVO)) {
-            throw new ActiveTrainerConflictException("Este aluno já possui um personal ativo.");
-        }
+                .filter(s -> !trainer.getId().equals(s.getId()) && s.getRole() == Role.ALUNO)
+                .filter(s -> !trainerClientRepository.existsByStudentIdAndStatus(s.getId(), TrainerLinkStatus.ATIVO))
+                .orElseThrow(() -> new IllegalArgumentException(INVITE_NOT_POSSIBLE));
         if (trainerClientRepository.existsByTrainerIdAndStudentIdAndStatus(
                 trainer.getId(), student.getId(), TrainerLinkStatus.PENDENTE)) {
             throw new ActiveTrainerConflictException("Já existe um convite pendente para este aluno.");
@@ -182,13 +181,12 @@ public class TrainerLinkService {
         User trainer = userRepository.findById(trainerId)
                 .filter(t -> t.getRole() == Role.PERSONAL && companyId.equals(t.getCompanyId()))
                 .orElseThrow(() -> new EntityNotFoundException("Personal não encontrado."));
+        // Mesma resposta única do convite do personal (ver INVITE_NOT_POSSIBLE).
         User student = userRepository.findById(studentId)
                 .filter(s -> s.getRole() == Role.ALUNO)
-                .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado."));
+                .filter(s -> !trainerClientRepository.existsByStudentIdAndStatus(s.getId(), TrainerLinkStatus.ATIVO))
+                .orElseThrow(() -> new IllegalArgumentException(INVITE_NOT_POSSIBLE));
 
-        if (trainerClientRepository.existsByStudentIdAndStatus(student.getId(), TrainerLinkStatus.ATIVO)) {
-            throw new ActiveTrainerConflictException("Este aluno já possui um personal ativo.");
-        }
         if (trainerClientRepository.existsByTrainerIdAndStudentIdAndStatus(
                 trainer.getId(), student.getId(), TrainerLinkStatus.PENDENTE)) {
             throw new ActiveTrainerConflictException("Já existe um convite pendente para este aluno.");
@@ -266,6 +264,29 @@ public class TrainerLinkService {
         link.setEndedAt(LocalDateTime.now());
         trainerClientRepository.save(link);
         trainerEventService.publishAfterCommit(link.getTrainer().getId(), "students", link.getStudent().getId());
+    }
+
+    /**
+     * O personal saiu da empresa (ou foi desvinculado por ela): os alunos que a empresa
+     * atribuiu a ele deixam de ser atendidos por ele. Sem isso o ex-funcionário seguiria
+     * lendo os dados de saúde desses alunos. Convites corporativos pendentes caem junto.
+     */
+    @Transactional
+    public void endCompanyLinksOfTrainer(@NonNull UUID companyId, @NonNull UUID trainerId) {
+        List<TrainerClient> links = trainerClientRepository.findByCompanyIdAndTrainerIdAndStatusIn(
+                companyId, trainerId, List.of(TrainerLinkStatus.ATIVO, TrainerLinkStatus.PENDENTE));
+        LocalDateTime now = LocalDateTime.now();
+        for (TrainerClient link : links) {
+            link.setStatus(TrainerLinkStatus.ENCERRADO);
+            link.setEndedAt(now);
+            if (link.getRespondedAt() == null) {
+                link.setRespondedAt(now);
+            }
+        }
+        trainerClientRepository.saveAll(links);
+        if (!links.isEmpty()) {
+            trainerEventService.publishAfterCommit(trainerId, "students", null);
+        }
     }
 
     /** Busca o convite garantindo posse (é do aluno logado) e estado PENDENTE. */

@@ -91,11 +91,29 @@ export const redeemErrorMessage = (e: unknown): string => {
 
 // Código digitado no cadastro: guardado até o primeiro login (o cadastro exige
 // confirmar o e-mail antes, então ainda não há sessão para resgatar na hora).
-const PENDING_INVITE_KEY = '@kinetic_pending_invite_code';
+// Vai junto o e-mail de quem se cadastrou: num aparelho compartilhado, o código só
+// é resgatado por essa conta, nunca pela próxima que entrar.
+const PENDING_INVITE_KEY = '@kinetic_pending_invite';
+const LEGACY_PENDING_INVITE_KEY = '@kinetic_pending_invite_code';
 
-export const savePendingInviteCode = (code: string) =>
-  AsyncStorage.setItem(PENDING_INVITE_KEY, code.trim());
+const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
-export const getPendingInviteCode = () => AsyncStorage.getItem(PENDING_INVITE_KEY);
+export const savePendingInviteCode = (code: string, email: string) =>
+  AsyncStorage.setItem(PENDING_INVITE_KEY, JSON.stringify({ code: code.trim(), email: normalizeEmail(email) }));
+
+/** Código pendente desta conta; null se não houver ou se for de outra conta. */
+export const getPendingInviteCode = async (email: string): Promise<string | null> => {
+  // Formato antigo (sem dono): descartado, pois não dá para saber de quem era.
+  await AsyncStorage.removeItem(LEGACY_PENDING_INVITE_KEY);
+  const raw = await AsyncStorage.getItem(PENDING_INVITE_KEY);
+  if (!raw) return null;
+  try {
+    const saved = JSON.parse(raw) as { code?: string; email?: string };
+    return saved.code && saved.email === normalizeEmail(email) ? saved.code : null;
+  } catch {
+    await AsyncStorage.removeItem(PENDING_INVITE_KEY);
+    return null;
+  }
+};
 
 export const clearPendingInviteCode = () => AsyncStorage.removeItem(PENDING_INVITE_KEY);

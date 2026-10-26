@@ -23,7 +23,8 @@ import { Badge } from '@/components/ui/badge';
 const ROLE_SUBTITLE: Record<PanelRole, string> = {
   PERSONAL: 'Painel do Personal',
   ROOT: 'Administração Global',
-  EMPRESA: 'Painel da Empresa',
+  EMPRESA: 'Painel da Filial',
+  DONO: 'Painel da Rede',
 };
 
 /**

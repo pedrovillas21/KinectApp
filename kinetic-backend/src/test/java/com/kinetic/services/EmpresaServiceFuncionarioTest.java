@@ -3,6 +3,7 @@ package com.kinetic.services;
 import com.kinetic.enums.Role;
 import com.kinetic.exceptions.ActiveTrainerConflictException;
 import com.kinetic.models.User;
+import com.kinetic.repositories.CompanyRepository;
 import com.kinetic.repositories.TrainerClientRepository;
 import com.kinetic.repositories.UserRepository;
 import com.kinetic.repositories.WorkoutSessionRepository;
@@ -13,6 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -24,9 +26,10 @@ import static org.mockito.Mockito.when;
 class EmpresaServiceFuncionarioTest {
 
     private final UserRepository users = mock(UserRepository.class);
+    private final TrainerLinkService links = mock(TrainerLinkService.class);
     private final EmpresaService service = new EmpresaService(
             users, mock(TrainerClientRepository.class), mock(WorkoutSessionRepository.class),
-            mock(TrainerLinkService.class), mock(FeedbackService.class));
+            links, mock(FeedbackService.class), mock(CompanyRepository.class), mock(TrainerEventService.class));
 
     private final UUID companyId = UUID.randomUUID();
     private final User empresa = user("empresa@test.local", Role.EMPRESA, companyId);
@@ -59,6 +62,47 @@ class EmpresaServiceFuncionarioTest {
 
         assertThrows(EntityNotFoundException.class,
                 () -> service.vincularFuncionario(empresa.getEmail(), aluno.getEmail()));
+    }
+
+    @Test
+    void invitingDoesNotJoinUntilThePersonalAccepts() {
+        User personal = user("personal@test.local", Role.PERSONAL, null);
+        stub(personal);
+        when(users.save(personal)).thenReturn(personal);
+
+        service.vincularFuncionario(empresa.getEmail(), personal.getEmail());
+
+        assertNull(personal.getCompanyId());
+        assertEquals(companyId, personal.getPendingCompanyId());
+
+        when(users.getByEmailOrThrow(personal.getEmail())).thenReturn(personal);
+        service.acceptCompanyInvite(personal.getEmail());
+
+        assertEquals(companyId, personal.getCompanyId());
+        assertNull(personal.getPendingCompanyId());
+    }
+
+    @Test
+    void leavingTheCompanyEndsTheStudentsItAssigned() {
+        User personal = user("personal@test.local", Role.PERSONAL, companyId);
+        when(users.getByEmailOrThrow(personal.getEmail())).thenReturn(personal);
+
+        service.leaveCompanyByTrainer(personal.getEmail());
+
+        assertNull(personal.getCompanyId());
+        verify(links).endCompanyLinksOfTrainer(companyId, personal.getId());
+    }
+
+    @Test
+    void removedByTheCompanyAlsoEndsTheStudentsItAssigned() {
+        User personal = user("personal@test.local", Role.PERSONAL, companyId);
+        when(users.getByEmailOrThrow(empresa.getEmail())).thenReturn(empresa);
+        when(users.findById(personal.getId())).thenReturn(Optional.of(personal));
+
+        service.desvincularFuncionario(empresa.getEmail(), personal.getId());
+
+        assertNull(personal.getCompanyId());
+        verify(links).endCompanyLinksOfTrainer(companyId, personal.getId());
     }
 
     private void stub(User target) {

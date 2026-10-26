@@ -247,7 +247,7 @@ export default function RegisterScreen({ navigation }: Props) {
     // Resgatado no primeiro login (ver usePendingInviteRedeem): antes disso o
     // e-mail precisa ser confirmado e ainda não há sessão.
     if (inviteCode.trim()) {
-      await savePendingInviteCode(inviteCode);
+      await savePendingInviteCode(inviteCode, email);
     }
 
     showAlert(

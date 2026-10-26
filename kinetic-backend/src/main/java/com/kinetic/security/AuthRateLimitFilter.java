@@ -30,7 +30,9 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
     private static final Map<String, Integer> LIMITS = Map.of(
             "/api/auth/login", 60,
             "/api/auth/register", 10,
-            "/api/auth/register-company", 10,
+            "/api/auth/totp/setup", 10,
+            "/api/auth/totp/verify", 10,
+            "/api/auth/totp/recover", 10,
             "/api/auth/forgot-password", 10,
             "/api/auth/reset-password", 10,
             "/api/auth/confirm-email", 10,

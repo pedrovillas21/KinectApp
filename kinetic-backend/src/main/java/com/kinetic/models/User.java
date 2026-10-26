@@ -121,6 +121,29 @@ public class User {
     @Column(name = "terms_accepted_at")
     private Instant termsAcceptedAt;
 
+    /** Última troca/redefinição de senha: access tokens emitidos antes deixam de valer. */
+    @Column(name = "credentials_changed_at")
+    private Instant credentialsChangedAt;
+
+    /** Empresa que convidou este personal e aguarda o aceite dele. */
+    @Column(name = "pending_company_id")
+    private UUID pendingCompanyId;
+
+    /** Login da filial (rede.filial); nulo nas demais contas, que entram pelo e-mail. */
+    @Column(unique = true, length = 81)
+    private String username;
+
+    /** Segredo TOTP cifrado (TotpService); nulo enquanto o app autenticador não foi cadastrado. */
+    @Column(name = "totp_secret")
+    private String totpSecret;
+
+    @Column(name = "totp_enabled_at")
+    private Instant totpEnabledAt;
+
+    /** Última janela TOTP aceita: o mesmo código não entra duas vezes. */
+    @Column(name = "totp_last_step")
+    private Long totpLastStep;
+
     /** E-mail é NOT NULL/unique no schema; getter explícito só para expor essa garantia ao null-analysis. */
     @SuppressWarnings("null")
     public @NonNull String getEmail() {

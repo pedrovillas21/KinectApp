@@ -16,7 +16,8 @@ const formatDate = (iso: string): string =>
     minute: '2-digit',
   });
 
-export default function FeedbacksPage() {
+/** load: fonte dos feedbacks — a própria filial (padrão) ou uma filial vista pelo dono. */
+export default function FeedbacksPage({ load = listCompanyFeedbacks }: { load?: () => Promise<Feedback[]> }) {
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,14 +26,14 @@ export default function FeedbacksPage() {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    listCompanyFeedbacks()
+    load()
       .then((f) => !cancelled && setFeedbacks(f))
       .catch(() => !cancelled && setError('Não foi possível carregar os feedbacks.'))
       .finally(() => !cancelled && setLoading(false));
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [load]);
 
   return (
     <div className="flex flex-col min-h-full">

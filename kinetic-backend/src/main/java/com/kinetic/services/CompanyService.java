@@ -43,54 +43,78 @@ public class CompanyService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenService refreshTokenService;
+    private final AccessService accessService;
+    private final TotpService totpService;
 
     // ── Empresas ────────────────────────────────────────────────────────────
 
+    /**
+     * Cria a rede de empresas e o acesso do dono (papel DONO). Só o ROOT chama: não existe
+     * mais cadastro público de empresa. A senha é gerada e vai por e-mail depois do commit;
+     * o dono nasce confirmado e no primeiro login cadastra o app autenticador.
+     */
     @Transactional
     public CompanyDTO createCompany(CreateCompanyRequestDTO dto) {
         if (userRepository.existsByEmail(dto.ownerEmail())) {
             throw new EmailAlreadyInUseException("Já existe um usuário com este e-mail.");
         }
-
-        if (dto.companyCnpj() == null || dto.companyCnpj().isBlank()) {
-            throw new IllegalArgumentException("O CNPJ da empresa é obrigatório.");
-        }
-
-        if (!DocumentValidator.isValidCNPJ(dto.companyCnpj())) {
-            throw new IllegalArgumentException("CNPJ informado é inválido.");
-        }
-
-        String cleanCnpj = dto.companyCnpj().replaceAll("\\D", "");
-        if (companyRepository.existsByCnpj(cleanCnpj)) {
-            throw new EmailAlreadyInUseException("Este CNPJ já está cadastrado.");
+        String cleanCnpj = requireValidCnpj(dto.companyCnpj(), null);
+        if (companyRepository.existsBySlugAndParentIdIsNull(dto.slug())) {
+            throw new EmailAlreadyInUseException("Este apelido de rede já está em uso.");
         }
 
         Company company = new Company();
-        company.setNome(dto.companyName());
+        company.setNome(dto.companyName().trim());
         company.setCnpj(cleanCnpj);
+        company.setSlug(dto.slug());
+        company.setResponsibleName(dto.ownerName().trim());
+        company.setContactEmail(dto.ownerEmail().trim());
         company = companyRepository.save(company);
 
         User owner = new User();
-        owner.setNome(dto.ownerName());
-        owner.setEmail(dto.ownerEmail());
-        owner.setSenha(passwordEncoder.encode(dto.ownerPassword()));
-        owner.setRole(Role.EMPRESA);
+        owner.setNome(dto.ownerName().trim());
+        owner.setEmail(dto.ownerEmail().trim());
+        owner.setRole(Role.DONO);
         owner.setStatus(UserStatus.ATIVO);
         owner.setCompanyId(company.getId());
+        // E-mail informado pelo ROOT, não por cadastro público.
+        owner.setEmailVerified(true);
+        String password = accessService.assignNewPassword(owner);
         owner = userRepository.save(owner);
 
+        accessService.sendAfterCommit(owner.getEmail(), owner.getNome(), "Seu acesso ao Kinetic",
+                "Sua rede " + company.getNome() + " foi cadastrada no Kinetic. Com este acesso você cadastra as "
+                        + "filiais e acompanha todas elas pelo painel.",
+                owner.getEmail(), password);
         return toCompanyDto(company, owner);
+    }
+
+    /** CNPJ obrigatório, válido e único (ignorando a própria empresa na edição); devolve só os dígitos. */
+    String requireValidCnpj(String cnpj, UUID selfId) {
+        if (cnpj == null || cnpj.isBlank()) {
+            throw new IllegalArgumentException("O CNPJ é obrigatório.");
+        }
+        if (!DocumentValidator.isValidCNPJ(cnpj)) {
+            throw new IllegalArgumentException("CNPJ informado é inválido.");
+        }
+        String clean = cnpj.replaceAll("\\D", "");
+        boolean taken = selfId == null ? companyRepository.existsByCnpj(clean)
+                : companyRepository.existsByCnpjAndIdNot(clean, selfId);
+        if (taken) {
+            throw new EmailAlreadyInUseException("Este CNPJ já está cadastrado.");
+        }
+        return clean;
     }
 
     @Transactional(readOnly = true)
     public Page<CompanyDTO> listCompanies(Pageable pageable) {
-        return companyRepository.findAllByOrderByCreatedAtDesc(pageable)
+        return companyRepository.findByParentIdIsNullOrderByCreatedAtDesc(pageable)
                 .map(company -> toCompanyDto(company, findOwner(company.getId())));
     }
 
-    /** Dono (usuário EMPRESA) de uma empresa; null se ainda não houver. */
+    /** Dono (usuário DONO) de uma rede; null se ainda não houver. */
     private User findOwner(UUID companyId) {
-        return userRepository.findByCompanyIdAndRole(companyId, Role.EMPRESA)
+        return userRepository.findByCompanyIdAndRole(companyId, Role.DONO)
                 .stream()
                 .findFirst()
                 .orElse(null);
@@ -100,12 +124,45 @@ public class CompanyService {
         return new CompanyDTO(
                 company.getId(),
                 company.getNome(),
+                company.getCnpj(),
+                company.getSlug(),
                 company.getCreatedAt(),
+                companyRepository.countByParentId(company.getId()),
                 owner != null ? owner.getId() : null,
                 owner != null ? owner.getNome() : null,
                 owner != null ? owner.getEmail() : null,
                 owner != null ? owner.getStatus().name() : null
         );
+    }
+
+    // ── Acesso das contas de gestão (dono e filial) ─────────────────────────
+
+    /** ROOT gera outra senha para um dono ou uma filial e envia por e-mail. */
+    @Transactional
+    public void regeneratePassword(UUID userId) {
+        User user = getManagedAccount(userId);
+        if (user.getRole() == Role.EMPRESA) {
+            Company unit = companyRepository.findById(user.getCompanyId())
+                    .orElseThrow(() -> new EntityNotFoundException("Filial não encontrada."));
+            accessService.regenerate(user, unit.getContactEmail(), user.getUsername());
+        } else {
+            accessService.regenerate(user, user.getEmail(), user.getEmail());
+        }
+    }
+
+    /** ROOT apaga o app autenticador de um dono ou filial (celular perdido). */
+    @Transactional
+    public void resetSecondFactor(UUID userId) {
+        totpService.reset(getManagedAccount(userId));
+    }
+
+    private User getManagedAccount(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));
+        if (user.getRole() != Role.DONO && user.getRole() != Role.EMPRESA) {
+            throw new IllegalArgumentException("Só contas de dono ou de filial têm acesso gerenciado pelo ROOT.");
+        }
+        return user;
     }
 
     // ── Personais ─────────────────────────────────────────────────────────────
