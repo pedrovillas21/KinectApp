@@ -40,7 +40,6 @@ export default function FeedbacksPage({ load = listCompanyFeedbacks }: { load?: 
       <PageHeader
         title="Feedbacks"
         subtitle="Recebidos de alunos com vínculo corporativo"
-        icon={<MessageSquareText className="w-5 h-5" />}
       />
 
       <div className="max-w-4xl w-full mx-auto px-6 py-6 flex flex-col gap-4">
@@ -56,15 +55,15 @@ export default function FeedbacksPage({ load = listCompanyFeedbacks }: { load?: 
         {loading ? (
           <div className="flex flex-col gap-3">
             {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} className="h-28 rounded-2xl" />
+              <Skeleton key={i} className="h-28 rounded-xl" />
             ))}
           </div>
         ) : error ? (
-          <div className="flex flex-col items-center justify-center text-center p-8 py-10 rounded-2xl bg-k-surface2/30 border border-dashed border-k-ghost text-k-text-muted text-xs">
+          <div className="flex flex-col items-center justify-center text-center p-8 py-10 rounded-xl border border-dashed border-white/[0.08] text-k-text-muted text-sm">
             {error}
           </div>
         ) : feedbacks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center text-center p-10 rounded-2xl bg-k-surface1/40 border border-dashed border-k-ghost gap-3">
+          <div className="flex flex-col items-center justify-center text-center p-10 rounded-xl border border-dashed border-white/[0.08] gap-3">
             <div className="w-12 h-12 rounded-full bg-k-surface2 flex items-center justify-center text-k-text-muted">
               <MessageSquareText className="w-6 h-6" />
             </div>
@@ -77,7 +76,7 @@ export default function FeedbacksPage({ load = listCompanyFeedbacks }: { load?: 
           </div>
         ) : (
           feedbacks.map((f) => (
-            <div key={f.id} className="p-5 rounded-2xl bg-k-surface1/60 border border-k-ghost flex flex-col gap-3">
+            <div key={f.id} className="p-5 rounded-xl border border-white/[0.08] flex flex-col gap-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   {f.anonymous ? (

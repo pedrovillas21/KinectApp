@@ -15,7 +15,7 @@ import {
 /**
  * Fonte única da navegação do painel: itens de sidebar keyed por papel, mapa
  * papel → home e o gate de "papéis do painel" (ALUNO fica de fora — usa o app).
- * Consumido por AppSidebar, AuthContext, ProtectedRoute e LoginPage.
+ * Consumido por AppShell, AuthContext, ProtectedRoute e LoginPage.
  */
 
 /** EMPRESA = conta de uma filial; DONO = dono da rede, que cadastra e acompanha as filiais. */

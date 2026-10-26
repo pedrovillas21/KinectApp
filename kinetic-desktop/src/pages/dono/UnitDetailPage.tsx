@@ -40,7 +40,7 @@ export default function UnitDetailPage() {
 
   return (
     <div className="flex flex-col min-h-full">
-      <div className="max-w-6xl w-full mx-auto px-6 pt-5 flex flex-wrap items-center gap-3">
+      <div className="max-w-[1160px] w-full mx-auto px-8 pt-8 flex flex-wrap items-center gap-3">
         <Link to="/dono/filiais" className="inline-flex items-center gap-1.5 text-xs font-semibold text-k-text-dim hover:text-k-text">
           <ArrowLeft className="w-3.5 h-3.5" /> Filiais
         </Link>
@@ -87,15 +87,15 @@ function useList<T>(load: () => Promise<T[]>) {
 
 function Shell({ loading, error, empty, children }: { loading: boolean; error: boolean; empty: boolean; children: React.ReactNode }) {
   return (
-    <div className="max-w-6xl w-full mx-auto px-6 py-6">
+    <div className="max-w-[1160px] w-full mx-auto px-8 pt-8 pb-16">
       {loading ? (
-        <Skeleton className="h-40 rounded-2xl" />
+        <Skeleton className="h-40 rounded-xl" />
       ) : error ? (
         <EmptyCard>Não foi possível carregar.</EmptyCard>
       ) : empty ? (
         <EmptyCard>Nada por aqui ainda.</EmptyCard>
       ) : (
-        <div className="rounded-2xl border border-k-ghost overflow-hidden overflow-x-auto">{children}</div>
+        <div className="rounded-xl border border-white/[0.08] overflow-hidden overflow-x-auto">{children}</div>
       )}
     </div>
   );

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, UserCog, Users, UserPlus, Percent, TrendingUp } from 'lucide-react';
+import { UserCog, UserPlus, TrendingUp } from 'lucide-react';
 import PageHeader from '../../components/PageHeader';
 import PeriodTabs from '../../components/PeriodTabs';
 import { EmptyCard, StatTile } from '../../components/stat-primitives';
@@ -37,15 +37,14 @@ export default function EmpresaHomePage() {
       <PageHeader
         title="Visão Geral"
         subtitle="Panorama da unidade: retenção e desempenho"
-        icon={<LayoutDashboard className="w-5 h-5" />}
         actions={<PeriodTabs value={period} onChange={setPeriod} />}
       />
 
-      <div className="max-w-6xl w-full mx-auto px-6 py-6 flex flex-col gap-6">
+      <div className="max-w-[1160px] w-full mx-auto px-8 pt-8 pb-16 flex flex-col gap-6">
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-28 rounded-2xl" />
+              <Skeleton key={i} className="h-28 rounded-xl" />
             ))}
           </div>
         ) : error || !data ? (
@@ -56,25 +55,21 @@ export default function EmpresaHomePage() {
               <StatTile
                 label="Personais ativos"
                 value={nf.format(data.personaisAtivos)}
-                icon={<UserCog className="w-4.5 h-4.5" />}
                 detail="funcionários da unidade"
               />
               <StatTile
                 label="Alunos ativos"
                 value={nf.format(data.alunosAtivos)}
-                icon={<Users className="w-4.5 h-4.5" />}
                 detail="vínculos corporativos ativos"
               />
               <StatTile
                 label="Vinculados no período"
                 value={nf.format(data.alunosVinculadosNoPeriodo)}
-                icon={<UserPlus className="w-4.5 h-4.5" />}
                 detail="novos vínculos"
               />
               <StatTile
                 label="Retenção"
                 value={`${Math.round(data.retentionRate * 100)}%`}
-                icon={<Percent className="w-4.5 h-4.5" />}
                 detail="ativos / vinculados no período"
               />
             </div>
@@ -89,11 +84,11 @@ export default function EmpresaHomePage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="p-5 rounded-2xl bg-k-surface1/60 border border-k-ghost flex flex-col">
+              <div className="p-5 rounded-xl border border-white/[0.08] flex flex-col">
                 <div className="mb-4 flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-k-primary" />
                   <div>
-                    <h3 className="text-sm font-extrabold tracking-tight">Volume de Treinos na Unidade</h3>
+                    <h3 className="text-[15px] font-semibold">Volume de Treinos na Unidade</h3>
                     <p className="text-xs text-k-text-muted mt-0.5">Sessões dos alunos por dia</p>
                   </div>
                 </div>
@@ -102,9 +97,9 @@ export default function EmpresaHomePage() {
                 </div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-k-surface1/60 border border-k-ghost flex flex-col">
+              <div className="p-5 rounded-xl border border-white/[0.08] flex flex-col">
                 <div className="mb-4">
-                  <h3 className="text-sm font-extrabold tracking-tight">Desempenho por Instrutor</h3>
+                  <h3 className="text-[15px] font-semibold">Desempenho por Instrutor</h3>
                   <p className="text-xs text-k-text-muted mt-0.5">Alunos ativos sob cada personal</p>
                 </div>
                 <div className="flex-1 min-h-[220px] flex items-center justify-center">

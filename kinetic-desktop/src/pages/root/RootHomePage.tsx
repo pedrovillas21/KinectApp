@@ -9,16 +9,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import {
-  Building2,
-  UserCog,
-  Users,
-  UserPlus,
-  ShieldCheck,
-  TrendingUp,
-  CreditCard,
-  ScrollText,
-} from 'lucide-react';
+import { Building2, UserCog, ShieldCheck, CreditCard, ScrollText } from 'lucide-react';
 import PageHeader from '../../components/PageHeader';
 import PeriodTabs from '../../components/PeriodTabs';
 import { EmptyCard, StatTile } from '../../components/stat-primitives';
@@ -77,16 +68,15 @@ export default function RootHomePage() {
       <PageHeader
         title="Visão Geral"
         subtitle="Panorama macro da plataforma"
-        icon={<TrendingUp className="w-5 h-5" />}
         actions={<PeriodTabs value={period} onChange={setPeriod} />}
       />
 
-      <div className="max-w-6xl w-full mx-auto px-6 py-6 flex flex-col gap-6">
+      <div className="max-w-[1160px] w-full mx-auto px-8 pt-8 pb-16 flex flex-col gap-6">
         {/* KPIs */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-28 rounded-2xl" />
+              <Skeleton key={i} className="h-28 rounded-xl" />
             ))}
           </div>
         ) : error || !metrics ? (
@@ -97,25 +87,21 @@ export default function RootHomePage() {
               <StatTile
                 label="Empresas"
                 value={nf.format(metrics.totalCompanies)}
-                icon={<Building2 className="w-4.5 h-4.5" />}
                 detail="total na plataforma"
               />
               <StatTile
                 label="Personais"
                 value={nf.format(metrics.totalPersonais)}
-                icon={<UserCog className="w-4.5 h-4.5" />}
                 detail="total na plataforma"
               />
               <StatTile
                 label="Alunos"
                 value={nf.format(metrics.totalAlunos)}
-                icon={<Users className="w-4.5 h-4.5" />}
                 detail="total na plataforma"
               />
               <StatTile
                 label="Novos no período"
                 value={nf.format(metrics.newUsersInPeriod)}
-                icon={<UserPlus className="w-4.5 h-4.5" />}
                 detail="contas criadas"
               />
             </div>
@@ -134,9 +120,9 @@ export default function RootHomePage() {
             </div>
 
             {/* Crescimento de contas (série real, barata) */}
-            <div className="p-5 rounded-2xl bg-k-surface1/60 border border-k-ghost flex flex-col">
+            <div className="p-5 rounded-xl border border-white/[0.08] flex flex-col">
               <div className="mb-4">
-                <h3 className="text-sm font-extrabold tracking-tight">Crescimento de Contas</h3>
+                <h3 className="text-[15px] font-semibold">Crescimento de Contas</h3>
                 <p className="text-xs text-k-text-muted mt-0.5">Novas contas por dia no período</p>
               </div>
               <div className="flex-1 min-h-[240px]">
@@ -181,17 +167,17 @@ export default function RootHomePage() {
 
             {/* Placeholders "no caro" */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="p-5 rounded-2xl bg-k-surface1/60 border border-k-ghost flex flex-col">
+              <div className="p-5 rounded-xl border border-white/[0.08] flex flex-col">
                 <div className="mb-4 flex items-center gap-2">
                   <CreditCard className="w-4 h-4 text-k-text-muted" />
-                  <h3 className="text-sm font-extrabold tracking-tight">Faturamento macro</h3>
+                  <h3 className="text-[15px] font-semibold">Faturamento macro</h3>
                 </div>
                 <EmptyCard>Métricas de faturamento chegam em uma próxima entrega.</EmptyCard>
               </div>
-              <div className="p-5 rounded-2xl bg-k-surface1/60 border border-k-ghost flex flex-col">
+              <div className="p-5 rounded-xl border border-white/[0.08] flex flex-col">
                 <div className="mb-4 flex items-center gap-2">
                   <ScrollText className="w-4 h-4 text-k-text-muted" />
-                  <h3 className="text-sm font-extrabold tracking-tight">Auditoria recente</h3>
+                  <h3 className="text-[15px] font-semibold">Auditoria recente</h3>
                 </div>
                 <EmptyCard>Os logs de auditoria serão exibidos aqui em breve.</EmptyCard>
               </div>

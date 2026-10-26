@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { ShieldCheck, MoreHorizontal, Ban, PauseCircle, PlayCircle, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Ban, PauseCircle, PlayCircle, Trash2 } from 'lucide-react';
 import PageHeader from '../../components/PageHeader';
 import { EmptyCard } from '../../components/stat-primitives';
 import StatusBadge from '../../components/StatusBadge';
@@ -101,7 +101,6 @@ export default function CompliancePage() {
       <PageHeader
         title="Usuários & Compliance"
         subtitle="Bloquear, suspender, reativar ou excluir contas"
-        icon={<ShieldCheck className="w-5 h-5" />}
         actions={
           <Select value={role} onValueChange={(v) => setRole(v as RoleFilter)}>
             <SelectTrigger className="w-40">
@@ -118,7 +117,7 @@ export default function CompliancePage() {
         }
       />
 
-      <div className="max-w-6xl w-full mx-auto px-6 py-6">
+      <div className="max-w-[1160px] w-full mx-auto px-8 pt-8 pb-16">
         {loading ? (
           <div className="flex flex-col gap-3">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -130,7 +129,7 @@ export default function CompliancePage() {
         ) : users.length === 0 ? (
           <EmptyCard>Nenhum usuário para este filtro.</EmptyCard>
         ) : (
-          <div className="rounded-2xl border border-k-ghost overflow-hidden overflow-x-auto">
+          <div className="rounded-xl border border-white/[0.08] overflow-hidden overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>

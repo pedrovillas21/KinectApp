@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Building2, KeyRound, Pencil, Plus, Power, ShieldCheck, ShieldOff } from 'lucide-react';
+import { KeyRound, Pencil, Plus, Power, ShieldCheck, ShieldOff } from 'lucide-react';
 import PageHeader from '../../components/PageHeader';
 import { EmptyCard } from '../../components/stat-primitives';
 import { Button } from '@/components/ui/button';
@@ -135,7 +135,6 @@ export default function UnitsPage() {
       <PageHeader
         title="Filiais"
         subtitle={network ? `Unidades da rede ${network.nome}` : 'Unidades da rede'}
-        icon={<Building2 className="w-5 h-5" />}
         actions={
           <Button onClick={openNew}>
             <Plus className="w-4 h-4" /> Nova filial
@@ -143,7 +142,7 @@ export default function UnitsPage() {
         }
       />
 
-      <div className="max-w-6xl w-full mx-auto px-6 py-6">
+      <div className="max-w-[1160px] w-full mx-auto px-8 pt-8 pb-16">
         {loading ? (
           <div className="flex flex-col gap-3">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -155,7 +154,7 @@ export default function UnitsPage() {
         ) : units.length === 0 ? (
           <EmptyCard>Nenhuma filial cadastrada ainda. Use "Nova filial" para começar.</EmptyCard>
         ) : (
-          <div className="rounded-2xl border border-k-ghost overflow-hidden overflow-x-auto">
+          <div className="rounded-xl border border-white/[0.08] overflow-hidden overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
