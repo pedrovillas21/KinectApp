@@ -1,5 +1,120 @@
 # Auditoria de segurança — KinectApp
 
+## Rodada 2 (2026-10-26): pendências de segurança
+
+- **Fonte auditada:** commit `2204363` (`implementacaoWeb`), considerando também as alterações ainda não commitadas de 2026-10-26.
+- **Método:** skill `security-audit`, perfil *quick*: **uma única onda**, como você pediu, seguida de um crítico de cobertura final. Não houve segunda onda.
+- **Agentes:** 40 no total.
+  - 4 de reconhecimento.
+  - 14 caçadores.
+  - 1 crítico.
+  - 21 verificadores independentes, um por candidato.
+- **Artefatos:** ficam em `~/Downloads/security-audit-skill/KinectApp/run-2/`.
+  - `REPORT.md`
+  - `NEEDS-VALIDATION.md`, com trace, evidência e plano de teste de cada item
+  - `findings.json`
+  - `coverage-ledger.json`
+- **Nenhum achado "confirmado" nesta rodada.** Não foi possível rodar o backend num ambiente isolado. O Flyway começa na baseline V6 e assume que já existem tabelas criadas antes dele; num banco novo, a V3 falha com `relation "users" does not exist`, e o repositório não tem dump de schema. Por isso os 21 itens abaixo estão como **validação pendente, sem severidade**. Cada um teve o caminho no código conferido por um agente independente, mas falta executar o teste local ou o dono checar um fato de produção.
+- **Situação dos itens da rodada 1:**
+  - **Já resolvidos no código:**
+    - reset de senha sem prova de identidade;
+    - vínculo empresa→aluno sem consentimento;
+    - STOMP, que foi removido;
+    - curtidas e comentários sem checar visibilidade;
+    - page size do feed;
+    - re-assinatura e delete de mídia por chave alheia;
+    - chamada ao Gemini sem cota e dentro de transação;
+    - reatribuição de personal entre empresas.
+  - **Ainda abertos:** seeder de ROOT, `flyway_schema_history`, bucket social-media e ranking da Arena. Estão nos itens 7, 11, 10 e 21 da tabela abaixo.
+
+### Pendências, em ordem de prioridade
+
+| # | Pendência | O que decide |
+|---|---|---|
+| 1 | Código de 6 dígitos (reset/confirmação) com tentativas zeradas a cada reenvio: adivinhação sem limite por conta, até tomar a conta (inclusive ROOT) | Regra de rate limit/bot no Cloudflare para /api/auth/* |
+| 2 | Empresa autocadastrada isenta qualquer personal dos limites do plano e da cota mensal de IA | Se empresas autocadastradas devem ser tratadas como clientes pagantes |
+| 3 | Cobrança cai no gateway demo por padrão: qualquer personal autoconfirma plano e pacotes de IA | Valor de BILLING_GATEWAY no .env de produção |
+| 4 | Empresa vincula qualquer personal sem empresa só pelo e-mail; o personal não consegue sair | Nenhum (caminho completo no código; falta só o teste local) |
+| 5 | Cota de IA do personal conta só sucessos salvos: falhas e chamadas simultâneas não são contadas (gasto Gemini) | Teto de gasto/requisições na chave do Google AI |
+| 6 | Exportação de dados do personal continua trazendo avaliações e gerações de IA de ex-alunos e de alunos excluídos | Decisão jurídica: isso é dado do personal ou do aluno? |
+| 7 | Seeder de ROOT promove conta autocadastrada e mantém a senha de quem a criou | Origem da linha ROOT em produção (criada pelo seeder ou promovida) |
+| 8 | Access token emitido antes do reset/troca de senha continua válido até expirar | Valor de JWT_EXPIRATION_MS em produção |
+| 9 | Cancelar e reassinar PRO dá limites PRO no período pago como BASE | Nenhum (caminho completo; falta teste local) |
+| 10 | Privacidade das fotos sociais depende do bucket social-media estar privado (nada no código garante) | storage.buckets.public do bucket em produção |
+| 11 | flyway_schema_history ficou fora do bloqueio da Data API (sem RLS, grants de anon mantidos) | Grants/RLS da tabela no Supabase de produção |
+| 12 | App: código de convite pendente é global no aparelho e é resgatado pela próxima conta que entrar | Modelo de uso do aparelho (compartilhado ou não) |
+| 13 | Personal atual edita/apaga avaliação de personal anterior e o registro continua no nome do anterior | Política: personal atual pode corrigir histórico de outro? |
+| 14 | Cadastro não confirmado reserva para sempre o celular/CPF de outra pessoa | Se há rotina de limpeza de contas não confirmadas |
+| 15 | Convite por e-mail revela se o e-mail é de aluno e se ele já tem personal | Política: vínculo aluno-personal é confidencial? |
+| 16 | Estorno/chargeback no Asaas não revoga período pago nem créditos de IA | Eventos de estorno habilitados no webhook Asaas |
+| 17 | Uploads nunca usados ficam para sempre (limpeza de órfãos em dry-run por padrão) | Valor de MEDIA_CLEANUP_DRY_RUN em produção |
+| 18 | Sem limite de conexões SSE abertas por personal em /api/trainer/events | Limites de conexões do Cloudflare Tunnel |
+| 19 | POST /api/sessions/log aceita lista de séries sem tamanho máximo | Limite de corpo da requisição no Cloudflare |
+| 20 | Rate limiter grava no Postgres a cada requisição, inclusive anônimas e já bloqueadas | Regras de rate limit do Cloudflare |
+| 21 | Ranking da Arena inflável: sessões ilimitadas por dia (6 h cada) | Nenhum (integridade do ranking) |
+
+### Lacuna de cobertura (não revisada por causa da regra de uma onda)
+
+- **Ciclo de vida do vínculo com a empresa.** O problema aparece quando a empresa remove um personal ou quando a conta EMPRESA é excluída ou bloqueada:
+  - os vínculos de alunos de origem `COMPANY` continuam `ATIVO`;
+  - o personal removido mantém acesso aos dados de saúde desses alunos;
+  - o próprio personal não consegue encerrar esses vínculos;
+  - o `company_id` dos membros nunca é limpo, porque nenhum código apaga a linha da empresa, e com isso a isenção de cobrança continua.
+  
+  O crítico final encontrou essa lacuna. Ela fica registrada como pendência para uma próxima rodada.
+
+### Próximo passo: banco de teste para confirmar as pendências
+
+As 21 pendências ficaram sem confirmação porque o backend não sobe num banco vazio. O Flyway parte da baseline V6, que assume tabelas criadas antes dele (pelo Hibernate, no início do projeto). Por isso, num Postgres novo, a V3 falha com `relation "users" does not exist`. Para destravar, o banco de teste precisa já ter essas tabelas. Assim o Flyway faz o baseline na V6 e aplica da V7 em diante, como aconteceu em produção.
+
+**Caminho A: dump só da estrutura de produção (recomendado, mais fiel).** O dump traz apenas o schema, nenhum dado de usuário. Ele copia índices, `CHECK`s e grants exatamente como estão em produção. A senha e o host são os mesmos do ensaio de migração em `kinetic-backend/scripts/migracao-supabase/README.md`:
+
+```powershell
+# Na pasta onde quer salvar o arquivo, com o Docker Desktop aberto
+docker run --rm -e PGPASSWORD="SENHA_DO_BANCO" -v "${PWD}:/dump" postgres:17 `
+  pg_dump -h <host-do-session-pooler> -p 5432 -U postgres.<ref-do-projeto> -d postgres `
+  --schema=public --schema-only --no-owner --no-privileges -f /dump/kinetic-schema.sql
+```
+
+- Confira que o arquivo não tem `COPY` nem `INSERT`, ou seja, nenhum dado.
+- Depois, entregue o `kinetic-schema.sql` ao Claude e peça: "monte o banco de teste com este dump e reexecute a verificação das 21 pendências da run-2".
+
+**Caminho B: montar localmente a partir do código (não toca em produção, menos fiel).**
+
+1. Em um Postgres descartável, subir o backend uma vez com `SPRING_FLYWAY_ENABLED=false` e `SPRING_JPA_HIBERNATE_DDL_AUTO=create`, para o Hibernate criar as tabelas das entidades.
+2. Aplicar à mão os objetos que só existem nas migrations, por exemplo:
+   - `rate_limit_counters` e `trainer_events` (V48);
+   - as tabelas de retenção (V49);
+   - a tabela do ShedLock;
+   - índices únicos e `CHECK`s (V30, V36, V47).
+3. Marcar o Flyway como já aplicado até a V49 (`baseline-version=49`).
+
+Restrições que só existem nas migrations podem ficar diferentes de produção, então este caminho exige tentativa e erro até o backend subir.
+
+**Depois do banco de teste (qualquer caminho):**
+
+1. Subir `postgres:17-alpine` e o backend numa rede Docker `--internal`, sem acesso externo e sem montar pastas do host. Usar variáveis fictícias: `DEV_LOG_EMAIL_CONTENT=true`, para ler os códigos de e-mail no log; `BILLING_GATEWAY=demo`; Supabase e Gemini apontando para endereços mortos.
+2. A imagem `kinetic-backend:latest` precisa ser reconstruída se o código mudar depois de 2026-10-26.
+3. Reexecutar um verificador por pendência (cerca de 21) com teste reproduzível pela API e contas fictícias. As que se confirmarem ganham severidade. Os scripts da run-2 não ficaram salvos, então a skill os recria.
+
+### Checagens rápidas em produção (só leitura, fazem várias pendências avançar)
+
+1. `BILLING_GATEWAY` está como `asaas` no `.env`? Vale também procurar assinaturas com `gateway='DEMO'`. (item 3)
+2. Qual o valor de `JWT_EXPIRATION_MS`? (item 8)
+3. Qual o valor de `MEDIA_CLEANUP_DRY_RUN`? (item 17)
+4. `SELECT id, public FROM storage.buckets WHERE id='social-media'` retorna `public = false`? (item 10)
+5. Quais são o RLS e os grants de `anon`/`authenticated` em `public.flyway_schema_history`? (item 11)
+6. Rode `SELECT nome, role, created_at FROM users WHERE email='<ROOT_USER_EMAIL>'` e confira se a linha foi criada pelo seeder. (item 7)
+7. No Cloudflare, quais são as regras de rate limit/bot em `/api/auth/*`, o limite de tamanho do corpo e o limite de conexões longas? (itens 1, 18, 19 e 20)
+8. A chave do Google AI tem teto de gasto ou de requisições? (itens 2, 3 e 5)
+9. Quais eventos de estorno e chargeback estão habilitados no webhook do Asaas? (item 16)
+
+O hardening apontado (que não são achados) e os pontos positivos verificados estão na seção 6 do `REPORT.md` da run-2.
+
+---
+
+## Rodada 1 (2026-10-14), mantida como histórico
+
 - **Commit auditado:** `b7447a3` (branch `implementacaoWeb`). O código da aplicação no HEAD atual (`2c0e374`) é idêntico; só mudaram `graphify-out/` e este arquivo.
 - **Datas:** sessão 1 e sessão 2 em 2026-10-14.
 - **Método:** skill `security-audit`, perfil *standard*, com o grafo do graphify como mapa do código.
@@ -137,7 +252,7 @@ Era uma lacuna de produto e reforça os itens 9 e "e-mail como identidade".
 | 14 | `size` do feed limitado a 1–50. |
 | 15 | `/docs.html` e `/v3/api-docs` desligados por padrão (`DOCS_ENABLED=false`). SRI não foi adicionado. |
 | Lacuna 4 | Chave do Gemini vai no header `x-goog-api-key`, não mais na URL. |
-| Abertos do item 1 | `/api/auth/verify-email` removido. Rate limit por IP+rota em `/api/auth/**` (10/min; refresh 60/min), em memória e por instância. Atrás de proxy, configurar `SERVER_FORWARD_HEADERS_STRATEGY=native`, senão todos dividem o IP do proxy. |
+| Abertos do item 1 | `/api/auth/verify-email` removido. Rate limit por IP+rota em `/api/auth/**` (10/min; refresh 60/min), em memória e por instância (desde 2026-10-25 os contadores ficam no Postgres e valem somados entre as cópias, V48). Atrás de proxy, configurar `SERVER_FORWARD_HEADERS_STRATEGY=native`, senão todos dividem o IP do proxy. |
 | Hardening | `goal`/`medicalConditions` delimitados como dados no prompt do aluno e limitados em tamanho. |
 
 **Continuam em aberto:** itens 10 e 11 (consultas no Supabase); o prompt do `TrainerAiPlanService` ainda não delimita os dados do aluno; linhas antigas com duração absurda (limpar e depois `VALIDATE CONSTRAINT`); um convite de empresa pendente pode ser aceito depois que o personal sai da empresa (`company_id` antigo).
@@ -270,7 +385,7 @@ Detalhes e planos de verificação em `NEEDS-VALIDATION.md`.
   - **Verificar:** cotas e limite de orçamento da chave no Google Cloud.
   - **Correção:** `@Valid` + `@Size` no DTO e cota ou cooldown por usuário.
 - **13. Transação durante a IA.**
-  - **Verificar:** o tamanho real do pool Hikari em produção.
+  - **Verificar:** pool Hikari explícito desde 2026-10-26 (5 por cópia, 2 cópias). Conferir o Pool Size do pooler no Supabase.
   - **Correção:** chamar a IA fora do `@Transactional`, como o `TrainerAiPlanService.generatePreview` já faz.
 - **14. Feed sem limite de página.**
   - **Verificar:** limites de heap e de proxy em produção.

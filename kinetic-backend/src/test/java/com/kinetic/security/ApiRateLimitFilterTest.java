@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ApiRateLimitFilterTest {
 
     private final AtomicLong now = new AtomicLong(1_000_000);
-    private final ApiRateLimitFilter filter = new ApiRateLimitFilter(now::get);
+    private final ApiRateLimitFilter filter = new ApiRateLimitFilter(new InMemoryRateLimiter(now::get));
 
     @AfterEach
     void clearContext() {

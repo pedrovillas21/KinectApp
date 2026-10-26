@@ -14,7 +14,7 @@ Uma rede de 36 academias é uma carga *pequena* para um backend Spring Boot + Po
 configurado. O que hoje impede você de atender 3 unidades é:
 
 1. o modelo de dados não conhece "rede → unidade";
-2. o backend só funciona corretamente com **uma** instância (3 estados guardados em memória);
+2. o backend só funciona corretamente com **uma** instância (3 estados guardados em memória) — resolvido em 2026-10-25 (V48), ver seção 3;
 3. não há ambiente de homologação, monitoramento, backup testado nem processo de deploy;
 4. não existe processo para colocar 2.000 alunos de uma unidade dentro do app num dia;
 5. você está sozinho: quem atende o gerente da unidade 14 quando o app trava às 19h?
@@ -65,6 +65,10 @@ problema de **conta**, não de servidor (seção 5.6).
 | 7 | Infra | Um `docker-compose` com um container. Sem homologação, CI/CD, observabilidade, backup testado | Seção 4 |
 | 8 | `AUDITORIA-SEGURANCA.md` | Onda 2 da auditoria não rodou; correções de 2026-10-15 não testadas ponta a ponta nem em produção | Fechar antes do piloto |
 
+**Atualização 2026-10-25:** resolvidos os itens 3 (avisos do painel pela tabela `trainer_events`, lida por todas as cópias: o `LISTEN` não passa pelo pooler em modo transação), 4 (tentativas de IA no Postgres), 6 (`native` no `docker-compose.yml`) e parte do 7 (2 cópias + balanceador + deploy sem queda via `deploy.sh`). Do item 2, os contadores foram para o Postgres (`rate_limit_counters`). Itens 1, 5 e 8 continuam abertos. Detalhes em [CONTEXTO-INFRA-ESCALA.md](CONTEXTO-INFRA-ESCALA.md).
+
+**Atualização 2026-10-26:** resolvidos o item 2 (login limitado por **IP + e-mail**, 5/min no `AuthService`; o limite só por IP no login subiu para 60/min) e o item 5 (`maximum-pool-size=${DB_POOL_SIZE:5}`: 2 cópias × 5 = 10 conexões no pooler em modo sessão). Itens 1 e 8 continuam abertos.
+
 O que **já está certo** e ajuda muito: `open-in-view=false`, ShedLock nos `@Scheduled`,
 `ddl-auto=validate` + Flyway, JWT stateless com refresh no banco, URLs assinadas para mídia.
 Ou seja: tirando os itens 2, 3 e 4, o backend já é *stateless* e pode ter várias réplicas.
@@ -101,7 +105,7 @@ Ou seja: tirando os itens 2, 3 e 4, o backend já é *stateless* e pode ter vár
 |---|---|---|
 | **Banco** | Manter **Supabase**, plano Pro + upgrade de compute + **PITR** (restauração para qualquer minuto) | Você já usa; migrar banco agora é risco sem ganho. Confirme que o projeto está em **sa-east-1 (São Paulo)** — se estiver nos EUA, cada consulta paga ~120 ms de ida e volta e uma tela com 10 consultas fica lenta. Migrar de região é o primeiro item técnico |
 | **Backend** | Container gerenciado em São Paulo: **Google Cloud Run (southamerica-east1)** ou **Fly.io (gru)**. Alternativa mais "enterprise": AWS ECS Fargate + ALB em sa-east-1 (mesmo datacenter do Supabase, mais trabalho de operação) | Load balancer, TLS, health check e auto-scaling vêm prontos. Você **não** deve operar nginx/Kubernetes sozinho. No Cloud Run: `min-instances=2` e CPU sempre alocada (os `@Scheduled` e o SSE precisam) |
-| **Load balancer** | O do provedor | Já incluso; nada a configurar além de health check em `/actuator/health` |
+| **Load balancer** | O do provedor | Já incluso; nada a configurar além de health check em `/health` (já existe no backend) |
 | **Cache / Redis** | **Não agora.** Postgres resolve rate limit, eventos e cotas | Ver gatilhos abaixo |
 | **Fila** | Tabela no Postgres (`SELECT … FOR UPDATE SKIP LOCKED`) para geração por IA e importações | Volume baixo; zero infraestrutura nova |
 | **Mídia** | Supabase Storage + redimensionar/comprimir no app antes do upload | Controla o custo de egress do feed social |
@@ -280,8 +284,8 @@ Canal de suporte: WhatsApp Business para gerentes + central de ajuda com vídeos
 
 **Técnico**
 - [ ] Supabase em sa-east-1, plano pago, PITR ligado, restauração testada
-- [ ] Backend em São Paulo com ≥ 2 réplicas atrás do LB, `forward-headers-strategy=native`, pool Hikari explícito
-- [ ] Rate limit, SSE e cota de IA fora da memória (Postgres); rate limit por IP + e-mail
+- [ ] Backend em São Paulo com ≥ 2 réplicas atrás do LB, `forward-headers-strategy=native`, pool Hikari explícito (réplicas, `native` e pool já feitos; falta São Paulo)
+- [x] Rate limit, SSE e cota de IA fora da memória (Postgres); rate limit por IP + e-mail
 - [ ] Modelo rede/unidade + papéis REDE/UNIDADE/PROFESSOR + testes de isolamento
 - [ ] Importação de alunos por planilha + código/QR da unidade
 - [ ] Homologação separada; CI/CD com deploy sem downtime

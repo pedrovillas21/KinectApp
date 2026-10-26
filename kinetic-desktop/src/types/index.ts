@@ -151,7 +151,8 @@ export type ChargeStatus = 'PENDENTE' | 'ATRASADO' | 'PAGO' | 'CANCELADO';
 
 export interface StudentChargeItem {
   id: string;
-  studentId: string;
+  /** null: o aluno excluiu a conta; a cobrança paga fica só como registro (nome já vem com "(conta excluída)"). */
+  studentId: string | null;
   studentName: string;
   studentAvatarUrl: string | null;
   /** null quando o aluno saiu da carteira. */

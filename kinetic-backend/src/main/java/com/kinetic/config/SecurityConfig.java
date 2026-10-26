@@ -4,6 +4,7 @@ import com.kinetic.security.ApiRateLimitFilter;
 import com.kinetic.security.AuthRateLimitFilter;
 import com.kinetic.security.CustomUserDetailsService;
 import com.kinetic.security.JwtAuthenticationFilter;
+import com.kinetic.security.RateLimiter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import jakarta.servlet.DispatcherType;
@@ -40,9 +41,9 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final CustomUserDetailsService customUserDetailsService;
 
-    // Fora do contexto (sem @Component) para não ser registrado de novo como filtro do servlet.
-    private final AuthRateLimitFilter authRateLimitFilter = new AuthRateLimitFilter();
-    private final ApiRateLimitFilter apiRateLimitFilter = new ApiRateLimitFilter();
+    // Os filtros de limite usam este contador mas são criados com new, fora do contexto
+    // (sem @Component), para não serem registrados de novo como filtro do servlet.
+    private final RateLimiter rateLimiter;
 
     @Value("${cors.allowed-origins}")
     private String allowedOrigins;
@@ -61,6 +62,8 @@ public class SecurityConfig {
                 .dispatcherTypeMatchers(DispatcherType.ASYNC).permitAll()
                 // Redespacho para /error: sem isto um 404/500 vira 403 e esconde o erro real.
                 .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
+                // Usado pelo balanceador e pelo deploy para saber se a cópia já atende.
+                .requestMatchers(HttpMethod.GET, "/health").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 // Página pública do link de convite: só leitura (nome/foto do personal).
                 .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
@@ -76,10 +79,10 @@ public class SecurityConfig {
             )
             .authenticationProvider(authenticationProvider())
             // Depois do CORS: o 429 sai com os cabeçalhos CORS e o painel web consegue ler a mensagem.
-            .addFilterAfter(authRateLimitFilter, CorsFilter.class)
+            .addFilterAfter(new AuthRateLimitFilter(rateLimiter), CorsFilter.class)
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
             // Depois do JWT: o limite geral conta por usuário logado (sem login, por IP).
-            .addFilterAfter(apiRateLimitFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterAfter(new ApiRateLimitFilter(rateLimiter), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

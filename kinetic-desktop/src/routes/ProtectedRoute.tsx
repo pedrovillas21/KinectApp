@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { homeForRole } from '../config/nav';
 import { Skeleton } from '@/components/ui/skeleton';
+import TermsGate from '../layouts/TermsGate';
 
 interface Props {
   children: ReactNode;
@@ -39,5 +40,5 @@ export default function ProtectedRoute({ children, allowedRoles }: Props) {
     return <Navigate to={homeForRole(currentUser.role)} replace />;
   }
 
-  return <>{children}</>;
+  return <TermsGate>{children}</TermsGate>;
 }

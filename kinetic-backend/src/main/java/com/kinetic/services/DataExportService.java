@@ -174,10 +174,13 @@ public class DataExportService {
                         b.getDueDay(), b.isActive(), b.getStartsOn(), b.getCreatedAt()))
                 .toList();
 
-        List<Charge> charges = list("SELECT c FROM StudentCharge c JOIN FETCH c.trainer JOIN FETCH c.student "
-                        + "WHERE c.trainer.id = :id OR c.student.id = :id ORDER BY c.referenceMonth",
+        List<Charge> charges = list("SELECT c FROM StudentCharge c JOIN FETCH c.trainer LEFT JOIN FETCH c.student s "
+                        + "WHERE c.trainer.id = :id OR s.id = :id ORDER BY c.referenceMonth",
                 StudentCharge.class, id).stream()
-                .map(c -> new Charge(c.getId(), ref(c.getTrainer()), ref(c.getStudent()), c.getReferenceMonth(),
+                .map(c -> new Charge(c.getId(), ref(c.getTrainer()),
+                        // Aluno que excluiu a conta: só o nome guardado na cobrança retida.
+                        c.getStudent() != null ? ref(c.getStudent()) : new PersonRef(null, c.getStudentName()),
+                        c.getReferenceMonth(),
                         c.getDueDate(), c.getAmountCents(), c.getStatus(), c.getPaidAt(), c.getPaymentMethod()))
                 .toList();
 

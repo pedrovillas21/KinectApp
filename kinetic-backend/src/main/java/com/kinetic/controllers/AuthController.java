@@ -14,10 +14,13 @@ import com.kinetic.services.CompanyService;
 import com.kinetic.services.EmailVerificationService;
 import com.kinetic.services.InvalidRefreshTokenException;
 import com.kinetic.services.PasswordResetService;
+import com.kinetic.services.LegalRetentionService;
+import com.kinetic.services.TermsService;
 import com.kinetic.dtos.CompanyDTO;
 import com.kinetic.dtos.CreateCompanyRequestDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +49,8 @@ public class AuthController {
     private final CompanyService companyService;
     private final PasswordResetService passwordResetService;
     private final EmailVerificationService emailVerificationService;
+    private final TermsService termsService;
+    private final LegalRetentionService retentionService;
 
     @Value("${jwt.refresh-expiration}")
     private long refreshExpirationMs;
@@ -69,8 +74,15 @@ public class AuthController {
                     + "por e-mail e só consegue fazer login depois de confirmá-lo em /api/auth/confirm-email."
     )
     @PostMapping("/register-company")
-    public ResponseEntity<CompanyDTO> registerCompany(@Valid @RequestBody CreateCompanyRequestDTO dto) {
+    public ResponseEntity<?> registerCompany(@Valid @RequestBody CreateCompanyRequestDTO dto) {
+        if (!Boolean.TRUE.equals(dto.termsAccepted())) {
+            return ResponseEntity.badRequest().body("Para criar a conta, aceite os Termos de Uso e a Política de Privacidade.");
+        }
+        if (retentionService.isBlockedIdentity(dto.ownerEmail(), null)) {
+            return ResponseEntity.badRequest().body("Não foi possível criar a conta com estes dados. Fale com o suporte.");
+        }
         CompanyDTO company = companyService.createCompany(dto);
+        termsService.accept(dto.ownerEmail());
         // Fora da transação do createCompany: o envio do e-mail é uma chamada HTTP externa.
         emailVerificationService.requestCode(dto.ownerEmail());
         return ResponseEntity.status(HttpStatus.CREATED).body(company);
@@ -107,8 +119,10 @@ public class AuthController {
                     + "as demais chamadas da API."
     )
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginDTO dto, HttpServletResponse response) {
-        AuthResponseDTO authResponse = authService.login(dto);
+    public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginDTO dto, HttpServletRequest request,
+                                                 HttpServletResponse response) {
+        // getRemoteAddr já é o IP real do cliente (forward-headers-strategy=native atrás do balanceador).
+        AuthResponseDTO authResponse = authService.login(dto, request.getRemoteAddr());
         response.addHeader(HttpHeaders.SET_COOKIE, buildRefreshCookie(authResponse.refreshToken()).toString());
         return ResponseEntity.ok(authResponse);
     }
@@ -123,6 +137,7 @@ public class AuthController {
     public ResponseEntity<?> refresh(
             @RequestBody(required = false) RefreshTokenDTO dto,
             @CookieValue(name = REFRESH_COOKIE, required = false) String cookieToken,
+            HttpServletRequest request,
             HttpServletResponse response) {
         String rawToken = resolveRefreshToken(dto, cookieToken);
         if (rawToken == null) {
@@ -130,7 +145,7 @@ public class AuthController {
         }
 
         try {
-            RefreshResponseDTO refreshResponse = authService.refresh(rawToken);
+            RefreshResponseDTO refreshResponse = authService.refresh(rawToken, request.getRemoteAddr());
             response.addHeader(HttpHeaders.SET_COOKIE, buildRefreshCookie(refreshResponse.refreshToken()).toString());
             return ResponseEntity.ok(refreshResponse);
         } catch (InvalidRefreshTokenException e) {

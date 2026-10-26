@@ -32,11 +32,17 @@ const refreshClient: AxiosInstance = axios.create({
 });
 
 let _signOutHandler: (() => Promise<void>) | null = null;
+let _termsRequiredHandler: (() => void) | null = null;
 
 export const setSignOutHandler = (
   handler: (() => Promise<void>) | null,
 ): void => {
   _signOutHandler = handler;
+};
+
+/** Chamado quando a API responde TERMS_REQUIRED (termos atualizados com o app aberto). */
+export const setTermsRequiredHandler = (handler: (() => void) | null): void => {
+  _termsRequiredHandler = handler;
 };
 
 // Best-effort server-side logout.
@@ -113,6 +119,13 @@ api.interceptors.response.use(
     const original = error.config as
       | (InternalAxiosRequestConfig & { _retry?: boolean })
       | undefined;
+
+    if (
+      error.response?.status === 403 &&
+      (error.response.data as { code?: string } | undefined)?.code === 'TERMS_REQUIRED'
+    ) {
+      _termsRequiredHandler?.();
+    }
 
     if (error.response?.status === 401 && original && !original._retry) {
       original._retry = true;

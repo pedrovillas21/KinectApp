@@ -13,6 +13,7 @@ import { TEXT_SIZES, useTextScale } from '../contexts/TextScaleContext';
 import useFocusResource from '../hooks/useFocusResource';
 import api from '../services/api';
 import { exportMyData } from '../services/accountService';
+import { PRIVACY_URL, TERMS_URL, openLegal } from '../config/legal';
 import { getPublicProfile } from '../services/profileService';
 import { getMyTrainer, getPendingInvites } from '../services/trainerService';
 import { KINETIC, RADIUS } from '../theme/kinetic';
@@ -173,11 +174,11 @@ export default function SettingsScreen({ navigation }: MainStackScreenProps<'Set
           onPress={handleExport}
         />
         <ListRow icon="check" title="Consentimentos" comingSoon />
-        <ListRow icon="shield" title="Política de privacidade" comingSoon />
-        <ListRow icon="doc" title="Termos de uso" comingSoon />
+        <ListRow icon="shield" title="Política de privacidade" onPress={() => openLegal(PRIVACY_URL)} />
+        <ListRow icon="doc" title="Termos de uso" onPress={() => openLegal(TERMS_URL)} />
       </ListGroup>
 
-      <ListGroup footnote="A exclusão apaga seu perfil, treinos, fotos e medidas de forma definitiva, conforme a LGPD (art. 18). Recomendamos exportar seus dados antes.">
+      <ListGroup footnote="A exclusão apaga seu perfil, treinos, fotos e medidas de forma definitiva, conforme a LGPD (art. 18). Fica só o que a lei exige guardar, pelo prazo da Política de Privacidade. Recomendamos exportar seus dados antes.">
         <ListRow icon="logout" title="Sair da conta" onPress={confirmSignOut} />
         <ListRow icon="trash" title="Excluir minha conta" destructive onPress={() => setDeleteOpen(true)} />
       </ListGroup>

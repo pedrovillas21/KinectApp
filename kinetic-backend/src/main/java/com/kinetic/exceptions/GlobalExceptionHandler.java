@@ -37,8 +37,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(ex.getMessage());
     }
 
-    @ExceptionHandler(AiQuotaExceededException.class)
-    public ResponseEntity<String> handleAiQuota(AiQuotaExceededException ex) {
+    @ExceptionHandler({AiQuotaExceededException.class, TooManyAttemptsException.class})
+    public ResponseEntity<String> handleTooManyRequests(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(ex.getMessage());
     }
 

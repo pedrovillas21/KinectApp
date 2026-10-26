@@ -22,6 +22,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     /** Mesmo formato do EMAIL_NOT_VERIFIED: código fixo para os clientes reconhecerem o caso. */
     private static final String PHONE_REQUIRED_BODY =
             "{\"code\":\"PHONE_REQUIRED\",\"message\":\"Cadastre seu celular (WhatsApp) para continuar.\"}";
+    private static final String TERMS_REQUIRED_BODY =
+            "{\"code\":\"TERMS_REQUIRED\",\"message\":\"Aceite os Termos de Uso e a Política de Privacidade para continuar.\"}";
 
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService customUserDetailsService;
@@ -69,11 +71,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     // Conta antiga sem celular: só passa o necessário para cadastrá-lo.
                     if (userDetails instanceof KineticUserDetails details
                             && details.isPhoneRequired()
-                            && !allowedWithoutPhone(request)) {
+                            && !allowedWhilePending(request)) {
                         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                         response.setContentType("application/json");
                         response.setCharacterEncoding("UTF-8");
                         response.getWriter().write(PHONE_REQUIRED_BODY);
+                        return;
+                    }
+
+                    // Sem o aceite da versão vigente, nenhum dado é tratado além do necessário para aceitar
+                    // (ou para o titular exercer os direitos dele: exportar e excluir a conta).
+                    if (userDetails instanceof KineticUserDetails details
+                            && details.isTermsRequired()
+                            && !allowedWhilePending(request)) {
+                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        response.setContentType("application/json");
+                        response.setCharacterEncoding("UTF-8");
+                        response.getWriter().write(TERMS_REQUIRED_BODY);
                         return;
                     }
 
@@ -90,14 +104,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     /**
-     * O que uma conta sem celular ainda pode chamar: sessão (refresh/logout), leitura do
-     * perfil (os clientes checam o celular por ele) e o próprio cadastro do celular.
+     * O que uma conta com cadastro pendente (celular ou aceite dos termos) ainda pode chamar:
+     * sessão (refresh/logout), leitura do perfil (os clientes checam as pendências por ele),
+     * resolver cada pendência e os direitos do titular (exportar e excluir a conta, LGPD art. 18).
      */
-    private static boolean allowedWithoutPhone(HttpServletRequest request) {
-        String path = request.getRequestURI().substring(request.getContextPath().length());
+    private static boolean allowedWhilePending(HttpServletRequest request) {
+        String path = path(request);
         String method = request.getMethod();
         return path.startsWith("/api/auth/")
                 || ("GET".equals(method) && "/api/users/profile".equals(path))
+                || ("POST".equals(method) && "/api/users/me/terms-acceptance".equals(path))
+                || ("GET".equals(method) && "/api/users/me/export".equals(path))
+                || ("DELETE".equals(method) && "/api/users/me".equals(path))
                 || ("PUT".equals(method) && "/api/users/phone".equals(path));
+    }
+
+    private static String path(HttpServletRequest request) {
+        return request.getRequestURI().substring(request.getContextPath().length());
     }
 }

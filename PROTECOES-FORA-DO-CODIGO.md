@@ -8,11 +8,11 @@ O que precisa ser configurado à mão (painéis da Cloudflare, Oracle, provedore
 
 ## 1. Cloudflare
 
+A API chega à VM pelo **Cloudflare Tunnel**: o `cloudflared` na VM abre a conexão de dentro para fora, então a VM não tem nenhuma porta de entrada aberta além do SSH. O HTTPS é da Cloudflare; não há certificado na VM.
+
 - [x] **Proxy ligado** no registro `api` (nuvem laranja). Feito em 2026-10-24.
-- [ ] **Modo SSL/TLS em Full (strict)**: SSL/TLS → Overview.
-- [ ] **Certificado de origem**: SSL/TLS → Origin Server → Create Certificate (RSA, 15 anos, `*.kineticfitness.com.br` e `kineticfitness.com.br`). Salvar na VM:
-  - `kinetic-backend/caddy/certs/origin.pem` (certificado)
-  - `kinetic-backend/caddy/certs/origin.key` (chave privada; só aparece uma vez; nunca vai para o git)
+- [x] **Tunnel criado** (`kinetic-vps`) e `cloudflared` instalado como serviço na VM. Feito em 2026-10-25.
+- [ ] **Public hostname do Tunnel**: `api.kineticfitness.com.br` → `HTTP` → `localhost:8080`. O registro `api` vira um CNAME `<id>.cfargotunnel.com` (apagar o registro A antigo, que apontava para o IP da VM).
 - [ ] **Regra de rate limit da API**: Security → Security rules → Create rule → Rate limiting rules.
   - Nome: `api-rate-limit`
   - URI Path **starts with** (ou **contains**) `/api/`
@@ -27,28 +27,24 @@ A proteção contra DDoS (ataque com milhares de IPs) já vem ligada e não prec
 
 ## 2. VM da Oracle
 
-- [ ] **Security List da VCN**:
-  - 80 e 443: aceitar **só das faixas de IP da Cloudflare** (<https://www.cloudflare.com/ips/>). Assim ninguém ataca a VM direto pelo IP.
-  - 22 (SSH): aceitar só do seu IP.
-  - **Não abrir a 8080.**
-- [ ] **Firewall da própria VM** (as imagens Ubuntu da Oracle bloqueiam 80/443 no `iptables`):
+- [ ] **Security List da VCN**: entrada só na 22 (SSH) e nas regras ICMP padrão da Oracle. **Sem 80, 443 ou 8080**: o tráfego da API vem pelo Tunnel, que é uma conexão de saída.
+  - 22 (SSH): de preferência aceitar só do seu IP.
+- [x] **Serviços desnecessários desligados**: `rpcbind` (porta 111) desativado e mascarado. Feito em 2026-10-25.
+- [x] **SSH só com chave**: `passwordauthentication no`, `permitrootlogin without-password`. Conferido em 2026-10-25.
+- [ ] Subir e atualizar o backend (2 cópias + balanceador; atualiza uma cópia por vez, sem tirar a API do ar):
   ```bash
-  sudo iptables -I INPUT 6 -p tcp -m multiport --dports 80,443 -j ACCEPT && sudo netfilter-persistent save
+  ./deploy.sh
   ```
-- [ ] **Trocar o IP público da VM** (opcional, recomendado). O IP `163.176.98.144` ficou exposto enquanto o registro estava "DNS only" e pode estar em históricos públicos de DNS. Um IP novo, só atrás do proxy, nunca apareceu. Depois de trocar, atualizar o registro `api` na Cloudflare.
-- [ ] **SSH só com chave**: `PasswordAuthentication no` em `/etc/ssh/sshd_config`.
-- [ ] Subir sempre com o Caddy:
-  ```bash
-  docker compose --profile prod up -d --build
-  ```
-- [ ] Conferir a cada atualização da lista de IPs da Cloudflare se as faixas do `kinetic-backend/caddy/Caddyfile` e da Security List continuam iguais.
+- [ ] Conferir que só o SSH escuta para fora: em `sudo ss -tlnp`, a 8080 (balanceador) tem que aparecer como `127.0.0.1:8080`, nunca `0.0.0.0:8080`.
 
 ## 3. `.env` da VM
 
 - [ ] `DEV_LOG_EMAIL_CONTENT` **ausente ou `false`**. Com `true`, os códigos de e-mail vão para o log.
 - [ ] `RESEND_FROM_EMAIL=Kinetic <nao-responda@kineticfitness.com.br>` (domínio verificado no Resend).
 - [ ] Não sobrescrever `SERVER_FORWARD_HEADERS_STRATEGY`: o `docker-compose.yml` já define `native`, e é isso que faz o backend enxergar o IP real. Só é seguro porque a 8080 fica presa à própria máquina; não mude o mapeamento de porta.
-- [ ] O `.env` não vem pelo `git pull`: qualquer mudança é feita direto na VM, seguida de `docker compose --profile prod up -d --force-recreate backend`.
+- [ ] O `.env` não vem pelo `git pull`: qualquer mudança é feita direto na VM, seguida de `./deploy.sh` (recria as cópias uma por vez).
+
+- [ ] `PSEUDONYM_KEY` preenchida (gere uma vez com `openssl rand -base64 48`). Sem ela o backend não sobe. **Nunca troque** depois de ir para produção, e guarde uma cópia fora da VM: é ela que liga os registros retidos ao titular (RETENCAO-DE-DADOS.md).
 
 ## 4. Provedores externos
 
@@ -58,10 +54,23 @@ A proteção contra DDoS (ataque com milhares de IPs) já vem ligada e não prec
 - [ ] **Supabase Storage**: em cada bucket (`avatars`, `social-media`), configurar **tamanho máximo de arquivo** (ex.: 10 MB) e **tipos permitidos** (`image/*`, e `video/*` se houver vídeo). É uma segunda barreira caso alguém use a chave de outro jeito.
 - [ ] **Asaas**: webhook criado com token próprio, e o mesmo token no `.env` da VM.
 
-## 5. Teste depois de subir
+## 5. Obrigações legais (LGPD e Marco Civil)
 
-- [ ] `https://api.kineticfitness.com.br` responde (521/522 = porta fechada; 526 = certificado ou modo SSL errado).
-- [ ] Acesso direto pelo IP falha: `curl -k https://163.176.98.144` não pode responder.
+Detalhes em [RETENCAO-DE-DADOS.md](RETENCAO-DE-DADOS.md).
+
+- [ ] **Canal de privacidade funcionando**: `privacidade@kineticfitness.com.br` aparece na Política e nos Termos, mas o domínio hoje não recebe e-mail (MX nulo `.`). Cloudflare → Email → Email Routing → ativar e encaminhar `privacidade@` para o seu e-mail (ele substitui o MX nulo; SPF e DMARC continuam).
+- [ ] **Encarregado de dados** (LGPD art. 41): indicar quem responde (pode ser você) e manter o contato público. Agente de pequeno porte tem dispensa (Resolução CD/ANPD 2/2022), mas ela pode não valer para quem trata dados de saúde em escala: confirmar com o advogado.
+- [ ] **Revisão jurídica** da Política e dos Termos (`kinetic-desktop/src/legal/documents.ts`) por advogado; prazos fiscais com contador.
+- [ ] **Razão social e CNPJ** em `CONTROLLER_NAME` / `CONTROLLER_CNPJ` (mesmo arquivo) quando a empresa existir. A obrigação do Marco Civil (registros de acesso) é de pessoa jurídica, mas o código já guarda.
+- [ ] **Painel publicado** com as rotas públicas `/termos` e `/privacidade`; `EXPO_PUBLIC_SITE_URL` do app apontando para ele; mesma URL da Política no Google Play Console e no App Store Connect (as duas lojas exigem).
+- [ ] **Contratos com fornecedores** (operadores): aceitar os acordos de tratamento de dados (DPA) de Supabase, Cloudflare, Resend, Asaas e do provedor de IA. Na IA, usar API paga com retenção zero e sem uso dos dados para treino.
+- [ ] **Plano de incidente**: em vazamento com risco aos titulares, comunicar a ANPD e os afetados em até 3 dias úteis (Resolução CD/ANPD 15/2024). Anotar quem faz o quê.
+- [ ] **Pedidos por e-mail** (acesso, exclusão de quem não entra no app): responder em até 15 dias; exclusão pelo ROOT em Usuários → Excluir definitivamente.
+
+## 6. Teste depois de subir
+
+- [ ] `https://api.kineticfitness.com.br` responde (1033 = Tunnel desconectado: `sudo systemctl status cloudflared`; 502 = backend fora do ar ou porta errada no Public hostname).
+- [ ] Acesso direto pelo IP falha: `curl -m 5 http://163.176.184.23` e `curl -m 5 -k https://163.176.184.23` têm que esgotar o tempo.
 - [ ] Rate limit do backend vê o IP real: 6 chamadas seguidas sem login a `POST /api/users/change-password` devem terminar em **429**; de outra rede (ex.: 4G do celular) a primeira chamada ainda passa.
 - [ ] Log do backend sem `[DEV] E-mail para ...` ao pedir um código.
 
@@ -69,7 +78,7 @@ A proteção contra DDoS (ataque com milhares de IPs) já vem ligada e não prec
 
 ## Referência: o que já está no código
 
-Contadores em memória, por cópia do backend (com 2 cópias, cada limite vale em dobro; zeram a cada deploy).
+Contadores na tabela `rate_limit_counters` do Postgres: valem somados entre as cópias do backend e não zeram no deploy. As janelas são alinhadas ao relógio (o minuto vai de :00 a :59), então na virada um cliente pode somar até 2× o limite em poucos segundos.
 
 | Onde | Limite | Por |
 |---|---|---|
@@ -99,4 +108,4 @@ Webhooks (`/api/webhooks/*`) ficam fora dos limites para não perder evento de p
 
 Código: `kinetic-backend/src/main/java/com/kinetic/security/ApiRateLimitFilter.java` (limites gerais e por rota) e `AuthRateLimitFilter.java` (rotas de `/api/auth`).
 
-**Limitação conhecida:** o limite de login é por IP. Numa academia em que todos usam o mesmo Wi-Fi, 10 logins por minuto podem ser pouco no horário de pico. A correção (contar por IP + e-mail) está no plano de infra, junto com levar os contadores para o Postgres antes de ter 2 cópias.
+**Limite de login:** desde 2026-10-26, 5 tentativas por minuto por IP + e-mail (uma conta atacada não trava os outros alunos no mesmo Wi-Fi) e até 60 por minuto por IP. Limitação conhecida: um ataque espalhado por muitos IPs contra a mesma conta ainda tem 5 tentativas por minuto em cada IP.

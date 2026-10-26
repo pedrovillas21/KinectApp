@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
+import { BellOff, ChevronRight } from 'lucide-react';
 import Avatar from '../Avatar';
+import { formatPauseDate, pauseReasonLabel, resumeStudentAlerts } from './PauseAlertDialog';
 import { TONE_META, type AdherenceTone } from './adherence';
 import type { MonthlyStatsResponseDTO, StudentEngagement, TrainerLink } from '../../types';
 
@@ -91,6 +92,27 @@ export default function StudentsTable({
                     <span className="inline-flex items-center gap-2 whitespace-nowrap" style={{ color: meta?.color ?? '#8e8f90' }}>
                       <span className="h-1.5 w-1.5 rounded-full" style={{ background: meta?.color ?? '#8e8f90' }} />
                       {meta?.label ?? 'Sem dados'}
+                    </span>
+                  )}
+                  {e?.pause && (
+                    // Pausado não entra na fila de hoje nem nos alertas de risco: sem isto, some sem explicação.
+                    <span
+                      className="mt-1 flex items-center gap-1.5 whitespace-nowrap text-xs text-k-text-muted"
+                      title={`${pauseReasonLabel(e.pause.reason)}${e.pause.note ? ` — ${e.pause.note}` : ''}`}
+                    >
+                      <BellOff className="h-3 w-3" aria-hidden="true" />
+                      Alertas pausados até {formatPauseDate(e.pause.until)}
+                      <button
+                        type="button"
+                        onClick={(ev) => {
+                          ev.stopPropagation();
+                          void resumeStudentAlerts(link.peer.id);
+                        }}
+                        aria-label={`Reativar alertas de ${link.peer.nome}`}
+                        className="text-k-primary hover:underline"
+                      >
+                        Reativar
+                      </button>
                     </span>
                   )}
                 </td>

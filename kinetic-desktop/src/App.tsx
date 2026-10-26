@@ -27,6 +27,8 @@ import FuncionariosPage from './pages/empresa/FuncionariosPage';
 import ClientesPage from './pages/empresa/ClientesPage';
 import FeedbacksPage from './pages/empresa/FeedbacksPage';
 import AnalyticsPage from './pages/empresa/AnalyticsPage';
+import LegalPage from './pages/LegalPage';
+import { PRIVACY_POLICY, TERMS_OF_USE } from './legal/documents';
 
 /** Catch-all: manda cada papel para a sua home (ou /login se deslogado). */
 function RoleAwareRedirect() {
@@ -45,6 +47,9 @@ export default function App() {
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       {/* Link de convite do personal: público, aberto pelo aluno no celular. */}
       <Route path="/convite/:code" element={<InvitePage />} />
+      {/* Públicas: o app, as lojas e o cadastro apontam para cá. */}
+      <Route path="/termos" element={<LegalPage doc={TERMS_OF_USE} />} />
+      <Route path="/privacidade" element={<LegalPage doc={PRIVACY_POLICY} />} />
 
       {/* PERSONAL — telas atuais preservadas (header próprio), sem regressão.
           PhoneGate exige o celular (WhatsApp) antes de liberar o painel. */}

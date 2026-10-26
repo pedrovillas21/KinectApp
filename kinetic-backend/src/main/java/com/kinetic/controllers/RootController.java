@@ -8,6 +8,7 @@ import com.kinetic.dtos.UpdateUserStatusRequestDTO;
 import com.kinetic.dtos.UserAdminDTO;
 import com.kinetic.enums.Role;
 import com.kinetic.enums.UserStatus;
+import com.kinetic.services.AccountDeletionService;
 import com.kinetic.services.CompanyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,6 +37,7 @@ import java.util.UUID;
 public class RootController extends BaseController {
 
     private final CompanyService companyService;
+    private final AccountDeletionService accountDeletionService;
 
     // ── Empresas ────────────────────────────────────────────────────────────
 
@@ -89,6 +92,17 @@ public class RootController extends BaseController {
     @DeleteMapping("/users/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
         companyService.softDeleteUser(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Excluir uma conta definitivamente (pedido do titular, LGPD art. 18 VI)",
+            description = "Mesma exclusão que o titular faz pelo app, para quem não consegue entrar (ex.: conta "
+                    + "bloqueada). Conta bloqueada fica marcada: o mesmo e-mail/CPF não cria conta nova."
+    )
+    @DeleteMapping("/users/{id}/permanent")
+    public ResponseEntity<Void> deleteUserPermanently(@PathVariable @NonNull UUID id) {
+        accountDeletionService.deleteAccountByAdmin(id);
         return ResponseEntity.noContent().build();
     }
 

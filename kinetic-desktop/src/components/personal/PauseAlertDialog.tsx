@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { ChevronRight } from 'lucide-react';
 import FormDialog, { formLabelClass } from './FormDialog';
 import { billingErrorMessage } from '../../services/billingService';
-import { pauseAlerts } from '../../services/trainerService';
+import { pauseAlerts, resumeAlerts } from '../../services/trainerService';
 import { qk, queryClient } from '../../services/queryClient';
 import type { AlertPause, AlertPauseReason } from '../../types';
 
@@ -26,6 +26,19 @@ export const pauseReasonLabel = (reason: AlertPauseReason | null) =>
 export const formatPauseDate = (iso: string) => {
   const [, m, d] = iso.split('-');
   return `${d}/${m}`;
+};
+
+/** Desfaz a pausa: o aluno volta para a fila de hoje e para os alertas de risco. */
+export const resumeStudentAlerts = async (studentId: string) => {
+  try {
+    await resumeAlerts(studentId);
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: qk.engagement }),
+      queryClient.invalidateQueries({ queryKey: qk.today }),
+    ]);
+  } catch {
+    toast.error('Não foi possível reativar o alerta. Tente novamente.');
+  }
 };
 
 /**

@@ -262,6 +262,10 @@ public class StudentFinanceService {
             // 404 (e não 403) para não revelar cobranças de outro personal.
             throw new EntityNotFoundException("Cobrança não encontrada.");
         }
+        if (charge.getStudent() == null) {
+            throw new IllegalArgumentException(
+                    "O aluno excluiu a conta: esta cobrança fica só como registro do pagamento e não pode ser alterada.");
+        }
         return charge;
     }
 
@@ -271,8 +275,14 @@ public class StudentFinanceService {
 
     private static ChargeDTO toDto(StudentCharge c, Map<UUID, TrainerClient> activeLinks, LocalDate today) {
         User student = c.getStudent();
-        TrainerClient link = activeLinks.get(student.getId());
         String status = isOverdue(c, today) ? "ATRASADO" : c.getStatus();
+        if (student == null) {
+            // Retida de aluno que excluiu a conta: só o registro do pagamento, sem contato nem perfil.
+            return new ChargeDTO(c.getId(), null, c.getStudentName() + " (conta excluída)", null, null, false,
+                    c.getReferenceMonth(), c.getDueDate(), c.getAmountCents(), status, c.getPaidAt(),
+                    c.getPaymentMethod());
+        }
+        TrainerClient link = activeLinks.get(student.getId());
         return new ChargeDTO(c.getId(), student.getId(), student.getNome(), student.getAvatarUrl(),
                 link != null ? student.getPhone() : null, link != null, c.getReferenceMonth(), c.getDueDate(),
                 c.getAmountCents(), status, c.getPaidAt(), c.getPaymentMethod());

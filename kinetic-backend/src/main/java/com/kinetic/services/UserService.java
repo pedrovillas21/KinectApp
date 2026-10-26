@@ -37,6 +37,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenService refreshTokenService;
     private final TrainerClientRepository trainerClientRepository;
+    private final TermsService termsService;
 
     public UserService(UserRepository userRepository,
                        WeightHistoryRepository weightHistoryRepository,
@@ -44,7 +45,8 @@ public class UserService {
                        WorkoutExecutionLogRepository workoutExecutionLogRepository,
                        PasswordEncoder passwordEncoder,
                        RefreshTokenService refreshTokenService,
-                       TrainerClientRepository trainerClientRepository) {
+                       TrainerClientRepository trainerClientRepository,
+                       TermsService termsService) {
         this.userRepository = userRepository;
         this.weightHistoryRepository = weightHistoryRepository;
         this.userLoginStreakRepository = userLoginStreakRepository;
@@ -52,6 +54,7 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
         this.refreshTokenService = refreshTokenService;
         this.trainerClientRepository = trainerClientRepository;
+        this.termsService = termsService;
     }
 
     @Transactional
@@ -153,7 +156,8 @@ public class UserService {
                 user.getHeight(),
                 user.getLevel(),
                 user.getFrequency(),
-                user.getMedicalConditions()
+                user.getMedicalConditions(),
+                termsService.isAccepted(user)
         );
     }
 

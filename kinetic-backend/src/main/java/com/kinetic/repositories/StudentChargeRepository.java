@@ -28,10 +28,10 @@ public interface StudentChargeRepository extends JpaRepository<StudentCharge, UU
 
     /** Cobranças do mês escolhido + as atrasadas de meses anteriores (para não sumirem da tela). */
     @Query("""
-            SELECT c FROM StudentCharge c JOIN FETCH c.student
+            SELECT c FROM StudentCharge c LEFT JOIN FETCH c.student s
             WHERE c.trainer.id = :trainerId
               AND (c.referenceMonth = :month OR (c.status = 'PENDENTE' AND c.dueDate < :today))
-            ORDER BY c.dueDate, c.student.nome
+            ORDER BY c.dueDate, COALESCE(s.nome, c.studentName)
             """)
     List<StudentCharge> findForMonthOrOverdue(@Param("trainerId") UUID trainerId,
                                               @Param("month") LocalDate month,

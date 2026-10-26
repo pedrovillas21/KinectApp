@@ -24,6 +24,9 @@ public record CreateCompanyRequestDTO(
 
         @NotBlank(message = "A senha inicial é obrigatória.")
         @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*_=+-]).{8,20}$", message = "A senha deve ter entre 8 e 20 caracteres, contendo pelo menos uma letra maiúscula, uma minúscula e um caractere especial.")
-        String ownerPassword
+        String ownerPassword,
+
+        /** Obrigatório no auto-cadastro (/api/auth/register-company); o ROOT não informa (o dono aceita no 1º acesso). */
+        Boolean termsAccepted
 ) {
 }

@@ -102,9 +102,16 @@ api.interceptors.request.use(
   (error: AxiosError) => Promise.reject(error),
 );
 
+/** Disparado quando a API responde TERMS_REQUIRED: o TermsGate volta a pedir o aceite. */
+export const TERMS_REQUIRED_EVENT = 'kinetic:terms-required';
+
 api.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error: AxiosError) => {
+    if (error.response?.status === 403 && (error.response.data as { code?: string } | undefined)?.code === 'TERMS_REQUIRED') {
+      window.dispatchEvent(new Event(TERMS_REQUIRED_EVENT));
+    }
+
     const original = error.config as
       | (InternalAxiosRequestConfig & { _retry?: boolean })
       | undefined;

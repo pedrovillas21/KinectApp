@@ -17,6 +17,7 @@ import com.kinetic.repositories.TrainerClientRepository;
 import com.kinetic.repositories.UserRepository;
 import com.kinetic.repositories.WorkoutExecutionLogRepository;
 import com.kinetic.repositories.WorkoutPlanRepository;
+import com.kinetic.security.RateLimiter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -35,7 +36,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
@@ -51,10 +51,6 @@ public class WorkoutService {
     static final int MAX_AI_ATTEMPTS_PER_HOUR = 5;
     private static final long ATTEMPT_WINDOW_MS = Duration.ofHours(1).toMillis();
 
-    private record AttemptWindow(long start, int count) {}
-
-    // shortcut: em memória e por instância (com N réplicas o limite vira N×), trocar por Redis ao escalar horizontalmente.
-    private final Map<UUID, AttemptWindow> aiAttempts = new ConcurrentHashMap<>();
 
     private static final Set<String> SECTIONS = Set.of("AQUECIMENTO", "PRINCIPAL", "FINALIZACAO");
     private static final String DEFAULT_SECTION = "PRINCIPAL";
@@ -66,6 +62,7 @@ public class WorkoutService {
     private final WorkoutExecutionLogRepository workoutExecutionLogRepository;
     private final TrainerClientRepository trainerClientRepository;
     private final TransactionTemplate transactionTemplate;
+    private final RateLimiter rateLimiter;
 
     public WorkoutService(GeminiService geminiService,
                           WorkoutPlanRepository workoutPlanRepository,
@@ -73,7 +70,8 @@ public class WorkoutService {
                           PlanCycleSnapshotService planCycleSnapshotService,
                           WorkoutExecutionLogRepository workoutExecutionLogRepository,
                           TrainerClientRepository trainerClientRepository,
-                          TransactionTemplate transactionTemplate) {
+                          TransactionTemplate transactionTemplate,
+                          RateLimiter rateLimiter) {
         this.geminiService = geminiService;
         this.workoutPlanRepository = workoutPlanRepository;
         this.userRepository = userRepository;
@@ -81,6 +79,7 @@ public class WorkoutService {
         this.workoutExecutionLogRepository = workoutExecutionLogRepository;
         this.trainerClientRepository = trainerClientRepository;
         this.transactionTemplate = transactionTemplate;
+        this.rateLimiter = rateLimiter;
     }
 
     /**
@@ -88,7 +87,6 @@ public class WorkoutService {
      * do pool. As checagens leem fora de transação; a gravação é atômica no fim.
      */
     public List<WorkoutPlanResponseDTO> generateWorkoutForUser(String userEmail, GenerateWorkoutRequestDto request) {
-        log.info("Iniciando requisição de geração para o usuário: {}", userEmail);
         validateRequest(request);
 
         int age = Period.between(request.birthDate(), AppTime.today()).getYears();
@@ -125,7 +123,8 @@ public class WorkoutService {
 
         acquireAiAttempt(user.getId());
 
-        log.info("Usuário encontrado. (Idade calculada com data {}: {} anos)", request.birthDate(), age);
+        // Só o id: e-mail e data de nascimento são dados pessoais e não vão para o log.
+        log.info("Gerando ficha por IA para o usuário {} ({} anos)", user.getId(), age);
 
         double heightCm = request.height() < 3 ? request.height() * 100 : request.height();
 
@@ -274,11 +273,8 @@ public class WorkoutService {
     }
 
     private void acquireAiAttempt(UUID userId) {
-        long now = System.currentTimeMillis();
-        aiAttempts.values().removeIf(w -> now - w.start() >= ATTEMPT_WINDOW_MS);
-        AttemptWindow window = aiAttempts.compute(userId, (id, current) ->
-                current == null ? new AttemptWindow(now, 1) : new AttemptWindow(current.start(), current.count() + 1));
-        if (window.count() > MAX_AI_ATTEMPTS_PER_HOUR) {
+        // Contador no Postgres: vale somado entre as cópias do backend e não zera no deploy.
+        if (rateLimiter.acquire("ia-aluno:" + userId, MAX_AI_ATTEMPTS_PER_HOUR, ATTEMPT_WINDOW_MS) > 0) {
             throw new AiQuotaExceededException(
                     "Muitas tentativas de gerar a ficha. Aguarde uma hora e tente novamente.");
         }

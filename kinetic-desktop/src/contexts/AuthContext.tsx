@@ -264,6 +264,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         role: 'PERSONAL',
         cpf: cpf.trim(),
         phone: phone.replace(/\D/g, ''),
+        // A página só chama depois da caixa "Li e aceito" marcada.
+        termsAccepted: true,
       });
       return { success: true };
     } catch (e: unknown) {
@@ -301,6 +303,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         ownerName: ownerName.trim(),
         ownerEmail: ownerEmail.trim(),
         ownerPassword: ownerPassword,
+        termsAccepted: true,
       });
       return { success: true };
     } catch (e: unknown) {

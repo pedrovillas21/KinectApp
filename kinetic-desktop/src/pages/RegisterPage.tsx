@@ -164,6 +164,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [name, setName] = useState('');
 
   // Conditional Fields
@@ -204,6 +205,10 @@ export default function RegisterPage() {
     setError(null);
 
     // Validations
+    if (!acceptedTerms) {
+      setError('Para criar a conta, aceite os Termos de Uso e a Política de Privacidade.');
+      return;
+    }
     if (password !== confirmPassword) {
       setError('As senhas não coincidem.');
       return;
@@ -573,6 +578,28 @@ export default function RegisterPage() {
                   </div>
                 )}
               </Field>
+            </motion.div>
+
+            <motion.div variants={riseItem}>
+              <label className="flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-k-text-soft">
+                <input
+                  type="checkbox"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  className="mt-1 h-4 w-4 shrink-0 accent-[#00E5FF]"
+                />
+                <span>
+                  Li e aceito os{' '}
+                  <a href="/termos" target="_blank" rel="noopener noreferrer" className="font-semibold text-k-primary hover:underline">
+                    Termos de Uso
+                  </a>{' '}
+                  e a{' '}
+                  <a href="/privacidade" target="_blank" rel="noopener noreferrer" className="font-semibold text-k-primary hover:underline">
+                    Política de Privacidade
+                  </a>
+                  .
+                </span>
+              </label>
             </motion.div>
 
             {error && (

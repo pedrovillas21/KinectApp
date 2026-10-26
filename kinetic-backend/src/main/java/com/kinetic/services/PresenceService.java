@@ -18,16 +18,22 @@ public class PresenceService {
         this.userRepository = userRepository;
     }
 
-    /** Called by the LastActiveInterceptor — gated write (max once per 60s). */
+    /**
+     * Called by the LastActiveInterceptor — gated write (max once per 60s).
+     *
+     * @return o id do usuário quando gravou (para o registro de acesso), senão null
+     */
     @Transactional
-    public void touch(String email) {
-        userRepository.findByEmail(email).ifPresent(user -> {
+    public UUID touch(String email) {
+        return userRepository.findByEmail(email).map(user -> {
             LocalDateTime now = LocalDateTime.now();
             if (user.getLastActive() == null || user.getLastActive().isBefore(now.minusSeconds(60))) {
                 user.setLastActive(now);
                 userRepository.save(user);
+                return user.getId();
             }
-        });
+            return null;
+        }).orElse(null);
     }
 
     @Transactional

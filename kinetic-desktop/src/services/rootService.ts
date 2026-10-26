@@ -72,6 +72,10 @@ export const setUserStatus = async (id: string, status: UserStatus): Promise<Use
   return res.data;
 };
 
+/**
+ * Exclusão definitiva, a pedido do titular (LGPD art. 18 VI): a mesma do app, para quem
+ * não consegue entrar. Para só tirar o acesso, use o status BLOQUEADO.
+ */
 export const deleteUser = async (id: string): Promise<void> => {
-  await api.delete(`/root/users/${id}`);
+  await api.delete(`/root/users/${id}/permanent`);
 };

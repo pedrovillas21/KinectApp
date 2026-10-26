@@ -15,6 +15,7 @@ import VerifyCodeScreen from '../screens/Auth/VerifyCodeScreen';
 import ResetPasswordScreen from '../screens/Auth/ResetPasswordScreen';
 import ConfirmEmailScreen from '../screens/Auth/ConfirmEmailScreen';
 import PhoneRequiredScreen from '../screens/Auth/PhoneRequiredScreen';
+import TermsRequiredScreen from '../screens/Auth/TermsRequiredScreen';
 
 import OnboardingScreen from '../screens/Onboarding/OnboardingScreen';
 
@@ -88,6 +89,16 @@ export default function AppRoutes(): React.ReactElement | null {
         <Stack.Screen name="VerifyCode" component={VerifyCodeScreen} />
         <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
         <Stack.Screen name="ConfirmEmail" component={ConfirmEmailScreen} />
+      </Stack.Navigator>
+    );
+  }
+
+  // Aceite dos Termos/Política (versão vigente) antes de qualquer outra coisa: conta criada
+  // pelo personal/empresa ou termos atualizados. O backend também barra a API até o aceite.
+  if (currentUser?.termsAccepted === false) {
+    return (
+      <Stack.Navigator key="terms-stack" screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="TermsRequired" component={TermsRequiredScreen} />
       </Stack.Navigator>
     );
   }

@@ -201,10 +201,11 @@ export default function CompliancePage() {
       <Dialog open={toDelete !== null} onOpenChange={(o) => !o && setToDelete(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Excluir conta</DialogTitle>
+            <DialogTitle>Excluir conta definitivamente</DialogTitle>
             <DialogDescription>
-              A conta de <strong>{toDelete?.nome}</strong> será excluída (soft-delete) e as sessões
-              revogadas. Esta ação bloqueia o acesso ao sistema.
+              Use só a pedido do titular (LGPD). A conta de <strong>{toDelete?.nome}</strong> e os dados
+              dela são apagados agora, sem volta; fica apenas o que a lei exige guardar. Se a conta estiver
+              bloqueada, o mesmo e-mail e CPF não podem criar conta nova. Para só tirar o acesso, use Bloquear.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -216,7 +217,7 @@ export default function CompliancePage() {
               disabled={busyId === toDelete?.id}
               onClick={() => void confirmDelete()}
             >
-              {busyId === toDelete?.id ? 'Excluindo…' : 'Excluir'}
+              {busyId === toDelete?.id ? 'Excluindo…' : 'Excluir definitivamente'}
             </Button>
           </DialogFooter>
         </DialogContent>

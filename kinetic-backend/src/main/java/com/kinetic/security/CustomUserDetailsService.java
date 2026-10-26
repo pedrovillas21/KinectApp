@@ -4,6 +4,7 @@ import com.kinetic.enums.Role;
 import com.kinetic.enums.UserStatus;
 import com.kinetic.models.User;
 import com.kinetic.repositories.UserRepository;
+import com.kinetic.services.TermsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,11 +19,12 @@ import java.util.List;
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private final TermsService termsService;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com o e-mail: " + email));
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado."));
 
         // Compliance: só ATIVO é enabled; BLOQUEADO também é accountNonLocked=false.
         // Isso barra login (DaoAuthenticationProvider) e requests (filtro checa isEnabled).
@@ -39,7 +41,8 @@ public class CustomUserDetailsService implements UserDetailsService {
                 enabled,
                 accountNonLocked,
                 List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())),
-                phoneRequired
+                phoneRequired,
+                !termsService.isAccepted(user)
         );
     }
 }

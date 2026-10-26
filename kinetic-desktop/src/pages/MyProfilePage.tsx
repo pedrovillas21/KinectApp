@@ -5,6 +5,7 @@ import { motion } from 'motion/react';
 import { toast } from 'sonner';
 import { ArrowLeft, BadgeCheck, Camera, Clock, Loader2, MessageCircle, Plus, ShieldCheck, Trash2, X } from 'lucide-react';
 import Avatar from '../components/Avatar';
+import AccountPrivacySection from '../components/personal/AccountPrivacySection';
 import { formInputClass, formLabelClass } from '../components/personal/FormDialog';
 import { riseItem, staggerContainer } from '../components/motion/primitives';
 import {
@@ -194,200 +195,203 @@ export default function MyProfilePage() {
             </div>
           ) : (
             <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
-              <motion.form
-                variants={staggerContainer}
-                initial="hidden"
-                animate="show"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  void handleSave();
-                }}
-                className="flex flex-col gap-5"
-              >
-                <Section title="Foto de perfil" hint="Aparece para seus alunos no app. JPG, PNG ou WEBP, até 10 MB.">
-                  <AvatarPicker name={profile.nome} avatarUrl={profile.avatarUrl} />
-                </Section>
+              <div className="flex min-w-0 flex-col gap-5">
+                <motion.form
+                  variants={staggerContainer}
+                  initial="hidden"
+                  animate="show"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    void handleSave();
+                  }}
+                  className="flex flex-col gap-5"
+                >
+                  <Section title="Foto de perfil" hint="Aparece para seus alunos no app. JPG, PNG ou WEBP, até 10 MB.">
+                    <AvatarPicker name={profile.nome} avatarUrl={profile.avatarUrl} />
+                  </Section>
 
-                <Section title="Registro profissional" hint="Os alunos veem o selo de verificado depois que o Kinetic confere o seu CREF.">
-                  <label className="flex flex-col gap-2">
-                    <span className={formLabelClass}>CREF</span>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <input
-                        value={draft.cref}
-                        onChange={(e) => patch({ cref: e.target.value })}
-                        placeholder="012345-G/SP"
-                        maxLength={24}
-                        aria-invalid={crefInvalid}
-                        className={`${formInputClass} max-w-[240px] font-mono uppercase ${crefInvalid ? 'border-k-alert/60' : ''}`}
-                      />
-                      <CrefBadge state={crefState} />
-                    </div>
-                    <span className={`text-[12.5px] ${crefInvalid ? 'text-k-alert' : 'text-k-text-muted'}`}>
-                      {crefInvalid
-                        ? 'Use o formato 000000-G/UF (G = graduado, P = provisionado).'
-                        : 'Formato 000000-G/UF. Trocar o número remove a verificação.'}
-                    </span>
-                  </label>
-                </Section>
+                  <Section title="Registro profissional" hint="Os alunos veem o selo de verificado depois que o Kinetic confere o seu CREF.">
+                    <label className="flex flex-col gap-2">
+                      <span className={formLabelClass}>CREF</span>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <input
+                          value={draft.cref}
+                          onChange={(e) => patch({ cref: e.target.value })}
+                          placeholder="012345-G/SP"
+                          maxLength={24}
+                          aria-invalid={crefInvalid}
+                          className={`${formInputClass} max-w-[240px] font-mono uppercase ${crefInvalid ? 'border-k-alert/60' : ''}`}
+                        />
+                        <CrefBadge state={crefState} />
+                      </div>
+                      <span className={`text-[12.5px] ${crefInvalid ? 'text-k-alert' : 'text-k-text-muted'}`}>
+                        {crefInvalid
+                          ? 'Use o formato 000000-G/UF (G = graduado, P = provisionado).'
+                          : 'Formato 000000-G/UF. Trocar o número remove a verificação.'}
+                      </span>
+                    </label>
+                  </Section>
 
-                <Section title="Sobre" hint="Formação, anos de experiência, método de trabalho e o tipo de aluno que você acompanha.">
-                  <textarea
-                    value={draft.bio}
-                    onChange={(e) => patch({ bio: e.target.value.slice(0, BIO_MAX) })}
-                    placeholder="Ex.: Sou formado em Educação Física e acompanho alunos há 8 anos, com foco em hipertrofia e treino para iniciantes…"
-                    aria-label="Sobre você"
-                    className={textareaClass}
-                  />
-                  <span className="self-end font-mono text-[11.5px] text-k-text-muted">
-                    {draft.bio.length}/{BIO_MAX}
-                  </span>
-                </Section>
-
-                <Section title="Especialidades" hint={`Até ${SPECIALTIES_MAX}. Digite e aperte Enter, ou use um atalho.`}>
-                  {draft.specialties.length > 0 && (
-                    <ul className="flex flex-wrap gap-2">
-                      {draft.specialties.map((s) => (
-                        <li
-                          key={s}
-                          className="flex h-9 items-center gap-1.5 rounded-[10px] border border-k-primary/30 bg-k-primary-dim pl-3 pr-1.5 text-[13px] font-semibold text-k-primary"
-                        >
-                          {s}
-                          <button
-                            type="button"
-                            aria-label={`Remover ${s}`}
-                            onClick={() => patch({ specialties: draft.specialties.filter((x) => x !== s) })}
-                            className="flex h-6 w-6 items-center justify-center rounded-md text-k-primary/80 hover:bg-k-primary/15 hover:text-k-primary"
-                          >
-                            <X className="h-3.5 w-3.5" />
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  <div className="flex gap-2">
-                    <input
-                      value={specialtyInput}
-                      onChange={(e) => setSpecialtyInput(e.target.value)}
-                      onKeyDown={onSpecialtyKey}
-                      placeholder="Nova especialidade"
-                      maxLength={40}
-                      aria-label="Nova especialidade"
-                      disabled={draft.specialties.length >= SPECIALTIES_MAX}
-                      className={`${formInputClass} max-w-[320px]`}
+                  <Section title="Sobre" hint="Formação, anos de experiência, método de trabalho e o tipo de aluno que você acompanha.">
+                    <textarea
+                      value={draft.bio}
+                      onChange={(e) => patch({ bio: e.target.value.slice(0, BIO_MAX) })}
+                      placeholder="Ex.: Sou formado em Educação Física e acompanho alunos há 8 anos, com foco em hipertrofia e treino para iniciantes…"
+                      aria-label="Sobre você"
+                      className={textareaClass}
                     />
+                    <span className="self-end font-mono text-[11.5px] text-k-text-muted">
+                      {draft.bio.length}/{BIO_MAX}
+                    </span>
+                  </Section>
+
+                  <Section title="Especialidades" hint={`Até ${SPECIALTIES_MAX}. Digite e aperte Enter, ou use um atalho.`}>
+                    {draft.specialties.length > 0 && (
+                      <ul className="flex flex-wrap gap-2">
+                        {draft.specialties.map((s) => (
+                          <li
+                            key={s}
+                            className="flex h-9 items-center gap-1.5 rounded-[10px] border border-k-primary/30 bg-k-primary-dim pl-3 pr-1.5 text-[13px] font-semibold text-k-primary"
+                          >
+                            {s}
+                            <button
+                              type="button"
+                              aria-label={`Remover ${s}`}
+                              onClick={() => patch({ specialties: draft.specialties.filter((x) => x !== s) })}
+                              className="flex h-6 w-6 items-center justify-center rounded-md text-k-primary/80 hover:bg-k-primary/15 hover:text-k-primary"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    <div className="flex gap-2">
+                      <input
+                        value={specialtyInput}
+                        onChange={(e) => setSpecialtyInput(e.target.value)}
+                        onKeyDown={onSpecialtyKey}
+                        placeholder="Nova especialidade"
+                        maxLength={40}
+                        aria-label="Nova especialidade"
+                        disabled={draft.specialties.length >= SPECIALTIES_MAX}
+                        className={`${formInputClass} max-w-[320px]`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => addSpecialty(specialtyInput)}
+                        disabled={!specialtyInput.trim()}
+                        className="flex h-12 items-center gap-1.5 rounded-xl border border-white/10 bg-k-surface1 px-4 text-sm font-semibold text-k-text-dim transition-colors hover:bg-k-surface2 hover:text-k-text disabled:opacity-50"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Adicionar
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {SUGGESTED_SPECIALTIES.filter(
+                        (s) => !draft.specialties.some((x) => x.toLowerCase() === s.toLowerCase()),
+                      ).map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() => addSpecialty(s)}
+                          className="h-8 rounded-[9px] border border-dashed border-white/[0.16] px-2.5 text-[12.5px] text-k-text-dim transition-colors hover:border-k-primary/45 hover:text-k-primary"
+                        >
+                          + {s}
+                        </button>
+                      ))}
+                    </div>
+                  </Section>
+
+                  <Section title="Formação e certificações" hint="Graduação, pós, cursos e certificações. O detalhe costuma ser a instituição e o ano.">
+                    {draft.education.length > 0 && (
+                      <ul className="flex flex-col gap-2.5">
+                        {draft.education.map((item, i) => (
+                          <li key={i} className="grid grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_44px] gap-2.5">
+                            <input
+                              value={item.title}
+                              onChange={(e) =>
+                                patch({
+                                  education: draft.education.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)),
+                                })
+                              }
+                              placeholder="Bacharelado em Educação Física"
+                              maxLength={120}
+                              aria-label={`Formação ${i + 1}`}
+                              className={formInputClass}
+                            />
+                            <input
+                              value={item.detail}
+                              onChange={(e) =>
+                                patch({
+                                  education: draft.education.map((x, j) => (j === i ? { ...x, detail: e.target.value } : x)),
+                                })
+                              }
+                              placeholder="Instituição · ano"
+                              maxLength={120}
+                              aria-label={`Detalhe da formação ${i + 1}`}
+                              className={formInputClass}
+                            />
+                            <button
+                              type="button"
+                              aria-label={`Remover formação ${i + 1}`}
+                              onClick={() => patch({ education: draft.education.filter((_, j) => j !== i) })}
+                              className="flex h-12 w-11 items-center justify-center rounded-xl border border-white/10 text-k-text-dim transition-colors hover:border-k-alert/40 hover:text-k-alert"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                     <button
                       type="button"
-                      onClick={() => addSpecialty(specialtyInput)}
-                      disabled={!specialtyInput.trim()}
-                      className="flex h-12 items-center gap-1.5 rounded-xl border border-white/10 bg-k-surface1 px-4 text-sm font-semibold text-k-text-dim transition-colors hover:bg-k-surface2 hover:text-k-text disabled:opacity-50"
+                      onClick={() => patch({ education: [...draft.education, { title: '', detail: '' }] })}
+                      disabled={draft.education.length >= EDUCATION_MAX}
+                      className="flex h-11 items-center gap-1.5 self-start rounded-xl border border-dashed border-white/[0.16] px-4 text-sm font-semibold text-k-text-dim transition-colors hover:border-k-primary/45 hover:text-k-primary disabled:opacity-50"
                     >
                       <Plus className="h-4 w-4" />
-                      Adicionar
+                      Adicionar formação
                     </button>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {SUGGESTED_SPECIALTIES.filter(
-                      (s) => !draft.specialties.some((x) => x.toLowerCase() === s.toLowerCase()),
-                    ).map((s) => (
-                      <button
-                        key={s}
-                        type="button"
-                        onClick={() => addSpecialty(s)}
-                        className="h-8 rounded-[9px] border border-dashed border-white/[0.16] px-2.5 text-[12.5px] text-k-text-dim transition-colors hover:border-k-primary/45 hover:text-k-primary"
-                      >
-                        + {s}
-                      </button>
-                    ))}
-                  </div>
-                </Section>
+                  </Section>
 
-                <Section title="Formação e certificações" hint="Graduação, pós, cursos e certificações. O detalhe costuma ser a instituição e o ano.">
-                  {draft.education.length > 0 && (
-                    <ul className="flex flex-col gap-2.5">
-                      {draft.education.map((item, i) => (
-                        <li key={i} className="grid grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_44px] gap-2.5">
-                          <input
-                            value={item.title}
-                            onChange={(e) =>
-                              patch({
-                                education: draft.education.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)),
-                              })
-                            }
-                            placeholder="Bacharelado em Educação Física"
-                            maxLength={120}
-                            aria-label={`Formação ${i + 1}`}
-                            className={formInputClass}
-                          />
-                          <input
-                            value={item.detail}
-                            onChange={(e) =>
-                              patch({
-                                education: draft.education.map((x, j) => (j === i ? { ...x, detail: e.target.value } : x)),
-                              })
-                            }
-                            placeholder="Instituição · ano"
-                            maxLength={120}
-                            aria-label={`Detalhe da formação ${i + 1}`}
-                            className={formInputClass}
-                          />
-                          <button
-                            type="button"
-                            aria-label={`Remover formação ${i + 1}`}
-                            onClick={() => patch({ education: draft.education.filter((_, j) => j !== i) })}
-                            className="flex h-12 w-11 items-center justify-center rounded-xl border border-white/10 text-k-text-dim transition-colors hover:border-k-alert/40 hover:text-k-alert"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => patch({ education: [...draft.education, { title: '', detail: '' }] })}
-                    disabled={draft.education.length >= EDUCATION_MAX}
-                    className="flex h-11 items-center gap-1.5 self-start rounded-xl border border-dashed border-white/[0.16] px-4 text-sm font-semibold text-k-text-dim transition-colors hover:border-k-primary/45 hover:text-k-primary disabled:opacity-50"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Adicionar formação
-                  </button>
-                </Section>
-
-                <Section title="Atendimento">
-                  <div className="grid gap-3 md:grid-cols-3">
-                    <label className="flex flex-col gap-2">
-                      <span className={formLabelClass}>Modalidade</span>
-                      <input
-                        value={draft.modality}
-                        onChange={(e) => patch({ modality: e.target.value })}
-                        placeholder="Presencial e online"
-                        maxLength={80}
-                        className={formInputClass}
-                      />
-                    </label>
-                    <label className="flex flex-col gap-2">
-                      <span className={formLabelClass}>Horário</span>
-                      <input
-                        value={draft.schedule}
-                        onChange={(e) => patch({ schedule: e.target.value })}
-                        placeholder="Seg–sex · 7h–20h"
-                        maxLength={80}
-                        className={formInputClass}
-                      />
-                    </label>
-                    <label className="flex flex-col gap-2">
-                      <span className={formLabelClass}>Local</span>
-                      <input
-                        value={draft.location}
-                        onChange={(e) => patch({ location: e.target.value })}
-                        placeholder="Cidade, UF"
-                        maxLength={80}
-                        className={formInputClass}
-                      />
-                    </label>
-                  </div>
-                </Section>
-              </motion.form>
+                  <Section title="Atendimento">
+                    <div className="grid gap-3 md:grid-cols-3">
+                      <label className="flex flex-col gap-2">
+                        <span className={formLabelClass}>Modalidade</span>
+                        <input
+                          value={draft.modality}
+                          onChange={(e) => patch({ modality: e.target.value })}
+                          placeholder="Presencial e online"
+                          maxLength={80}
+                          className={formInputClass}
+                        />
+                      </label>
+                      <label className="flex flex-col gap-2">
+                        <span className={formLabelClass}>Horário</span>
+                        <input
+                          value={draft.schedule}
+                          onChange={(e) => patch({ schedule: e.target.value })}
+                          placeholder="Seg–sex · 7h–20h"
+                          maxLength={80}
+                          className={formInputClass}
+                        />
+                      </label>
+                      <label className="flex flex-col gap-2">
+                        <span className={formLabelClass}>Local</span>
+                        <input
+                          value={draft.location}
+                          onChange={(e) => patch({ location: e.target.value })}
+                          placeholder="Cidade, UF"
+                          maxLength={80}
+                          className={formInputClass}
+                        />
+                      </label>
+                    </div>
+                  </Section>
+                </motion.form>
+                <AccountPrivacySection />
+              </div>
 
               <aside aria-label="Prévia no app do aluno" className="lg:sticky lg:top-0">
                 <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.08em] text-k-text-muted">

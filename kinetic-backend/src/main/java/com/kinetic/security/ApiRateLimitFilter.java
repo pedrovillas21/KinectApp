@@ -15,7 +15,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
-import java.util.function.LongSupplier;
 
 /**
  * Limite de frequência para o resto da API (o /api/auth tem o {@link AuthRateLimitFilter}).
@@ -64,14 +63,10 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
 
     private static final AntPathMatcher MATCHER = new AntPathMatcher();
 
-    private final FixedWindowRateLimiter limiter;
+    private final RateLimiter limiter;
 
-    public ApiRateLimitFilter() {
-        this(System::currentTimeMillis);
-    }
-
-    ApiRateLimitFilter(LongSupplier clock) {
-        this.limiter = new FixedWindowRateLimiter(clock);
+    public ApiRateLimitFilter(RateLimiter limiter) {
+        this.limiter = limiter;
     }
 
     @Override
@@ -115,7 +110,7 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
         return waitMs;
     }
 
-    // O IP vem de getRemoteAddr: atrás do Caddy/Cloudflare, depende de
+    // O IP vem de getRemoteAddr: atrás do Cloudflare Tunnel, depende de
     // server.forward-headers-strategy=native (ver AuthRateLimitFilter).
     private static String subject(HttpServletRequest request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -131,9 +126,5 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
         }
         long minutes = (seconds + 59) / 60;
         return minutes + (minutes == 1 ? " minuto" : " minutos");
-    }
-
-    int trackedKeys() {
-        return limiter.trackedKeys();
     }
 }

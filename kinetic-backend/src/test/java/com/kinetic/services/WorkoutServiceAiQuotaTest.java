@@ -7,6 +7,7 @@ import com.kinetic.repositories.TrainerClientRepository;
 import com.kinetic.repositories.UserRepository;
 import com.kinetic.repositories.WorkoutExecutionLogRepository;
 import com.kinetic.repositories.WorkoutPlanRepository;
+import com.kinetic.security.InMemoryRateLimiter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -36,7 +37,8 @@ class WorkoutServiceAiQuotaTest {
     private final UserRepository users = mock(UserRepository.class);
     private final WorkoutService service = new WorkoutService(gemini, plans, users,
             mock(PlanCycleSnapshotService.class), mock(WorkoutExecutionLogRepository.class),
-            mock(TrainerClientRepository.class), new TransactionTemplate(mock(PlatformTransactionManager.class)));
+            mock(TrainerClientRepository.class), new TransactionTemplate(mock(PlatformTransactionManager.class)),
+            new InMemoryRateLimiter(System::currentTimeMillis));
 
     private final User student = new User();
     private final GenerateWorkoutRequestDto request = new GenerateWorkoutRequestDto(

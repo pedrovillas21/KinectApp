@@ -15,45 +15,42 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AuthRateLimitFilterTest {
 
-    private static final String LOGIN = "/api/auth/login";
+    private static final String ROUTE = "/api/auth/register";
 
     private final AtomicLong now = new AtomicLong(1_000_000);
-    private final AuthRateLimitFilter filter = new AuthRateLimitFilter(now::get);
+    private final AuthRateLimitFilter filter = new AuthRateLimitFilter(new InMemoryRateLimiter(now::get));
 
     @Test
     void bloqueiaDepoisDoLimiteEPorIpERota() {
         for (int i = 0; i < 10; i++) {
-            assertTrue(filter.tryAcquire("1.1.1.1", LOGIN));
+            assertTrue(filter.tryAcquire("1.1.1.1", ROUTE));
         }
-        assertFalse(filter.tryAcquire("1.1.1.1", LOGIN));
+        assertFalse(filter.tryAcquire("1.1.1.1", ROUTE));
         // Outro IP e outra rota têm contadores próprios.
-        assertTrue(filter.tryAcquire("2.2.2.2", LOGIN));
+        assertTrue(filter.tryAcquire("2.2.2.2", ROUTE));
         assertTrue(filter.tryAcquire("1.1.1.1", "/api/auth/forgot-password"));
     }
 
     @Test
-    void liberaNaJanelaSeguinteEDescartaChavesVencidas() {
+    void liberaNaJanelaSeguinte() {
         for (int i = 0; i < 11; i++) {
-            filter.tryAcquire("1.1.1.1", LOGIN);
+            filter.tryAcquire("1.1.1.1", ROUTE);
         }
-        filter.tryAcquire("2.2.2.2", LOGIN);
-        assertEquals(2, filter.trackedKeys());
+        assertFalse(filter.tryAcquire("1.1.1.1", ROUTE));
 
         now.addAndGet(AuthRateLimitFilter.WINDOW_MS);
 
-        assertTrue(filter.tryAcquire("1.1.1.1", LOGIN));
-        // A varredura removeu o 2.2.2.2 (sem uso na janela); só resta a chave recém-criada.
-        assertEquals(1, filter.trackedKeys());
+        assertTrue(filter.tryAcquire("1.1.1.1", ROUTE));
     }
 
     @Test
     void responde429NaRotaSensivelEIgnoraAsDemais() throws Exception {
         for (int i = 0; i < 10; i++) {
-            filter.doFilter(request(LOGIN), new MockHttpServletResponse(), new MockFilterChain());
+            filter.doFilter(request(ROUTE), new MockHttpServletResponse(), new MockFilterChain());
         }
         MockHttpServletResponse blocked = new MockHttpServletResponse();
         MockFilterChain blockedChain = new MockFilterChain();
-        filter.doFilter(request(LOGIN), blocked, blockedChain);
+        filter.doFilter(request(ROUTE), blocked, blockedChain);
         assertEquals(429, blocked.getStatus());
         assertNull(blockedChain.getRequest());
 

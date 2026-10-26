@@ -62,7 +62,8 @@ public class WorkoutController extends BaseController {
         } catch (EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
-            log.error("Falha inesperada ao gerar treino para o usuário {}", userEmail, e);
+            // Sem o e-mail: o WorkoutService já registrou o id do usuário desta geração.
+            log.error("Falha inesperada ao gerar treino", e);
             throw e;
         }
     }

@@ -11,6 +11,7 @@ import com.kinetic.dtos.UserProfileResponseDTO;
 import com.kinetic.services.AccountDeletionService;
 import com.kinetic.services.AvatarService;
 import com.kinetic.services.DataExportService;
+import com.kinetic.services.TermsService;
 import com.kinetic.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -44,15 +45,18 @@ public class UserController extends BaseController {
     private final DataExportService dataExportService;
     private final AccountDeletionService accountDeletionService;
     private final AvatarService avatarService;
+    private final TermsService termsService;
 
     public UserController(UserService userService,
                           DataExportService dataExportService,
                           AccountDeletionService accountDeletionService,
-                          AvatarService avatarService) {
+                          AvatarService avatarService,
+                          TermsService termsService) {
         this.userService = userService;
         this.dataExportService = dataExportService;
         this.accountDeletionService = accountDeletionService;
         this.avatarService = avatarService;
+        this.termsService = termsService;
     }
 
     @Operation(
@@ -141,11 +145,23 @@ public class UserController extends BaseController {
     }
 
     @Operation(
+            summary = "Aceitar a versão vigente dos Termos de Uso e da Política de Privacidade",
+            description = "Grava a versão e a data do aceite. Os clientes chamam quando /users/profile ou o login "
+                    + "devolvem termsAccepted=false (conta criada por terceiros ou termos atualizados)."
+    )
+    @PostMapping("/me/terms-acceptance")
+    public ResponseEntity<Void> acceptTerms() {
+        termsService.accept(currentUserEmail());
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
             summary = "Excluir a própria conta (imediato, irreversível)",
-            description = "Confere a senha e apaga na hora a conta e todos os dados dela. Vínculos com personal "
-                    + "ou alunos são encerrados e as fichas que o personal montou continuam com os alunos, sem "
-                    + "autor. Das gerações de treino por IA fica só o registro (sem pedido nem resposta). "
-                    + "Senha errada → 400 e nada é apagado."
+            description = "Confere a senha e apaga na hora a conta e os dados dela. Vínculos com personal ou alunos "
+                    + "são encerrados e as fichas que o personal montou continuam com os alunos, sem autor. Fica só "
+                    + "o que a lei exige, com prazo para sumir (RETENCAO-DE-DADOS.md): cobranças pagas no financeiro "
+                    + "do personal, a prova das fichas aprovadas por IA, os registros de acesso (6 meses) e o "
+                    + "registro da conta excluída. Senha errada → 400 e nada é apagado."
     )
     @DeleteMapping("/me")
     public ResponseEntity<Void> deleteMyAccount(@Valid @RequestBody DeleteAccountRequestDTO request) {

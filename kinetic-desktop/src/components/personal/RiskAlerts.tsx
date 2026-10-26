@@ -1,13 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import { toast } from 'sonner';
 import { BellOff, BellRing, ChevronRight, MessageCircle, ShieldCheck } from 'lucide-react';
 import Avatar from '../Avatar';
 import { EASE_OUT } from '../motion/primitives';
-import PauseAlertDialog, { formatPauseDate, pauseReasonLabel } from './PauseAlertDialog';
-import { resumeAlerts } from '../../services/trainerService';
-import { qk, queryClient } from '../../services/queryClient';
+import PauseAlertDialog, { formatPauseDate, pauseReasonLabel, resumeStudentAlerts } from './PauseAlertDialog';
 import { whatsappUrl } from '../../utils/whatsapp';
 import type { RiskAlert, StudentEngagement, TrainerLink } from '../../types';
 
@@ -70,18 +67,6 @@ export default function RiskAlerts({
   const snoozedCount = atRisk.filter((i) => i.engagement.pause).length;
   const pending = showSnoozed ? atRisk : atRisk.filter((i) => !i.engagement.pause);
   const shown = expanded ? pending : pending.slice(0, COLLAPSED_LIMIT);
-
-  const unsnooze = async (studentId: string) => {
-    try {
-      await resumeAlerts(studentId);
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: qk.engagement }),
-        queryClient.invalidateQueries({ queryKey: qk.today }),
-      ]);
-    } catch {
-      toast.error('Não foi possível reativar o alerta. Tente novamente.');
-    }
-  };
 
   return (
     <section id="alertas-de-risco" aria-label="Alertas de risco" className="flex scroll-mt-24 flex-col rounded-xl border border-white/[0.08]">
@@ -177,7 +162,7 @@ export default function RiskAlerts({
                     <button
                       type="button"
                       onClick={() =>
-                        isSnoozed ? void unsnooze(link.peer.id) : setPausing({ link, engagement: e })
+                        isSnoozed ? void resumeStudentAlerts(link.peer.id) : setPausing({ link, engagement: e })
                       }
                       title={isSnoozed ? undefined : 'Anote o motivo e esconda o alerta por alguns dias'}
                       className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[13px] text-k-text-dim transition-colors hover:bg-white/[0.06] hover:text-k-text"

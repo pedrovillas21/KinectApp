@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { clearResourceCache } from '../services/resourceCache';
 import api, {
   setSignOutHandler,
+  setTermsRequiredHandler,
   refreshAccessToken,
   logoutUser,
 } from '../services/api';
@@ -32,6 +33,9 @@ export interface KineticUser {
   // Celular (DDD + número). null em contas criadas antes de ele ser obrigatório:
   // o roteamento barra o app até o cadastro (PhoneRequiredScreen).
   phone: string | null;
+  // Aceitou a versão vigente dos Termos/Política? false: o roteamento barra o app até o
+  // aceite (TermsRequiredScreen). Ausente em cache antigo: conferido no backend ao destravar.
+  termsAccepted?: boolean;
   level: string | null;
   birthDate: string | null;
   weight: number | null;
@@ -111,6 +115,7 @@ interface AuthContextValue {
     newPassword: string,
   ) => Promise<AuthResult>;
   updatePhone: (phone: string) => Promise<AuthResult>;
+  acceptTerms: () => Promise<AuthResult>;
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -145,13 +150,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const fetchPhone = async (): Promise<string | null> => {
+  const fetchProfileFlags = async (): Promise<{ phone: string | null; termsAccepted: boolean }> => {
     try {
-      const res = await api.get<{ phone: string | null }>('/users/profile');
-      return res.data.phone ?? null;
+      const res = await api.get<{ phone: string | null; termsAccepted?: boolean }>('/users/profile');
+      return { phone: res.data.phone ?? null, termsAccepted: res.data.termsAccepted !== false };
     } catch (e) {
-      console.warn('Falha ao verificar o celular cadastrado:', e);
-      return null;
+      console.warn('Falha ao verificar o cadastro:', e);
+      // Sem rede não barra: se faltar o aceite, a API responde TERMS_REQUIRED e o app pede.
+      return { phone: null, termsAccepted: true };
     }
   };
 
@@ -193,11 +199,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const user = JSON.parse(userJson) as KineticUser;
-      // Cache salvo antes do celular existir (ou cadastrado em outro aparelho): confirma no backend.
-      if (!user.phone) {
-        user.phone = await fetchPhone();
-        await AsyncStorage.setItem(USER_KEY, JSON.stringify(user));
-      }
+      // Celular e aceite dos termos podem ter mudado desde o cache (outro aparelho, termos novos).
+      const flags = await fetchProfileFlags();
+      user.phone = user.phone || flags.phone;
+      user.termsAccepted = flags.termsAccepted;
+      await AsyncStorage.setItem(USER_KEY, JSON.stringify(user));
       setCurrentUser(user);
       setJustLoggedOut(false);
       setIsLoggedIn(true);
@@ -257,6 +263,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         email: email.trim(),
         senha: password,
         phone: phone.replace(/\D/g, ''),
+        // A tela só chama depois da caixa de aceite marcada.
+        termsAccepted: true,
       });
       return { success: true };
     } catch (e: unknown) {
@@ -294,6 +302,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         height: number | null;
         goal: string | null;
         frequency: number | null;
+        termsAccepted?: boolean;
       }>('/auth/login', {
         email: email.trim(),
         senha: password,
@@ -312,6 +321,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         height,
         goal,
         frequency,
+        termsAccepted,
       } = response.data;
 
       const userPayload: KineticUser = {
@@ -319,6 +329,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         nome,
         email: userEmail,
         phone: phone ?? null,
+        termsAccepted: termsAccepted !== false,
         level,
         birthDate,
         weight,
@@ -437,6 +448,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => setSignOutHandler(null);
   }, [signOut]);
 
+  // Termos atualizados com o app aberto: a API passa a responder TERMS_REQUIRED e o
+  // roteamento volta para a tela de aceite.
+  useEffect(() => {
+    setTermsRequiredHandler(() =>
+      setCurrentUser((user) => (user && user.termsAccepted !== false ? { ...user, termsAccepted: false } : user)),
+    );
+    return () => setTermsRequiredHandler(null);
+  }, []);
+
   const completeOnboarding = async (
     data: CompleteOnboardingData,
   ): Promise<void> => {
@@ -552,6 +572,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const acceptTerms = async (): Promise<AuthResult> => {
+    if (!currentUser) return { success: false, error: 'Sessão expirada. Entre novamente.' };
+    try {
+      await api.post('/users/me/terms-acceptance');
+      const updatedUser: KineticUser = { ...currentUser, termsAccepted: true };
+      // Como no celular: sem o aceite o backend barrou /workouts/my-plans no login.
+      if (!hasOnboarded) {
+        const plans = await fetchExistingPlans();
+        if (plans.length > 0) {
+          setWorkoutPlans(plans);
+          setHasOnboarded(true);
+        }
+      }
+      await AsyncStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
+      setCurrentUser(updatedUser);
+      return { success: true };
+    } catch {
+      return { success: false, error: 'Não foi possível registrar o aceite. Tente novamente.' };
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -575,6 +616,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         resetPassword,
         changePassword,
         updatePhone,
+        acceptTerms,
       }}
     >
       {children}

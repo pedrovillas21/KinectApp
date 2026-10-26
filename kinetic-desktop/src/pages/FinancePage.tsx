@@ -553,6 +553,8 @@ function ChargeRow({
   const open = c.status === 'PENDENTE' || c.status === 'ATRASADO';
   const otherMonth = c.referenceMonth.slice(0, 7) !== currentMonth;
   const method = PAYMENT_METHODS.find((m) => m.id === c.paymentMethod)?.label;
+  // Aluno excluiu a conta: o pagamento fica como registro de renda e não pode ser alterado.
+  const retained = c.studentId === null;
 
   return (
     <li className="flex flex-wrap items-center gap-3 rounded-[16px] border border-k-ghost bg-k-surface1 p-4">
@@ -560,7 +562,9 @@ function ChargeRow({
       <div className="min-w-[180px] flex-1">
         <p className="truncate text-sm font-semibold">
           {c.studentName}
-          {!c.activeStudent && <span className="ml-2 text-[12px] font-normal text-k-text-muted">(saiu da carteira)</span>}
+          {!c.activeStudent && !retained && (
+            <span className="ml-2 text-[12px] font-normal text-k-text-muted">(saiu da carteira)</span>
+          )}
         </p>
         <p className="text-[12.5px] text-k-text-muted">
           {formatBRL(c.amountCents)} · vence {dayMonth(c.dueDate)}
@@ -602,7 +606,7 @@ function ChargeRow({
             </button>
           </>
         )}
-        {!open && (
+        {!open && !retained && (
           <button
             type="button"
             disabled={busy}

@@ -10,7 +10,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.function.LongSupplier;
 
 /**
  * Limite por IP e rota nas rotas públicas sensíveis de /api/auth (janela fixa de 1 minuto).
@@ -26,8 +25,10 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
 
     // Pedidos por minuto, por IP. O refresh é mais folgado: o app chama sozinho a cada
     // expiração do access token, e alunos na mesma rede (academia) dividem o IP.
+    // O login também: o freio fino é por IP + e-mail no AuthService; aqui só corta quem
+    // testa muitas contas a partir de um IP.
     private static final Map<String, Integer> LIMITS = Map.of(
-            "/api/auth/login", 10,
+            "/api/auth/login", 60,
             "/api/auth/register", 10,
             "/api/auth/register-company", 10,
             "/api/auth/forgot-password", 10,
@@ -37,14 +38,10 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
             "/api/auth/refresh", 60
     );
 
-    private final FixedWindowRateLimiter limiter;
+    private final RateLimiter limiter;
 
-    public AuthRateLimitFilter() {
-        this(System::currentTimeMillis);
-    }
-
-    AuthRateLimitFilter(LongSupplier clock) {
-        this.limiter = new FixedWindowRateLimiter(clock);
+    public AuthRateLimitFilter(RateLimiter limiter) {
+        this.limiter = limiter;
     }
 
     @Override
@@ -71,9 +68,5 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
 
     boolean tryAcquire(String ip, String route) {
         return limiter.acquire(ip + " " + route, LIMITS.getOrDefault(route, 0), WINDOW_MS) == 0;
-    }
-
-    int trackedKeys() {
-        return limiter.trackedKeys();
     }
 }

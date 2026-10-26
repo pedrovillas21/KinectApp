@@ -17,5 +17,7 @@ public record UserProfileResponseDTO(
         Double height,
         String level,
         Integer frequency,
-        String medicalConditions
+        String medicalConditions,
+        // Aceitou a versão vigente dos Termos/Política? false: os clientes pedem o aceite antes de liberar o uso.
+        boolean termsAccepted
 ) {}

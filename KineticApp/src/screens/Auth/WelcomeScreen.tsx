@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Svg, { Path } from 'react-native-svg';
 import { FONT, KINETIC } from '../../theme/kinetic';
+import { PRIVACY_URL, TERMS_URL, openLegal } from '../../config/legal';
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
@@ -146,8 +147,15 @@ export default function WelcomeScreen({ navigation }: Props) {
               <Text style={styles.trustText}>Seus dados protegidos conforme a LGPD</Text>
             </View>
             <Text style={styles.terms}>
-              Ao continuar, você concorda com os <Text style={styles.termsLink}>Termos de Uso</Text> e a{' '}
-              <Text style={styles.termsLink}>Política de Privacidade</Text>.
+              Ao continuar, você concorda com os{' '}
+              <Text style={styles.termsLink} onPress={() => openLegal(TERMS_URL)} accessibilityRole="link">
+                Termos de Uso
+              </Text>{' '}
+              e a{' '}
+              <Text style={styles.termsLink} onPress={() => openLegal(PRIVACY_URL)} accessibilityRole="link">
+                Política de Privacidade
+              </Text>
+              .
             </Text>
           </Animated.View>
         </View>

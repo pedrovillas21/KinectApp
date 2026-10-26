@@ -13,14 +13,22 @@ import java.util.Collection;
 public class KineticUserDetails extends User {
 
     private final boolean phoneRequired;
+    private final boolean termsRequired;
 
     public KineticUserDetails(String username, String password, boolean enabled, boolean accountNonLocked,
-                              Collection<? extends GrantedAuthority> authorities, boolean phoneRequired) {
+                              Collection<? extends GrantedAuthority> authorities, boolean phoneRequired,
+                              boolean termsRequired) {
         super(username, password, enabled, true, true, accountNonLocked, authorities);
         this.phoneRequired = phoneRequired;
+        this.termsRequired = termsRequired;
     }
 
     public boolean isPhoneRequired() {
         return phoneRequired;
+    }
+
+    /** Não aceitou a versão vigente dos Termos/Política: a API fica barrada até o aceite. */
+    public boolean isTermsRequired() {
+        return termsRequired;
     }
 }

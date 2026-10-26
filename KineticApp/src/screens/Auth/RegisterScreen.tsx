@@ -15,6 +15,7 @@ import { savePendingInviteCode } from '../../services/trainerService';
 import { showAlert } from '../../components/ui/AlertHost';
 import KeyboardAvoider from '../../components/ui/KeyboardAvoider';
 import { KINETIC } from '../../theme/kinetic';
+import { PRIVACY_URL, TERMS_URL, openLegal } from '../../config/legal';
 
 const A = {
   bg: '#131313',
@@ -228,8 +229,9 @@ export default function RegisterScreen({ navigation }: Props) {
   const isPasswordValid = hasMinLength && hasUppercase && hasLowercase && hasNumber && hasSymbol;
 
   const isPhoneValid = isValidCellPhone(phone);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const canSubmit =
-    name.trim().length > 0 && email.trim().length > 0 && isPhoneValid && isPasswordValid;
+    name.trim().length > 0 && email.trim().length > 0 && isPhoneValid && isPasswordValid && acceptedTerms;
 
   const handleRegister = async () => {
     if (!canSubmit || loading) return;
@@ -386,6 +388,31 @@ export default function RegisterScreen({ navigation }: Props) {
                 <RequirementItem label="Símbolo especial" met={hasSymbol} />
               </View>
             </View>
+
+            {/* Aceite: consentimento destacado para dados de saúde (LGPD art. 11, I) */}
+            <TouchableOpacity
+              style={[styles.checkRow, styles.termsRow]}
+              onPress={() => setAcceptedTerms(!acceptedTerms)}
+              activeOpacity={0.7}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: acceptedTerms }}
+            >
+              <View style={[styles.checkbox, styles.termsCheckbox, acceptedTerms && styles.checkboxChecked]}>
+                {acceptedTerms && <CheckIcon />}
+              </View>
+              <Text style={[styles.checkLabel, styles.termsLabel]}>
+                Li e aceito os{' '}
+                <Text style={styles.loginLink} onPress={() => openLegal(TERMS_URL)}>
+                  Termos de Uso
+                </Text>{' '}
+                e a{' '}
+                <Text style={styles.loginLink} onPress={() => openLegal(PRIVACY_URL)}>
+                  Política de Privacidade
+                </Text>
+                , inclusive o uso dos meus dados de saúde (peso, medidas, lesões e treinos) para montar e acompanhar
+                meus treinos.
+              </Text>
+            </TouchableOpacity>
           </ScrollView>
 
           {/* Footer */}
@@ -503,6 +530,17 @@ const styles = StyleSheet.create({
     backgroundColor: A.s1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  termsRow: {
+    alignItems: 'flex-start',
+    marginTop: 20,
+  },
+  termsCheckbox: {
+    marginTop: 2,
+  },
+  termsLabel: {
+    flex: 1,
+    lineHeight: 19,
   },
   checkboxChecked: {
     backgroundColor: A.primary,

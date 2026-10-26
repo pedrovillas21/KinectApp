@@ -10,6 +10,7 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.lang.NonNull;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -112,6 +113,13 @@ public class User {
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    /** Versão dos Termos/Política aceita (legal.terms-version) e quando; nulo = nunca aceitou. */
+    @Column(name = "terms_version", length = 32)
+    private String termsVersion;
+
+    @Column(name = "terms_accepted_at")
+    private Instant termsAcceptedAt;
 
     /** E-mail é NOT NULL/unique no schema; getter explícito só para expor essa garantia ao null-analysis. */
     @SuppressWarnings("null")

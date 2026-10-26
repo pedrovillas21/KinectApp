@@ -18,6 +18,8 @@ public record AuthResponseDTO(
         String goal,
         Integer frequency,
         String medicalConditions,
-        String role
+        String role,
+        /** false: aceite dos Termos/Política pendente (conta criada por terceiros ou versão nova). */
+        boolean termsAccepted
 ) {
 }

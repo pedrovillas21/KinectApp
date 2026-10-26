@@ -28,17 +28,27 @@ public class StudentCharge {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    /** Nulo só em cobrança retida de aluno que excluiu a conta (a mensalidade foi junto). */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "plan_id", nullable = false)
+    @JoinColumn(name = "plan_id")
     private StudentBillingPlan plan;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "trainer_id", nullable = false)
     private User trainer;
 
+    /** Nulo quando o aluno excluiu a conta: a cobrança paga fica como registro de renda do personal. */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "student_id", nullable = false)
+    @JoinColumn(name = "student_id")
     private User student;
+
+    /** Nome do aluno guardado na exclusão da conta dele (só em cobrança retida). */
+    @Column(name = "student_name")
+    private String studentName;
+
+    /** Até quando a cobrança retida fica guardada (expurgo pelo LegalRetentionService). */
+    @Column(name = "retain_until")
+    private LocalDate retainUntil;
 
     /** Dia 1 do mês a que a cobrança se refere. */
     @Column(name = "reference_month", nullable = false)
