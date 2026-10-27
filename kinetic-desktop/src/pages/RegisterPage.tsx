@@ -174,7 +174,7 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-k-bg text-k-text px-6">
+      <div className="min-h-dvh flex items-center justify-center bg-k-bg text-k-text px-6">
         <motion.div
           variants={staggerContainer}
           initial="hidden"
@@ -214,7 +214,7 @@ export default function RegisterPage() {
   const strength = STRENGTH[metCount];
 
   return (
-    <div className="h-screen flex lg:flex-row bg-k-bg text-k-text overflow-hidden">
+    <div className="h-dvh flex lg:flex-row bg-k-bg text-k-text overflow-hidden">
       <aside className="hidden lg:block w-1/2 h-full border-k-ghost border-r">
         <AuthBrandPanel contentKey="personal" {...BRAND} />
       </aside>

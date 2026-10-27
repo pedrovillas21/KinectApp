@@ -42,7 +42,7 @@ export default function FeedbacksPage({ load = listCompanyFeedbacks }: { load?: 
         subtitle="Recebidos de alunos com vínculo corporativo"
       />
 
-      <div className="max-w-4xl w-full mx-auto px-6 py-6 flex flex-col gap-4">
+      <div className="max-w-4xl w-full mx-auto px-4 md:px-6 py-6 flex flex-col gap-4">
         {/* Nota explicativa do filtro corporativo (a regra é aplicada no backend). */}
         <div className="flex gap-2.5 p-3.5 rounded-xl bg-k-primary-dim/40 border border-k-primary-soft text-k-text-dim text-xs leading-relaxed">
           <ShieldCheck className="w-4.5 h-4.5 shrink-0 text-k-primary" />
@@ -76,7 +76,7 @@ export default function FeedbacksPage({ load = listCompanyFeedbacks }: { load?: 
           </div>
         ) : (
           feedbacks.map((f) => (
-            <div key={f.id} className="p-5 rounded-xl border border-white/[0.08] flex flex-col gap-3">
+            <div key={f.id} className="p-4 md:p-5 rounded-xl border border-white/[0.08] flex flex-col gap-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   {f.anonymous ? (

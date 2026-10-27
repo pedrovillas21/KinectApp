@@ -208,7 +208,7 @@ export default function InviteStudentModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6 backdrop-blur-[6px]"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 sm:p-6 backdrop-blur-[6px]"
         >
           <motion.div
             ref={sheetRef}
@@ -222,7 +222,7 @@ export default function InviteStudentModal({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.97 }}
             transition={{ duration: 0.45, ease: EASE_OUT }}
-            className="flex w-full max-w-[500px] flex-col gap-5 rounded-[22px] border border-white/10 bg-k-surface1 p-7 shadow-[0_40px_90px_-20px_rgba(0,0,0,0.7)] outline-none"
+            className="flex max-h-full w-full max-w-[500px] flex-col gap-5 overflow-y-auto rounded-[22px] border border-white/10 bg-k-surface1 p-5 sm:p-7 shadow-[0_40px_90px_-20px_rgba(0,0,0,0.7)] outline-none"
           >
             <div className="flex items-start justify-between gap-4">
               <span className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-k-primary/[0.12] text-k-primary">

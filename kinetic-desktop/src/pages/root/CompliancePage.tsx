@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { MoreHorizontal, Ban, PauseCircle, PlayCircle, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Ban, Lock, PauseCircle, PlayCircle, Trash2 } from 'lucide-react';
 import PageHeader from '../../components/PageHeader';
 import { EmptyCard } from '../../components/stat-primitives';
-import StatusBadge from '../../components/StatusBadge';
+import { MobileList, MobileListItem, type RowAction } from '../../components/MobileList';
+import StatusBadge, { TagChip } from '../../components/StatusBadge';
+import Avatar from '../../components/Avatar';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   DropdownMenu,
@@ -42,6 +43,14 @@ import type { UserAdmin, UserStatus } from '../../types';
 const ROLE_FILTER = 'all';
 type RoleFilter = typeof ROLE_FILTER | UserAdmin['role'];
 
+const ROLE_LABEL: Record<UserAdmin['role'], string> = {
+  ALUNO: 'Aluno',
+  PERSONAL: 'Personal',
+  EMPRESA: 'Empresa',
+  DONO: 'Dono',
+  ROOT: 'Root',
+};
+
 export default function CompliancePage() {
   const [users, setUsers] = useState<UserAdmin[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,6 +75,20 @@ export default function CompliancePage() {
     void load(role);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [role]);
+
+  /** Ações de compliance de um usuário (o menu da tabela e o dos cartões do celular). */
+  const actionsFor = (u: UserAdmin): RowAction[] => [
+    ...(u.status !== 'ATIVO'
+      ? [{ label: 'Reativar', icon: PlayCircle, onClick: () => void changeStatus(u, 'ATIVO') }]
+      : []),
+    ...(u.status !== 'SUSPENSO'
+      ? [{ label: 'Suspender', icon: PauseCircle, onClick: () => void changeStatus(u, 'SUSPENSO') }]
+      : []),
+    ...(u.status !== 'BLOQUEADO'
+      ? [{ label: 'Bloquear', icon: Ban, onClick: () => void changeStatus(u, 'BLOQUEADO') }]
+      : []),
+    { label: 'Excluir', icon: Trash2, destructive: true, onClick: () => setToDelete(u) },
+  ];
 
   const changeStatus = async (user: UserAdmin, status: UserStatus) => {
     setBusyId(user.id);
@@ -101,6 +124,7 @@ export default function CompliancePage() {
       <PageHeader
         title="Usuários & Compliance"
         subtitle="Bloquear, suspender, reativar ou excluir contas"
+        wideActions
         actions={
           <Select value={role} onValueChange={(v) => setRole(v as RoleFilter)}>
             <SelectTrigger className="w-40">
@@ -117,7 +141,7 @@ export default function CompliancePage() {
         }
       />
 
-      <div className="max-w-[1160px] w-full mx-auto px-8 pt-8 pb-16">
+      <div className="max-w-[1160px] w-full mx-auto px-4 md:px-8 pt-6 md:pt-8 pb-12 md:pb-16">
         {loading ? (
           <div className="flex flex-col gap-3">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -129,71 +153,87 @@ export default function CompliancePage() {
         ) : users.length === 0 ? (
           <EmptyCard>Nenhum usuário para este filtro.</EmptyCard>
         ) : (
-          <div className="rounded-xl border border-white/[0.08] overflow-hidden overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Usuário</TableHead>
-                  <TableHead>Papel</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.map((u) => (
-                  <TableRow key={u.id}>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="text-xs font-bold">{u.nome}</span>
-                        <span className="text-[11px] text-k-text-muted">{u.email}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="text-k-text-dim border-k-ghost">
-                        {u.role}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
+          <>
+            <MobileList>
+              {users.map((u) => (
+                <MobileListItem
+                  key={u.id}
+                  leading={<Avatar name={u.nome} size={40} />}
+                  title={u.nome}
+                  subtitle={u.email}
+                  meta={
+                    <>
                       <StatusBadge status={u.status} />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {u.role === 'ROOT' ? (
-                        <span className="text-[11px] text-k-text-muted">protegido</span>
-                      ) : (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" disabled={busyId === u.id}>
-                              <MoreHorizontal className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            {u.status !== 'ATIVO' && (
-                              <DropdownMenuItem onClick={() => void changeStatus(u, 'ATIVO')}>
-                                <PlayCircle className="w-4 h-4" /> Reativar
-                              </DropdownMenuItem>
-                            )}
-                            {u.status !== 'SUSPENSO' && (
-                              <DropdownMenuItem onClick={() => void changeStatus(u, 'SUSPENSO')}>
-                                <PauseCircle className="w-4 h-4" /> Suspender
-                              </DropdownMenuItem>
-                            )}
-                            {u.status !== 'BLOQUEADO' && (
-                              <DropdownMenuItem onClick={() => void changeStatus(u, 'BLOQUEADO')}>
-                                <Ban className="w-4 h-4" /> Bloquear
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuItem variant="destructive" onClick={() => setToDelete(u)}>
-                              <Trash2 className="w-4 h-4" /> Excluir
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
-                    </TableCell>
+                      <TagChip>{ROLE_LABEL[u.role]}</TagChip>
+                    </>
+                  }
+                  trailing={
+                    u.role === 'ROOT' ? (
+                      <TagChip>
+                        <Lock className="h-3 w-3" /> Protegido
+                      </TagChip>
+                    ) : undefined
+                  }
+                  actionsLabel={`Ações de ${u.nome}`}
+                  actions={u.role === 'ROOT' || busyId === u.id ? undefined : actionsFor(u)}
+                />
+              ))}
+            </MobileList>
+            <div className="rounded-xl border border-white/[0.08] overflow-hidden overflow-x-auto max-md:hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Usuário</TableHead>
+                    <TableHead>Papel</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {users.map((u) => (
+                    <TableRow key={u.id}>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="text-xs font-bold">{u.nome}</span>
+                          <span className="text-[11px] text-k-text-muted">{u.email}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <TagChip>{ROLE_LABEL[u.role]}</TagChip>
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge status={u.status} />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {u.role === 'ROOT' ? (
+                          <span className="text-[11px] text-k-text-muted">protegido</span>
+                        ) : (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" disabled={busyId === u.id}>
+                                <MoreHorizontal className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              {actionsFor(u).map(({ label, icon: Icon, onClick, destructive }) => (
+                                <DropdownMenuItem
+                                  key={label}
+                                  variant={destructive ? 'destructive' : 'default'}
+                                  onClick={onClick}
+                                >
+                                  {Icon && <Icon className="w-4 h-4" />} {label}
+                                </DropdownMenuItem>
+                              ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </>
         )}
       </div>
 

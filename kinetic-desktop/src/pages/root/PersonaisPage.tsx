@@ -3,7 +3,9 @@ import { toast } from 'sonner';
 import { Plus } from 'lucide-react';
 import PageHeader from '../../components/PageHeader';
 import { EmptyCard } from '../../components/stat-primitives';
+import { MobileList, MobileListItem } from '../../components/MobileList';
 import StatusBadge from '../../components/StatusBadge';
+import Avatar from '../../components/Avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -212,7 +214,7 @@ export default function PersonaisPage() {
         }
       />
 
-      <div className="max-w-[1160px] w-full mx-auto px-8 pt-8 pb-16">
+      <div className="max-w-[1160px] w-full mx-auto px-4 md:px-8 pt-6 md:pt-8 pb-12 md:pb-16">
         {loading ? (
           <div className="flex flex-col gap-3">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -224,32 +226,52 @@ export default function PersonaisPage() {
         ) : personais.length === 0 ? (
           <EmptyCard>Nenhum personal provisionado ainda.</EmptyCard>
         ) : (
-          <div className="rounded-xl border border-white/[0.08] overflow-hidden overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>E-mail</TableHead>
-                  <TableHead>Empresa</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Criado em</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {personais.map((p) => (
-                  <TableRow key={p.id}>
-                    <TableCell className="font-bold">{p.nome}</TableCell>
-                    <TableCell className="text-k-text-dim">{p.email}</TableCell>
-                    <TableCell className="text-k-text-dim">{companyName(p.companyId)}</TableCell>
-                    <TableCell>
+          <>
+            <MobileList>
+              {personais.map((p) => (
+                <MobileListItem
+                  key={p.id}
+                  leading={<Avatar name={p.nome} size={40} />}
+                  title={p.nome}
+                  subtitle={p.email}
+                  meta={
+                    <>
                       <StatusBadge status={p.status} />
-                    </TableCell>
-                    <TableCell className="text-k-text-dim">{formatDate(p.createdAt)}</TableCell>
+                      <span className="truncate">{p.companyId ? companyName(p.companyId) : 'Autônomo'}</span>
+                    </>
+                  }
+                />
+              ))}
+            </MobileList>
+            <div className="rounded-xl border border-white/[0.08] overflow-hidden overflow-x-auto max-md:hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>E-mail</TableHead>
+                    <TableHead>Empresa</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Criado em</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {personais.map((p) => (
+                    <TableRow key={p.id}>
+                      <TableCell className="font-bold">
+                        {p.nome}
+                      </TableCell>
+                      <TableCell className="text-k-text-dim">{p.email}</TableCell>
+                      <TableCell className="text-k-text-dim">{companyName(p.companyId)}</TableCell>
+                      <TableCell>
+                        <StatusBadge status={p.status} />
+                      </TableCell>
+                      <TableCell className="text-k-text-dim">{formatDate(p.createdAt)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </>
         )}
       </div>
     </div>

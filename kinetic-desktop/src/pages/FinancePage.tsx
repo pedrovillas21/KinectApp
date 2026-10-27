@@ -12,12 +12,19 @@ import {
   Clock,
   KeyRound,
   MessageCircle,
+  MoreVertical,
   Pencil,
   Plus,
   RotateCcw,
   Wallet,
 } from 'lucide-react';
 import Avatar from '../components/Avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../components/ui/dropdown-menu';
 import FormDialog, { formInputClass, formLabelClass } from '../components/personal/FormDialog';
 import ConfirmDialog from '../components/personal/ConfirmDialog';
 import { EASE_OUT, riseItem, staggerContainer } from '../components/motion/primitives';
@@ -156,34 +163,38 @@ export default function FinancePage() {
   };
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-k-bg text-k-text">
-      <header className="z-30 flex shrink-0 flex-wrap items-center gap-3.5 border-b border-k-ghost bg-k-bg/85 px-8 py-3.5 backdrop-blur-[14px]">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-k-bg text-k-text">
+      <header className="z-30 flex h-14 shrink-0 items-center gap-3 border-b border-k-ghost bg-k-bg/85 px-4 backdrop-blur-[14px] md:h-auto md:gap-3.5 md:px-8 md:py-3.5">
         <Link
           to="/students"
           aria-label="Voltar para alunos"
-          className="group flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-k-surface1 text-k-text-dim transition-colors hover:bg-k-surface2 hover:text-k-text"
+          className="group hidden h-11 w-11 shrink-0 items-center md:flex justify-center rounded-xl border border-white/10 bg-k-surface1 text-k-text-dim transition-colors hover:bg-k-surface2 hover:text-k-text"
         >
           <ArrowLeft className="h-[18px] w-[18px] transition-transform duration-300 group-hover:-translate-x-0.5" />
         </Link>
-        <div>
-          <h1 className="font-display text-xl font-extrabold tracking-tight font-stretch-semi-expanded">Financeiro</h1>
-          <p className="text-[12.5px] text-k-text-muted">Mensalidades dos seus alunos</p>
+        <div className="min-w-0">
+          <h1 className="truncate font-display text-lg font-extrabold tracking-tight font-stretch-semi-expanded md:text-xl">
+            Financeiro
+          </h1>
+          <p className="text-[12.5px] text-k-text-muted max-md:hidden">Mensalidades dos seus alunos</p>
         </div>
-        <div className="ml-auto flex items-center gap-1 rounded-[14px] border border-k-ghost bg-k-surface1 p-1">
+        <div className="ml-auto flex shrink-0 items-center gap-0.5 rounded-xl border border-k-ghost bg-k-surface1 p-0.5 md:gap-1 md:rounded-[14px] md:p-1">
           <button
             type="button"
             aria-label="Mês anterior"
             onClick={() => setMonth((m) => shiftMonth(m, -1))}
-            className="flex h-9 w-9 items-center justify-center rounded-[10px] text-k-text-dim hover:bg-k-surface2 hover:text-k-text"
+            className="flex h-8 w-8 items-center md:h-9 md:w-9 justify-center rounded-[10px] text-k-text-dim hover:bg-k-surface2 hover:text-k-text"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <span className="min-w-[150px] text-center text-sm font-semibold">{monthLabel(month)}</span>
+          <span className="min-w-[108px] whitespace-nowrap text-center text-[13px] font-semibold md:min-w-[150px] md:text-sm">
+            {monthLabel(month)}
+          </span>
           <button
             type="button"
             aria-label="Próximo mês"
             onClick={() => setMonth((m) => shiftMonth(m, 1))}
-            className="flex h-9 w-9 items-center justify-center rounded-[10px] text-k-text-dim hover:bg-k-surface2 hover:text-k-text"
+            className="flex h-8 w-8 items-center md:h-9 md:w-9 justify-center rounded-[10px] text-k-text-dim hover:bg-k-surface2 hover:text-k-text"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -191,7 +202,7 @@ export default function FinancePage() {
       </header>
 
       <main className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-8 px-8 pb-16 pt-10">
+        <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-7 px-4 pb-12 pt-5 md:gap-8 md:px-8 md:pb-16 md:pt-10">
           {loadError ? (
             <div className="rounded-[18px] border border-dashed border-white/[0.14] p-10 text-center">
               <p className="text-k-text-dim">Não foi possível carregar o financeiro.</p>
@@ -212,7 +223,7 @@ export default function FinancePage() {
                 variants={staggerContainer}
                 initial="hidden"
                 animate="show"
-                className="grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-4"
+                className="grid grid-cols-2 gap-3 md:grid-cols-[repeat(auto-fit,minmax(210px,1fr))] md:gap-4"
               >
                 <MoneyTile label="Previsto no mês" icon={<Wallet className="h-[18px] w-[18px]" />} cents={data.expectedCents} />
                 <MoneyTile label="Recebido" icon={<Check className="h-[18px] w-[18px]" />} cents={data.receivedCents} tone="success" />
@@ -236,7 +247,7 @@ export default function FinancePage() {
               />
 
               <section aria-label="Cobranças" className="flex flex-col gap-4">
-                <h2 className="font-display text-[22px] font-extrabold tracking-tight font-stretch-semi-expanded">
+                <h2 className="font-display text-lg font-extrabold tracking-tight font-stretch-semi-expanded md:text-[22px]">
                   Cobranças
                 </h2>
                 {data.charges.length === 0 ? (
@@ -269,10 +280,10 @@ export default function FinancePage() {
               </section>
 
               <section aria-label="Mensalidades" className="flex flex-col gap-4">
-                <h2 className="font-display text-[22px] font-extrabold tracking-tight font-stretch-semi-expanded">
+                <h2 className="font-display text-lg font-extrabold tracking-tight font-stretch-semi-expanded md:text-[22px]">
                   Mensalidades
                 </h2>
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-3">
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(min(300px,100%),1fr))] gap-2.5 md:gap-3">
                   {data.plans.map((p) => (
                     <div key={p.studentId} className="flex items-center gap-3 rounded-[16px] border border-k-ghost bg-k-surface1 p-4">
                       <Avatar name={p.studentName} avatarUrl={p.studentAvatarUrl} size={40} />
@@ -286,17 +297,33 @@ export default function FinancePage() {
                         type="button"
                         aria-label={`Editar mensalidade de ${p.studentName}`}
                         onClick={() => openPlan(p)}
-                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 text-k-text-dim hover:bg-k-surface2 hover:text-k-text"
+                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 text-k-text-dim hover:bg-k-surface2 hover:text-k-text max-md:hidden"
                       >
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
                       <button
                         type="button"
                         onClick={() => setRemoveTarget(p)}
-                        className="h-9 rounded-xl border border-white/10 px-2.5 text-[12.5px] font-semibold text-k-text-dim hover:border-k-alert/40 hover:text-k-alert"
+                        className="h-9 rounded-xl border border-white/10 px-2.5 text-[12.5px] font-semibold text-k-text-dim hover:border-k-alert/40 hover:text-k-alert max-md:hidden"
                       >
                         Encerrar
                       </button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          aria-label={`Opções da mensalidade de ${p.studentName}`}
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-k-text-dim hover:bg-k-surface2 hover:text-k-text md:hidden"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => openPlan(p)}>
+                            <Pencil className="h-4 w-4" /> Editar mensalidade
+                          </DropdownMenuItem>
+                          <DropdownMenuItem variant="destructive" onClick={() => setRemoveTarget(p)}>
+                            Encerrar mensalidade
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   ))}
                   {data.studentsWithoutPlan.map((s) => (
@@ -453,13 +480,22 @@ function MoneyTile({
     alert: 'bg-k-alert/[0.12] text-k-alert',
   }[tone];
   return (
-    <motion.div variants={riseItem} className="flex flex-col gap-3 rounded-[18px] border border-k-ghost bg-k-surface1 p-5">
-      <span className="flex items-center justify-between">
-        <span className="text-[13px] font-medium text-k-text-dim">{label}</span>
-        <span className={`flex h-9 w-9 items-center justify-center rounded-[11px] ${toneClass}`}>{icon}</span>
+    <motion.div
+      variants={riseItem}
+      className="flex min-w-0 flex-col gap-2.5 rounded-2xl border border-k-ghost bg-k-surface1 p-3.5 md:gap-3 md:rounded-[18px] md:p-5"
+    >
+      <span className="flex items-center justify-between gap-2">
+        <span className="truncate text-xs font-medium text-k-text-dim md:text-[13px]">{label}</span>
+        <span
+          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-[9px] md:h-9 md:w-9 md:rounded-[11px] [&>svg]:h-3.5 [&>svg]:w-3.5 md:[&>svg]:h-[18px] md:[&>svg]:w-[18px] ${toneClass}`}
+        >
+          {icon}
+        </span>
       </span>
-      <span className="font-display text-[28px] font-extrabold leading-none tabular-nums">{formatBRL(cents)}</span>
-      {foot && <span className="text-[12.5px] text-k-text-muted">{foot}</span>}
+      <span className="truncate font-display text-lg font-extrabold leading-none tabular-nums md:text-[28px]">
+        {formatBRL(cents)}
+      </span>
+      {foot && <span className="truncate text-xs text-k-text-muted md:text-[12.5px]">{foot}</span>}
     </motion.div>
   );
 }
@@ -492,7 +528,7 @@ function PixKeyBar({
           <span className="text-sm text-k-text-dim">
             {pixKey ? (
               <>
-                Chave Pix nos lembretes: <strong className="font-semibold text-k-text">{pixKey}</strong>
+                Chave Pix<span className="max-sm:hidden"> nos lembretes</span>: <strong className="font-semibold text-k-text">{pixKey}</strong>
               </>
             ) : (
               'Cadastre sua chave Pix para ela ir junto no lembrete de cobrança.'
@@ -516,7 +552,7 @@ function PixKeyBar({
             value={draft}
             onChange={(e) => onChange(e.target.value)}
             placeholder="CPF, e-mail, celular ou chave aleatória"
-            className="h-10 min-w-[240px] flex-1 rounded-xl border border-white/10 bg-k-bg px-3 text-sm focus:border-k-primary"
+            className="h-10 min-w-[min(240px,100%)] flex-1 rounded-xl border border-white/10 bg-k-bg px-3 text-sm focus:border-k-primary"
           />
           <button type="submit" className="h-10 rounded-xl bg-k-primary px-4 text-sm font-bold text-k-on-primary">
             Salvar
@@ -557,9 +593,9 @@ function ChargeRow({
   const retained = c.studentId === null;
 
   return (
-    <li className="flex flex-wrap items-center gap-3 rounded-[16px] border border-k-ghost bg-k-surface1 p-4">
+    <li className="flex flex-wrap items-center gap-3 rounded-[16px] border border-k-ghost bg-k-surface1 p-3.5 md:p-4">
       <Avatar name={c.studentName} avatarUrl={c.studentAvatarUrl} size={40} />
-      <div className="min-w-[180px] flex-1">
+      <div className="min-w-0 flex-1 md:min-w-[180px]">
         <p className="truncate text-sm font-semibold">
           {c.studentName}
           {!c.activeStudent && !retained && (
@@ -572,8 +608,25 @@ function ChargeRow({
           {c.status === 'PAGO' && c.paidAt && ` · pago em ${dayMonth(c.paidAt)}${method ? ` (${method})` : ''}`}
         </p>
       </div>
-      <span className={`rounded-full px-2.5 py-1 text-[12px] font-bold ${meta.className}`}>{meta.label}</span>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex shrink-0 flex-col items-end gap-1.5">
+        <span className={`rounded-full px-2.5 py-1 text-[12px] font-bold ${meta.className}`}>{meta.label}</span>
+        {!open && !retained && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={onReopen}
+            className="flex items-center gap-1 text-xs text-k-text-muted hover:text-k-text disabled:opacity-50 md:hidden"
+          >
+            <RotateCcw className="h-3 w-3" />
+            Desfazer
+          </button>
+        )}
+      </div>
+      <div
+        className={`gap-2 max-md:w-full max-md:[&>*]:flex-1 max-md:[&>*]:justify-center md:flex md:flex-wrap ${
+          open ? 'flex' : 'hidden'
+        }`}
+      >
         {open && (
           <>
             {c.studentPhone && (

@@ -65,7 +65,7 @@ export default function DemoCheckoutPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-k-bg px-4 text-k-text">
+    <div className="flex min-h-dvh items-center justify-center bg-k-bg px-4 text-k-text">
       <div className="flex w-full max-w-[420px] flex-col gap-5 rounded-2xl border border-k-ghost bg-k-surface1 p-7">
         <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-k-warn/10 px-3 py-1 text-[12.5px] font-semibold text-k-warn">
           <FlaskConical className="h-3.5 w-3.5" />

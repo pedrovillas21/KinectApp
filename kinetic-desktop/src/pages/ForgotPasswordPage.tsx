@@ -93,7 +93,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 bg-k-bg text-k-text">
+    <div className="min-h-dvh grid lg:grid-cols-2 bg-k-bg text-k-text">
       <aside className="hidden lg:block border-r border-k-ghost">
         <AuthBrandPanel
           contentKey="forgot-password"

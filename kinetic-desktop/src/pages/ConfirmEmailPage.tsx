@@ -57,7 +57,7 @@ export default function ConfirmEmailPage() {
   };
 
   return (
-    <div className="relative h-screen flex items-center justify-center bg-k-bg text-k-text overflow-hidden">
+    <div className="relative min-h-dvh flex items-center justify-center bg-k-bg text-k-text overflow-hidden py-10">
       {/* Dynamic Background Glows */}
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-k-primary/10 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-k-primary/5 blur-[120px] pointer-events-none" />
@@ -65,7 +65,7 @@ export default function ConfirmEmailPage() {
       <div className="relative w-full max-w-[420px] mx-4 z-10">
         <form
           onSubmit={handleSubmit}
-          className="w-full flex flex-col gap-6 bg-k-surface1/85 backdrop-blur-xl border border-k-ghost rounded-2xl p-8 shadow-2xl hover:border-k-ghost-hi transition-colors duration-300"
+          className="w-full flex flex-col gap-6 bg-k-surface1/85 backdrop-blur-xl border border-k-ghost rounded-2xl p-6 sm:p-8 shadow-2xl hover:border-k-ghost-hi transition-colors duration-300"
         >
           <div className="flex flex-col items-center text-center gap-3">
             <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-gradient-to-br from-k-primary to-k-primary-deep text-k-on-primary shadow-[0_0_20px_rgba(0,229,255,0.35)]">

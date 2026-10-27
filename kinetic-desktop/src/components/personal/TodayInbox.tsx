@@ -104,8 +104,8 @@ export default function TodayInbox({ items }: { items: TodayItem[] }) {
       transition={{ duration: 0.6, ease: EASE_OUT, delay: 0.1 }}
       className="flex flex-col rounded-xl border border-white/[0.08]"
     >
-      <div className="flex flex-wrap items-center gap-3 border-b border-white/[0.07] px-5 py-3.5">
-        <div className="flex items-baseline gap-3">
+      <div className="flex flex-wrap items-center gap-3 border-b border-white/[0.07] px-4 py-3.5 md:px-5">
+        <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-3">
           <h2 className="text-[15px] font-semibold">Fila de hoje</h2>
           <p className="font-mono text-xs text-k-text-muted">
             {items.length === 0
@@ -116,7 +116,7 @@ export default function TodayInbox({ items }: { items: TodayItem[] }) {
           </p>
         </div>
         {types.length > 1 && (
-          <div role="group" aria-label="Filtrar pendências" className="ml-auto flex flex-wrap gap-0.5 rounded-lg border border-white/[0.08] p-0.5">
+          <div role="group" aria-label="Filtrar pendências" className="flex max-w-full gap-0.5 overflow-x-auto rounded-lg border border-white/[0.08] p-0.5 sm:ml-auto sm:flex-wrap">
             {(['ALL', ...types] as const).map((t) => {
               const active = filter === t;
               return (
@@ -128,7 +128,7 @@ export default function TodayInbox({ items }: { items: TodayItem[] }) {
                     setFilter(t);
                     setExpanded(false);
                   }}
-                  className={`relative flex h-7 items-center gap-1.5 rounded-md px-2.5 text-xs transition-colors ${
+                  className={`relative flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 text-xs transition-colors ${
                     active ? 'text-k-text' : 'text-k-text-dim hover:text-k-text'
                   }`}
                 >
@@ -149,7 +149,7 @@ export default function TodayInbox({ items }: { items: TodayItem[] }) {
       </div>
 
       {items.length > 0 && (
-        <ul className="flex flex-col divide-y divide-white/[0.06] px-5">
+        <ul className="flex flex-col divide-y divide-white/[0.06] px-4 md:px-5">
           <AnimatePresence initial={false}>
             {shown.map((item, i) => {
               const Icon = TYPE_META[item.type].icon;
@@ -160,19 +160,26 @@ export default function TodayInbox({ items }: { items: TodayItem[] }) {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="flex items-center gap-3 py-3.5"
+                  className="flex flex-wrap items-center gap-x-3 gap-y-2 py-3.5"
                 >
                   <span className={`h-2 w-2 shrink-0 rounded-full ${SEVERITY_DOT[item.severity]}`} aria-hidden="true" />
                   <Icon className="h-4 w-4 shrink-0 text-k-text-muted" />
-                  <div className="min-w-0 flex-1">
+                  {/* Celular: aluno e pendência em linhas separadas; WhatsApp + Ignorar descem para a
+                      linha de baixo, "Resolver" fica ao lado. */}
+                  <div className={`min-w-0 flex-1 ${item.type === 'TREINO_HOJE' ? 'basis-[200px]' : ''}`}>
                     <p className="truncate text-sm font-medium">
-                      {item.studentName ? `${item.studentName} · ` : ''}
-                      <span className="font-normal text-k-text-soft">{item.title}</span>
+                      {item.studentName && (
+                        <>
+                          {item.studentName}
+                          <span className="max-sm:hidden"> · </span>
+                        </>
+                      )}
+                      <span className="font-normal text-k-text-soft max-sm:block max-sm:truncate">{item.title}</span>
                     </p>
                     <p className="truncate text-[13px] text-k-text-muted">{item.detail}</p>
                   </div>
                   {item.type === 'TREINO_HOJE' && item.studentId ? (
-                    <div className="flex shrink-0 items-center gap-2">
+                    <div className="flex shrink-0 items-center gap-2 max-sm:ml-[38px]">
                       {item.studentPhone && (
                         <a
                           href={whatsappUrl(item.studentPhone, missedTodayMessage(item.studentName))}
@@ -210,7 +217,7 @@ export default function TodayInbox({ items }: { items: TodayItem[] }) {
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="mx-5 my-3 self-start text-[13px] text-k-primary hover:underline"
+          className="mx-4 my-3 self-start md:mx-5 text-[13px] text-k-primary hover:underline"
         >
           {expanded ? 'Mostrar menos' : `Ver todas (${filtered.length})`}
         </button>

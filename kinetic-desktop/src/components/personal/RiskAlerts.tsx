@@ -70,26 +70,34 @@ export default function RiskAlerts({
 
   return (
     <section id="alertas-de-risco" aria-label="Alertas de risco" className="flex scroll-mt-24 flex-col rounded-xl border border-white/[0.08]">
-      <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-white/[0.07] px-5 py-3.5">
-        <div className="flex items-baseline gap-3">
-          <h2 className="text-[15px] font-semibold">Precisam de um contato</h2>
-          <span className="font-mono text-xs text-k-text-muted">
-            {pending.length} {pending.length === 1 ? 'aluno' : 'alunos'}
+      <div className="flex items-baseline justify-between gap-3 border-b border-white/[0.07] px-4 py-3.5 md:px-5">
+        <div className="flex min-w-0 items-baseline gap-2.5 md:gap-3">
+          <h2 className="truncate text-[15px] font-semibold">Precisam de um contato</h2>
+          <span className="shrink-0 font-mono text-xs text-k-text-muted">
+            {pending.length}
+            <span className="max-sm:hidden"> {pending.length === 1 ? 'aluno' : 'alunos'}</span>
           </span>
         </div>
         {snoozedCount > 0 && (
           <button
             type="button"
             onClick={() => setShowSnoozed((v) => !v)}
-            className="text-[13px] text-k-text-dim hover:text-k-text"
+            className="shrink-0 whitespace-nowrap text-[13px] text-k-text-dim hover:text-k-text"
           >
-            {showSnoozed ? 'Ocultar pausados' : `${snoozedCount} pausado${snoozedCount === 1 ? '' : 's'} · mostrar`}
+            {showSnoozed ? (
+              'Ocultar pausados'
+            ) : (
+              <>
+                {snoozedCount} pausado{snoozedCount === 1 ? '' : 's'}
+                <span className="max-sm:hidden"> · mostrar</span>
+              </>
+            )}
           </button>
         )}
       </div>
 
       {pending.length === 0 ? (
-        <div className="flex items-center gap-3 px-5 py-4 text-sm text-k-text-dim">
+        <div className="flex items-center gap-3 px-4 py-4 text-sm text-k-text-dim md:px-5">
           <ShieldCheck className="h-5 w-5 text-k-success" />
           Nenhum aluno em risco alto de abandono agora. Bom trabalho!
         </div>
@@ -110,9 +118,9 @@ export default function RiskAlerts({
                   animate={{ opacity: isSnoozed ? 0.55 : 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.97 }}
                   transition={{ duration: 0.4, ease: EASE_OUT }}
-                  className="flex flex-wrap items-start gap-x-3.5 gap-y-3 px-5 py-4"
+                  className="flex flex-wrap items-start gap-x-3.5 gap-y-3 px-4 py-4 md:px-5"
                 >
-                  <div className="flex min-w-[280px] flex-1 items-start gap-3.5">
+                  <div className="flex min-w-[min(280px,100%)] flex-1 items-start gap-3.5">
                     <Avatar name={link.peer.nome} avatarUrl={link.peer.avatarUrl} size={32} />
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
@@ -143,7 +151,7 @@ export default function RiskAlerts({
                       )}
                     </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2 max-sm:w-full max-sm:pl-[46px]">
                     {link.peer.phone ? (
                       <a
                         href={whatsappUrl(link.peer.phone, outreachMessage(primary, firstName, trainerFirstName))}
@@ -172,9 +180,10 @@ export default function RiskAlerts({
                     </button>
                     <Link
                       to={`/students/${link.peer.id}`}
-                      className="flex h-8 items-center gap-1 rounded-lg px-2 text-[13px] text-k-text-dim transition-colors hover:text-k-text"
+                      aria-label={`Ver ${link.peer.nome}`}
+                      className="flex h-8 items-center gap-1 rounded-lg px-2 text-[13px] text-k-text-dim transition-colors hover:text-k-text max-sm:ml-auto"
                     >
-                      Ver aluno
+                      <span className="max-sm:hidden">Ver aluno</span>
                       <ChevronRight className="h-4 w-4" />
                     </Link>
                   </div>
@@ -189,7 +198,7 @@ export default function RiskAlerts({
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="mx-5 my-3 self-start text-[13px] text-k-primary hover:underline"
+          className="mx-4 my-3 self-start md:mx-5 text-[13px] text-k-primary hover:underline"
         >
           {expanded ? 'Mostrar menos' : `Ver todos (${pending.length})`}
         </button>

@@ -9,7 +9,7 @@ export function StudentsSkeleton() {
     <div
       role="status"
       aria-label="Carregando alunos"
-      className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4"
+      className="grid grid-cols-[repeat(auto-fill,minmax(min(300px,100%),1fr))] gap-4"
     >
       {nameWidths.map((w, i) => (
         <div

@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import PageHeader from '../../components/PageHeader';
 import PeriodTabs from '../../components/PeriodTabs';
-import { EmptyCard, StatTile } from '../../components/stat-primitives';
+import { EmptyCard, SectionCard, StatGrid, StatGridSkeleton, StatTile } from '../../components/stat-primitives';
 import { InstructorBarChart, VolumeLineChart } from '../../components/empresa-charts';
-import { Skeleton } from '@/components/ui/skeleton';
 import { getAnalytics } from '../../services/empresaService';
 import type { EmpresaAnalytics, StatsPeriodId } from '../../types';
 
@@ -44,21 +43,18 @@ export default function AnalyticsPage({
       <PageHeader
         title={title}
         subtitle={subtitle}
+        wideActions
         actions={<PeriodTabs value={period} onChange={setPeriod} />}
       />
 
-      <div className="max-w-[1160px] w-full mx-auto px-8 pt-8 pb-16 flex flex-col gap-6">
+      <div className="max-w-[1160px] w-full mx-auto px-4 md:px-8 pt-5 md:pt-8 pb-12 md:pb-16 flex flex-col gap-5 md:gap-6">
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} className="h-28 rounded-xl" />
-            ))}
-          </div>
+          <StatGridSkeleton cols={3} />
         ) : error || !data ? (
           <EmptyCard>{error ?? 'Sem dados disponíveis.'}</EmptyCard>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <StatGrid cols={3}>
               <StatTile
                 label="Sessões no período"
                 value={nf.format(data.sessoesNoPeriodo)}
@@ -74,27 +70,19 @@ export default function AnalyticsPage({
                 value={nf.format(data.alunosAtivos)}
                 detail="vínculos corporativos ativos"
               />
-            </div>
+            </StatGrid>
 
-            <div className="p-5 rounded-xl border border-white/[0.08] flex flex-col">
-              <div className="mb-4">
-                <h3 className="text-[15px] font-semibold">Volume de Treinos na Unidade</h3>
-                <p className="text-xs text-k-text-muted mt-0.5">Sessões dos alunos por dia no período</p>
-              </div>
-              <div className="flex-1 min-h-[260px] flex items-center justify-center">
+            <SectionCard title="Volume de Treinos na Unidade" subtitle="Sessões dos alunos por dia no período">
+              <div className="flex-1 min-h-[180px] md:min-h-[260px] flex items-center justify-center">
                 <VolumeLineChart series={data.volumeSeries} />
               </div>
-            </div>
+            </SectionCard>
 
-            <div className="p-5 rounded-xl border border-white/[0.08] flex flex-col">
-              <div className="mb-4">
-                <h3 className="text-[15px] font-semibold">Desempenho por Instrutor</h3>
-                <p className="text-xs text-k-text-muted mt-0.5">Alunos ativos sob cada personal</p>
-              </div>
-              <div className="flex-1 min-h-[240px] flex items-center justify-center">
+            <SectionCard title="Desempenho por Instrutor" subtitle="Alunos ativos sob cada personal">
+              <div className="flex-1 min-h-[160px] md:min-h-[240px] flex items-center justify-center">
                 <InstructorBarChart data={data.desempenhoPorInstrutor} />
               </div>
-            </div>
+            </SectionCard>
           </>
         )}
       </div>

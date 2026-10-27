@@ -3,10 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { UserCog, UserPlus, TrendingUp } from 'lucide-react';
 import PageHeader from '../../components/PageHeader';
 import PeriodTabs from '../../components/PeriodTabs';
-import { EmptyCard, StatTile } from '../../components/stat-primitives';
+import {
+  EmptyCard,
+  QuickActions,
+  SectionCard,
+  StatGrid,
+  StatGridSkeleton,
+  StatTile,
+} from '../../components/stat-primitives';
 import { InstructorBarChart, VolumeLineChart } from '../../components/empresa-charts';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import { getAnalytics } from '../../services/empresaService';
 import type { EmpresaAnalytics, StatsPeriodId } from '../../types';
 
@@ -37,21 +42,18 @@ export default function EmpresaHomePage() {
       <PageHeader
         title="Visão Geral"
         subtitle="Panorama da unidade: retenção e desempenho"
+        wideActions
         actions={<PeriodTabs value={period} onChange={setPeriod} />}
       />
 
-      <div className="max-w-[1160px] w-full mx-auto px-8 pt-8 pb-16 flex flex-col gap-6">
+      <div className="max-w-[1160px] w-full mx-auto px-4 md:px-8 pt-5 md:pt-8 pb-12 md:pb-16 flex flex-col gap-5 md:gap-6">
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-28 rounded-xl" />
-            ))}
-          </div>
+          <StatGridSkeleton />
         ) : error || !data ? (
           <EmptyCard>{error ?? 'Sem dados disponíveis.'}</EmptyCard>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatGrid>
               <StatTile
                 label="Personais ativos"
                 value={nf.format(data.personaisAtivos)}
@@ -72,40 +74,32 @@ export default function EmpresaHomePage() {
                 value={`${Math.round(data.retentionRate * 100)}%`}
                 detail="ativos / vinculados no período"
               />
-            </div>
+            </StatGrid>
 
-            <div className="flex flex-wrap gap-3">
-              <Button onClick={() => navigate('/empresa/funcionarios')}>
-                <UserCog className="w-4 h-4" /> Vincular Personal
-              </Button>
-              <Button onClick={() => navigate('/empresa/clientes')} variant="secondary">
-                <UserPlus className="w-4 h-4" /> Vincular Aluno
-              </Button>
-            </div>
+            <QuickActions
+              actions={[
+                { label: 'Vincular Personal', icon: UserCog, onClick: () => navigate('/empresa/funcionarios') },
+                {
+                  label: 'Vincular Aluno',
+                  icon: UserPlus,
+                  onClick: () => navigate('/empresa/clientes'),
+                  variant: 'secondary',
+                },
+              ]}
+            />
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="p-5 rounded-xl border border-white/[0.08] flex flex-col">
-                <div className="mb-4 flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-k-primary" />
-                  <div>
-                    <h3 className="text-[15px] font-semibold">Volume de Treinos na Unidade</h3>
-                    <p className="text-xs text-k-text-muted mt-0.5">Sessões dos alunos por dia</p>
-                  </div>
-                </div>
-                <div className="flex-1 min-h-[240px] flex items-center justify-center">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-6">
+              <SectionCard icon={TrendingUp} title="Volume de Treinos na Unidade" subtitle="Sessões dos alunos por dia">
+                <div className="flex-1 min-h-[180px] md:min-h-[240px] flex items-center justify-center">
                   <VolumeLineChart series={data.volumeSeries} />
                 </div>
-              </div>
+              </SectionCard>
 
-              <div className="p-5 rounded-xl border border-white/[0.08] flex flex-col">
-                <div className="mb-4">
-                  <h3 className="text-[15px] font-semibold">Desempenho por Instrutor</h3>
-                  <p className="text-xs text-k-text-muted mt-0.5">Alunos ativos sob cada personal</p>
-                </div>
-                <div className="flex-1 min-h-[220px] flex items-center justify-center">
+              <SectionCard title="Desempenho por Instrutor" subtitle="Alunos ativos sob cada personal">
+                <div className="flex-1 min-h-[160px] md:min-h-[220px] flex items-center justify-center">
                   <InstructorBarChart data={data.desempenhoPorInstrutor} />
                 </div>
-              </div>
+              </SectionCard>
             </div>
           </>
         )}

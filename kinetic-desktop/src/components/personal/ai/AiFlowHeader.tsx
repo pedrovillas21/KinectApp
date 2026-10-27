@@ -18,7 +18,7 @@ interface Props {
 export default function AiFlowHeader({ step, studentFirstName, onBack, backLabel, note, actions }: Props) {
   return (
     <div className="sticky top-0 z-20 border-b border-k-ghost bg-k-bg/90 backdrop-blur-[14px]">
-      <div className="mx-auto flex w-full max-w-[1120px] flex-wrap items-center justify-between gap-x-6 gap-y-3 px-8 py-3.5">
+      <div className="mx-auto flex w-full max-w-[1120px] flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 md:px-8 py-3.5">
         <div className="flex min-w-0 items-center gap-3.5">
           <button
             type="button"
@@ -63,7 +63,7 @@ export default function AiFlowHeader({ step, studentFirstName, onBack, backLabel
                   >
                     {done ? <Check className="h-3 w-3" strokeWidth={3} /> : n}
                   </span>
-                  {label}
+                  <span className={current ? undefined : 'max-sm:hidden'}>{label}</span>
                 </span>
               </li>
             );
@@ -80,8 +80,8 @@ export default function AiFlowHeader({ step, studentFirstName, onBack, backLabel
 export function AiFlowFooter({ children, summary }: { children: ReactNode; summary: ReactNode }) {
   return (
     <div className="sticky bottom-0 z-20 mt-2 border-t border-k-ghost bg-[#161616]/95 backdrop-blur-[14px]">
-      <div className="mx-auto flex w-full max-w-[1120px] flex-wrap items-center justify-between gap-4 px-8 py-4">
-        <div className="min-w-0 flex-[1_1_320px]">{summary}</div>
+      <div className="mx-auto flex w-full max-w-[1120px] flex-wrap items-center justify-between gap-4 px-4 md:px-8 py-4">
+        <div className="min-w-0 flex-[1_1_320px] max-sm:text-[13px]">{summary}</div>
         <div className="flex flex-wrap items-center gap-2.5">{children}</div>
       </div>
     </div>

@@ -40,7 +40,7 @@ export default function UnitDetailPage() {
 
   return (
     <div className="flex flex-col min-h-full">
-      <div className="max-w-[1160px] w-full mx-auto px-8 pt-8 flex flex-wrap items-center gap-3">
+      <div className="max-w-[1160px] w-full mx-auto px-4 md:px-8 pt-6 md:pt-8 flex flex-wrap items-center gap-3">
         <Link to="/dono/filiais" className="inline-flex items-center gap-1.5 text-xs font-semibold text-k-text-dim hover:text-k-text">
           <ArrowLeft className="w-3.5 h-3.5" /> Filiais
         </Link>
@@ -87,7 +87,7 @@ function useList<T>(load: () => Promise<T[]>) {
 
 function Shell({ loading, error, empty, children }: { loading: boolean; error: boolean; empty: boolean; children: React.ReactNode }) {
   return (
-    <div className="max-w-[1160px] w-full mx-auto px-8 pt-8 pb-16">
+    <div className="max-w-[1160px] w-full mx-auto px-4 md:px-8 pt-6 md:pt-8 pb-12 md:pb-16">
       {loading ? (
         <Skeleton className="h-40 rounded-xl" />
       ) : error ? (
@@ -110,15 +110,18 @@ function FuncionariosTable({ unitId }: { unitId: string }) {
         <TableHeader>
           <TableRow>
             <TableHead>Personal</TableHead>
-            <TableHead>E-mail</TableHead>
+            <TableHead className="max-md:hidden">E-mail</TableHead>
             <TableHead>Situação</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {rows?.map((f) => (
             <TableRow key={f.id}>
-              <TableCell className="font-bold">{f.nome}</TableCell>
-              <TableCell className="text-k-text-dim">{f.email}</TableCell>
+              <TableCell className="font-bold">
+                {f.nome}
+                <span className="block text-xs font-normal text-k-text-muted md:hidden">{f.email}</span>
+              </TableCell>
+              <TableCell className="text-k-text-dim max-md:hidden">{f.email}</TableCell>
               <TableCell className="text-xs">{f.companyId ? 'Funcionário' : 'Convite pendente'}</TableCell>
             </TableRow>
           ))}
@@ -138,7 +141,7 @@ function ClientesTable({ unitId }: { unitId: string }) {
           <TableRow>
             <TableHead>Aluno</TableHead>
             <TableHead>Personal</TableHead>
-            <TableHead>Desde</TableHead>
+            <TableHead className="max-md:hidden">Desde</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -146,7 +149,7 @@ function ClientesTable({ unitId }: { unitId: string }) {
             <TableRow key={c.linkId}>
               <TableCell className="font-bold">{c.student.nome}</TableCell>
               <TableCell className="text-k-text-dim">{c.trainer.nome}</TableCell>
-              <TableCell className="text-k-text-dim">{new Date(c.createdAt).toLocaleDateString('pt-BR')}</TableCell>
+              <TableCell className="text-k-text-dim max-md:hidden">{new Date(c.createdAt).toLocaleDateString('pt-BR')}</TableCell>
             </TableRow>
           ))}
         </TableBody>

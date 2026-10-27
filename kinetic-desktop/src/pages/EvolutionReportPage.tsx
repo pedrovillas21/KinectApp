@@ -45,11 +45,11 @@ export default function EvolutionReportPage() {
   const engagement = engagementQ.data?.find((e) => e.studentId === id) ?? null;
 
   if (link === undefined || list === null) {
-    return <div className="min-h-screen bg-k-bg p-10 text-k-text-dim">Montando o relatório…</div>;
+    return <div className="min-h-dvh bg-k-bg p-10 text-k-text-dim">Montando o relatório…</div>;
   }
   if (link === null) {
     return (
-      <div className="min-h-screen bg-k-bg p-10 text-k-text">
+      <div className="min-h-dvh bg-k-bg p-10 text-k-text">
         Aluno não encontrado na sua carteira.{' '}
         <Link to="/students" className="text-k-primary hover:underline">
           Voltar
@@ -65,8 +65,8 @@ export default function EvolutionReportPage() {
     .map((a) => ({ date: dayMonth(a.assessedOn), peso: a.weightKg, gordura: a.bodyFatPct }));
 
   return (
-    <div className="min-h-screen bg-k-bg print:bg-white">
-      <div className="flex items-center gap-3 border-b border-k-ghost px-8 py-3.5 print:hidden">
+    <div className="min-h-dvh bg-k-bg print:bg-white">
+      <div className="flex items-center gap-3 border-b border-k-ghost px-4 md:px-8 py-3.5 print:hidden">
         <Link
           to={`/students/${id}?aba=avaliacoes`}
           aria-label="Voltar para o aluno"

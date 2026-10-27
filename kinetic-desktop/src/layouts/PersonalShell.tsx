@@ -10,6 +10,7 @@ import { getMyTrainerProfile } from '../services/trainerProfileService';
 import { qk } from '../services/queryClient';
 import { useAiDrafts, type AiDraft } from '../components/personal/ai/aiDraftStore';
 import type { BillingOverview } from '../types';
+import MobileNav, { InstallAppButton } from './MobileNav';
 
 const NAV: { label: string; to: string; icon: LucideIcon }[] = [
   { label: 'Visão geral', to: '/students', icon: LayoutDashboard },
@@ -21,64 +22,80 @@ const NAV: { label: string; to: string; icon: LucideIcon }[] = [
 /**
  * Moldura das telas do personal: barra lateral fixa (marca, navegação, uso do
  * plano, conta) + conteúdo. Cada tela continua dona do próprio scroll.
+ * No celular a barra lateral vira barra inferior + gaveta (MobileNav).
  */
 export default function PersonalShell() {
-  const { currentUser, signOut } = useAuth();
   // Repassa o contexto do PhoneGate (celular do personal) para as telas.
   const outlet = useOutletContext();
+
+  return (
+    <div className="flex h-dvh flex-col overflow-hidden bg-k-bg text-k-text md:flex-row">
+      <aside className="hidden w-[232px] shrink-0 flex-col gap-6 border-r border-white/[0.07] bg-[#161616] px-3 py-5 md:flex">
+        <SidebarContent />
+      </aside>
+
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <Outlet context={outlet} />
+      </div>
+
+      <MobileNav tabs={TABS} drawer={<SidebarContent />} />
+    </div>
+  );
+}
+
+const TABS = NAV.map(({ label, to, icon }) => ({ label: label === 'Visão geral' ? 'Início' : label, to, icon }));
+
+/** Marca, navegação, fichas com IA em andamento, uso do plano e conta: barra lateral e gaveta do celular. */
+function SidebarContent() {
+  const { currentUser, signOut } = useAuth();
   const { data: profile } = useQuery({ queryKey: qk.profile, queryFn: getMyTrainerProfile });
 
   return (
-    <div className="flex h-screen overflow-hidden bg-k-bg text-k-text">
-      <aside className="hidden w-[232px] shrink-0 flex-col gap-6 border-r border-white/[0.07] bg-[#161616] px-3 py-5 md:flex">
-        <Link to="/students" aria-label="Kinetic, visão geral" className="px-2.5 py-1">
-          <KineticLogo size={19} />
-        </Link>
+    <>
+      <Link to="/students" aria-label="Kinetic, visão geral" className="px-2.5 py-1">
+        <KineticLogo size={19} />
+      </Link>
 
-        <nav aria-label="Principal" className="flex flex-col gap-0.5">
-          {NAV.map(({ label, to, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                `flex h-10 items-center gap-2.5 rounded-lg px-2.5 text-sm transition-colors ${
-                  isActive ? 'bg-white/[0.06] text-k-text' : 'text-k-text-dim hover:bg-white/[0.04] hover:text-k-text'
-                }`
-              }
-            >
-              <Icon className="h-4 w-4" strokeWidth={1.8} />
-              {label}
-            </NavLink>
-          ))}
-        </nav>
+      <nav aria-label="Principal" className="flex flex-col gap-0.5">
+        {NAV.map(({ label, to, icon: Icon }) => (
+          <NavLink
+            key={to}
+            to={to}
+            className={({ isActive }) =>
+              `flex h-10 items-center gap-2.5 rounded-lg px-2.5 text-sm transition-colors ${
+                isActive ? 'bg-white/[0.06] text-k-text' : 'text-k-text-dim hover:bg-white/[0.04] hover:text-k-text'
+              }`
+            }
+          >
+            <Icon className="h-4 w-4" strokeWidth={1.8} />
+            {label}
+          </NavLink>
+        ))}
+      </nav>
 
-        <AiDraftsNav ownerId={currentUser?.id} />
+      <AiDraftsNav ownerId={currentUser?.id} />
 
-        <div className="mt-auto flex flex-col gap-3">
-          <PlanUsage />
-          <div className="flex items-center gap-2.5 px-1.5">
-            <Avatar key={profile?.avatarUrl ?? 'none'} name={currentUser?.nome ?? ''} avatarUrl={profile?.avatarUrl} size={32} />
-            <div className="min-w-0 flex-1 leading-tight">
-              <p className="truncate text-[13px] font-medium">{currentUser?.nome}</p>
-              <p className="truncate text-xs text-k-text-muted">{currentUser?.email}</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => void signOut()}
-              aria-label="Sair"
-              title="Sair"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-k-text-muted transition-colors hover:bg-white/[0.06] hover:text-k-alert"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
+      <div className="mt-auto flex flex-col gap-3">
+        <InstallAppButton />
+        <PlanUsage />
+        <div className="flex items-center gap-2.5 px-1.5">
+          <Avatar key={profile?.avatarUrl ?? 'none'} name={currentUser?.nome ?? ''} avatarUrl={profile?.avatarUrl} size={32} />
+          <div className="min-w-0 flex-1 leading-tight">
+            <p className="truncate text-[13px] font-medium">{currentUser?.nome}</p>
+            <p className="truncate text-xs text-k-text-muted">{currentUser?.email}</p>
           </div>
+          <button
+            type="button"
+            onClick={() => void signOut()}
+            aria-label="Sair"
+            title="Sair"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-k-text-muted transition-colors hover:bg-white/[0.06] hover:text-k-alert"
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
         </div>
-      </aside>
-
-      <div className="flex min-w-0 flex-1 flex-col">
-        <Outlet context={outlet} />
       </div>
-    </div>
+    </>
   );
 }
 

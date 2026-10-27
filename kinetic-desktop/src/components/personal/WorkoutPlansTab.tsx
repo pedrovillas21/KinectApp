@@ -173,7 +173,7 @@ export default function WorkoutPlansTab({ studentId, studentFirstName, studentNa
     setEditor({ kind: 'create', suggestedTag: nextTag(plans ?? []), source });
 
   return (
-    <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-5 px-8 py-7">
+    <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-5 px-4 md:px-8 py-7">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="font-display text-[22px] font-extrabold tracking-tight font-stretch-semi-expanded">

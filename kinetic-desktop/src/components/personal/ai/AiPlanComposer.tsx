@@ -108,7 +108,7 @@ export default function AiPlanComposer({
         }
       />
 
-      <div className="mx-auto flex w-full max-w-[1120px] flex-1 flex-wrap items-start gap-5 px-8 py-7">
+      <div className="mx-auto flex w-full max-w-[1120px] flex-1 flex-wrap items-start gap-5 px-4 md:px-8 py-7">
         <div className="flex min-w-0 flex-[999_1_560px] flex-col gap-4">
           <AnimatePresence>
             {error && (
@@ -127,7 +127,7 @@ export default function AiPlanComposer({
           </AnimatePresence>
 
           <section aria-label="Pedido" className={CARD}>
-            <div className="flex flex-col gap-3 p-6">
+            <div className="flex flex-col gap-3 p-4 sm:p-6">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <label htmlFor="ai-prompt" className={SECTION_TITLE}>
                   O que você quer para {studentFirstName}?
@@ -164,7 +164,7 @@ export default function AiPlanComposer({
               </div>
             </div>
 
-            <div className="grid gap-4 border-t border-k-ghost px-6 py-5 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-4 border-t border-k-ghost px-4 py-5 sm:grid-cols-2 sm:px-6 xl:grid-cols-4">
               <div className="flex min-w-0 flex-col gap-2">
                 <span id="ai-scope-label" className={LABEL}>
                   Formato
@@ -249,7 +249,7 @@ export default function AiPlanComposer({
             </div>
 
             {hasCurrent && (
-              <fieldset className="m-0 flex min-w-0 flex-col gap-3 border-0 border-t border-solid border-k-ghost px-6 pb-6 pt-5">
+              <fieldset className="m-0 flex min-w-0 flex-col gap-3 border-0 border-t border-solid border-k-ghost px-4 pb-6 pt-5 sm:px-6">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <legend className={`float-left ${SECTION_TITLE}`}>Fichas atuais de {studentFirstName}</legend>
                   <span className="flex flex-wrap gap-1.5">

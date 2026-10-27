@@ -43,6 +43,8 @@ export interface NavItem {
   label: string;
   path: string;
   icon: LucideIcon;
+  /** Rótulo curto da barra inferior do celular (sem ele, usa `label`). */
+  shortLabel?: string;
   /** Item visível mas em construção — rota renderiza estado "em breve". */
   comingSoon?: boolean;
 }
@@ -53,22 +55,22 @@ export const NAV_BY_ROLE: Record<PanelRole, NavItem[]> = {
     { label: 'Meu perfil', path: '/perfil', icon: IdCard },
   ],
   ROOT: [
-    { label: 'Visão Geral', path: '/root', icon: LayoutDashboard },
+    { label: 'Visão Geral', shortLabel: 'Início', path: '/root', icon: LayoutDashboard },
     { label: 'Empresas', path: '/root/empresas', icon: Building2 },
     { label: 'Personais', path: '/root/personais', icon: UserCog },
-    { label: 'Usuários & Compliance', path: '/root/usuarios', icon: ShieldCheck },
+    { label: 'Usuários & Compliance', shortLabel: 'Usuários', path: '/root/usuarios', icon: ShieldCheck },
     { label: 'Auditoria', path: '/root/auditoria', icon: ScrollText, comingSoon: true },
     { label: 'Faturamento', path: '/root/faturamento', icon: CreditCard, comingSoon: true },
   ],
   EMPRESA: [
-    { label: 'Visão Geral', path: '/empresa', icon: LayoutDashboard },
-    { label: 'Funcionários', path: '/empresa/funcionarios', icon: UserCog },
+    { label: 'Visão Geral', shortLabel: 'Início', path: '/empresa', icon: LayoutDashboard },
+    { label: 'Funcionários', shortLabel: 'Equipe', path: '/empresa/funcionarios', icon: UserCog },
     { label: 'Clientes', path: '/empresa/clientes', icon: Users },
     { label: 'Feedbacks', path: '/empresa/feedbacks', icon: MessageSquareText },
     { label: 'Analytics', path: '/empresa/analytics', icon: BarChart3 },
   ],
   DONO: [
-    { label: 'Visão Geral', path: '/dono', icon: LayoutDashboard },
+    { label: 'Visão Geral', shortLabel: 'Início', path: '/dono', icon: LayoutDashboard },
     { label: 'Filiais', path: '/dono/filiais', icon: Building2 },
   ],
 };

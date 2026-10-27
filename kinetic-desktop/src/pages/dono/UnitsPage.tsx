@@ -1,9 +1,10 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { KeyRound, Pencil, Plus, Power, ShieldCheck, ShieldOff } from 'lucide-react';
+import { KeyRound, Pencil, Plus, Power, ShieldCheck, ShieldOff, Store } from 'lucide-react';
 import PageHeader from '../../components/PageHeader';
 import { EmptyCard } from '../../components/stat-primitives';
+import { ListIcon, MobileList, MobileListItem } from '../../components/MobileList';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -142,7 +143,7 @@ export default function UnitsPage() {
         }
       />
 
-      <div className="max-w-[1160px] w-full mx-auto px-8 pt-8 pb-16">
+      <div className="max-w-[1160px] w-full mx-auto px-4 md:px-8 pt-6 md:pt-8 pb-12 md:pb-16">
         {loading ? (
           <div className="flex flex-col gap-3">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -154,105 +155,161 @@ export default function UnitsPage() {
         ) : units.length === 0 ? (
           <EmptyCard>Nenhuma filial cadastrada ainda. Use "Nova filial" para começar.</EmptyCard>
         ) : (
-          <div className="rounded-xl border border-white/[0.08] overflow-hidden overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Filial</TableHead>
-                  <TableHead>Responsável</TableHead>
-                  <TableHead>Usuário</TableHead>
-                  <TableHead>Equipe</TableHead>
-                  <TableHead>Situação</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {units.map((u) => (
-                  <TableRow key={u.id} className="cursor-pointer" onClick={() => navigate(`/dono/filiais/${u.id}`)}>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-bold">{u.nome}</span>
-                        <span className="text-[11px] text-k-text-muted">{formatCnpj(u.cnpj)}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="text-xs font-semibold">{u.responsibleName}</span>
-                        <span className="text-[11px] text-k-text-muted">{u.responsibleEmail}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-mono text-xs">{u.username ?? '—'}</TableCell>
-                    <TableCell className="text-xs text-k-text-dim">
-                      {u.personais} personais · {u.alunosAtivos} alunos
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col gap-0.5 text-xs">
-                        <span className={u.active ? 'text-k-success' : 'text-k-alert'}>
-                          {u.active ? 'Ativa' : 'Suspensa'}
-                        </span>
-                        <span className="inline-flex items-center gap-1 text-k-text-muted">
-                          {u.secondFactorEnabled ? <ShieldCheck className="w-3 h-3" /> : <ShieldOff className="w-3 h-3" />}
-                          {u.secondFactorEnabled ? 'App autenticador ativo' : 'Sem app autenticador'}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex justify-end gap-1">
-                        <Button variant="ghost" size="sm" onClick={() => openEdit(u)} title="Editar dados" aria-label="Editar filial">
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          title="Gerar nova senha (vai ao e-mail do responsável)"
-                          aria-label="Gerar nova senha"
-                          disabled={busyId === u.id}
-                          onClick={() =>
-                            void act(u, () => regenerateUnitPassword(u.id), `Nova senha enviada para ${u.responsibleEmail}.`)
-                          }
-                        >
-                          <KeyRound className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          title="Redefinir o app autenticador (celular perdido)"
-                          aria-label="Redefinir app autenticador"
-                          disabled={busyId === u.id || !u.secondFactorEnabled}
-                          onClick={() =>
-                            void act(
-                              u,
-                              () => resetUnitSecondFactor(u.id),
-                              'App autenticador redefinido. No próximo login a filial cadastra o app de novo.',
-                            )
-                          }
-                        >
-                          <ShieldOff className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          title={u.active ? 'Suspender a filial (encerra o acesso)' : 'Reativar a filial'}
-                          aria-label={u.active ? 'Suspender filial' : 'Reativar filial'}
-                          disabled={busyId === u.id}
-                          onClick={() =>
-                            void act(
-                              u,
-                              () => setUnitActive(u.id, !u.active),
-                              u.active ? 'Filial suspensa: o acesso dela foi encerrado.' : 'Filial reativada.',
-                            )
-                          }
-                          className={u.active ? 'hover:text-k-error' : ''}
-                        >
-                          <Power className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+          <>
+            <MobileList>
+              {units.map((u) => (
+                <MobileListItem
+                  key={u.id}
+                  leading={<ListIcon icon={Store} />}
+                  to={`/dono/filiais/${u.id}`}
+                  title={u.nome}
+                  subtitle={u.responsibleName}
+                  meta={
+                    <>
+                      <span className={u.active ? 'text-k-success' : 'text-k-alert'}>{u.active ? 'Ativa' : 'Suspensa'}</span>
+                      <span>
+                        {u.personais} personais · {u.alunosAtivos} alunos
+                      </span>
+                      {!u.secondFactorEnabled && <span className="text-k-warn">sem app autenticador</span>}
+                    </>
+                  }
+                  actionsLabel={`Ações da filial ${u.nome}`}
+                  actions={[
+                    { label: 'Editar dados', icon: Pencil, onClick: () => openEdit(u) },
+                    {
+                      label: 'Gerar nova senha',
+                      icon: KeyRound,
+                      disabled: busyId === u.id,
+                      onClick: () =>
+                        void act(u, () => regenerateUnitPassword(u.id), `Nova senha enviada para ${u.responsibleEmail}.`),
+                    },
+                    {
+                      label: 'Redefinir app autenticador',
+                      icon: ShieldOff,
+                      disabled: busyId === u.id || !u.secondFactorEnabled,
+                      onClick: () =>
+                        void act(
+                          u,
+                          () => resetUnitSecondFactor(u.id),
+                          'App autenticador redefinido. No próximo login a filial cadastra o app de novo.',
+                        ),
+                    },
+                    {
+                      label: u.active ? 'Suspender filial' : 'Reativar filial',
+                      icon: Power,
+                      destructive: u.active,
+                      disabled: busyId === u.id,
+                      onClick: () =>
+                        void act(
+                          u,
+                          () => setUnitActive(u.id, !u.active),
+                          u.active ? 'Filial suspensa: o acesso dela foi encerrado.' : 'Filial reativada.',
+                        ),
+                    },
+                  ]}
+                />
+              ))}
+            </MobileList>
+            <div className="rounded-xl border border-white/[0.08] overflow-hidden overflow-x-auto max-md:hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Filial</TableHead>
+                    <TableHead>Responsável</TableHead>
+                    <TableHead>Usuário</TableHead>
+                    <TableHead>Equipe</TableHead>
+                    <TableHead>Situação</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {units.map((u) => (
+                    <TableRow key={u.id} className="cursor-pointer" onClick={() => navigate(`/dono/filiais/${u.id}`)}>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="font-bold">{u.nome}</span>
+                          <span className="text-[11px] text-k-text-muted">{formatCnpj(u.cnpj)}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="text-xs font-semibold">{u.responsibleName}</span>
+                          <span className="text-[11px] text-k-text-muted">{u.responsibleEmail}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs">{u.username ?? '—'}</TableCell>
+                      <TableCell className="text-xs text-k-text-dim">
+                        {u.personais} personais · {u.alunosAtivos} alunos
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-0.5 text-xs">
+                          <span className={u.active ? 'text-k-success' : 'text-k-alert'}>
+                            {u.active ? 'Ativa' : 'Suspensa'}
+                          </span>
+                          <span className="inline-flex items-center gap-1 text-k-text-muted">
+                            {u.secondFactorEnabled ? <ShieldCheck className="w-3 h-3" /> : <ShieldOff className="w-3 h-3" />}
+                            {u.secondFactorEnabled ? 'App autenticador ativo' : 'Sem app autenticador'}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex justify-end gap-1">
+                          <Button variant="ghost" size="sm" onClick={() => openEdit(u)} title="Editar dados" aria-label="Editar filial">
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            title="Gerar nova senha (vai ao e-mail do responsável)"
+                            aria-label="Gerar nova senha"
+                            disabled={busyId === u.id}
+                            onClick={() =>
+                              void act(u, () => regenerateUnitPassword(u.id), `Nova senha enviada para ${u.responsibleEmail}.`)
+                            }
+                          >
+                            <KeyRound className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            title="Redefinir o app autenticador (celular perdido)"
+                            aria-label="Redefinir app autenticador"
+                            disabled={busyId === u.id || !u.secondFactorEnabled}
+                            onClick={() =>
+                              void act(
+                                u,
+                                () => resetUnitSecondFactor(u.id),
+                                'App autenticador redefinido. No próximo login a filial cadastra o app de novo.',
+                              )
+                            }
+                          >
+                            <ShieldOff className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            title={u.active ? 'Suspender a filial (encerra o acesso)' : 'Reativar a filial'}
+                            aria-label={u.active ? 'Suspender filial' : 'Reativar filial'}
+                            disabled={busyId === u.id}
+                            onClick={() =>
+                              void act(
+                                u,
+                                () => setUnitActive(u.id, !u.active),
+                                u.active ? 'Filial suspensa: o acesso dela foi encerrado.' : 'Filial reativada.',
+                              )
+                            }
+                            className={u.active ? 'hover:text-k-error' : ''}
+                          >
+                            <Power className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </>
         )}
       </div>
 

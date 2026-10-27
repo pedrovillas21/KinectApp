@@ -11,6 +11,7 @@ import {
   YAxis,
 } from 'recharts';
 import { EmptyCard } from './stat-primitives';
+import { useIsMobile } from '../utils/useIsMobile';
 import type { EmpresaAnalytics } from '../types';
 
 const CHART = {
@@ -38,19 +39,24 @@ const shortDate = (iso: string): string => {
 
 /** Volume de treinos da unidade (sessões por dia). Série única. */
 export function VolumeLineChart({ series }: { series: EmpresaAnalytics['volumeSeries'] }) {
+  const mobile = useIsMobile();
   if (series.length === 0) {
     return <EmptyCard>Nenhuma sessão de treino registrada pelos alunos no período.</EmptyCard>;
   }
   const data = series.map((p) => ({ date: shortDate(p.date), sessoes: p.sessions }));
   return (
-    <ResponsiveContainer width="100%" height={240}>
-      <LineChart data={data} margin={{ top: 15, right: 15, bottom: 5, left: -20 }}>
+    <ResponsiveContainer width="100%" height={mobile ? 200 : 240}>
+      <LineChart
+        data={data}
+        margin={mobile ? { top: 10, right: 8, bottom: 0, left: -28 } : { top: 15, right: 15, bottom: 5, left: -20 }}
+      >
         <CartesianGrid vertical={false} stroke={CHART.grid} />
         <XAxis
           dataKey="date"
           tick={{ fill: CHART.tick, fontSize: 10, fontWeight: 600 }}
           axisLine={false}
           tickLine={false}
+          minTickGap={mobile ? 24 : 5}
         />
         <YAxis
           allowDecimals={false}
@@ -75,13 +81,14 @@ export function VolumeLineChart({ series }: { series: EmpresaAnalytics['volumeSe
 
 /** Nº de alunos ativos por instrutor. Barras horizontais, série única. */
 export function InstructorBarChart({ data }: { data: EmpresaAnalytics['desempenhoPorInstrutor'] }) {
+  const mobile = useIsMobile();
   if (data.length === 0) {
     return <EmptyCard>Nenhum instrutor com alunos ativos ainda.</EmptyCard>;
   }
   const rows = data.map((d) => ({ name: d.trainerName, alunos: d.activeStudents }));
   return (
-    <ResponsiveContainer width="100%" height={Math.max(220, rows.length * 44 + 20)}>
-      <BarChart data={rows} layout="vertical" margin={{ top: 10, right: 30, bottom: 5, left: 0 }}>
+    <ResponsiveContainer width="100%" height={Math.max(mobile ? 140 : 220, rows.length * (mobile ? 38 : 44) + 20)}>
+      <BarChart data={rows} layout="vertical" margin={{ top: 10, right: mobile ? 24 : 30, bottom: 5, left: 0 }}>
         <CartesianGrid horizontal={false} stroke={CHART.grid} />
         <XAxis
           type="number"
@@ -93,7 +100,7 @@ export function InstructorBarChart({ data }: { data: EmpresaAnalytics['desempenh
         <YAxis
           type="category"
           dataKey="name"
-          width={110}
+          width={mobile ? 92 : 110}
           tick={{ fill: '#f5f6f7', fontSize: 11, fontWeight: 700 }}
           axisLine={false}
           tickLine={false}

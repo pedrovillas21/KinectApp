@@ -14,6 +14,7 @@ import {
 } from '../services/trainerService';
 import { qk, queryClient, refreshTrainerData } from '../services/queryClient';
 import InviteStudentModal from '../components/InviteStudentModal';
+import KineticLogo from '../components/KineticLogo';
 import PhoneDialog from '../components/PhoneDialog';
 import { usePersonalPhone } from '../layouts/PhoneGate';
 import { maskCellPhone } from '../utils/whatsapp';
@@ -166,33 +167,37 @@ export default function StudentsListPage() {
   const totalTarget = withPlan.reduce((sum, r) => sum + (r.stats?.targetSessions ?? 0), 0);
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
-      <header className="flex h-[60px] shrink-0 items-center gap-3 border-b border-white/[0.07] px-8">
-        <span className="text-sm text-k-text-muted">Visão geral</span>
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <header className="flex h-14 shrink-0 items-center gap-2 border-b border-white/[0.07] px-4 md:h-[60px] md:gap-3 md:px-8">
+        <span className="sm:hidden">
+          <KineticLogo size={16} />
+        </span>
+        <span className="text-sm text-k-text-muted max-sm:hidden">Visão geral</span>
         <button
           type="button"
           onClick={() => setPhoneOpen(true)}
           title="Trocar meu WhatsApp"
-          className="ml-auto flex h-9 items-center gap-2 rounded-lg border border-white/10 px-3 text-[13px] text-k-text-dim transition-colors hover:bg-white/[0.06] hover:text-k-text"
+          aria-label="Trocar meu WhatsApp"
+          className="ml-auto flex h-9 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border border-white/10 px-2.5 text-[13px] text-k-text-dim transition-colors hover:bg-white/[0.06] hover:text-k-text sm:px-3"
         >
           <MessageCircle className="h-4 w-4" />
-          <span className="font-mono">{phone ? maskCellPhone(phone) : 'Meu WhatsApp'}</span>
+          <span className="font-mono max-sm:hidden">{phone ? maskCellPhone(phone) : 'Meu WhatsApp'}</span>
         </button>
         <button
           type="button"
           onClick={() => setInviteOpen(true)}
-          className="flex h-9 items-center gap-1.5 rounded-lg bg-k-primary px-3.5 text-[13px] font-semibold text-k-on-primary transition-colors hover:bg-[#7df1ff]"
+          className="flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg bg-k-primary px-3 text-[13px] font-semibold text-k-on-primary transition-colors hover:bg-[#7df1ff] sm:px-3.5"
         >
           <UserPlus className="h-4 w-4" />
-          Convidar aluno
+          Convidar<span className="max-sm:hidden"> aluno</span>
         </button>
       </header>
 
       <main className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto flex w-full max-w-[1160px] flex-col gap-8 px-8 pb-16 pt-9">
-          <section className="flex flex-col gap-1.5">
-            <p className="font-mono text-xs uppercase tracking-[0.04em] text-k-text-muted">{todayLabel(now)}</p>
-            <h1 className="text-[28px] font-semibold leading-[34px] tracking-[-0.02em]">
+        <div className="mx-auto flex w-full max-w-[1160px] flex-col gap-6 px-4 pb-10 pt-6 md:gap-8 md:px-8 md:pb-16 md:pt-9">
+          <section className="flex flex-col gap-1 md:gap-1.5">
+            <p className="font-mono text-[11px] uppercase md:text-xs tracking-[0.04em] text-k-text-muted">{todayLabel(now)}</p>
+            <h1 className="text-2xl font-semibold tracking-[-0.02em] md:text-[28px] md:leading-[34px]">
               {greetingFor(now.getHours())}
               {firstName ? `, ${firstName}` : ''}
             </h1>
@@ -212,6 +217,7 @@ export default function StudentsListPage() {
           >
             <Kpi
               label="Alunos ativos"
+              short="Alunos ativos"
               value={loading ? null : students.length}
               unit={billing?.studentLimit != null ? `/ ${billing.studentLimit}` : undefined}
               foot={
@@ -225,6 +231,7 @@ export default function StudentsListPage() {
             />
             <Kpi
               label="Aderência média · mês"
+              short="Aderência · mês"
               value={statsReady && avgAdherence !== null ? Math.round(avgAdherence) : null}
               unit="%"
               progress={statsReady && avgAdherence !== null ? avgAdherence : undefined}
@@ -232,12 +239,14 @@ export default function StudentsListPage() {
             />
             <Kpi
               label="Treinos concluídos · mês"
+              short="Treinos · mês"
               value={statsReady ? totalDone : null}
               unit={statsReady ? `/ ${totalTarget}` : undefined}
               foot="Somando as fichas de todos os alunos"
             />
             <Kpi
               label="Precisam de atenção"
+              short="Em risco"
               value={riskCount}
               dot={(riskCount ?? 0) > 0}
               foot="Risco alto: muito tempo sem treinar ou queda forte"
@@ -248,7 +257,7 @@ export default function StudentsListPage() {
           {billing && (billing.chooseActiveUntil || billing.frozenStudents > 0) && (
             <Link
               to="/assinatura#carteira"
-              className="flex items-center gap-3 rounded-xl border border-k-warn/30 bg-k-warn/[0.05] px-5 py-3.5 text-sm transition-colors hover:bg-k-warn/[0.09]"
+              className="flex items-center gap-3 rounded-xl border border-k-warn/30 bg-k-warn/[0.05] px-4 py-3.5 text-sm md:px-5 transition-colors hover:bg-k-warn/[0.09]"
             >
               <Snowflake className="h-4 w-4 shrink-0 text-k-warn" />
               <span className="flex-1">
@@ -278,7 +287,7 @@ export default function StudentsListPage() {
                   {visible.length === rows.length ? rows.length : `${visible.length} de ${rows.length}`}
                 </span>
               )}
-              <div role="group" aria-label="Filtrar alunos por aderência" className="flex gap-0.5 sm:ml-3">
+              <div role="group" aria-label="Filtrar alunos por aderência" className="-mx-1 flex w-full gap-0.5 overflow-x-auto sm:mx-0 sm:ml-3 sm:w-auto">
                 {FILTERS.map((f) => {
                   const active = filter === f.id;
                   const count = f.id === 'all' || statsReady ? String(counts[f.id]) : '–';
@@ -288,7 +297,7 @@ export default function StudentsListPage() {
                       type="button"
                       aria-pressed={active}
                       onClick={() => setFilter(f.id)}
-                      className={`relative flex h-8 items-center gap-1.5 rounded-md px-2.5 text-[13px] transition-colors ${
+                      className={`relative flex h-8 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-[13px] transition-colors ${
                         active ? 'text-k-text' : 'text-k-text-dim hover:text-k-text'
                       }`}
                     >
@@ -305,7 +314,7 @@ export default function StudentsListPage() {
                   );
                 })}
               </div>
-              <label className="relative ml-auto flex items-center">
+              <label className="relative flex flex-1 items-center sm:ml-auto sm:flex-none">
                 <span className="sr-only">Buscar aluno</span>
                 <Search className="pointer-events-none absolute left-3 h-4 w-4 text-k-text-muted" />
                 <input
@@ -313,16 +322,17 @@ export default function StudentsListPage() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Buscar por nome ou e-mail"
-                  className="h-9 w-[260px] max-w-full rounded-lg border border-white/10 bg-transparent pl-9 pr-3 text-[13px] transition-colors placeholder:text-k-text-muted focus:border-k-primary"
+                  className="h-9 w-full rounded-lg sm:w-[260px] border border-white/10 bg-transparent pl-9 pr-3 text-[13px] transition-colors placeholder:text-k-text-muted focus:border-k-primary"
                 />
               </label>
               <button
                 type="button"
                 onClick={() => setInviteOpen(true)}
-                className="flex h-9 items-center gap-1.5 rounded-lg border border-white/10 px-3 text-[13px] text-k-text transition-colors hover:bg-white/[0.06]"
+                aria-label="Convidar aluno"
+                className="flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-white/10 px-3 text-[13px] text-k-text transition-colors hover:bg-white/[0.06]"
               >
                 <Plus className="h-4 w-4" />
-                Convidar aluno
+                <span className="max-sm:hidden">Convidar aluno</span>
               </button>
             </div>
 
@@ -392,6 +402,7 @@ function HeroSummary({
 /** Célula da faixa de indicadores; value null = carregando (traço). */
 function Kpi({
   label,
+  short,
   value,
   unit,
   foot,
@@ -400,6 +411,8 @@ function Kpi({
   onClick,
 }: {
   label: string;
+  /** Rótulo do celular (meia largura). */
+  short: string;
   value: number | null;
   unit?: string;
   foot: string;
@@ -409,9 +422,12 @@ function Kpi({
 }) {
   const body: ReactNode = (
     <>
-      <span className="text-[13px] text-k-text-muted">{label}</span>
+      <span className="truncate text-xs text-k-text-muted md:text-[13px]">
+        <span className="md:hidden">{short}</span>
+        <span className="max-md:hidden">{label}</span>
+      </span>
       <span className="flex items-baseline gap-1.5">
-        <span className="font-mono text-[30px] font-medium leading-[34px] tabular-nums">
+        <span className="font-mono text-2xl font-medium leading-7 tabular-nums md:text-[30px] md:leading-[34px]">
           {value === null ? '—' : value}
         </span>
         {unit && value !== null && <span className="font-mono text-k-text-muted">{unit}</span>}
@@ -425,10 +441,10 @@ function Kpi({
           />
         </span>
       )}
-      <span className="text-xs text-k-text-muted">{foot}</span>
+      <span className="text-xs text-k-text-muted max-md:hidden">{foot}</span>
     </>
   );
-  const className = 'flex flex-col gap-2.5 bg-k-bg p-5 text-left';
+  const className = 'flex flex-col gap-2 bg-k-bg p-4 text-left md:gap-2.5 md:p-5';
   return onClick ? (
     <button type="button" onClick={onClick} className={`${className} transition-colors hover:bg-[#171717]`}>
       {body}

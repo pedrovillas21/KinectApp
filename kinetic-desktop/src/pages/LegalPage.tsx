@@ -6,7 +6,7 @@ import { LEGAL_UPDATED_AT, type LegalDocument } from '../legal/documents';
 export default function LegalPage({ doc }: { doc: LegalDocument }) {
   return (
     // O body não rola (theme.css, app-shell): a página rola dentro do próprio contêiner.
-    <div className="h-screen overflow-y-auto bg-k-bg px-4 py-10 text-k-text">
+    <div className="h-dvh overflow-y-auto bg-k-bg px-4 py-10 text-k-text">
       <article className="mx-auto flex w-full max-w-[760px] flex-col gap-8">
         <header className="flex flex-col gap-5 border-b border-white/[0.07] pb-8">
           <KineticLogo size={18} />

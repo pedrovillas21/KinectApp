@@ -9,6 +9,11 @@ import App from './App';
 import { Toaster } from '@/components/ui/sonner';
 import './theme/theme.css';
 
+// PWA: só em produção (em dev o cache do SW atrapalharia o HMR).
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => void navigator.serviceWorker.register('/sw.js'));
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     {/* reducedMotion="user": respeita o "reduzir movimento" do sistema operacional. */}
@@ -17,7 +22,8 @@ createRoot(document.getElementById('root')!).render(
         <BrowserRouter>
           <AuthProvider>
             <App />
-            <Toaster richColors position="bottom-right" />
+            {/* No celular, acima da barra de navegação inferior (60px + área segura). */}
+            <Toaster richColors position="bottom-right" mobileOffset={{ bottom: 'calc(72px + env(safe-area-inset-bottom))' }} />
           </AuthProvider>
         </BrowserRouter>
       </QueryClientProvider>

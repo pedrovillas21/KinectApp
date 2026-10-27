@@ -28,7 +28,7 @@ export default function ConfirmDialog({
     <Dialog open={open} onOpenChange={(next) => !next && !busy && onCancel()}>
       <DialogContent
         showCloseButton={false}
-        className="max-w-[440px] gap-5 rounded-[22px] border-white/10 bg-k-surface1 p-7 shadow-[0_40px_90px_-20px_rgba(0,0,0,0.7)]"
+        className="sm:max-w-[440px] gap-5 rounded-[22px] border-white/10 bg-k-surface1 p-5 sm:p-7 shadow-[0_40px_90px_-20px_rgba(0,0,0,0.7)]"
       >
         <div>
           <DialogTitle className="font-display text-xl font-extrabold tracking-tight font-stretch-semi-expanded">

@@ -146,17 +146,26 @@
   *::before,
   *::after {
     box-sizing: border-box;
+    /* `border` sem cor herdava a cor do texto (borda branca nos componentes shadcn). */
+    border-color: var(--color-border);
   }
 
-  /* Reset de SPA desktop: a página nunca rola — o scroll vive nos painéis
-     internos (lista de alunos, conteúdo das abas). */
+  /* A página nunca rola — o scroll vive nos painéis internos (lista de alunos,
+     conteúdo das abas). dvh: no celular, 100vh passa da área visível (barra do
+     navegador) e escondia a barra inferior. Telas avulsas mais altas que a tela
+     (login, cadastro no celular) rolam dentro do #root. */
   html,
-  body,
-  #root {
-    height: 100vh;
+  body {
+    height: 100%;
     margin: 0;
     padding: 0;
     overflow: hidden;
+  }
+
+  #root {
+    height: 100vh;
+    height: 100dvh;
+    overflow-y: auto;
   }
 
   body {
@@ -341,3 +350,36 @@
   }
 }
 
+
+/* ── Celular / app instalado (PWA) ─────────────────────────────────────────── */
+/* Fora de @layer de propósito: vence os utilitários text-[13px] etc. O iOS dá zoom
+   ao focar campos com fonte menor que 16px, e o zoom não volta sozinho. */
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Instalado como app: sem o "puxar para atualizar" / efeito elástico do navegador. */
+@media (display-mode: standalone) {
+  html,
+  body {
+    overscroll-behavior: none;
+  }
+}
+
+/* Telas de toque: sem a barra de rolagem fixa do desktop (o celular usa a sobreposta). */
+@media (pointer: coarse) {
+  * {
+    scrollbar-width: none;
+  }
+  *::-webkit-scrollbar {
+    display: none;
+  }
+}

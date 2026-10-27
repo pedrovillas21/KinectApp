@@ -387,7 +387,7 @@ export default function PlanEditor({ studentId, studentFirstName, mode, onCancel
     <div ref={rootRef} className="flex flex-col">
       {/* Barra fixa: o painel rola por baixo, ações sempre à mão. */}
       <div className="sticky top-0 z-20 border-b border-k-ghost bg-k-bg/85 backdrop-blur-[14px]">
-        <div className="mx-auto flex w-full max-w-[1120px] flex-wrap items-center justify-between gap-3 px-8 py-3.5">
+        <div className="mx-auto flex w-full max-w-[1120px] flex-wrap items-center justify-between gap-3 px-4 md:px-8 py-3.5">
           <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
@@ -439,7 +439,7 @@ export default function PlanEditor({ studentId, studentFirstName, mode, onCancel
         </div>
       </div>
 
-      <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-5 px-8 py-6">
+      <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-5 px-4 md:px-8 py-6">
         <AnimatePresence>
           {banner && (
             <motion.div
@@ -479,7 +479,7 @@ export default function PlanEditor({ studentId, studentFirstName, mode, onCancel
         {/* Dados da ficha */}
         <section
           aria-label="Dados da ficha"
-          className="grid gap-4 rounded-[20px] border border-k-ghost bg-k-surface1 p-5 md:grid-cols-[minmax(0,2fr)_110px_minmax(0,1fr)_130px]"
+          className="grid gap-4 rounded-[20px] border border-k-ghost bg-k-surface1 p-4 md:p-5 md:grid-cols-[minmax(0,2fr)_110px_minmax(0,1fr)_130px]"
         >
           <Field label="Nome da ficha" htmlFor="plan-title" error={shown?.title}>
             <input

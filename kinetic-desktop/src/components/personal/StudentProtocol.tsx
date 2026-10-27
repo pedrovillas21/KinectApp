@@ -60,22 +60,22 @@ export function ProtocolSummary({ studentId, studentFirstName }: { studentId: st
 
   return (
     <section aria-label="Protocolo e anamnese" className="overflow-hidden rounded-xl border border-white/[0.08]">
-      <div className="grid gap-px bg-white/[0.08] sm:grid-cols-[repeat(3,minmax(0,1fr))_auto]">
-        <Field label="Objetivo" value={goalLabel(p.goal)} hint={protocolBy} />
+      <div className="grid grid-cols-2 gap-px bg-white/[0.08] sm:grid-cols-[repeat(3,minmax(0,1fr))_auto]">
+        <Field label="Objetivo" value={goalLabel(p.goal)} hint={protocolBy} className="max-sm:col-span-2" />
         <Field label="Nível" value={levelLabel(p.level)} />
         <Field label="Frequência" value={p.frequency ? `${p.frequency}x por semana` : 'Não informada'} />
-        <div className="flex items-center bg-k-bg p-4">
+        <div className="flex items-center bg-k-bg p-3 max-sm:col-span-2 sm:p-4">
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.12] px-3.5 text-[13px] text-k-text transition-colors hover:bg-white/[0.06]"
+            className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-white/[0.12] px-3.5 text-[13px] text-k-text transition-colors hover:bg-white/[0.06] max-sm:w-full"
           >
             <Pencil className="h-3.5 w-3.5" />
             Editar protocolo
           </button>
         </div>
       </div>
-      <div className="flex flex-col gap-1.5 border-t border-white/[0.08] bg-k-bg px-5 py-4">
+      <div className="flex flex-col gap-1.5 border-t border-white/[0.08] bg-k-bg px-4 py-3.5 sm:px-5 sm:py-4">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs text-k-text-muted">Anamnese</span>
           {anamnesis ? (
@@ -111,9 +111,19 @@ export function ProtocolSummary({ studentId, studentFirstName }: { studentId: st
   );
 }
 
-function Field({ label, value, hint }: { label: string; value: string; hint?: string | null }) {
+function Field({
+  label,
+  value,
+  hint,
+  className = '',
+}: {
+  label: string;
+  value: string;
+  hint?: string | null;
+  className?: string;
+}) {
   return (
-    <div className="flex min-w-0 flex-col gap-1 bg-k-bg px-5 py-4">
+    <div className={`flex min-w-0 flex-col gap-1 bg-k-bg px-4 py-3.5 sm:px-5 sm:py-4 ${className}`}>
       <span className="text-xs text-k-text-muted">{label}</span>
       <span className="truncate text-[15px] font-semibold">{value}</span>
       {hint && <span className="truncate text-[11.5px] text-k-text-muted">{hint}</span>}

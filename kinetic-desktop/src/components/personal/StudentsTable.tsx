@@ -40,7 +40,9 @@ export default function StudentsTable({
 }) {
   const navigate = useNavigate();
   return (
-    <div className="overflow-x-auto rounded-xl border border-white/[0.08]">
+    <>
+    <StudentsCards rows={rows} engagement={engagement} />
+    <div className="hidden overflow-x-auto rounded-xl border border-white/[0.08] md:block">
       <table className="w-full min-w-[860px] border-collapse text-left text-[13px]">
         <thead className="border-b border-white/[0.07]">
           <tr>
@@ -160,5 +162,71 @@ export default function StudentsTable({
         </tbody>
       </table>
     </div>
+    </>
+  );
+}
+
+/** Celular: a mesma carteira em cartões (a tabela de 7 colunas não cabe). */
+function StudentsCards({
+  rows,
+  engagement,
+}: {
+  rows: StudentRow[];
+  engagement: Record<string, StudentEngagement> | null;
+}) {
+  return (
+    <ul className="divide-y divide-white/[0.06] overflow-hidden rounded-xl border border-white/[0.08] md:hidden">
+      {rows.map(({ link, stats, tone }) => {
+        const meta = tone ? TONE_META[tone] : null;
+        const hasPlan = !!stats && stats.targetSessions > 0;
+        const e = engagement?.[link.peer.id];
+        return (
+          <li key={link.id}>
+            <Link
+              to={`/students/${link.peer.id}`}
+              className="flex items-center gap-3 px-4 py-3.5 transition-colors active:bg-white/[0.04]"
+            >
+              <Avatar name={link.peer.nome} avatarUrl={link.peer.avatarUrl} size={40} />
+              <span className="flex min-w-0 flex-1 flex-col gap-1">
+                <span className="truncate text-sm font-medium text-k-text">{link.peer.nome}</span>
+                <span className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-xs">
+                  {link.frozen && <span className="text-k-warn">Congelado</span>}
+                  {stats === undefined ? (
+                    <span className="k-skeleton block h-2.5 w-16 rounded-full bg-k-surface2" />
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5" style={{ color: meta?.color ?? '#8e8f90' }}>
+                      <span className="h-1.5 w-1.5 rounded-full" style={{ background: meta?.color ?? '#8e8f90' }} />
+                      {meta?.label ?? 'Sem dados'}
+                    </span>
+                  )}
+                  <span
+                    className={
+                      e?.risk === 'ALTO' ? 'text-k-alert' : e?.risk === 'MEDIO' ? 'text-k-warn' : 'text-k-text-muted'
+                    }
+                  >
+                    {lastSession(e)}
+                  </span>
+                  {e?.pause && (
+                    <span className="inline-flex items-center gap-1 text-k-text-muted">
+                      <BellOff className="h-3 w-3" aria-hidden="true" />
+                      até {formatPauseDate(e.pause.until)}
+                    </span>
+                  )}
+                </span>
+              </span>
+              {hasPlan && (
+                <span className="flex shrink-0 flex-col items-end gap-1">
+                  <span className="font-mono text-sm">{stats.efficiency}%</span>
+                  <span className="font-mono text-[11px] text-k-text-muted">
+                    {stats.completedSessions}/{stats.targetSessions}
+                  </span>
+                </span>
+              )}
+              <ChevronRight className="h-4 w-4 shrink-0 text-k-text-muted" aria-hidden="true" />
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

@@ -45,16 +45,16 @@ export default function TermsGate({ children }: { children: ReactNode }) {
     }
   };
 
-  if (state === 'checking') return <div className="h-screen w-screen bg-k-bg" />;
+  if (state === 'checking') return <div className="h-dvh w-full bg-k-bg" />;
   if (state === 'ok') return <>{children}</>;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-k-bg p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-k-bg p-4 sm:p-6">
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="terms-gate-title"
-        className="flex w-full max-w-[480px] flex-col gap-5 rounded-[22px] border border-white/10 bg-k-surface1 p-7 shadow-[0_40px_90px_-20px_rgba(0,0,0,0.7)]"
+        className="flex max-h-full w-full max-w-[480px] flex-col gap-5 overflow-y-auto rounded-[22px] border border-white/10 bg-k-surface1 p-5 sm:p-7 shadow-[0_40px_90px_-20px_rgba(0,0,0,0.7)]"
       >
         <span className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-k-primary/[0.12] text-k-primary">
           <FileText className="h-[22px] w-[22px]" />

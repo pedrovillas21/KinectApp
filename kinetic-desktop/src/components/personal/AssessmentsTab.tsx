@@ -136,7 +136,7 @@ export default function AssessmentsTab({ studentId, studentFirstName }: { studen
     .map((a) => ({ date: dayMonth(a.assessedOn), peso: a.weightKg, gordura: a.bodyFatPct }));
 
   return (
-    <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-6 px-8 pb-16 pt-8">
+    <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-6 px-4 md:px-8 pb-16 pt-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="font-display text-[22px] font-extrabold tracking-tight font-stretch-semi-expanded">
@@ -242,7 +242,7 @@ export default function AssessmentsTab({ studentId, studentFirstName }: { studen
                       </button>
                     </div>
                   </div>
-                  <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2">
+                  <div className="grid grid-cols-[repeat(auto-fill,minmax(min(150px,100%),1fr))] gap-2">
                     {filled.map((f) => {
                       const d = previous ? delta(previous[f.key], a[f.key], f.unit, f.better, f.digits) : null;
                       return (

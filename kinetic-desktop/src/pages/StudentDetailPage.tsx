@@ -76,8 +76,8 @@ export default function StudentDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex h-screen flex-col bg-k-bg text-k-text" role="status" aria-label="Carregando perfil do aluno">
-        <div className="flex items-center gap-3.5 border-b border-k-ghost px-8 py-3.5">
+      <div className="flex min-h-0 flex-1 flex-col bg-k-bg text-k-text" role="status" aria-label="Carregando perfil do aluno">
+        <div className="flex items-center gap-3.5 border-b border-k-ghost px-4 md:px-8 py-3.5">
           <div className="k-skeleton h-11 w-11 rounded-xl bg-k-surface1" />
           <div className="k-skeleton h-12 w-12 rounded-full bg-k-surface2" />
           <div className="flex flex-col gap-2">
@@ -91,7 +91,7 @@ export default function StudentDetailPage() {
 
   if (!link || !id) {
     return (
-      <div className="flex h-screen flex-col items-center justify-center gap-4 bg-k-bg p-6 text-center text-k-text">
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 bg-k-bg p-6 text-center text-k-text">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -157,9 +157,13 @@ export default function StudentDetailPage() {
   };
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
-      <header className="flex h-[60px] shrink-0 items-center gap-2 border-b border-white/[0.07] px-8 text-sm">
-        <Link to="/students" className="text-k-text-muted transition-colors hover:text-k-text">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <header className="flex h-14 shrink-0 items-center gap-2 border-b border-white/[0.07] px-4 text-sm md:h-[60px] md:px-8">
+        <Link
+          to="/students"
+          className="flex shrink-0 items-center gap-1 text-k-text-muted transition-colors hover:text-k-text"
+        >
+          <ArrowLeft className="h-4 w-4 md:hidden" aria-hidden="true" />
           Alunos
         </Link>
         <span aria-hidden="true" className="text-k-text-muted/60">/</span>
@@ -169,7 +173,7 @@ export default function StudentDetailPage() {
       {link?.frozen && (
         <Link
           to="/assinatura#carteira"
-          className="flex shrink-0 items-center gap-2.5 border-b border-k-warn/20 bg-k-warn/[0.06] px-8 py-2.5 text-[13px] text-k-text-soft hover:bg-k-warn/[0.1]"
+          className="flex shrink-0 items-center gap-2.5 border-b border-k-warn/20 bg-k-warn/[0.06] px-4 md:px-8 py-2.5 text-[13px] text-k-text-soft hover:bg-k-warn/[0.1]"
         >
           <Snowflake className="h-4 w-4 shrink-0 text-k-warn" />
           <span className="flex-1">
@@ -198,17 +202,23 @@ export default function StudentDetailPage() {
       />
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-6 px-8 pt-8">
-          <section className="flex flex-wrap items-center gap-4">
+        <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-5 px-4 pt-5 md:gap-6 md:px-8 md:pt-8">
+          <section className="flex flex-wrap items-center gap-x-4 gap-y-3.5">
             <Avatar name={peer.nome} avatarUrl={peer.avatarUrl} size={56} />
             <div className="min-w-0 flex-1">
-              <h1 className="truncate text-2xl font-semibold tracking-[-0.02em]">{peer.nome}</h1>
-              <p className="truncate text-sm text-k-text-muted">
+              <h1 className="truncate text-xl font-semibold tracking-[-0.02em] md:text-2xl">{peer.nome}</h1>
+              <p className="truncate text-sm text-k-text-muted max-md:hidden">
                 {peer.email} · aluno desde {sinceLabel(link.respondedAt ?? link.createdAt)}
                 {goal ? ` · meta: ${goal.toLowerCase()}` : ''}
               </p>
+              {/* Celular: uma informação por linha em vez de uma linha cortada. */}
+              <p className="truncate text-[13px] text-k-text-muted md:hidden">{peer.email}</p>
+              <p className="truncate text-[13px] text-k-text-muted md:hidden">
+                Aluno desde {sinceLabel(link.respondedAt ?? link.createdAt)}
+                {goal ? ` · ${goal.toLowerCase()}` : ''}
+              </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 max-md:w-full max-md:flex-nowrap max-md:[&>a]:flex-1 max-md:[&>a]:justify-center max-md:[&>button:not(:last-child)]:flex-1 max-md:[&>button]:justify-center">
               {whatsappHref ? (
                 <a
                   href={whatsappHref}
@@ -229,8 +239,10 @@ export default function StudentDetailPage() {
                 onClick={() => selectTab('plans')}
                 className="flex h-9 items-center gap-1.5 rounded-lg bg-k-primary px-3.5 text-[13px] font-semibold text-k-on-primary transition-colors hover:bg-[#7df1ff]"
               >
-                <Dumbbell className="h-4 w-4" />
-                Fichas de treino
+                <Dumbbell className="h-4 w-4 shrink-0" />
+                <span className="whitespace-nowrap">
+                  Fichas<span className="max-sm:hidden"> de treino</span>
+                </span>
               </button>
               <button
                 type="button"

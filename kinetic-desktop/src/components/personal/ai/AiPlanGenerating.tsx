@@ -46,7 +46,7 @@ export default function AiPlanGenerating({ studentFirstName, planCount, startedA
         note="gerando a prévia · pode sair desta tela, avisamos quando ficar pronta"
       />
 
-      <div className="mx-auto flex w-full max-w-[720px] flex-col items-center gap-7 px-8 pb-14 pt-12">
+      <div className="mx-auto flex w-full max-w-[720px] flex-col items-center gap-7 px-4 md:px-8 pb-14 pt-12">
         <div role="status" aria-live="polite" className="flex flex-col items-center gap-4 text-center">
           <div className="relative flex h-[72px] w-[72px] items-center justify-center">
             <span aria-hidden="true" className="k-ripple absolute inset-0 rounded-[24px] border border-k-warn/50" />

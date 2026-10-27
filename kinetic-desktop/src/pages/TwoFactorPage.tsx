@@ -63,7 +63,7 @@ export default function TwoFactorPage() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-k-bg text-k-text overflow-hidden py-10">
+    <div className="relative min-h-dvh flex items-center justify-center bg-k-bg text-k-text overflow-hidden py-10">
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-k-primary/10 blur-[120px] pointer-events-none" />
       <div className="relative w-full max-w-[440px] mx-4 z-10">
         {recoveryCodes ? (

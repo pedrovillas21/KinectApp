@@ -44,12 +44,12 @@ export default function PhoneGate() {
   }, []);
 
   if (state === 'checking') {
-    return <div className="h-screen w-screen bg-k-bg" />;
+    return <div className="h-dvh w-full bg-k-bg" />;
   }
 
   if (state === 'missing') {
     return (
-      <div className="h-screen w-screen bg-k-bg">
+      <div className="h-dvh w-full bg-k-bg">
         <PhoneDialog
           open
           onOpenChange={() => undefined}

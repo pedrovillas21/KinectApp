@@ -151,34 +151,36 @@ export default function MyProfilePage() {
       : 'pending';
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-k-bg text-k-text">
-      <header className="z-30 flex shrink-0 flex-wrap items-center gap-3.5 border-b border-k-ghost bg-k-bg/85 px-8 py-3.5 backdrop-blur-[14px]">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-k-bg text-k-text">
+      <header className="z-30 flex h-14 shrink-0 items-center gap-3 border-b border-k-ghost bg-k-bg/85 px-4 backdrop-blur-[14px] md:h-auto md:gap-3.5 md:px-8 md:py-3.5">
         <Link
           to="/students"
           aria-label="Voltar para alunos"
-          className="group flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-k-surface1 text-k-text-dim transition-colors hover:bg-k-surface2 hover:text-k-text"
+          className="group hidden h-11 w-11 shrink-0 items-center md:flex justify-center rounded-xl border border-white/10 bg-k-surface1 text-k-text-dim transition-colors hover:bg-k-surface2 hover:text-k-text"
         >
           <ArrowLeft className="h-[18px] w-[18px] transition-transform duration-300 group-hover:-translate-x-0.5" />
         </Link>
-        <div>
-          <h1 className="font-display text-xl font-extrabold tracking-tight font-stretch-semi-expanded">Meu perfil</h1>
-          <p className="text-[12.5px] text-k-text-muted">O perfil profissional que seus alunos veem no app</p>
+        <div className="min-w-0">
+          <h1 className="truncate font-display text-lg font-extrabold tracking-tight font-stretch-semi-expanded md:text-xl">
+            Meu perfil
+          </h1>
+          <p className="text-[12.5px] text-k-text-muted max-md:hidden">O perfil profissional que seus alunos veem no app</p>
         </div>
-        <div className="ml-auto flex items-center gap-3">
+        <div className="ml-auto flex shrink-0 items-center gap-3">
           {dirty && <span className="hidden text-[12.5px] text-k-text-muted sm:inline">Alterações não salvas</span>}
           <button
             type="button"
             onClick={() => void handleSave()}
             disabled={!dirty || saving || crefInvalid}
-            className="h-11 rounded-xl bg-k-primary px-5 text-sm font-bold text-k-on-primary transition-[box-shadow,opacity] hover:shadow-[0_0_0_4px_rgba(0,229,255,0.14)] disabled:pointer-events-none disabled:opacity-50"
+            className="h-9 whitespace-nowrap rounded-xl bg-k-primary px-4 text-sm font-bold text-k-on-primary md:h-11 md:px-5 transition-[box-shadow,opacity] hover:shadow-[0_0_0_4px_rgba(0,229,255,0.14)] disabled:pointer-events-none disabled:opacity-50"
           >
-            {saving ? 'Salvando…' : 'Salvar perfil'}
+            {saving ? 'Salvando…' : <>Salvar<span className="max-sm:hidden"> perfil</span></>}
           </button>
         </div>
       </header>
 
       <main className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-[1180px] px-8 pb-16 pt-10">
+        <div className="mx-auto w-full max-w-[1180px] px-4 pb-12 pt-5 md:px-8 md:pb-16 md:pt-10">
           {loadError ? (
             <div className="rounded-[18px] border border-dashed border-white/[0.14] p-10 text-center">
               <p className="text-k-text-dim">Não foi possível carregar o seu perfil.</p>
@@ -196,7 +198,7 @@ export default function MyProfilePage() {
               <div className="k-skeleton hidden h-[620px] rounded-[28px] bg-k-surface1 lg:block" />
             </div>
           ) : (
-            <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
+            <div className="grid items-start gap-6 md:gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
               <div className="flex min-w-0 flex-col gap-5">
                 <motion.form
                   variants={staggerContainer}
@@ -309,7 +311,7 @@ export default function MyProfilePage() {
                     {draft.education.length > 0 && (
                       <ul className="flex flex-col gap-2.5">
                         {draft.education.map((item, i) => (
-                          <li key={i} className="grid grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_44px] gap-2.5">
+                          <li key={i} className="grid grid-cols-[minmax(0,1fr)_44px] gap-2.5 sm:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_44px]">
                             <input
                               value={item.title}
                               onChange={(e) =>
@@ -332,13 +334,13 @@ export default function MyProfilePage() {
                               placeholder="Instituição · ano"
                               maxLength={120}
                               aria-label={`Detalhe da formação ${i + 1}`}
-                              className={formInputClass}
+                              className={`${formInputClass} max-sm:row-start-2`}
                             />
                             <button
                               type="button"
                               aria-label={`Remover formação ${i + 1}`}
                               onClick={() => patch({ education: draft.education.filter((_, j) => j !== i) })}
-                              className="flex h-12 w-11 items-center justify-center rounded-xl border border-white/10 text-k-text-dim transition-colors hover:border-k-alert/40 hover:text-k-alert"
+                              className="flex h-12 w-11 items-center justify-center rounded-xl border border-white/10 text-k-text-dim transition-colors hover:border-k-alert/40 hover:text-k-alert max-sm:col-start-2 max-sm:row-start-1"
                             >
                               <X className="h-4 w-4" />
                             </button>
@@ -414,7 +416,7 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
   return (
     <motion.section
       variants={riseItem}
-      className="flex flex-col gap-4 rounded-[18px] border border-k-ghost bg-k-surface1 p-6"
+      className="flex flex-col gap-4 rounded-[18px] border border-k-ghost bg-k-surface1 p-4 sm:p-6"
     >
       <div>
         <h2 className="font-display text-[17px] font-extrabold tracking-tight font-stretch-semi-expanded">{title}</h2>

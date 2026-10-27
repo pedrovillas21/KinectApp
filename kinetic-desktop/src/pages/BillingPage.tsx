@@ -120,19 +120,19 @@ export default function BillingPage() {
       : priced.find((p) => (p.maxStudents ?? Infinity) >= (billing?.activeStudents ?? 0));
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
-      <header className="flex h-[60px] shrink-0 items-center gap-3 border-b border-white/[0.07] px-8">
-        <span className="text-sm text-k-text-muted">Meu plano</span>
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <header className="flex h-14 shrink-0 items-center gap-3 border-b border-white/[0.07] px-4 md:h-[60px] md:px-8">
+        <span className="text-[17px] font-semibold md:text-sm md:font-normal md:text-k-text-muted">Meu plano</span>
         {billing?.gatewayMode === 'DEMO' && (
           <span className="ml-auto inline-flex items-center gap-1.5 text-xs text-k-warn">
             <FlaskConical className="h-3.5 w-3.5" />
-            Modo demonstração · nenhuma cobrança real
+            Modo demonstração<span className="max-sm:hidden"> · nenhuma cobrança real</span>
           </span>
         )}
       </header>
 
       <main className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto flex w-full max-w-[1160px] flex-col gap-14 px-8 pb-20 pt-14">
+        <div className="mx-auto flex w-full max-w-[1160px] flex-col gap-10 px-4 pb-16 pt-8 md:gap-14 md:px-8 md:pb-20 md:pt-14">
           {loadError ? (
             <div className="rounded-xl border border-dashed border-white/[0.14] p-10 text-center">
               <p className="text-k-text-dim">Não foi possível carregar seu plano.</p>
@@ -150,7 +150,7 @@ export default function BillingPage() {
             <>
               <section className="flex flex-col items-center gap-4 text-center">
                 <span className="font-mono text-xs tracking-[0.08em] text-k-primary">PLANOS KINETIC</span>
-                <h1 className="max-w-[760px] text-[40px] font-semibold leading-[46px] tracking-[-0.03em]">
+                <h1 className="max-w-[760px] text-[28px] font-semibold leading-[34px] tracking-[-0.03em] md:text-[40px] md:leading-[46px]">
                   Atenda mais alunos com o mesmo tempo de trabalho
                 </h1>
                 <p className="max-w-[600px] text-base leading-relaxed text-k-text-dim">
@@ -169,7 +169,7 @@ export default function BillingPage() {
 
               {(billing.chooseActiveUntil || billing.frozenStudents > 0) && <ActiveStudentsPicker billing={billing} />}
 
-              <section aria-label="Planos" className="grid grid-cols-[repeat(auto-fit,minmax(230px,1fr))] gap-4">
+              <section aria-label="Planos" className="grid grid-cols-[repeat(auto-fit,minmax(min(230px,100%),1fr))] gap-4">
                 {priced.map((plan) => (
                   <PlanColumn
                     key={plan.code}
@@ -187,10 +187,10 @@ export default function BillingPage() {
               {billing.aiGenerationsLimit !== null && (
                 <section
                   aria-label="Pacote extra de IA"
-                  className="flex flex-wrap items-center gap-6 rounded-xl border border-white/[0.08] p-6"
+                  className="flex flex-wrap items-center gap-4 rounded-xl border border-white/[0.08] p-5 md:gap-6 md:p-6"
                 >
                   <Wand2 className="h-6 w-6 shrink-0 text-k-primary" strokeWidth={1.7} />
-                  <div className="flex min-w-[260px] flex-1 flex-col gap-1">
+                  <div className="flex min-w-[min(260px,100%)] flex-1 flex-col gap-1">
                     <h2 className="text-[17px] font-semibold">
                       Pacote extra · {billing.aiPack.credits} fichas com IA por {formatBRL(billing.aiPack.priceCents)}
                     </h2>
@@ -220,7 +220,7 @@ export default function BillingPage() {
                 <h2 id="inclui" className="text-xl font-semibold tracking-[-0.01em]">
                   Todos os planos incluem
                 </h2>
-                <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] border-t border-white/[0.08]">
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(min(300px,100%),1fr))] border-t border-white/[0.08]">
                   {INCLUDED.map(({ icon: Icon, title, body }) => (
                     <div key={title} className="flex gap-3.5 border-b border-white/[0.08] py-5 pr-5">
                       <Icon className="mt-0.5 h-5 w-5 shrink-0 text-k-primary" strokeWidth={1.7} />
@@ -237,9 +237,9 @@ export default function BillingPage() {
                 <section
                   key={plan.code}
                   aria-label={plan.name}
-                  className="flex flex-wrap items-center gap-6 rounded-xl border border-white/[0.08] bg-[#171717] p-7"
+                  className="flex flex-wrap items-center gap-6 rounded-xl border border-white/[0.08] bg-[#171717] p-5 md:p-7"
                 >
-                  <div className="flex min-w-[280px] flex-1 flex-col gap-1.5">
+                  <div className="flex min-w-[min(280px,100%)] flex-1 flex-col gap-1.5">
                     <div className="flex items-center gap-2.5">
                       <h2 className="text-[17px] font-semibold">{plan.name}</h2>
                       <span className="rounded-full border border-white/[0.14] px-2 py-0.5 text-xs text-k-text-dim">
@@ -260,7 +260,7 @@ export default function BillingPage() {
                     Compare os planos
                   </h2>
                   <div className="overflow-x-auto rounded-xl border border-white/[0.08]">
-                    <table className="w-full min-w-[720px] border-collapse text-sm">
+                    <table className="w-full min-w-[520px] border-collapse text-sm">
                       <thead>
                         <tr>
                           <th scope="col" className="px-5 py-3.5 text-left">
@@ -293,7 +293,7 @@ export default function BillingPage() {
                 </section>
               )}
 
-              <section aria-labelledby="faq" className="flex flex-wrap gap-10">
+              <section aria-labelledby="faq" className="flex flex-wrap gap-6 md:gap-10">
                 <h2 id="faq" className="flex-[1_1_240px] text-xl font-semibold tracking-[-0.01em]">
                   Perguntas frequentes
                 </h2>
@@ -458,9 +458,10 @@ function CurrentPlan({
   return (
     <section
       aria-label="Seu plano"
-      className="grid gap-px overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.08] md:grid-cols-[minmax(260px,1.2fr)_1fr_1fr]"
+      className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.08] md:grid-cols-[minmax(260px,1.2fr)_1fr_1fr]"
     >
-      <div className="flex flex-col gap-1.5 bg-k-bg p-5">
+      {/* Celular: situação na largura toda e os dois medidores lado a lado embaixo. */}
+      <div className="col-span-2 flex flex-col gap-1.5 bg-k-bg p-4 md:col-span-1 md:p-5">
         <span className="text-xs text-k-text-muted">Você está no</span>
         <span className={`flex items-center gap-2 text-lg font-semibold ${alert ? 'text-k-warn' : ''}`}>
           {alert && <AlertTriangle className="h-4 w-4" />}
@@ -485,7 +486,12 @@ function CurrentPlan({
           )}
         </div>
       </div>
-      <Usage label="Alunos ativos" used={billing.activeStudents} limit={billing.studentLimit} />
+      <Usage
+        label="Alunos ativos"
+        used={billing.activeStudents}
+        limit={billing.studentLimit}
+        className={billing.aiGenerationsLimit === null ? 'max-md:col-span-2' : ''}
+      />
       {billing.aiGenerationsLimit !== null ? (
         <Usage
           label={`Fichas com IA${billing.aiResetsAt ? ` · renova em ${formatDate(billing.aiResetsAt)}` : ''}`}
@@ -493,19 +499,29 @@ function CurrentPlan({
           limit={aiTotalLimit(billing)}
         />
       ) : (
-        <div className="bg-k-bg" />
+        <div className="bg-k-bg max-md:hidden" />
       )}
     </section>
   );
 }
 
 /** `limit` null = ilimitado (barra vazia). */
-function Usage({ label, used, limit }: { label: string; used: number; limit: number | null }) {
+function Usage({
+  label,
+  used,
+  limit,
+  className = '',
+}: {
+  label: string;
+  used: number;
+  limit: number | null;
+  className?: string;
+}) {
   const pct = limit === null ? 0 : limit > 0 ? Math.min(100, (used / limit) * 100) : 100;
   return (
-    <div className="flex flex-col justify-center gap-2.5 bg-k-bg p-5">
-      <span className="text-xs text-k-text-muted">{label}</span>
-      <span className="font-mono text-2xl font-medium">
+    <div className={`flex min-w-0 flex-col justify-center gap-2.5 bg-k-bg p-4 md:p-5 ${className}`}>
+      <span className="truncate text-xs text-k-text-muted">{label}</span>
+      <span className="font-mono text-xl font-medium md:text-2xl">
         {used}
         <span className="text-base text-k-text-muted"> / {limit ?? 'ilimitado'}</span>
       </span>

@@ -94,7 +94,7 @@ export default function DashboardTab({ studentId, studentFirstName }: Props) {
   const refreshing = statsQ.isPlaceholderData;
 
   return (
-    <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-5 px-8 pb-12 pt-6">
+    <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-5 px-4 md:px-8 pb-12 pt-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="text-[17px] font-semibold">Desempenho</h2>
@@ -105,7 +105,7 @@ export default function DashboardTab({ studentId, studentFirstName }: Props) {
         <div
           role="group"
           aria-label="Período de análise"
-          className="flex gap-0.5 rounded-lg border border-white/[0.08] p-0.5"
+          className="flex gap-0.5 rounded-lg border border-white/[0.08] p-0.5 max-sm:w-full"
         >
           {PERIODS.map((p) => {
             const active = p.id === period;
@@ -115,7 +115,7 @@ export default function DashboardTab({ studentId, studentFirstName }: Props) {
                 type="button"
                 aria-pressed={active}
                 onClick={() => setPeriod(p.id)}
-                className={`relative h-8 rounded-md px-3.5 text-[13px] transition-colors ${
+                className={`relative h-8 rounded-md px-3.5 text-[13px] transition-colors max-sm:flex-1 ${
                   active ? 'text-k-text' : 'text-k-text-dim hover:text-k-text'
                 }`}
               >
@@ -262,10 +262,10 @@ function KpiCell({
   progress?: number;
 }) {
   return (
-    <div className="flex flex-col gap-2.5 bg-k-bg p-5">
+    <div className="flex flex-col gap-2.5 bg-k-bg p-4 md:p-5">
       <span className="text-[13px] text-k-text-muted">{label}</span>
       <span className="flex items-baseline gap-1.5">
-        <span className="font-mono text-[30px] font-medium leading-[34px] tabular-nums">{value}</span>
+        <span className="font-mono text-[26px] font-medium leading-[30px] tabular-nums md:text-[30px] md:leading-[34px]">{value}</span>
         {unit && <span className="font-mono text-k-text-muted">{unit}</span>}
       </span>
       {progress !== undefined && (
@@ -363,7 +363,7 @@ function Charts({ stats, firstName }: { stats: StatsSummaryResponseDTO; firstNam
 
   return (
     <div className="grid gap-5 lg:grid-cols-2">
-      <motion.section variants={riseItem} className={`${TILE} flex flex-col gap-[18px] p-[22px]`}>
+      <motion.section variants={riseItem} className={`${TILE} flex flex-col gap-[18px] p-4 sm:p-[22px]`}>
         <CardTitle title="Volume por grupo muscular" subtitle="Carga acumulada no período e variação" />
         {volumeData.length === 0 ? (
           <CompactEmpty>Nenhum treino registrado por {firstName} no período.</CompactEmpty>
@@ -374,7 +374,7 @@ function Charts({ stats, firstName }: { stats: StatsSummaryResponseDTO; firstNam
                 <motion.div
                   layout
                   key={g.muscleGroup}
-                  className="-mx-1.5 grid grid-cols-[72px_minmax(0,1fr)_92px_48px] items-center gap-3 rounded-[10px] px-1.5 py-[5px] transition-colors hover:bg-white/[0.035]"
+                  className="-mx-1.5 grid grid-cols-[64px_minmax(0,1fr)_76px_44px] items-center gap-2.5 sm:grid-cols-[72px_minmax(0,1fr)_92px_48px] sm:gap-3 rounded-[10px] px-1.5 py-[5px] transition-colors hover:bg-white/[0.035]"
                 >
                   <span className="truncate text-[13px] font-semibold text-k-text-soft" title={g.muscleGroup}>
                     {groupLabel(g.muscleGroup)}
@@ -416,7 +416,7 @@ function Charts({ stats, firstName }: { stats: StatsSummaryResponseDTO; firstNam
         )}
       </motion.section>
 
-      <motion.section variants={riseItem} className={`${TILE} flex flex-col gap-3.5 p-[22px]`}>
+      <motion.section variants={riseItem} className={`${TILE} flex flex-col gap-3.5 p-4 sm:p-[22px]`}>
         <div className="flex items-start justify-between gap-3">
           <CardTitle title="Evolução do peso" subtitle="Pesagens registradas no período" />
           {weightData.length > 0 && (
@@ -536,10 +536,10 @@ function CycleComparison({
       ) : (
         <>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[560px] border-collapse text-[13px]">
+            <table className="w-full min-w-[440px] border-collapse text-[13px]">
               <thead>
                 <tr className="text-xs text-k-text-muted">
-                  <th scope="col" className="px-5 py-2.5 text-left font-medium">Métrica</th>
+                  <th scope="col" className="px-4 py-2.5 text-left font-medium md:px-5">Métrica</th>
                   <th scope="col" className="px-3 py-2.5 text-right font-medium">Anterior</th>
                   <th scope="col" className="px-3 py-2.5 text-right font-medium">Atual</th>
                   <th scope="col" className="px-5 py-2.5 text-right font-medium">Variação</th>
@@ -593,7 +593,7 @@ function CycleRow({
   if (!metric) return null;
   return (
     <tr>
-      <th scope="row" className="px-5 py-3 text-left font-normal">{label}</th>
+      <th scope="row" className="px-4 py-3 text-left font-normal md:px-5">{label}</th>
       <td className="px-3 py-3 text-right font-mono text-k-text-muted">{format(metric.previous)}</td>
       <td className="px-3 py-3 text-right font-mono">{format(metric.current)}</td>
       <td className="px-5 py-3 text-right">

@@ -3,7 +3,9 @@ import { toast } from 'sonner';
 import { Plus, Link2Off } from 'lucide-react';
 import PageHeader from '../../components/PageHeader';
 import { EmptyCard } from '../../components/stat-primitives';
-import StatusBadge from '../../components/StatusBadge';
+import { MobileList, MobileListItem } from '../../components/MobileList';
+import StatusBadge, { TagChip } from '../../components/StatusBadge';
+import Avatar from '../../components/Avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -142,7 +144,7 @@ export default function FuncionariosPage() {
         }
       />
 
-      <div className="max-w-[1160px] w-full mx-auto px-8 pt-8 pb-16">
+      <div className="max-w-[1160px] w-full mx-auto px-4 md:px-8 pt-6 md:pt-8 pb-12 md:pb-16">
         {loading ? (
           <div className="flex flex-col gap-3">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -154,44 +156,75 @@ export default function FuncionariosPage() {
         ) : funcionarios.length === 0 ? (
           <EmptyCard>Nenhum personal vinculado ainda. Use "Vincular Personal" para começar.</EmptyCard>
         ) : (
-          <div className="rounded-xl border border-white/[0.08] overflow-hidden overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>E-mail</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {funcionarios.map((f) => (
-                  <TableRow key={f.id}>
-                    <TableCell className="font-bold">{f.nome}</TableCell>
-                    <TableCell className="text-k-text-dim">{f.email}</TableCell>
-                    <TableCell>
-                      {f.companyId ? (
-                        <StatusBadge status={f.status} />
-                      ) : (
-                        <span className="text-[12.5px] font-semibold text-k-text-muted">Convite pendente</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={busyId === f.id}
-                        onClick={() => setToRemove(f)}
-                        className="text-k-text-dim hover:text-k-error"
-                      >
-                        <Link2Off className="w-4 h-4" /> {f.companyId ? 'Desvincular' : 'Cancelar convite'}
-                      </Button>
-                    </TableCell>
+          <>
+            <MobileList>
+              {funcionarios.map((f) => (
+                <MobileListItem
+                  key={f.id}
+                  leading={<Avatar name={f.nome} size={40} />}
+                  title={f.nome}
+                  subtitle={f.email}
+                  meta={
+                    f.companyId ? (
+                      <StatusBadge status={f.status} />
+                    ) : (
+                      <TagChip>Convite pendente</TagChip>
+                    )
+                  }
+                  actionsLabel={`Ações de ${f.nome}`}
+                  actions={[
+                    {
+                      label: f.companyId ? 'Desvincular' : 'Cancelar convite',
+                      icon: Link2Off,
+                      destructive: true,
+                      disabled: busyId === f.id,
+                      onClick: () => setToRemove(f),
+                    },
+                  ]}
+                />
+              ))}
+            </MobileList>
+            <div className="rounded-xl border border-white/[0.08] overflow-hidden overflow-x-auto max-md:hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>E-mail</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {funcionarios.map((f) => (
+                    <TableRow key={f.id}>
+                      <TableCell className="font-bold">
+                        {f.nome}
+                      </TableCell>
+                      <TableCell className="text-k-text-dim">{f.email}</TableCell>
+                      <TableCell>
+                        {f.companyId ? (
+                          <StatusBadge status={f.status} />
+                        ) : (
+                          <span className="text-[12.5px] font-semibold text-k-text-muted">Convite pendente</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={busyId === f.id}
+                          onClick={() => setToRemove(f)}
+                          className="text-k-text-dim hover:text-k-error"
+                        >
+                          <Link2Off className="w-4 h-4" /> {f.companyId ? 'Desvincular' : 'Cancelar convite'}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </>
         )}
       </div>
 

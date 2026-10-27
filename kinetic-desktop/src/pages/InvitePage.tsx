@@ -51,7 +51,7 @@ export default function InvitePage() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-k-bg px-4 py-10 text-k-text">
+    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-k-bg px-4 py-10 text-k-text">
       <div className="pointer-events-none absolute left-[-10%] top-[-10%] h-[50%] w-[50%] rounded-full bg-k-primary/10 blur-[120px]" />
       <div className="pointer-events-none absolute bottom-[-10%] right-[-10%] h-[50%] w-[50%] rounded-full bg-k-primary/5 blur-[120px]" />
 

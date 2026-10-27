@@ -58,7 +58,9 @@ const ACCENTS = [
 
 const CARD = 'rounded-2xl border border-k-ghost bg-k-surface1';
 const SECTION_TITLE = 'font-display text-[15px] font-bold font-stretch-semi-expanded';
-const ROW_GRID = 'grid grid-cols-[36px_minmax(0,2.6fr)_minmax(0,1fr)_minmax(0,1.4fr)_64px] gap-4';
+// No celular: número + exercício, com séries/carga/descanso numa linha abaixo do nome.
+const ROW_GRID =
+  'grid grid-cols-[28px_minmax(0,1fr)] gap-x-3 gap-y-1.5 md:grid-cols-[36px_minmax(0,2.6fr)_minmax(0,1fr)_minmax(0,1.4fr)_64px] md:gap-4';
 
 /** Mesmo texto que o backend registra na aprovação (TrainerAiPlanService.DECLARATION_TEMPLATE). */
 export const declarationText = (studentName: string) =>
@@ -153,10 +155,10 @@ export default function AiPlanPreview({
         }
       />
 
-      <div className="mx-auto flex w-full max-w-[1120px] flex-1 flex-wrap items-start gap-5 px-8 py-6">
+      <div className="mx-auto flex w-full max-w-[1120px] flex-1 flex-wrap items-start gap-5 px-4 md:px-8 py-6">
         <div className="flex min-w-0 flex-[999_1_560px] flex-col gap-4">
           {attentionPoints.length > 0 && (
-            <section aria-labelledby="ai-attention-title" className={`flex flex-col gap-3 px-5 py-4 ${CARD}`}>
+            <section aria-labelledby="ai-attention-title" className={`flex flex-col gap-3 px-4 py-4 md:px-5 ${CARD}`}>
               <div className="flex flex-wrap items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-k-warn" />
                 <h3 id="ai-attention-title" className="text-sm font-bold">
@@ -164,7 +166,7 @@ export default function AiPlanPreview({
                 </h3>
                 <span className="text-[12.5px] text-k-text-muted">· levantados pela IA a partir da anamnese</span>
               </div>
-              <ul className="grid gap-2.5 [grid-template-columns:repeat(auto-fit,minmax(210px,1fr))]">
+              <ul className="grid gap-2.5 [grid-template-columns:repeat(auto-fit,minmax(min(210px,100%),1fr))]">
                 {attentionPoints.map((point) => (
                   <li key={point.title} className="flex flex-col gap-1 rounded-[10px] bg-k-bg p-3">
                     <span className="text-[13px] font-semibold">{point.title}</span>
@@ -181,7 +183,7 @@ export default function AiPlanPreview({
             <div
               role="tablist"
               aria-label="Fichas da prévia"
-              className="grid gap-2 [grid-template-columns:repeat(auto-fit,minmax(190px,1fr))]"
+              className="grid gap-2 [grid-template-columns:repeat(auto-fit,minmax(min(190px,100%),1fr))]"
             >
               {plans.map((p, i) => {
                 const accent = ACCENTS[i % ACCENTS.length];
@@ -242,7 +244,7 @@ export default function AiPlanPreview({
               />
 
               <div
-                className={`flex flex-wrap items-center justify-between gap-3 border-t border-k-ghost px-5 py-4 transition-colors ${
+                className={`flex flex-wrap items-center justify-between gap-3 border-t border-k-ghost px-4 py-4 transition-colors md:px-5 ${
                   reviewed[active] ? 'bg-k-success/[0.05]' : 'bg-[#181818]'
                 }`}
               >
@@ -456,7 +458,7 @@ function PlanTable({
 
   return (
     <>
-      <div className="flex flex-wrap items-start justify-between gap-3 px-5 pb-4 pt-5">
+      <div className="flex flex-wrap items-start justify-between gap-3 px-4 pb-4 pt-5 md:px-5">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <span className={`rounded-md px-2 py-[3px] font-mono text-[11.5px] font-semibold ${accent.text} ${accent.bg}`}>
@@ -488,20 +490,20 @@ function PlanTable({
       </div>
 
       <div className="overflow-x-auto">
-        <div role="table" aria-label="Exercícios da ficha" className="min-w-[760px]">
+        <div role="table" aria-label="Exercícios da ficha" className="md:min-w-[760px]">
           <div
             role="row"
-            className={`${ROW_GRID} border-t border-k-ghost bg-[#181818] px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.07em] text-k-text-muted`}
+            className={`${ROW_GRID} border-t border-k-ghost bg-[#181818] px-4 py-2.5 text-[11px] md:px-5 font-semibold uppercase tracking-[0.07em] text-k-text-muted`}
           >
             <span role="columnheader">#</span>
             <span role="columnheader">Exercício</span>
-            <span role="columnheader">Séries × reps</span>
-            <span role="columnheader">Carga</span>
-            <span role="columnheader">Descanso</span>
+            <span role="columnheader" className="max-md:hidden">Séries × reps</span>
+            <span role="columnheader" className="max-md:hidden">Carga</span>
+            <span role="columnheader" className="max-md:hidden">Descanso</span>
           </div>
           {groups.map((group) => (
             <div key={group.value} role="rowgroup" aria-label={group.label}>
-              <div className="flex items-center gap-2 border-t border-white/[0.05] px-5 pb-2 pt-3 text-[11px] font-semibold uppercase tracking-[0.07em] text-k-text-muted">
+              <div className="flex items-center gap-2 border-t border-white/[0.05] px-4 pb-2 pt-3 md:px-5 text-[11px] font-semibold uppercase tracking-[0.07em] text-k-text-muted">
                 <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full" style={{ background: group.color }} />
                 {group.label}
                 <span className="font-mono font-normal normal-case tracking-normal">{group.items.length}</span>
@@ -522,7 +524,7 @@ function ExerciseRow({ n, ex, attention }: { n: string; ex: WorkoutExerciseInput
     .filter(Boolean)
     .join(' · ');
   return (
-    <div role="row" className={`${ROW_GRID} items-baseline border-t border-white/[0.05] px-5 py-3.5`}>
+    <div role="row" className={`${ROW_GRID} items-baseline border-t border-white/[0.05] px-4 py-3.5 md:px-5`}>
       <span role="cell" className="font-mono text-[13px] tabular-nums text-k-text-muted">
         {n}
       </span>
@@ -537,6 +539,7 @@ function ExerciseRow({ n, ex, attention }: { n: string; ex: WorkoutExerciseInput
           </p>
         )}
       </div>
+      <div className="col-start-2 flex flex-wrap gap-x-4 gap-y-1 md:contents">
       <span role="cell" className="font-mono text-[13px] tabular-nums">
         {ex.sets} × {ex.reps}
       </span>
@@ -546,6 +549,7 @@ function ExerciseRow({ n, ex, attention }: { n: string; ex: WorkoutExerciseInput
       <span role="cell" className="font-mono text-[13px] tabular-nums text-k-text-dim">
         {ex.restTime ?? '—'}
       </span>
+      </div>
     </div>
   );
 }

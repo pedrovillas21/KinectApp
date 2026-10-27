@@ -1,8 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
-import { KeyRound, Plus, ShieldOff } from 'lucide-react';
+import { Building2, KeyRound, Plus, ShieldOff } from 'lucide-react';
 import PageHeader from '../../components/PageHeader';
 import { EmptyCard } from '../../components/stat-primitives';
+import { ListIcon, MobileList, MobileListItem } from '../../components/MobileList';
 import StatusBadge from '../../components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -203,7 +204,7 @@ export default function CompaniesPage() {
         }
       />
 
-      <div className="max-w-[1160px] w-full mx-auto px-8 pt-8 pb-16">
+      <div className="max-w-[1160px] w-full mx-auto px-4 md:px-8 pt-6 md:pt-8 pb-12 md:pb-16">
         {loading ? (
           <div className="flex flex-col gap-3">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -215,65 +216,105 @@ export default function CompaniesPage() {
         ) : companies.length === 0 ? (
           <EmptyCard>Nenhuma empresa provisionada ainda. Use "Nova Empresa" para começar.</EmptyCard>
         ) : (
-          <div className="rounded-xl border border-white/[0.08] overflow-hidden overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Empresa</TableHead>
-                  <TableHead>Dono</TableHead>
-                  <TableHead>Filiais</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Criada em</TableHead>
-                  <TableHead className="text-right">Acesso do dono</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {companies.map((c) => (
-                  <TableRow key={c.id}>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-bold">{c.nome}</span>
-                        <span className="text-[11px] text-k-text-muted">
-                          {c.cnpj ? formatCnpj(c.cnpj) : '—'} · {c.slug ?? '—'}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="text-xs font-semibold">{c.ownerName ?? '—'}</span>
-                        <span className="text-[11px] text-k-text-muted">{c.ownerEmail ?? '—'}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-k-text-dim">{c.units}</TableCell>
-                    <TableCell>{c.ownerStatus ? <StatusBadge status={c.ownerStatus} /> : '—'}</TableCell>
-                    <TableCell className="text-k-text-dim">{formatDate(c.createdAt)}</TableCell>
-                    <TableCell className="text-right">
-                      {c.ownerId && (
-                        <div className="flex justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={busyId === c.ownerId}
-                            onClick={() => void ownerAction(c, 'senha')}
-                          >
-                            <KeyRound className="w-4 h-4" /> Nova senha
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={busyId === c.ownerId}
-                            onClick={() => void ownerAction(c, '2fa')}
-                          >
-                            <ShieldOff className="w-4 h-4" /> Redefinir 2FA
-                          </Button>
-                        </div>
-                      )}
-                    </TableCell>
+          <>
+            <MobileList>
+              {companies.map((c) => (
+                <MobileListItem
+                  key={c.id}
+                  leading={<ListIcon icon={Building2} />}
+                  title={c.nome}
+                  subtitle={c.ownerName ? `Dono: ${c.ownerName}` : 'Sem dono cadastrado'}
+                  meta={
+                    <>
+                      {c.ownerStatus && <StatusBadge status={c.ownerStatus} />}
+                      <span>
+                        {c.units} {c.units === 1 ? 'filial' : 'filiais'}
+                      </span>
+                      <span>desde {formatDate(c.createdAt)}</span>
+                    </>
+                  }
+                  actionsLabel={`Acesso do dono de ${c.nome}`}
+                  actions={
+                    c.ownerId
+                      ? [
+                          {
+                            label: 'Nova senha do dono',
+                            icon: KeyRound,
+                            disabled: busyId === c.ownerId,
+                            onClick: () => void ownerAction(c, 'senha'),
+                          },
+                          {
+                            label: 'Redefinir 2FA do dono',
+                            icon: ShieldOff,
+                            disabled: busyId === c.ownerId,
+                            onClick: () => void ownerAction(c, '2fa'),
+                          },
+                        ]
+                      : undefined
+                  }
+                />
+              ))}
+            </MobileList>
+            <div className="rounded-xl border border-white/[0.08] overflow-hidden overflow-x-auto max-md:hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Empresa</TableHead>
+                    <TableHead>Dono</TableHead>
+                    <TableHead>Filiais</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Criada em</TableHead>
+                    <TableHead className="text-right">Acesso do dono</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {companies.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="font-bold">{c.nome}</span>
+                          <span className="text-[11px] text-k-text-muted">
+                            {c.cnpj ? formatCnpj(c.cnpj) : '—'} · {c.slug ?? '—'}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="text-xs font-semibold">{c.ownerName ?? '—'}</span>
+                          <span className="text-[11px] text-k-text-muted">{c.ownerEmail ?? '—'}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-k-text-dim">{c.units}</TableCell>
+                      <TableCell>{c.ownerStatus ? <StatusBadge status={c.ownerStatus} /> : '—'}</TableCell>
+                      <TableCell className="text-k-text-dim">{formatDate(c.createdAt)}</TableCell>
+                      <TableCell className="text-right">
+                        {c.ownerId && (
+                          <div className="flex justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              disabled={busyId === c.ownerId}
+                              onClick={() => void ownerAction(c, 'senha')}
+                            >
+                              <KeyRound className="w-4 h-4" /> Nova senha
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              disabled={busyId === c.ownerId}
+                              onClick={() => void ownerAction(c, '2fa')}
+                            >
+                              <ShieldOff className="w-4 h-4" /> Redefinir 2FA
+                            </Button>
+                          </div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </>
         )}
       </div>
     </div>

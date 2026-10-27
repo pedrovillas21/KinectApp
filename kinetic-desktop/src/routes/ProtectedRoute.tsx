@@ -24,7 +24,7 @@ export default function ProtectedRoute({ children, allowedRoles }: Props) {
 
   if (isLoadingAuth) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-k-bg">
+      <div className="h-dvh w-full flex items-center justify-center bg-k-bg">
         <div className="flex flex-col gap-4 w-full max-w-sm px-6">
           <Skeleton className="h-10 w-2/3" />
           <Skeleton className="h-24 w-full" />

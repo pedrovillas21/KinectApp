@@ -20,7 +20,7 @@ export default function PeriodTabs({ value, onChange }: Props) {
         <button
           key={p.id}
           onClick={() => onChange(p.id)}
-          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer max-sm:flex-1 ${
             p.id === value
               ? 'bg-k-primary-dim text-k-primary shadow-[inset_0_0_0_1px_rgba(0,229,255,0.15)]'
               : 'text-k-text-muted hover:text-k-text'
