@@ -6,6 +6,44 @@ O que precisa ser configurado à mão (painéis da Cloudflare, Oracle, provedore
 
 ---
 
+## 0. Antes do próximo deploy (mudanças de 2026-10-27)
+
+Vêm da rodada de correções de segurança, eficiência e testes. Faça nesta ordem.
+
+**`.env`**
+- [ ] `BILLING_GATEWAY=demo` no `.env` **local** (o do Docker no seu PC). A variável agora é obrigatória: sem ela o backend não sobe. Faça antes de reiniciar os containers.
+- [ ] `BILLING_GATEWAY=demo` no `.env` **da VM**, antes do próximo `./deploy.sh`. Quando o Asaas entrar, troque para `asaas` ([CLOUDFLARE-PENDENCIAS.md](CLOUDFLARE-PENDENCIAS.md), item 3).
+
+**GitHub**
+- [ ] Commit e push da `implementacaoWeb`. O CI (`.github/workflows/ci.yml`) roda sozinho no push.
+- [ ] Na aba **Actions**, conferir que os três jobs (`backend`, `desktop`, `app`) ficaram verdes. É a primeira execução: se algum falhar, o motivo aparece no log do job.
+- [ ] **Proteger a `main`**: Settings → Branches → Add branch ruleset (ou *Add rule*) para `main`:
+  - *Require a pull request before merging*;
+  - *Require status checks to pass*, marcando `backend`, `desktop` e `app` (eles só aparecem na lista depois da primeira execução do CI);
+  - *Block force pushes*.
+- [ ] Abrir o PR `implementacaoWeb` → `main` e fazer o merge com o CI verde.
+
+**VM**
+- [ ] Deixar o repositório da VM na `main`: `git checkout main && git pull --ff-only`. O `deploy.sh` agora recusa qualquer outra branch.
+- [ ] Rodar `./deploy.sh`. A primeira cópia aplica as migrations V50 a V52 em produção; os testes de integração já aplicaram as três sobre o schema de produção sem erro.
+
+**Painel (Cloudflare Pages)**
+- [ ] Depois do deploy do painel, abrir o site no Chrome com o DevTools (F12 → Console) e passar por login, 2FA (QR code), um dashboard com gráfico e uma tela com avatar. **Nenhuma mensagem `Refused to ... Content Security Policy`** pode aparecer. Se aparecer, a mensagem diz qual endereço faltou: acrescente-o na linha da CSP em `kinetic-desktop/public/_headers`.
+- [ ] Em F12 → Network → documento principal → Response Headers, conferir que `content-security-policy` e `x-content-type-options` estão presentes (sinal de que o Pages leu o `_headers`).
+- [ ] Cloudflare → SSL/TLS → Edge Certificates: ligar **HSTS** (max-age de 6 meses; *include subdomains* só se todos os subdomínios forem HTTPS).
+
+**Conferências no `.env` de produção**
+- [ ] `JWT_EXPIRATION_MS` curto (sugestão: `900000`, 15 min). É o tempo que um token roubado vale; o refresh renova sem o usuário perceber.
+- [ ] `MEDIA_CLEANUP_DRY_RUN`: segue o item 17 em [CLOUDFLARE-PENDENCIAS.md](CLOUDFLARE-PENDENCIAS.md).
+- [ ] Limite de gasto na chave da IA: item 4 deste arquivo. O código limita a 20 tentativas por hora por personal, mas o teto em dinheiro só existe no provedor.
+
+**No dia a dia**
+- [ ] Rodar `.\mvnw.cmd verify` (com o Docker Desktop aberto) antes de subir mudança no backend. Os testes usam um Postgres descartável, nunca o banco do `.env`.
+- [ ] Migration só acrescenta (tabela, coluna anulável, índice). Remover ou renomear coluna fica para um deploy seguinte; o motivo está no README, seção 1.5.
+- [ ] Quando produção passar da V52 de forma estável, regerar o snapshot dos testes (README, seção 1.4). Sem isso os testes continuam valendo, só ficam aplicando cada vez mais migrations sobre a V49.
+
+---
+
 ## 1. Cloudflare
 
 A API chega à VM pelo **Cloudflare Tunnel**: o `cloudflared` na VM abre a conexão de dentro para fora, então a VM não tem nenhuma porta de entrada aberta além do SSH. O HTTPS é da Cloudflare; não há certificado na VM.

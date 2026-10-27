@@ -9,6 +9,10 @@ import App from './App';
 import { Toaster } from '@/components/ui/sonner';
 import './theme/theme.css';
 
+// Painel aberto durante um deploy: os pedaços antigos das telas somem do servidor e a
+// próxima tela não carrega. Recarregar busca a versão nova.
+window.addEventListener('vite:preloadError', () => window.location.reload());
+
 // PWA: só em produção (em dev o cache do SW atrapalharia o HMR).
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => void navigator.serviceWorker.register('/sw.js'));

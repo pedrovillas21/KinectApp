@@ -13,6 +13,7 @@ import com.kinetic.dtos.TrainerAiPlanRequestDTO;
 import com.kinetic.dtos.TrainerWorkoutPlanRequestDTO;
 import com.kinetic.dtos.WorkoutPlanResponseDTO;
 import com.kinetic.exceptions.AiPlanPreviewException;
+import com.kinetic.exceptions.AiQuotaExceededException;
 import com.kinetic.models.AiPlanGeneration;
 import com.kinetic.models.User;
 import com.kinetic.models.WorkoutPlan;
@@ -23,11 +24,15 @@ import com.kinetic.services.GeminiService.InvalidGeminiResponseException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.core.LockConfiguration;
+import net.javacrumbs.shedlock.core.LockProvider;
+import net.javacrumbs.shedlock.core.SimpleLock;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
@@ -60,6 +65,9 @@ public class TrainerAiPlanService {
     /** Prévia mais velha que isso não pode ser aprovada: o perfil do aluno pode ter mudado. */
     static final Duration PREVIEW_TTL = Duration.ofHours(24);
 
+    /** Validade da trava de geração se a cópia cair no meio: acima dos 3 modelos × 120 s do GeminiService. */
+    static final Duration AI_LOCK_MAX = Duration.ofMinutes(10);
+
     private static final Set<String> MUSCLES = Set.of(
             "PEITO", "OMBRO", "TRICEPS", "BICEPS", "COSTAS", "ANTEBRACO",
             "QUADRICEPS", "POSTERIOR", "GLUTEOS", "PANTURRILHA");
@@ -75,6 +83,7 @@ public class TrainerAiPlanService {
     private final WorkoutPlanRepository workoutPlanRepository;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
+    private final LockProvider lockProvider;
 
     /** O que a IA vai considerar do aluno (anamnese do app). */
     @Transactional(readOnly = true)
@@ -100,6 +109,21 @@ public class TrainerAiPlanService {
                                             TrainerAiPlanRequestDTO request) {
         User student = trainerLinkService.resolveOwnedStudentForWrite(trainerEmail, studentId);
         User trainer = userRepository.getByEmailOrThrow(trainerEmail);
+        // Uma geração por vez por personal, valendo entre as cópias do backend: sem isso,
+        // pedidos simultâneos passam juntos pela cota antes de qualquer um ser gravado.
+        SimpleLock lock = lockProvider.lock(new LockConfiguration(Instant.now(),
+                        "ia-personal:" + trainer.getId(), AI_LOCK_MAX, Duration.ZERO))
+                .orElseThrow(() -> new AiQuotaExceededException(
+                        "Já existe uma geração de IA em andamento. Aguarde ela terminar."));
+        try {
+            return generatePreview(trainer, student, studentId, request);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private AiPlanPreviewDTO generatePreview(User trainer, User student, UUID studentId,
+                                             TrainerAiPlanRequestDTO request) {
         // Antes de chamar a IA: com a cota esgotada não se gasta token nenhum.
         boolean usesExtraCredit = billingService.assertCanGenerateAi(trainer);
         String level = TrainerPlanService.resolveLevel(request.level(), null, student.getLevel());

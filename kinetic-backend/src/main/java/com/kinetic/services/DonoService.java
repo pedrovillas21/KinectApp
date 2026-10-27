@@ -19,10 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.UUID;
 
 /**
@@ -161,32 +158,17 @@ public class DonoService {
 
     @Transactional(readOnly = true)
     public EmpresaAnalyticsDTO unitAnalytics(String donoEmail, UUID unitId, String period) {
-        return empresaService.getAnalyticsOf(ownedUnit(donoEmail, unitId).getId(), period);
+        return empresaService.getAnalyticsOf(List.of(ownedUnit(donoEmail, unitId).getId()), period);
     }
 
-    /** Soma das filiais da rede (retenção ponderada pelos vínculos de cada uma). */
+    /** Soma das filiais da rede, numa consulta só (retenção = ativos / vinculados de todas). */
     @Transactional(readOnly = true)
     public EmpresaAnalyticsDTO networkAnalytics(String donoEmail, String period) {
         Company network = network(donoEmail);
-        long personais = 0, alunos = 0, vinculados = 0, sessoes = 0;
-        double ativosNoPeriodo = 0;
-        Map<String, Long> volume = new TreeMap<>();
-        List<EmpresaAnalyticsDTO.InstructorPerf> desempenho = new ArrayList<>();
-        for (Company unit : companyRepository.findByParentIdOrderByNomeAsc(network.getId())) {
-            EmpresaAnalyticsDTO a = empresaService.getAnalyticsOf(unit.getId(), period);
-            personais += a.personaisAtivos();
-            alunos += a.alunosAtivos();
-            vinculados += a.alunosVinculadosNoPeriodo();
-            ativosNoPeriodo += a.retentionRate() * a.alunosVinculadosNoPeriodo();
-            sessoes += a.sessoesNoPeriodo();
-            a.volumeSeries().forEach(p -> volume.merge(p.date(), p.sessions(), Long::sum));
-            desempenho.addAll(a.desempenhoPorInstrutor());
-        }
-        List<EmpresaAnalyticsDTO.VolumePoint> series = volume.entrySet().stream()
-                .map(e -> new EmpresaAnalyticsDTO.VolumePoint(e.getKey(), e.getValue()))
+        List<UUID> unitIds = companyRepository.findByParentIdOrderByNomeAsc(network.getId()).stream()
+                .map(Company::getId)
                 .toList();
-        return new EmpresaAnalyticsDTO(personais, alunos, vinculados,
-                vinculados == 0 ? 0.0 : ativosNoPeriodo / vinculados, sessoes, series, desempenho);
+        return empresaService.getAnalyticsOf(unitIds, period);
     }
 
     // ── Internos ────────────────────────────────────────────────────────────
@@ -226,8 +208,8 @@ public class DonoService {
 
     private UnitDTOs.Response toResponse(Company unit) {
         User account = account(unit).orElse(null);
-        long personais = userRepository.countByCompanyIdAndRole(unit.getId(), Role.PERSONAL);
-        long alunos = trainerClientRepository.countByCompanyIdAndStatus(unit.getId(), TrainerLinkStatus.ATIVO);
+        long personais = userRepository.countByCompanyIdInAndRole(List.of(unit.getId()), Role.PERSONAL);
+        long alunos = trainerClientRepository.countByCompanyIdInAndStatus(List.of(unit.getId()), TrainerLinkStatus.ATIVO);
         return new UnitDTOs.Response(unit.getId(), unit.getNome(), unit.getCnpj(), unit.getAddress(), unit.getPhone(),
                 unit.getResponsibleName(), unit.getContactEmail(),
                 account != null ? account.getUsername() : null,

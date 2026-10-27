@@ -16,6 +16,7 @@ import com.kinetic.repositories.AiPlanGenerationRepository;
 import com.kinetic.repositories.TrainerClientRepository;
 import com.kinetic.repositories.TrainerSubscriptionRepository;
 import com.kinetic.repositories.UserRepository;
+import com.kinetic.security.RateLimiter;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -44,7 +45,7 @@ import java.util.UUID;
  * cancelamento, eventos do gateway e o limite de alunos ativos por plano.
  *
  * <p>Também controla a cota de gerações de IA do personal: total único no teste
- * grátis, mensal por plano (renova com a cobrança) e uma trava diária anti-abuso.
+ * grátis, mensal por plano (renova com a cobrança) e uma trava por hora anti-abuso.
  * Pacotes extras comprados à parte não expiram e só são gastos depois da cota.
  *
  * <p>Sem plano pago (teste encerrado, assinatura cancelada e vencida) vale o
@@ -68,8 +69,9 @@ public class BillingService {
     static final int TRIAL_MAX_STUDENTS = 5;
     /** Gerações de IA no teste grátis inteiro (não renova). */
     static final int TRIAL_AI_GENERATIONS = 10;
-    /** Trava anti-abuso (bug, script, uso indevido), vale para todo personal. */
+    /** Trava anti-abuso (bug, script, uso indevido): tentativas por hora, vale para todo personal. */
     static final int AI_HOURLY_CAP = 20;
+    private static final long AI_HOUR_MS = Duration.ofHours(1).toMillis();
     /** Pacote extra de IA: gerações por compra e preço (centavos). */
     static final int AI_PACK_CREDITS = 20;
     static final int AI_PACK_PRICE_CENTS = 990;
@@ -92,6 +94,7 @@ public class BillingService {
     private final UserRepository userRepository;
     private final PaymentGateway gateway;
     private final TrainerEventService trainerEventService;
+    private final RateLimiter rateLimiter;
 
     @Value("${billing.trial-days:14}")
     private int trialDays;
@@ -347,24 +350,28 @@ public class BillingService {
 
     /**
      * Barra uma nova geração de prévia por IA quando a cota do personal acabou.
-     * Chamado antes da chamada à IA; só gerações bem-sucedidas são gravadas e contam.
+     * Chamado antes da chamada à IA, com a trava de uma geração por vez já tomada
+     * (TrainerAiPlanService). A cota do período conta só gerações gravadas, para uma
+     * falha da IA não gastar o plano; a trava por hora conta toda tentativa, inclusive
+     * as que falham, e é o teto do gasto com a IA.
      *
      * @return true quando a cota acabou e a geração vai gastar um crédito extra:
      *         quem chama deve chamar {@link #consumeAiExtraCredit} depois de gravar
      */
     public boolean assertCanGenerateAi(User trainer) {
-        Instant now = Instant.now();
-        Instant hourAgo = now.minus(Duration.ofHours(1));
-        if (countAiSince(trainer, hourAgo) >= AI_HOURLY_CAP) {
-            // Libera quando a geração mais antiga da janela completa 1 hora.
-            LocalDateTime oldest = aiPlanGenerationRepository.findOldestCreatedAtSince(
-                    trainer.getId(), LocalDateTime.ofInstant(hourAgo, ZoneId.systemDefault()));
-            String when = oldest == null ? "em alguns minutos"
-                    : "às " + HOUR_MINUTE.format(oldest.atZone(ZoneId.systemDefault()).plusHours(1).toInstant());
+        boolean usesExtraCredit = assertAiQuota(trainer);
+        // Depois da cota: pedido barrado por ela não gasta tentativa da hora.
+        long waitMs = rateLimiter.acquire("ia-personal:" + trainer.getId(), AI_HOURLY_CAP, AI_HOUR_MS);
+        if (waitMs > 0) {
             throw new AiQuotaExceededException("Você atingiu o limite de " + AI_HOURLY_CAP
-                    + " gerações de IA por hora. Você pode gerar de novo " + when + ".");
+                    + " gerações de IA por hora. Você pode gerar de novo às "
+                    + HOUR_MINUTE.format(Instant.now().plusMillis(waitMs)) + ".");
         }
+        return usesExtraCredit;
+    }
 
+    private boolean assertAiQuota(User trainer) {
+        Instant now = Instant.now();
         TrainerSubscription sub = getOrCreate(trainer);
         AiAllowance allowance = aiAllowance(sub, trainer, now);
         if (allowance.limit() == null || countAiSince(trainer, allowance.periodStart()) < allowance.limit()) {

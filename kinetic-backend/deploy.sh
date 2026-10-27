@@ -4,6 +4,9 @@
 set -eu
 cd "$(dirname "$0")"
 
+# Só a main sobe: no GitHub ela só recebe código com o CI verde.
+[ "$(git rev-parse --abbrev-ref HEAD)" = main ] || { echo "Deploy só a partir da main."; exit 1; }
+
 git pull --ff-only
 docker compose build backend-1
 docker compose up -d --no-deps lb

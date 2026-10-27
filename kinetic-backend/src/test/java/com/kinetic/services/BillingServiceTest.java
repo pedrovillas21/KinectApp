@@ -14,6 +14,7 @@ import com.kinetic.repositories.AiPlanGenerationRepository;
 import com.kinetic.repositories.TrainerClientRepository;
 import com.kinetic.repositories.TrainerSubscriptionRepository;
 import com.kinetic.repositories.UserRepository;
+import com.kinetic.security.RateLimiter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -34,8 +35,12 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /** Plano Grátis como piso, Pro ilimitado e pacote extra de IA. */
@@ -45,8 +50,9 @@ class BillingServiceTest {
     private final TrainerClientRepository clients = mock(TrainerClientRepository.class);
     private final AiPlanGenerationRepository generations = mock(AiPlanGenerationRepository.class);
     private final UserRepository users = mock(UserRepository.class);
+    private final RateLimiter rateLimiter = mock(RateLimiter.class);
     private final BillingService service = new BillingService(subs, clients, generations,
-            users, mock(PaymentGateway.class), mock(TrainerEventService.class));
+            users, mock(PaymentGateway.class), mock(TrainerEventService.class), rateLimiter);
 
     private final User trainer = new User();
     private final TrainerSubscription sub = new TrainerSubscription();
@@ -117,29 +123,36 @@ class BillingServiceTest {
     }
 
     @Test
-    void hourlyCapBlocksBurstsEvenWithMonthlyQuotaLeft() {
+    void hourlyCapCountsAttemptsAfterTheQuotaCheck() {
         sub.setStatus(SubscriptionStatus.ATIVA);
         sub.setPlan(BillingPlan.PRO);
         sub.setCurrentPeriodEnd(Instant.now().plus(Duration.ofDays(10)));
-        LocalDateTime twoHoursAgo = LocalDateTime.now().minusHours(2);
-        long[] lastHour = {BillingService.AI_HOURLY_CAP - 1};
-        // Janela de 1 hora → lastHour; período do plano → bem abaixo da cota mensal.
-        when(generations.countByTrainerIdAndCreatedAtGreaterThanEqual(any(), any())).thenAnswer(inv ->
-                inv.<LocalDateTime>getArgument(1).isAfter(twoHoursAgo) ? lastHour[0] : 40L);
-
+        aiUsed(40);
+        String key = "ia-personal:" + trainer.getId();
         assertDoesNotThrow(() -> service.assertCanGenerateAi(trainer));
+        verify(rateLimiter).acquire(key, BillingService.AI_HOURLY_CAP, Duration.ofHours(1).toMillis());
 
-        lastHour[0] = BillingService.AI_HOURLY_CAP;
-        // A mais antiga da janela foi há 40 min: libera daqui a 20 min.
-        LocalDateTime oldest = LocalDateTime.now().minusMinutes(40);
-        when(generations.findOldestCreatedAtSince(any(), any())).thenReturn(oldest);
-        String expected = oldest.plusHours(1).atZone(java.time.ZoneId.systemDefault())
-                .withZoneSameInstant(java.time.ZoneId.of("America/Sao_Paulo"))
-                .format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
-
+        // Teto da hora estourado: libera daqui a 20 min, mesmo com cota do plano sobrando.
+        when(rateLimiter.acquire(anyString(), anyInt(), anyLong())).thenReturn(Duration.ofMinutes(20).toMillis());
+        String before = inTwentyMinutes();
         AiQuotaExceededException e = assertThrows(AiQuotaExceededException.class,
                 () -> service.assertCanGenerateAi(trainer));
-        assertTrue(e.getMessage().endsWith("Você pode gerar de novo às " + expected + "."), e.getMessage());
+        String after = inTwentyMinutes();
+        assertTrue(e.getMessage().endsWith("Você pode gerar de novo às " + before + ".")
+                || e.getMessage().endsWith("Você pode gerar de novo às " + after + "."), e.getMessage());
+    }
+
+    /** Hora de liberação no formato da mensagem; a virada de minuto durante o teste é aceita. */
+    private static String inTwentyMinutes() {
+        return java.time.ZonedDateTime.now(java.time.ZoneId.of("America/Sao_Paulo")).plusMinutes(20)
+                .format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
+    }
+
+    @Test
+    void quotaBlockDoesNotSpendHourlyAttempt() {
+        aiUsed(BillingPlan.FREE.getAiGenerationsPerMonth());
+        assertThrows(AiQuotaExceededException.class, () -> service.assertCanGenerateAi(trainer));
+        verifyNoInteractions(rateLimiter);
     }
 
     private List<TrainerClient> links(int n) {

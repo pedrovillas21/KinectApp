@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -53,17 +54,23 @@ public interface TrainerClientRepository extends JpaRepository<TrainerClient, UU
     List<TrainerClient> findByCompanyAndStatusFetch(@Param("companyId") UUID companyId,
                                                     @Param("status") TrainerLinkStatus status);
 
-    long countByCompanyIdAndStatus(UUID companyId, TrainerLinkStatus status);
+    // Analytics por lista de empresas: uma filial ou a rede inteira na mesma consulta.
 
-    long countByCompanyIdAndCreatedAtGreaterThanEqual(UUID companyId, LocalDateTime start);
+    long countByCompanyIdInAndStatus(Collection<UUID> companyIds, TrainerLinkStatus status);
 
-    long countByCompanyIdAndStatusAndCreatedAtGreaterThanEqual(
-            UUID companyId, TrainerLinkStatus status, LocalDateTime start);
+    long countByCompanyIdInAndCreatedAtGreaterThanEqual(Collection<UUID> companyIds, LocalDateTime start);
 
-    /** Nº de alunos ATIVOS por instrutor da empresa (gráfico "desempenho por instrutor"). */
+    long countByCompanyIdInAndStatusAndCreatedAtGreaterThanEqual(
+            Collection<UUID> companyIds, TrainerLinkStatus status, LocalDateTime start);
+
+    @Query("SELECT tc.student.id FROM TrainerClient tc WHERE tc.companyId IN :companyIds AND tc.status = :status")
+    List<UUID> findStudentIdsByCompanies(@Param("companyIds") Collection<UUID> companyIds,
+                                         @Param("status") TrainerLinkStatus status);
+
+    /** Nº de alunos ATIVOS por instrutor das empresas (gráfico "desempenho por instrutor"). */
     @Query("SELECT tc.trainer.id, tc.trainer.nome, COUNT(tc) FROM TrainerClient tc "
-            + "WHERE tc.companyId = :companyId AND tc.status = :status "
+            + "WHERE tc.companyId IN :companyIds AND tc.status = :status "
             + "GROUP BY tc.trainer.id, tc.trainer.nome ORDER BY COUNT(tc) DESC")
-    List<Object[]> countActiveStudentsPerTrainer(@Param("companyId") UUID companyId,
+    List<Object[]> countActiveStudentsPerTrainer(@Param("companyIds") Collection<UUID> companyIds,
                                                  @Param("status") TrainerLinkStatus status);
 }

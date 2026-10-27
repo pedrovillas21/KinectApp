@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.lang.NonNull;
 
 import java.time.Instant;
@@ -17,6 +18,9 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "users")
+// UPDATE só das colunas alteradas: um save a partir de uma leitura antiga não desfaz
+// status, senha ou papel gravados por outra requisição no meio do caminho.
+@DynamicUpdate
 @Getter
 @Setter
 @NoArgsConstructor

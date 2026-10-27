@@ -1,5 +1,6 @@
 package com.kinetic.security;
 
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,8 +37,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String userEmail;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
@@ -45,14 +44,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         try {
-            jwt = authHeader.substring(7);
+            // Uma leitura só: assinatura e validade conferidas aqui valem para as checagens abaixo.
+            Claims claims = jwtUtil.parse(authHeader.substring(7));
             // Token de desafio (senha certa, falta o código do app autenticador) não dá acesso.
-            if (jwtUtil.extractPurpose(jwt) != null) {
+            if (claims.get(JwtUtil.PURPOSE_CLAIM) != null) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("Unauthorized: falta o código do app autenticador.");
                 return;
             }
-            userEmail = jwtUtil.extractUsername(jwt);
+            String userEmail = claims.getSubject();
 
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = this.customUserDetailsService.loadUserByUsername(userEmail);
@@ -69,49 +69,48 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // Senha trocada/redefinida depois da emissão: o token pode estar com quem
                 // motivou a troca. Mesmo 401 de token inválido, para o cliente renovar ou sair.
                 if (userDetails instanceof KineticUserDetails details
-                        && details.isIssuedBeforeCredentialsChange(jwtUtil.extractIssuedAt(jwt))) {
+                        && details.isIssuedBeforeCredentialsChange(JwtUtil.issuedAt(claims))) {
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     response.getWriter().write("Unauthorized: sessão encerrada após a troca de senha.");
                     return;
                 }
 
-                if (jwtUtil.validateToken(jwt, userDetails.getUsername())) {
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails,
-                            null,
-                            userDetails.getAuthorities()
-                    );
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                );
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                    // Conta antiga sem celular: só passa o necessário para cadastrá-lo.
-                    if (userDetails instanceof KineticUserDetails details
-                            && details.isPhoneRequired()
-                            && !allowedWhilePending(request)) {
-                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                        response.setContentType("application/json");
-                        response.setCharacterEncoding("UTF-8");
-                        response.getWriter().write(PHONE_REQUIRED_BODY);
-                        return;
-                    }
-
-                    // Sem o aceite da versão vigente, nenhum dado é tratado além do necessário para aceitar
-                    // (ou para o titular exercer os direitos dele: exportar e excluir a conta).
-                    if (userDetails instanceof KineticUserDetails details
-                            && details.isTermsRequired()
-                            && !allowedWhilePending(request)) {
-                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                        response.setContentType("application/json");
-                        response.setCharacterEncoding("UTF-8");
-                        response.getWriter().write(TERMS_REQUIRED_BODY);
-                        return;
-                    }
-
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                // Conta antiga sem celular: só passa o necessário para cadastrá-lo.
+                if (userDetails instanceof KineticUserDetails details
+                        && details.isPhoneRequired()
+                        && !allowedWhilePending(request)) {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json");
+                    response.setCharacterEncoding("UTF-8");
+                    response.getWriter().write(PHONE_REQUIRED_BODY);
+                    return;
                 }
+
+                // Sem o aceite da versão vigente, nenhum dado é tratado além do necessário para aceitar
+                // (ou para o titular exercer os direitos dele: exportar e excluir a conta).
+                if (userDetails instanceof KineticUserDetails details
+                        && details.isTermsRequired()
+                        && !allowedWhilePending(request)) {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json");
+                    response.setCharacterEncoding("UTF-8");
+                    response.getWriter().write(TERMS_REQUIRED_BODY);
+                    return;
+                }
+
+                SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         } catch (io.jsonwebtoken.JwtException | org.springframework.security.core.userdetails.UsernameNotFoundException e) {
+            // Mensagem fixa: o detalhe da exceção diria por que o token falhou.
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Unauthorized: " + e.getMessage());
+            response.getWriter().write("Unauthorized: token inválido.");
             return;
         }
 

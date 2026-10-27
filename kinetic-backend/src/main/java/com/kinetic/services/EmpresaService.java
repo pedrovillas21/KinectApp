@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -222,28 +223,32 @@ public class EmpresaService {
 
     @Transactional(readOnly = true)
     public EmpresaAnalyticsDTO getAnalytics(String empresaEmail, String period) {
-        return getAnalyticsOf(resolveCompanyId(empresaEmail), period);
+        return getAnalyticsOf(List.of(resolveCompanyId(empresaEmail)), period);
     }
 
+    /**
+     * Indicadores de uma ou mais empresas somados (a rede do dono passa todas as filiais):
+     * o número de consultas não cresce com o número de filiais.
+     */
     @Transactional(readOnly = true)
-    public EmpresaAnalyticsDTO getAnalyticsOf(UUID companyId, String period) {
+    public EmpresaAnalyticsDTO getAnalyticsOf(Collection<UUID> companyIds, String period) {
+        if (companyIds.isEmpty()) {
+            return new EmpresaAnalyticsDTO(0, 0, 0, 0.0, 0, List.of(), List.of());
+        }
         LocalDate startDate = periodStartDate(period);
         LocalDateTime startDateTime = startDate.atStartOfDay();
         LocalDate today = AppTime.today();
 
-        long personaisAtivos = userRepository.countByCompanyIdAndRole(companyId, Role.PERSONAL);
-        long alunosAtivos = trainerClientRepository.countByCompanyIdAndStatus(companyId, TrainerLinkStatus.ATIVO);
+        long personaisAtivos = userRepository.countByCompanyIdInAndRole(companyIds, Role.PERSONAL);
+        long alunosAtivos = trainerClientRepository.countByCompanyIdInAndStatus(companyIds, TrainerLinkStatus.ATIVO);
         long vinculadosNoPeriodo =
-                trainerClientRepository.countByCompanyIdAndCreatedAtGreaterThanEqual(companyId, startDateTime);
+                trainerClientRepository.countByCompanyIdInAndCreatedAtGreaterThanEqual(companyIds, startDateTime);
         long ativosNoPeriodo = trainerClientRepository
-                .countByCompanyIdAndStatusAndCreatedAtGreaterThanEqual(companyId, TrainerLinkStatus.ATIVO, startDateTime);
+                .countByCompanyIdInAndStatusAndCreatedAtGreaterThanEqual(companyIds, TrainerLinkStatus.ATIVO, startDateTime);
         double retention = vinculadosNoPeriodo == 0 ? 0.0 : (double) ativosNoPeriodo / vinculadosNoPeriodo;
 
-        // Volume da unidade: sessões dos alunos ATIVOS da empresa no período.
-        List<UUID> studentIds = trainerClientRepository
-                .findByCompanyAndStatusFetch(companyId, TrainerLinkStatus.ATIVO).stream()
-                .map(link -> link.getStudent().getId())
-                .toList();
+        // Volume: sessões dos alunos ATIVOS das empresas no período.
+        List<UUID> studentIds = trainerClientRepository.findStudentIdsByCompanies(companyIds, TrainerLinkStatus.ATIVO);
 
         List<EmpresaAnalyticsDTO.VolumePoint> volumeSeries = new ArrayList<>();
         long sessoesNoPeriodo = 0;
@@ -257,7 +262,7 @@ public class EmpresaService {
         }
 
         List<EmpresaAnalyticsDTO.InstructorPerf> desempenho = trainerClientRepository
-                .countActiveStudentsPerTrainer(companyId, TrainerLinkStatus.ATIVO).stream()
+                .countActiveStudentsPerTrainer(companyIds, TrainerLinkStatus.ATIVO).stream()
                 .map(row -> new EmpresaAnalyticsDTO.InstructorPerf(
                         (UUID) row[0], (String) row[1], ((Number) row[2]).longValue()))
                 .toList();

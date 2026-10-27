@@ -58,7 +58,7 @@ Estes itens ficaram de fora de propósito porque hoje ajudam na demo:
 - [ ] `BILLING_GATEWAY=asaas` no `.env` quando o Asaas for integrado. No modo demo, qualquer personal ativa o plano sozinho (item 3).
 - [ ] Tratar estorno e chargeback do Asaas no webhook (item 16).
 - [ ] Ao subir o PRO depois de cancelar um plano pago, liberar os limites só depois do pagamento (item 9).
-- [ ] Cota de IA: contar gerações simultâneas e falhas cobradas (item 5). Junto com a troca para o Claude Haiku, definir um limite de gasto no Console da Anthropic, em Settings → Limits.
+- [x] Cota de IA: contar gerações simultâneas e falhas cobradas (item 5). Resolvido no código em 2026-10-27: uma geração por vez por personal e teto de 20 tentativas por hora, inclusive as que falham. Falta só o limite de gasto no provedor (item 4 de [PROTECOES-FORA-DO-CODIGO.md](PROTECOES-FORA-DO-CODIGO.md)); na troca para o Claude Haiku, no Console da Anthropic, em Settings → Limits.
 - [ ] `MEDIA_CLEANUP_DRY_RUN=false` depois de conferir no log que a limpeza de mídia órfã só apagaria o que deve (item 17).
 - [ ] Criar a conta ROOT com um e-mail sem cadastro prévio, definindo `ROOT_USER_EMAIL` e `ROOT_USER_PASSWORD`.
 

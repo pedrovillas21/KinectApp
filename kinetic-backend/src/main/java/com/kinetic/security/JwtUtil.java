@@ -13,25 +13,27 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
 
 @Component
 public class JwtUtil {
 
     static final String ISSUED_AT_MS_CLAIM = "iat_ms";
 
-    @Value("${jwt.secret}")
-    private String secret;
+    private final SecretKey signingKey;
+    private final long expiration;
 
-    @Value("${jwt.expiration}")
-    private Long expiration;
-
-    public String extractUsername(String token) {
-        return extractClaim(token, claims -> claims.getSubject());
+    public JwtUtil(@Value("${jwt.secret}") String secret, @Value("${jwt.expiration}") long expiration) {
+        this.signingKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
+        this.expiration = expiration;
     }
 
-    public Date extractExpiration(String token) {
-        return extractClaim(token, claims -> claims.getExpiration());
+    /** Claims de um token com assinatura e validade conferidas; lança JwtException se não forem. */
+    public Claims parse(String token) {
+        return Jwts.parser()
+                .verifyWith(signingKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     /**
@@ -39,35 +41,12 @@ public class JwtUtil {
      * valendo um token emitido no mesmo segundo da troca de senha; tokens antigos, sem o
      * claim, caem no iat.
      */
-    public Instant extractIssuedAt(String token) {
-        return extractClaim(token, claims -> {
-            Long ms = claims.get(ISSUED_AT_MS_CLAIM, Long.class);
-            if (ms != null) {
-                return Instant.ofEpochMilli(ms);
-            }
-            return claims.getIssuedAt() != null ? claims.getIssuedAt().toInstant() : null;
-        });
-    }
-
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
-    }
-
-    private Claims extractAllClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
-    }
-
-    private Boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
-    }
-
-    public String extractRole(String token) {
-        return extractClaim(token, claims -> claims.get("role", String.class));
+    public static Instant issuedAt(Claims claims) {
+        Long ms = claims.get(ISSUED_AT_MS_CLAIM, Long.class);
+        if (ms != null) {
+            return Instant.ofEpochMilli(ms);
+        }
+        return claims.getIssuedAt() != null ? claims.getIssuedAt().toInstant() : null;
     }
 
     public String generateToken(String username, Role role) {
@@ -82,7 +61,7 @@ public class JwtUtil {
                 .subject(username)
                 .issuedAt(new Date(now))
                 .expiration(new Date(now + expiration))
-                .signWith(getSigningKey())
+                .signWith(signingKey)
                 .compact();
     }
 
@@ -102,30 +81,16 @@ public class JwtUtil {
                 .subject(username)
                 .issuedAt(new Date(now))
                 .expiration(new Date(now + CHALLENGE_TTL_MS))
-                .signWith(getSigningKey())
+                .signWith(signingKey)
                 .compact();
     }
 
     /** Dono do desafio TOTP; lança JwtException se o token for inválido, vencido ou de outro tipo. */
     public String extractChallengeSubject(String token) {
-        Claims claims = extractAllClaims(token);
+        Claims claims = parse(token);
         if (!PURPOSE_TOTP.equals(claims.get(PURPOSE_CLAIM, String.class))) {
             throw new io.jsonwebtoken.JwtException("Token não é de desafio TOTP.");
         }
         return claims.getSubject();
-    }
-
-    public String extractPurpose(String token) {
-        return extractClaim(token, claims -> claims.get(PURPOSE_CLAIM, String.class));
-    }
-
-    public Boolean validateToken(String token, String username) {
-        final String extractedUsername = extractUsername(token);
-        return extractedUsername.equals(username) && !isTokenExpired(token);
-    }
-
-    private SecretKey getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secret);
-        return Keys.hmacShaKeyFor(keyBytes);
     }
 }

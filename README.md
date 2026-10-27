@@ -73,6 +73,7 @@ Depois preencha os valores no `.env` (ele **não** é versionado):
 | `JWT_REFRESH_EXPIRATION_MS` | ✅ | Validade do refresh token, em ms |
 | `GOOGLE_AI_API_KEY` | ✅ | Chave da API do Google Gemini (geração de treinos) |
 | `PSEUDONYM_KEY` | ✅ | Chave que pseudonimiza e-mail/CPF nos registros guardados após a exclusão de conta (≥ 32 caracteres). Sem ela o backend não sobe. Use a mesma em todo ambiente que aponta para o mesmo banco e nunca troque em produção ([RETENCAO-DE-DADOS.md](RETENCAO-DE-DADOS.md)) |
+| `BILLING_GATEWAY` | ✅ | Cobrança do personal: `demo` (nada é cobrado; o painel simula o pagamento) ou `asaas`. Sem ela o backend não sobe |
 | `CORS_ALLOWED_ORIGINS` | ❌ | Origens liberadas (default: `http://localhost:8081,http://localhost:19006`) |
 
 > 💡 Para gerar um `JWT_SECRET` aleatório: `openssl rand -base64 64`. Para a `PSEUDONYM_KEY`: `openssl rand -base64 48`.
@@ -157,6 +158,32 @@ docker compose up --build       # reconstrói após mudanças no código
 > (ex.: Supabase) funcionam sem configuração extra. Já um Postgres rodando **no host**
 > não é acessível via `localhost` de dentro do container — use
 > `host.docker.internal` (Windows/macOS) no lugar de `localhost` na `DB_URL`.
+
+### 1.4. Testes
+
+```bash
+.\mvnw.cmd test     # só os de unidade, sem Docker
+.\mvnw.cmd verify   # unidade + integração (*IT); precisa do Docker aberto
+```
+
+Os testes de integração sobem um Postgres descartável (Testcontainers) com o schema de
+produção em [`src/test/resources/db/prod-schema-v49.sql`](kinetic-backend/src/test/resources/db/prod-schema-v49.sql)
+e aplicam por cima as migrations novas, como acontece no deploy. Nunca usam o banco do `.env`.
+O mesmo arquivo, somado às migrations, recria o schema do zero.
+
+Quando produção avançar de versão, gere um novo dump só de estrutura, faça as mesmas
+remoções listadas no topo do arquivo e atualize `spring.flyway.baseline-version` em
+`src/test/resources/application-test.properties`.
+
+### 1.5. Deploy e migrations
+
+O CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) roda em todo push. O
+`deploy.sh` só sobe a `main`, que no GitHub exige o CI verde.
+
+O deploy troca uma cópia do backend por vez: a primeira aplica a migration enquanto a outra
+ainda roda o código antigo. Por isso **uma migration só acrescenta** (tabela, coluna anulável,
+índice). Remover ou renomear coluna fica para um deploy seguinte, quando nenhum código no ar
+usa mais o nome antigo.
 
 ---
 

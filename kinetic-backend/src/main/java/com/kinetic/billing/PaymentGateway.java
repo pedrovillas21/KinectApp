@@ -7,7 +7,7 @@ import java.time.LocalDate;
 
 /**
  * Porta para o provedor de pagamento da assinatura do personal. Hoje há duas
- * implementações, escolhidas por {@code billing.gateway}: {@code demo} (padrão,
+ * implementações, escolhidas por {@code billing.gateway}: {@code demo} (simulado,
  * sem chamada externa) e {@code asaas}.
  */
 public interface PaymentGateway {

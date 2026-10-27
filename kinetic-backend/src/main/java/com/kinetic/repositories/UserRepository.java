@@ -116,7 +116,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     List<User> findByCompanyIdAndRole(UUID companyId, Role role);
 
-    long countByCompanyIdAndRole(UUID companyId, Role role);
+    long countByCompanyIdInAndRole(Collection<UUID> companyIds, Role role);
 
     List<User> findByNomeContainingIgnoreCaseAndIdNot(String nome, UUID id);
 

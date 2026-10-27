@@ -11,12 +11,12 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 /**
- * Gateway de demonstração (padrão enquanto não há conta no Asaas): não chama
+ * Gateway de demonstração ({@code billing.gateway=demo}, enquanto não há conta no Asaas): não chama
  * nada externo nem cobra ninguém. O "pagamento" é simulado pelo painel na
  * página /assinatura/checkout-demo, que chama o endpoint de confirmação demo.
  */
 @Component
-@ConditionalOnProperty(name = "billing.gateway", havingValue = "demo", matchIfMissing = true)
+@ConditionalOnProperty(name = "billing.gateway", havingValue = "demo")
 public class DemoPaymentGateway implements PaymentGateway {
 
     private static final Logger log = LoggerFactory.getLogger(DemoPaymentGateway.class);

@@ -26,7 +26,7 @@ import java.util.Objects;
 
 /**
  * Integração com a API v3 do Asaas (https://docs.asaas.com). Ativada com
- * {@code billing.gateway=asaas}; por padrão o sistema usa o gateway demo.
+ * {@code billing.gateway=asaas}; com {@code demo}, o sistema usa o gateway de demonstração.
  *
  * <p><b>Ainda não validada contra o sandbox</b> (não há conta): antes de ligar
  * em produção, conferir na documentação os formatos de request/resposta e os

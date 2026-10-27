@@ -14,10 +14,6 @@ public interface AiPlanGenerationRepository extends JpaRepository<AiPlanGenerati
     /** Prévias geradas pelo personal desde {@code start} — base da cota de IA do plano. */
     long countByTrainerIdAndCreatedAtGreaterThanEqual(UUID trainerId, LocalDateTime start);
 
-    /** Prévia mais antiga desde {@code start} (nulo se não houver) — diz quando a trava por hora libera. */
-    @Query("SELECT MIN(g.createdAt) FROM AiPlanGeneration g WHERE g.trainer.id = :trainerId AND g.createdAt >= :start")
-    LocalDateTime findOldestCreatedAtSince(@Param("trainerId") UUID trainerId, @Param("start") LocalDateTime start);
-
     /** Prévias ainda não aprovadas e dentro da validade — caixa "Hoje" (mais recentes primeiro). */
     @Query("""
             SELECT g FROM AiPlanGeneration g JOIN FETCH g.student
