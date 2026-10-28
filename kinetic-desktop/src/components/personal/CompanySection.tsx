@@ -9,6 +9,7 @@ import {
   leaveCompany,
 } from '../../services/trainerProfileService';
 import type { TrainerCompany } from '../../types';
+import { errorMessage } from '../../utils/errors';
 
 /**
  * Empresa do personal: o convite de uma empresa só vale depois do aceite aqui, e o
@@ -39,8 +40,7 @@ export default function CompanySection() {
       setLeaving(false);
       await load();
     } catch (err: unknown) {
-      const data = (err as { response?: { data?: unknown } }).response?.data;
-      toast.error(typeof data === 'string' && data ? data : 'Não foi possível concluir. Tente novamente.');
+      toast.error(errorMessage(err, 'Não foi possível concluir. Tente novamente.'));
     } finally {
       setBusy(false);
     }

@@ -1,18 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
-import { getSquadStatus } from '../services/socialService';
+import { getSquad } from '../services/socialService';
 import type { SquadMember } from '../types';
 
 const POLL_INTERVAL_MS = 20_000;
 
+/** Squad com presença, atualizado a cada 20 s com o app em primeiro plano. */
 export default function useSquadStatus() {
   const [squadMembers, setSquadMembers] = useState<SquadMember[]>([]);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+  const appStateRef = useRef(AppState.currentState);
 
   const fetchStatus = async () => {
     try {
-      const data = await getSquadStatus();
+      const data = await getSquad();
       setSquadMembers(data);
     } catch {
       // silent — stale data is acceptable
@@ -36,7 +37,7 @@ export default function useSquadStatus() {
     startPolling();
 
     const sub = AppState.addEventListener('change', (nextState: AppStateStatus) => {
-      const wasBackground = appStateRef.current.match(/inactive|background/);
+      const wasBackground = appStateRef.current?.match(/inactive|background/);
       const isActive = nextState === 'active';
       appStateRef.current = nextState;
 
@@ -53,5 +54,5 @@ export default function useSquadStatus() {
     };
   }, []);
 
-  return squadMembers;
+  return { members: squadMembers, refresh: fetchStatus };
 }

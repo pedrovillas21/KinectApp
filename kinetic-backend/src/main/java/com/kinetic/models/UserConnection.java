@@ -45,4 +45,9 @@ public class UserConnection {
 
     @Column(name = "responded_at")
     private LocalDateTime respondedAt;
+
+    /** A outra ponta da conexão, vista por {@code userId}. */
+    public User otherSide(UUID userId) {
+        return requester.getId().equals(userId) ? addressee : requester;
+    }
 }

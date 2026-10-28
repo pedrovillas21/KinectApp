@@ -7,43 +7,14 @@ import {
 } from 'react-native';
 import { Text, TextInput } from '../../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RouteProp } from '@react-navigation/native';
 import { AuthContext } from '../../contexts/AuthContext';
-import Svg, { Path } from 'react-native-svg';
 import { showAlert } from '../../components/ui/AlertHost';
 import KeyboardAvoider from '../../components/ui/KeyboardAvoider';
 import { KINETIC } from '../../theme/kinetic';
+import { BackArrowIcon } from '../../components/auth/AuthIcons';
+import type { AuthScreenProps } from '../../navigation/types';
 
-const A = {
-  bg: '#131313',
-  s1: '#1c1b1b',
-  primary: '#00E5FF',
-  text: '#f5f6f7',
-  text2: 'rgba(245,246,247,0.60)',
-  text3: 'rgba(245,246,247,0.34)',
-  ghostHi: 'rgba(255,255,255,0.13)',
-};
-
-function BackArrowIcon({ size = 20, color = '#f5f6f7' }: { size?: number; color?: string }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M19 12H5M5 12l7 7M5 12l7-7"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-type Props = {
-  navigation: NativeStackNavigationProp<any>;
-  // Mesmo padrão do ResetPasswordScreen: navigator não tipado.
-  route: RouteProp<Record<string, { email?: string } | undefined>, string>;
-};
+type Props = AuthScreenProps<'VerifyCode'>;
 
 export default function VerifyCodeScreen({ navigation, route }: Props) {
   const { requestPasswordReset } = useContext(AuthContext);
@@ -175,7 +146,7 @@ export default function VerifyCodeScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: A.bg },
+  container: { flex: 1, backgroundColor: KINETIC.bg },
   safe: { flex: 1 },
   kav: { flex: 1 },
   header: {
@@ -190,13 +161,13 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: A.s1,
+    backgroundColor: KINETIC.surface1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerText: {
     fontSize: 13,
-    color: A.text2,
+    color: KINETIC.textDim,
     fontWeight: '500',
   },
   content: {
@@ -206,40 +177,40 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 36,
     fontWeight: '800',
-    color: A.text,
+    color: KINETIC.text,
     letterSpacing: -1,
     lineHeight: 44,
     marginTop: 12,
     marginBottom: 12,
   },
   titleAccent: {
-    color: A.primary,
+    color: KINETIC.primary,
   },
   subtitle: {
     fontSize: 14,
     lineHeight: 21,
-    color: A.text2,
+    color: KINETIC.textDim,
     marginBottom: 32,
   },
   subtitleEmail: {
-    color: A.text,
+    color: KINETIC.text,
     fontWeight: '600',
   },
   fieldLabel: {
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.6,
-    color: A.text3,
+    color: KINETIC.textMuted,
     marginBottom: 8,
     textTransform: 'uppercase',
   },
   inputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: A.s1,
+    backgroundColor: KINETIC.surface1,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: A.ghostHi,
+    borderColor: KINETIC.ghostHi,
     paddingHorizontal: 14,
     height: 64,
   },
@@ -249,7 +220,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 10,
     textAlign: 'center',
-    color: A.text,
+    color: KINETIC.text,
     padding: 0,
   },
   resendRow: {
@@ -259,10 +230,10 @@ const styles = StyleSheet.create({
   },
   resendText: {
     fontSize: 13,
-    color: A.text2,
+    color: KINETIC.textDim,
   },
   resendLink: {
-    color: A.primary,
+    color: KINETIC.primary,
     fontWeight: '600',
   },
   footer: {
@@ -273,9 +244,9 @@ const styles = StyleSheet.create({
   verifyBtn: {
     paddingVertical: 16,
     borderRadius: 16,
-    backgroundColor: A.s1,
+    backgroundColor: KINETIC.surface1,
     borderWidth: 1,
-    borderColor: A.ghostHi,
+    borderColor: KINETIC.ghostHi,
     alignItems: 'center',
     justifyContent: 'center',
     opacity: 0.5,
@@ -287,10 +258,10 @@ const styles = StyleSheet.create({
   verifyBtnText: {
     fontSize: 16,
     fontWeight: '700',
-    color: A.text2,
+    color: KINETIC.textDim,
   },
   verifyBtnTextActive: {
-    color: A.text,
+    color: KINETIC.text,
   },
   loginRow: {
     alignItems: 'center',
@@ -298,10 +269,10 @@ const styles = StyleSheet.create({
   },
   loginText: {
     fontSize: 13,
-    color: A.text2,
+    color: KINETIC.textDim,
   },
   loginLink: {
-    color: A.primary,
+    color: KINETIC.primary,
     fontWeight: '600',
   },
 });

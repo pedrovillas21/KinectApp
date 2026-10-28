@@ -7,37 +7,13 @@ import {
 } from 'react-native';
 import { Text, TextInput } from '../../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RouteProp } from '@react-navigation/native';
 import { AuthContext } from '../../contexts/AuthContext';
-import Svg, { Path, Circle } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 import { showAlert } from '../../components/ui/AlertHost';
 import KeyboardAvoider from '../../components/ui/KeyboardAvoider';
 import { KINETIC } from '../../theme/kinetic';
-
-const A = {
-  bg: '#131313',
-  s1: '#1c1b1b',
-  primary: '#00E5FF',
-  text: '#f5f6f7',
-  text2: 'rgba(245,246,247,0.60)',
-  text3: 'rgba(245,246,247,0.34)',
-  ghostHi: 'rgba(255,255,255,0.13)',
-};
-
-function BackArrowIcon({ size = 20, color = '#f5f6f7' }: { size?: number; color?: string }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M19 12H5M5 12l7 7M5 12l7-7"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
+import { BackArrowIcon, EmailIcon, LockIcon, EyeIcon } from '../../components/auth/AuthIcons';
+import type { AuthScreenProps } from '../../navigation/types';
 
 function AppleIcon({ size = 18, color = '#f5f6f7' }: { size?: number; color?: string }) {
   return (
@@ -73,90 +49,7 @@ function GoogleIcon({ size = 18 }: { size?: number }) {
   );
 }
 
-function EmailIcon({ size = 16, color = A.text3 }: { size?: number; color?: string }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
-        stroke={color}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M22 6l-10 7L2 6"
-        stroke={color}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-function LockIcon({ size = 16, color = A.text3 }: { size?: number; color?: string }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2z"
-        stroke={color}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M7 11V7a5 5 0 0110 0v4"
-        stroke={color}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-function EyeIcon({ size = 18, color = A.text3, closed = false }: { size?: number; color?: string; closed?: boolean }) {
-  if (closed) {
-    return (
-      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-        <Path
-          d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"
-          stroke={color}
-          strokeWidth={1.5}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <Path
-          d="M1 1l22 22"
-          stroke={color}
-          strokeWidth={1.5}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </Svg>
-    );
-  }
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-        stroke={color}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Circle cx="12" cy="12" r="3" stroke={color} strokeWidth={1.5} />
-    </Svg>
-  );
-}
-
-type Props = {
-  navigation: NativeStackNavigationProp<any>;
-  // Nome de rota genérico (string) em vez do literal 'Login': o navigator não é
-  // tipado, então fornece RouteProp<ParamListBase, string> — um literal aqui o
-  // tornaria incompatível com Stack.Screen.
-  route: RouteProp<Record<string, { email?: string } | undefined>, string>;
-};
+type Props = AuthScreenProps<'Login'>;
 
 export default function LoginScreen({ navigation, route }: Props) {
   const { signIn } = useContext(AuthContext);
@@ -321,7 +214,7 @@ export default function LoginScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: A.bg },
+  container: { flex: 1, backgroundColor: KINETIC.bg },
   safe: { flex: 1 },
   kav: { flex: 1 },
   header: {
@@ -336,13 +229,13 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: A.s1,
+    backgroundColor: KINETIC.surface1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerText: {
     fontSize: 13,
-    color: A.text2,
+    color: KINETIC.textDim,
     fontWeight: '500',
   },
   content: {
@@ -352,14 +245,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 36,
     fontWeight: '800',
-    color: A.text,
+    color: KINETIC.text,
     letterSpacing: -1,
     lineHeight: 44,
     marginTop: 12,
     marginBottom: 32,
   },
   titleAccent: {
-    color: A.primary,
+    color: KINETIC.primary,
   },
   socialRow: {
     flexDirection: 'row',
@@ -374,12 +267,12 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 14,
     borderRadius: 14,
-    backgroundColor: A.s1,
+    backgroundColor: KINETIC.surface1,
     borderWidth: 1,
-    borderColor: A.ghostHi,
+    borderColor: KINETIC.ghostHi,
   },
   socialBtnText: {
-    color: A.text,
+    color: KINETIC.text,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -392,17 +285,17 @@ const styles = StyleSheet.create({
   separatorLine: {
     flex: 1,
     height: 1,
-    backgroundColor: A.ghostHi,
+    backgroundColor: KINETIC.ghostHi,
   },
   separatorText: {
     fontSize: 12,
-    color: A.text3,
+    color: KINETIC.textMuted,
   },
   fieldLabel: {
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.6,
-    color: A.text3,
+    color: KINETIC.textMuted,
     marginBottom: 8,
     textTransform: 'uppercase',
   },
@@ -416,23 +309,23 @@ const styles = StyleSheet.create({
   forgotText: {
     fontSize: 12,
     fontWeight: '600',
-    color: A.primary,
+    color: KINETIC.primary,
   },
   inputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: A.s1,
+    backgroundColor: KINETIC.surface1,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: A.ghostHi,
+    borderColor: KINETIC.ghostHi,
     paddingHorizontal: 14,
     height: 52,
   },
   textInput: {
     flex: 1,
     fontSize: 15,
-    color: A.text,
+    color: KINETIC.text,
     padding: 0,
   },
   eyeBtn: {
@@ -449,18 +342,18 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 6,
     borderWidth: 1.5,
-    borderColor: A.ghostHi,
-    backgroundColor: A.s1,
+    borderColor: KINETIC.ghostHi,
+    backgroundColor: KINETIC.surface1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkboxChecked: {
-    backgroundColor: A.primary,
-    borderColor: A.primary,
+    backgroundColor: KINETIC.primary,
+    borderColor: KINETIC.primary,
   },
   checkLabel: {
     fontSize: 13,
-    color: A.text2,
+    color: KINETIC.textDim,
   },
   footer: {
     paddingHorizontal: 24,
@@ -470,9 +363,9 @@ const styles = StyleSheet.create({
   loginBtn: {
     paddingVertical: 16,
     borderRadius: 16,
-    backgroundColor: A.s1,
+    backgroundColor: KINETIC.surface1,
     borderWidth: 1,
-    borderColor: A.ghostHi,
+    borderColor: KINETIC.ghostHi,
     alignItems: 'center',
     justifyContent: 'center',
     opacity: 0.5,
@@ -484,10 +377,10 @@ const styles = StyleSheet.create({
   loginBtnText: {
     fontSize: 16,
     fontWeight: '700',
-    color: A.text2,
+    color: KINETIC.textDim,
   },
   loginBtnTextActive: {
-    color: A.text,
+    color: KINETIC.text,
   },
   registerRow: {
     alignItems: 'center',
@@ -495,10 +388,10 @@ const styles = StyleSheet.create({
   },
   registerText: {
     fontSize: 13,
-    color: A.text2,
+    color: KINETIC.textDim,
   },
   registerLink: {
-    color: A.primary,
+    color: KINETIC.primary,
     fontWeight: '600',
   },
 });

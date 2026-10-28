@@ -56,18 +56,3 @@ export const aiTotalLimit = (b: BillingOverview): number | null =>
   b.aiGenerationsLimit === null
     ? null
     : b.aiGenerationsLimit + b.aiExtraCredits + Math.max(0, b.aiGenerationsUsed - b.aiGenerationsLimit);
-
-export { formatBRL } from '../utils/money';
-
-export const formatDate = (iso: string | null): string =>
-  iso ? new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' }) : '';
-
-/** Dias inteiros até `iso` (0 = hoje ou já passou). */
-export const daysUntil = (iso: string | null): number =>
-  iso ? Math.max(0, Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000)) : 0;
-
-/** Texto de erro vindo do backend (corpo em texto), com fallback. */
-export const billingErrorMessage = (err: unknown, fallback: string): string => {
-  const data = (err as { response?: { data?: unknown } }).response?.data;
-  return typeof data === 'string' && data ? data : fallback;
-};

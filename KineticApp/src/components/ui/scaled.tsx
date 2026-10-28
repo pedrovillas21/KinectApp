@@ -22,17 +22,17 @@ function scaleStyle(style: StyleProp<TextStyle>, factor: number): StyleProp<Text
 }
 
 /** Drop-in do Text do react-native que respeita o tamanho de texto do app. */
-export const Text = forwardRef<RNText, TextProps>(function ScaledText(props, ref) {
+export const Text = forwardRef<Text, TextProps>(function ScaledText(props, ref) {
   const { factor } = useTextScale();
   return <RNText ref={ref} {...props} style={scaleStyle(props.style, factor)} />;
 });
 
 /** Drop-in do TextInput do react-native que respeita o tamanho de texto do app. */
-export const TextInput = forwardRef<RNTextInput, TextInputProps>(function ScaledTextInput(props, ref) {
+export const TextInput = forwardRef<TextInput, TextInputProps>(function ScaledTextInput(props, ref) {
   const { factor } = useTextScale();
   return <RNTextInput ref={ref} {...props} style={scaleStyle(props.style, factor)} />;
 });
 
 // Mesmo nome como tipo: `useRef<TextInput>(null)` continua valendo como no react-native.
-export type Text = RNText;
-export type TextInput = RNTextInput;
+export type Text = React.ComponentRef<typeof RNText>;
+export type TextInput = React.ComponentRef<typeof RNTextInput>;

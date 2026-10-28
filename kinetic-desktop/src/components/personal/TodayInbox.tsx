@@ -18,6 +18,7 @@ import { dismissToday } from '../../services/trainerService';
 import { qk, queryClient } from '../../services/queryClient';
 import { whatsappUrl } from '../../utils/whatsapp';
 import type { TodayItem, TodayItemType } from '../../types';
+import { firstNameOf } from '../../utils/names';
 
 const TYPE_META: Record<TodayItemType, { label: string; icon: LucideIcon }> = {
   PAGAMENTO: { label: 'Pagamentos', icon: Wallet },
@@ -37,7 +38,7 @@ const SEVERITY_DOT: Record<TodayItem['severity'], string> = {
 const COLLAPSED_LIMIT = 6;
 
 const missedTodayMessage = (studentName: string | null) => {
-  const first = studentName?.trim().split(/\s+/)[0];
+  const first = studentName ? firstNameOf(studentName) : undefined;
   return `Oi${first ? `, ${first}` : ''}! Senti sua falta no treino hoje. Está tudo bem?`;
 };
 

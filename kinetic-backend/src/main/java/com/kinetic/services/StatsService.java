@@ -1,5 +1,6 @@
 package com.kinetic.services;
 
+import lombok.RequiredArgsConstructor;
 import com.kinetic.utils.AppTime;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -16,49 +17,25 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class StatsService {
 
     private final WorkoutSessionRepository workoutSessionRepository;
     private final UserRepository userRepository;
     private final WeightHistoryRepository weightHistoryRepository;
-    private final ExerciseSetLogRepository exerciseSetLogRepository;
     private final ExerciseRepository exerciseRepository;
     private final UserService userService;
     private final UserConnectionRepository userConnectionRepository;
     private final PlanCycleSnapshotRepository planCycleSnapshotRepository;
+    private final PlanCycleSnapshotService planCycleSnapshotService;
     private final WorkoutPlanRepository workoutPlanRepository;
     private final TrainingSummaryService trainingSummaryService;
     private final ObjectMapper objectMapper;
-
-    public StatsService(WorkoutSessionRepository workoutSessionRepository,
-                        UserRepository userRepository,
-                        WeightHistoryRepository weightHistoryRepository,
-                        ExerciseSetLogRepository exerciseSetLogRepository,
-                        ExerciseRepository exerciseRepository,
-                        UserService userService,
-                        UserConnectionRepository userConnectionRepository,
-                        PlanCycleSnapshotRepository planCycleSnapshotRepository,
-                        WorkoutPlanRepository workoutPlanRepository,
-                        TrainingSummaryService trainingSummaryService,
-                        ObjectMapper objectMapper) {
-        this.workoutSessionRepository = workoutSessionRepository;
-        this.userRepository = userRepository;
-        this.weightHistoryRepository = weightHistoryRepository;
-        this.exerciseSetLogRepository = exerciseSetLogRepository;
-        this.exerciseRepository = exerciseRepository;
-        this.userService = userService;
-        this.userConnectionRepository = userConnectionRepository;
-        this.planCycleSnapshotRepository = planCycleSnapshotRepository;
-        this.workoutPlanRepository = workoutPlanRepository;
-        this.trainingSummaryService = trainingSummaryService;
-        this.objectMapper = objectMapper;
-    }
 
     @Transactional(readOnly = true)
     public StatsSummaryResponseDTO getSummary(String userEmail, String periodStr) {
@@ -145,7 +122,7 @@ public class StatsService {
     private Integer friendsAverageFor(User user, StatsPeriodParam period, LocalDate start, LocalDate end) {
         UUID meId = user.getId();
         Set<UUID> friendIds = userConnectionRepository.findAcceptedFor(meId).stream()
-                .map(c -> c.getRequester().getId().equals(meId) ? c.getAddressee().getId() : c.getRequester().getId())
+                .map(c -> c.otherSide(meId).getId())
                 .collect(Collectors.toSet());
         if (friendIds.size() < MIN_FRIENDS_FOR_AVERAGE) return null;
 
@@ -305,8 +282,8 @@ public class StatsService {
     private VolumeSummaryDTO buildVolumeSummary(User user,
                                                 LocalDate start,     LocalDate end,
                                                 LocalDate prevStart, LocalDate prevEnd) {
-        Map<String, Double> currentVolume  = volumeMapFromDB(user.getId(), start, end);
-        Map<String, Double> previousVolume = volumeMapFromDB(user.getId(), prevStart, prevEnd);
+        Map<String, Double> currentVolume  = trainingSummaryService.volumeByMuscle(user.getId(), start, end);
+        Map<String, Double> previousVolume = trainingSummaryService.volumeByMuscle(user.getId(), prevStart, prevEnd);
 
         double totalCurrent  = currentVolume.values().stream().mapToDouble(d -> d != null ? d : 0.0).sum();
         double totalPrevious = previousVolume.values().stream().mapToDouble(d -> d != null ? d : 0.0).sum();
@@ -349,17 +326,6 @@ public class StatsService {
             result.merge(cat, vol != null ? vol : 0.0, Double::sum);
         });
         return result;
-    }
-
-    private Map<String, Double> volumeMapFromDB(UUID userId, LocalDate start, LocalDate end) {
-        List<Object[]> rows = exerciseSetLogRepository.findVolumeByMuscleGroupBetween(userId, start, end);
-        Map<String, Double> map = new LinkedHashMap<>();
-        for (Object[] row : rows) {
-            String muscle = (row[0] != null) ? (String) row[0] : "Outros";
-            double vol    = (row[1] instanceof Number n) ? n.doubleValue() : 0.0;
-            map.put(muscle, vol);
-        }
-        return map;
     }
 
     private int deltaPct(double current, double previous) {
@@ -431,26 +397,12 @@ public class StatsService {
 
         LocalDate today = AppTime.today();
 
-        // Sessões do ciclo atual
-        long currentCompletedRaw = workoutSessionRepository
-                .countByUserIdAndSessionDateGreaterThanEqualAndSessionDateLessThan(
-                        user.getId(), cycleStart, today.plusDays(1));
-        int currentCompleted = (int) currentCompletedRaw;
-
+        // Mesmo cálculo do snapshot que encerra o ciclo
+        PlanCycleSnapshotService.CycleStats current = planCycleSnapshotService.cycleStats(user, cycleStart, today);
+        int currentCompleted = current.completedSessions();
         boolean currentCycleStarted = currentCompleted > 0;
-
-        // Target do ciclo atual (guard de divisão por zero)
-        int frequency = (user.getFrequency() != null && user.getFrequency() > 0) ? user.getFrequency() : 1;
-        long dayCount = ChronoUnit.DAYS.between(cycleStart, today);
-        int weeks = Math.max(1, (int) Math.ceil(dayCount / 7.0));
-        int currentTarget = Math.max(frequency, frequency * weeks);
-        int currentAdherencePct = currentTarget > 0
-                ? (int) Math.min(100, Math.round(currentCompleted * 100.0 / currentTarget))
-                : 0;
-
-        // Volume atual
-        Map<String, Double> currentVolumeMap = volumeMapFromDB(user.getId(), cycleStart, today);
-        double currentTotalVolume = currentVolumeMap.values().stream().mapToDouble(d -> d != null ? d : 0.0).sum();
+        int currentAdherencePct = current.adherencePct();
+        double currentTotalVolume = current.totalVolume();
 
         // Peso atual: último registro dentro do ciclo corrente, ou fallback para o perfil.
         double currentWeight = weightHistoryRepository

@@ -36,13 +36,9 @@ import {
 } from '../../services/donoService';
 import { formatCnpj, slugify } from '../../utils/company';
 import type { Network, Unit, UnitInput } from '../../types';
+import { errorMessage } from '../../utils/errors';
 
 const EMPTY: UnitInput = { nome: '', cnpj: '', address: '', phone: '', responsibleName: '', responsibleEmail: '', usuario: '' };
-
-const errorText = (err: unknown, fallback: string): string => {
-  const data = (err as { response?: { data?: unknown } }).response?.data;
-  return typeof data === 'string' && data ? data : fallback;
-};
 
 /**
  * Filiais da rede: o dono cadastra cada uma (CNPJ e responsável) e o sistema gera o acesso
@@ -110,7 +106,7 @@ export default function UnitsPage() {
       setEditing(null);
       await load();
     } catch (err: unknown) {
-      toast.error(errorText(err, 'Não foi possível salvar a filial.'));
+      toast.error(errorMessage(err, 'Não foi possível salvar a filial.'));
     } finally {
       setSubmitting(false);
     }
@@ -123,7 +119,7 @@ export default function UnitsPage() {
       toast.success(success);
       await load();
     } catch (err: unknown) {
-      toast.error(errorText(err, 'Não foi possível concluir.'));
+      toast.error(errorMessage(err, 'Não foi possível concluir.'));
     } finally {
       setBusyId(null);
     }

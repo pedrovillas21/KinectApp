@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -12,32 +12,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Path, Polyline } from 'react-native-svg';
-import { AuthContext, WorkoutPlanItem } from '../contexts/AuthContext';
+import type { PlanExercise as Exercise, WorkoutPlanItem } from '../types';
 import { FONT, KINETIC, RADIUS } from '../theme/kinetic';
 import { formatRelativeDays } from '../utils/dateRelative';
+import { formatThousands } from '../utils/formatters';
 import { Avatar, Button, StaleBanner } from '../components/ui';
 import useFocusResource from '../hooks/useFocusResource';
 import api from '../services/api';
 
-interface Exercise {
-  id?: string;
-  name: string;
-  muscles: string;
-  type: string;
-  sets: number | string;
-  reps: number | string;
-  weight: string | null;
-  restTime: string | null;
-  section?: string | null;
-  // Observação do personal (fichas prescritas pelo painel). Null nas fichas da IA.
-  notes?: string | null;
-}
-
 interface Props {
   navigation: NativeStackNavigationProp<any>;
 }
-
-type ViewMode = 'LIST' | 'DETAIL';
 
 interface Accent {
   color: string;
@@ -139,10 +124,6 @@ function IcInfo({ color }: { color: string }) {
   );
 }
 
-// Formata inteiro com separador de milhar pt-BR (4084 -> "4.084").
-const formatVolumeKg = (n: number): string =>
-  String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-
 // ─── Agrupamento por seção (classificada pela IA no back-end) ──────
 type SectionKey = 'AQUECIMENTO' | 'PRINCIPAL' | 'FINALIZACAO';
 
@@ -228,37 +209,24 @@ function DetailExerciseCard({ ex, accent, prescribed }: { ex: Exercise; accent: 
 }
 
 export default function WorkoutScreen({ navigation }: Props) {
-  const { workoutPlans, setWorkoutPlans } = useContext(AuthContext);
-
-  const [viewMode, setViewMode] = useState<ViewMode>('LIST');
+  // Ficha aberta no detalhe; null = lista.
   const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(null);
 
   // Mesma chave da Home: as duas telas compartilham o cache das fichas.
   const plansRes = useFocusResource('workouts/my-plans', () =>
     api.get<WorkoutPlanItem[]>('/workouts/my-plans').then((r) => (Array.isArray(r.data) ? r.data : [])),
   );
-  const isLoading = plansRes.loading && workoutPlans.length === 0;
+  const workoutPlans = plansRes.data ?? [];
+  const isLoading = plansRes.loading;
   const fetchWorkoutPlans = plansRes.refresh;
-
-  // As fichas também vivem no AuthContext (usadas fora desta tela).
-  useEffect(() => {
-    if (plansRes.data) setWorkoutPlans(plansRes.data);
-  }, [plansRes.data, setWorkoutPlans]);
 
   const selectedWorkout = useMemo(
     () => workoutPlans.find((plan) => plan.id === selectedRoutineId),
     [selectedRoutineId, workoutPlans]
   );
 
-  const openRoutineDetail = (id: string) => {
-    setSelectedRoutineId(id);
-    setViewMode('DETAIL');
-  };
-
-  const goBackToList = () => {
-    setViewMode('LIST');
-    setSelectedRoutineId(null);
-  };
+  const openRoutineDetail = (id: string) => setSelectedRoutineId(id);
+  const goBackToList = () => setSelectedRoutineId(null);
 
   const startSession = (item: WorkoutPlanItem) => {
     navigation.navigate('ActiveSession', { workoutData: item });
@@ -282,7 +250,7 @@ export default function WorkoutScreen({ navigation }: Props) {
   );
 
   const renderFichaRow = (item: WorkoutPlanItem, index: number, last: boolean) => {
-    const exercises = (item.data ?? []) as Exercise[];
+    const exercises = item.data ?? [];
     const accent = ACCENTS[index % ACCENTS.length];
     const letter = letterOf(index);
     const muscles = musclesOf(exercises);
@@ -329,7 +297,7 @@ export default function WorkoutScreen({ navigation }: Props) {
     );
   }
 
-  if (viewMode === 'LIST') {
+  if (selectedRoutineId === null) {
     const nextIndex = nextPlanIndex(workoutPlans);
     const next = workoutPlans[nextIndex];
     const trainerName = workoutPlans.find((p) => p.prescribedByName)?.prescribedByName ?? null;
@@ -365,7 +333,7 @@ export default function WorkoutScreen({ navigation }: Props) {
 
               <Text style={styles.sectionLabel}>Próximo treino</Text>
               {(() => {
-                const exercises = (next.data ?? []) as Exercise[];
+                const exercises = next.data ?? [];
                 const accent = ACCENTS[nextIndex % ACCENTS.length];
                 const letter = letterOf(nextIndex);
                 const muscles = musclesOf(exercises);
@@ -446,14 +414,12 @@ export default function WorkoutScreen({ navigation }: Props) {
     return <SafeAreaView style={styles.container} edges={['top', 'left', 'right']} />;
   }
 
-  const exercises = (workout.data ?? []) as Exercise[];
+  const exercises = workout.data ?? [];
   const selectedIndex = Math.max(0, workoutPlans.findIndex((p) => p.id === workout.id));
   const accent = ACCENTS[selectedIndex % ACCENTS.length];
   const letter = letterOf(selectedIndex);
 
-  const muscleGroups = Array.from(
-    new Set(exercises.map((e) => (e.muscles ?? '').trim()).filter(Boolean))
-  );
+  const muscleGroups = musclesOf(exercises);
   const sections = groupSections(exercises);
   const volumeKg = workout.estimatedTotalVolumeKg ?? null;
 
@@ -514,7 +480,7 @@ export default function WorkoutScreen({ navigation }: Props) {
             {volumeKg != null && (
               <Text>
                 {' · '}
-                <Text style={[styles.metaStrong, { color: accent.color }]}>≈ {formatVolumeKg(volumeKg)} kg</Text>
+                <Text style={[styles.metaStrong, { color: accent.color }]}>≈ {formatThousands(volumeKg)} kg</Text>
                 {' de volume total'}
               </Text>
             )}

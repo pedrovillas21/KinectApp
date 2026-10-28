@@ -37,11 +37,10 @@ import {
 import { createPersonal, listCompanies, listPersonais } from '../../services/rootService';
 import type { Company, UserAdmin } from '../../types';
 import { isValidCellPhone, maskCellPhone } from '../../utils/whatsapp';
+import { errorMessage } from '../../utils/errors';
+import { dateLabel } from '../../utils/dates';
 
 const NO_COMPANY = 'none';
-
-const formatDate = (iso: string): string =>
-  new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
 export default function PersonaisPage() {
   const [personais, setPersonais] = useState<UserAdmin[]>([]);
@@ -102,13 +101,11 @@ export default function PersonaisPage() {
       const status = (err as { response?: { status?: number } }).response?.status;
       if (status === 409) {
         // E-mail ou celular já usados: o backend diz qual.
-        const data = (err as { response?: { data?: unknown } }).response?.data;
-        toast.error(typeof data === 'string' && data ? data : 'Já existe um usuário com estes dados.');
+        toast.error(errorMessage(err, 'Já existe um usuário com estes dados.'));
       }
       else if (status === 404) toast.error('Empresa não encontrada.');
       else if (status === 400) {
-        const data = (err as { response?: { data?: unknown } }).response?.data;
-        toast.error(typeof data === 'string' && data ? data : 'Dados inválidos. Revise os campos.');
+        toast.error(errorMessage(err, 'Dados inválidos. Revise os campos.'));
       }
       else toast.error('Não foi possível provisionar o personal.');
     } finally {
@@ -265,7 +262,7 @@ export default function PersonaisPage() {
                       <TableCell>
                         <StatusBadge status={p.status} />
                       </TableCell>
-                      <TableCell className="text-k-text-dim">{formatDate(p.createdAt)}</TableCell>
+                      <TableCell className="text-k-text-dim">{dateLabel(p.createdAt)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

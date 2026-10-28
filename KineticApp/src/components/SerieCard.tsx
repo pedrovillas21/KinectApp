@@ -35,6 +35,16 @@ interface Props {
   onEdit: () => void;
 }
 
+/** Resumo da carga na série confirmada: "Sem carga", "Corporal + 10 kg", "40 kg" ou "—". */
+function summarizeWeight(loadType: LoadType, weightValue: string): string {
+  if (loadType === 'NONE') return 'Sem carga';
+  if (loadType === 'BODYWEIGHT') {
+    const extraKg = Number(weightValue.replace(',', '.')) || 0;
+    return extraKg > 0 ? `Corporal + ${weightValue} kg` : 'Corporal';
+  }
+  return weightValue.trim() ? `${weightValue} kg` : '—';
+}
+
 export default function SerieCard({
   setNumber,
   targetReps,
@@ -56,13 +66,7 @@ export default function SerieCard({
 
   // "8-10 reps" → "8-10"; tirar só os não-dígitos colava a faixa em "810".
   const repsHint = targetReps.match(/\d+(\s*(?:-|–|a)\s*\d+)?/)?.[0].replace(/\s*(?:-|–|a)\s*/, '-') ?? '0';
-  const extraKg = Number(weightValue.replace(',', '.')) || 0;
-  const weightSummary =
-    loadType === 'NONE'
-      ? 'Sem carga'
-      : loadType === 'BODYWEIGHT'
-      ? extraKg > 0 ? `Corporal + ${weightValue} kg` : 'Corporal'
-      : weightValue.trim() ? `${weightValue} kg` : '—';
+  const weightSummary = summarizeWeight(loadType, weightValue);
 
   const podeConfirmar =
     atual &&

@@ -20,7 +20,6 @@ public record AccountExportDTO(
         List<LocalDate> loginDays,
         List<Plan> workoutPlans,
         List<Session> workoutSessions,
-        List<ExecutionLog> workoutExecutionLogs,
         List<CycleSnapshot> planCycleSnapshots,
         List<Assessment> physicalAssessments,
         Social social,
@@ -52,15 +51,14 @@ public record AccountExportDTO(
     ) {}
 
     public record Session(
-            UUID id, LocalDate date, Integer durationInSeconds, List<SetEntry> sets
+            UUID id, LocalDate date, Instant createdAt, Integer durationInSeconds, UUID planId, String planTitle,
+            List<SetEntry> sets
     ) {}
 
     public record SetEntry(
             UUID exerciseId, String exerciseName, Integer setNumber, Integer reps, Double weightKg,
             LocalDateTime loggedAt
     ) {}
-
-    public record ExecutionLog(UUID planId, String planTitle, LocalDateTime completedAt, Integer durationMinutes) {}
 
     public record CycleSnapshot(
             LocalDate cycleStartDate, LocalDate cycleEndDate, String goal, Double endWeight, Double totalVolume,

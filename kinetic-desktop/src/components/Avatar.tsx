@@ -1,13 +1,10 @@
-import { useState, type CSSProperties } from 'react';
-import { KINETIC } from '../theme/kinetic';
+import { useState } from 'react';
 
 interface Props {
   name: string;
   /** URL da foto; com null/erro, cai para as iniciais do nome. */
   avatarUrl?: string | null;
   size?: number;
-  /** Cor de um anel externo (ex.: status do aluno). */
-  ring?: string;
 }
 
 /** Iniciais "Nome Sobrenome" → "NS" (só o primeiro nome → "N"). */
@@ -20,23 +17,16 @@ export const initialsOf = (name: string): string => {
 };
 
 /** Avatar circular: foto quando existe, senão as iniciais em ciano. */
-export default function Avatar({ name, avatarUrl, size = 40, ring }: Props) {
+export default function Avatar({ name, avatarUrl, size = 40 }: Props) {
   const [failed, setFailed] = useState(false);
-
-  const style: CSSProperties = {
-    width: size,
-    height: size,
-    borderRadius: '50%',
-    flexShrink: 0,
-    boxShadow: ring ? `0 0 0 2px ${KINETIC.bg}, 0 0 0 4px ${ring}` : undefined,
-  };
 
   if (avatarUrl && !failed) {
     return (
       <img
         src={avatarUrl}
         alt={name}
-        style={{ ...style, objectFit: 'cover' }}
+        style={{ width: size, height: size }}
+        className="shrink-0 rounded-full object-cover"
         onError={() => setFailed(true)}
       />
     );
@@ -44,18 +34,8 @@ export default function Avatar({ name, avatarUrl, size = 40, ring }: Props) {
 
   return (
     <div
-      style={{
-        ...style,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: KINETIC.surface2,
-        color: KINETIC.primary,
-        fontFamily: "'Archivo', 'Segoe UI', system-ui, sans-serif",
-        fontWeight: 800,
-        fontSize: size * 0.34,
-        userSelect: 'none',
-      }}
+      style={{ width: size, height: size, fontSize: size * 0.34 }}
+      className="flex shrink-0 select-none items-center justify-center rounded-full bg-k-surface2 font-display font-extrabold text-k-primary"
       aria-hidden
     >
       {initialsOf(name)}

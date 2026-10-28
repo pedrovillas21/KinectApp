@@ -22,13 +22,9 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(EmailAlreadyInUseException.class)
-    public ResponseEntity<String> handleEmailInUse(EmailAlreadyInUseException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(PhoneAlreadyInUseException.class)
-    public ResponseEntity<String> handlePhoneInUse(PhoneAlreadyInUseException ex) {
+    @ExceptionHandler({EmailAlreadyInUseException.class, PhoneAlreadyInUseException.class,
+            ActiveTrainerConflictException.class, TrainerManagedPlanException.class, AiPlanPreviewException.class})
+    public ResponseEntity<String> handleConflict(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
 
@@ -45,21 +41,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(PlanLimitExceededException.class)
     public ResponseEntity<String> handlePlanLimit(PlanLimitExceededException ex) {
         return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(ActiveTrainerConflictException.class)
-    public ResponseEntity<String> handleActiveTrainerConflict(ActiveTrainerConflictException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(TrainerManagedPlanException.class)
-    public ResponseEntity<String> handleTrainerManagedPlan(TrainerManagedPlanException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(AiPlanPreviewException.class)
-    public ResponseEntity<String> handleAiPlanPreview(AiPlanPreviewException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
 
     /** A IA respondeu fora do formato esperado (a mensagem orienta a gerar de novo). */

@@ -24,7 +24,7 @@ export function listenTrainerEvents(onEvent: (e: TrainerEvent) => void, onReconn
     while (!ctrl.signal.aborted) {
       try {
         const res = await fetch(`${API_URL}/trainer/events`, {
-          headers: { Authorization: `Bearer ${await getAccessToken()}`, Accept: 'text/event-stream' },
+          headers: { Authorization: `Bearer ${getAccessToken()}`, Accept: 'text/event-stream' },
           signal: ctrl.signal,
         });
         if (res.status === 401) {

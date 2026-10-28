@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserCog, UserPlus, TrendingUp } from 'lucide-react';
 import PageHeader from '../../components/PageHeader';
@@ -13,29 +12,16 @@ import {
 } from '../../components/stat-primitives';
 import { InstructorBarChart, VolumeLineChart } from '../../components/empresa-charts';
 import { getAnalytics } from '../../services/empresaService';
-import type { EmpresaAnalytics, StatsPeriodId } from '../../types';
+import useEmpresaAnalytics from './useEmpresaAnalytics';
 
 const nf = new Intl.NumberFormat('pt-BR');
 
 export default function EmpresaHomePage() {
   const navigate = useNavigate();
-  const [period, setPeriod] = useState<StatsPeriodId>('month');
-  const [data, setData] = useState<EmpresaAnalytics | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    getAnalytics(period)
-      .then((d) => !cancelled && setData(d))
-      .catch(() => !cancelled && setError('Não foi possível carregar os dados da unidade.'))
-      .finally(() => !cancelled && setLoading(false));
-    return () => {
-      cancelled = true;
-    };
-  }, [period]);
+  const { period, setPeriod, data, loading, error } = useEmpresaAnalytics(
+    getAnalytics,
+    'Não foi possível carregar os dados da unidade.',
+  );
 
   return (
     <div className="flex flex-col min-h-full">

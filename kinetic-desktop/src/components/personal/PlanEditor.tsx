@@ -313,6 +313,14 @@ export default function PlanEditor({ studentId, studentFirstName, mode, onCancel
       return { ...d, exercises: next };
     });
 
+  // Rótulo do botão salvar conforme o que está sendo editado.
+  const saveLabel = () => {
+    if (saving) return 'Salvando…';
+    if (isDraft) return 'Aplicar na prévia';
+    if (editingAiPlan) return 'Salvar e assumir';
+    return isEdit ? 'Salvar alterações' : 'Salvar ficha';
+  };
+
   const save = async () => {
     if (saving) return;
     setSubmitted(true);
@@ -425,15 +433,7 @@ export default function PlanEditor({ studentId, studentFirstName, mode, onCancel
               className="flex h-10 items-center gap-2 rounded-xl bg-k-primary px-5 text-sm font-bold text-k-on-primary transition-[box-shadow,opacity] hover:shadow-[0_0_0_4px_rgba(0,229,255,0.14),0_10px_26px_-10px_rgba(0,229,255,0.8)] disabled:pointer-events-none disabled:opacity-50"
             >
               <Save className="h-4 w-4" />
-              {saving
-                ? 'Salvando…'
-                : isDraft
-                  ? 'Aplicar na prévia'
-                  : editingAiPlan
-                    ? 'Salvar e assumir'
-                    : isEdit
-                      ? 'Salvar alterações'
-                      : 'Salvar ficha'}
+              {saveLabel()}
             </motion.button>
           </div>
         </div>

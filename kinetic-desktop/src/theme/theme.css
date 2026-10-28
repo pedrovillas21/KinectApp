@@ -68,12 +68,7 @@
   --input: rgba(255, 255, 255, 0.15);    /* k-ghost-hi */
   --ring: #00e5ff;                        /* k-primary */
 
-  /* Séries de gráfico — chart-1 é o ciano escurecido validado (dataviz). */
-  --chart-1: #00a5b8;
-  --chart-2: #4ade80;
-  --chart-3: #f5b945;
-  --chart-4: #a78bfa;
-  --chart-5: #f472b6;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -101,44 +96,6 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-}
-
-/*
- * Tema global do painel Kinetic (dark + ciano neon).
- * Os valores espelham src/theme/kinetic.ts — alterar lá e aqui juntos.
- */
-
-:root {
-  --k-bg: #131313;
-  --k-surface1: #1c1b1b;
-  --k-surface2: #2a2a2a;
-  --k-surface3: #353534;
-
-  --k-primary: #00e5ff;
-  --k-primary-deep: #00daf3;
-  --k-primary-dim: rgba(0, 229, 255, 0.1);
-  --k-primary-soft: rgba(0, 229, 255, 0.2);
-
-  --k-text: #f5f6f7;
-  --k-text-dim: rgba(245, 246, 247, 0.62);
-  --k-text-muted: #8e8f90;
-
-  --k-ghost: rgba(255, 255, 255, 0.08);
-  --k-ghost-hi: rgba(255, 255, 255, 0.15);
-
-  --k-success: #4ade80;
-  --k-warn: #f5b945;
-  --k-error: #ff4444;
-
-  /* Texto sobre superfícies ciano (botões primários, bolhas minhas). */
-  --k-on-primary: #001a1f;
-
-  color-scheme: dark;
 }
 
 @layer base {
@@ -169,8 +126,8 @@
   }
 
   body {
-    background: var(--k-bg);
-    color: var(--k-text);
+    background: var(--color-k-bg);
+    color: var(--color-k-text);
     font-family:
       'Geist',
       'Segoe UI',
@@ -210,9 +167,9 @@
   textarea {
     font-family: inherit;
     font-size: inherit;
-    color: var(--k-text);
-    background: var(--k-surface1);
-    border: 1px solid var(--k-ghost);
+    color: var(--color-k-text);
+    background: var(--color-k-surface1);
+    border: 1px solid var(--color-k-ghost);
     border-radius: 12px;
     padding: 10px 14px;
     outline: none;
@@ -221,17 +178,17 @@
 
   input::placeholder,
   textarea::placeholder {
-    color: var(--k-text-muted);
+    color: var(--color-k-text-muted);
   }
 
   /* Ciano como cor de estado ativo/foco, como no mobile. */
   input:focus,
   textarea:focus {
-    border-color: var(--k-primary);
+    border-color: var(--color-k-primary);
   }
 
   a {
-    color: var(--k-primary);
+    color: var(--color-k-primary);
     text-decoration: none;
   }
 }
@@ -246,45 +203,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--k-ghost-hi);
+  background: var(--color-k-ghost-hi);
   border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--k-text-muted);
-}
-
-/* Password visibility toggle on LoginPage */
-.password-container {
-  position: relative;
-  display: flex;
-  align-items: center;
-  width: 100%;
-}
-
-.password-input {
-  width: 100%;
-  padding-right: 42px !important;
-}
-
-.password-toggle-btn {
-  position: absolute;
-  right: 12px;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  color: var(--k-text-muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  outline: none;
-  transition: color 0.15s ease;
-}
-
-.password-toggle-btn:hover,
-.password-toggle-btn:focus-visible {
-  color: var(--k-primary);
+  background: var(--color-k-text-muted);
 }
 
 @keyframes fadeIn {
@@ -292,32 +216,11 @@
   to { opacity: 1; }
 }
 
-@keyframes scaleUp {
-  from { transform: scale(0.96); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
 .animate-fade-in {
   animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.animate-scale-up {
-  animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
 /* ── Micro-animações contínuas (as de entrada/estado ficam no Motion) ──── */
-
-@keyframes kLivePulse {
-  0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.55); }
-  70% { box-shadow: 0 0 0 7px rgba(74, 222, 128, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
-}
-
-@keyframes kBadgePulse {
-  0% { box-shadow: 0 0 0 0 rgba(0, 229, 255, 0.45); }
-  70% { box-shadow: 0 0 0 9px rgba(0, 229, 255, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(0, 229, 255, 0); }
-}
 
 @keyframes kRipple {
   0% { transform: scale(0.55); opacity: 0.7; }
@@ -334,15 +237,11 @@
   50% { opacity: 0.42; }
 }
 
-.k-live-dot { animation: kLivePulse 2s ease-out infinite; }
-.k-badge-pulse { animation: kBadgePulse 2.4s ease-out infinite; }
 .k-ripple { animation: kRipple 3s cubic-bezier(0.16, 1, 0.3, 1) infinite; }
 .k-twinkle { animation: kTwinkle 3.2s ease-in-out infinite; }
 .k-skeleton { animation: kSkeleton 1.6s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
-  .k-live-dot,
-  .k-badge-pulse,
   .k-ripple,
   .k-twinkle,
   .k-skeleton {

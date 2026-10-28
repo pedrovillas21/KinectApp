@@ -34,8 +34,10 @@ import SettingsScreen from '../screens/SettingsScreen';
 import TrainerProfileScreen from '../screens/TrainerProfileScreen';
 import ProtocolScreen from '../screens/ProtocolScreen';
 import AnamnesisScreen from '../screens/AnamnesisScreen';
-import type { MainStackParamList, MainTabParamList } from '../navigation/types';
+import type { AuthStackParamList, MainStackParamList, MainTabParamList } from '../navigation/types';
 
+const AuthStack = createNativeStackNavigator<AuthStackParamList>();
+// Pilhas de uma tela só (aceite dos termos, celular, onboarding): sem parâmetros.
 const Stack = createNativeStackNavigator();
 const MainStack = createNativeStackNavigator<MainStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -76,20 +78,20 @@ export default function AppRoutes(): React.ReactElement | null {
       // key distinta dos outros navigators: garante remontagem ao alternar logado/deslogado,
       // sem isso o React reconcilia a mesma instância de Stack.Navigator e o initialRouteName
       // (avaliado só na 1ª montagem) nunca reflete o estado atual de auth.
-      <Stack.Navigator
+      <AuthStack.Navigator
         key="auth-stack"
         screenOptions={{ headerShown: false }}
         initialRouteName={initialAuthRoute}
       >
-        <Stack.Screen name="Welcome" component={WelcomeScreen} />
-        <Stack.Screen name="RecurringUser" component={RecurringUserScreen} />
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Register" component={RegisterScreen} />
-        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-        <Stack.Screen name="VerifyCode" component={VerifyCodeScreen} />
-        <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
-        <Stack.Screen name="ConfirmEmail" component={ConfirmEmailScreen} />
-      </Stack.Navigator>
+        <AuthStack.Screen name="Welcome" component={WelcomeScreen} />
+        <AuthStack.Screen name="RecurringUser" component={RecurringUserScreen} />
+        <AuthStack.Screen name="Login" component={LoginScreen} />
+        <AuthStack.Screen name="Register" component={RegisterScreen} />
+        <AuthStack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+        <AuthStack.Screen name="VerifyCode" component={VerifyCodeScreen} />
+        <AuthStack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+        <AuthStack.Screen name="ConfirmEmail" component={ConfirmEmailScreen} />
+      </AuthStack.Navigator>
     );
   }
 
@@ -135,7 +137,7 @@ export default function AppRoutes(): React.ReactElement | null {
       <MainStack.Screen
         name="WorkoutCamera"
         component={WorkoutCameraScreen}
-        options={{ animation: 'fade', statusBarHidden: true }}
+        options={{ animation: 'fade' }}
       />
       <MainStack.Screen name="NewWorkoutPost" component={NewWorkoutPostScreen} />
       <MainStack.Screen name="UserProfile" component={UserProfileScreen} />

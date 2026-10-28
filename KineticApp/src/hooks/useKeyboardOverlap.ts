@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Keyboard, KeyboardEvent, LayoutAnimation, Platform, View } from 'react-native';
 
 /**
@@ -8,7 +8,7 @@ import { Keyboard, KeyboardEvent, LayoutAnimation, Platform, View } from 'react-
  * numa que encolhe com o teclado, senão a medida muda a cada reabertura.
  */
 export default function useKeyboardOverlap(enabled = true) {
-  const ref = useRef<View>(null);
+  const ref = useRef<React.ComponentRef<typeof View>>(null);
   const [keyboard, setKeyboard] = useState({ open: false, overlap: 0 });
 
   useEffect(() => {

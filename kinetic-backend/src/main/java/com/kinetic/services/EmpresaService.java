@@ -235,7 +235,7 @@ public class EmpresaService {
         if (companyIds.isEmpty()) {
             return new EmpresaAnalyticsDTO(0, 0, 0, 0.0, 0, List.of(), List.of());
         }
-        LocalDate startDate = periodStartDate(period);
+        LocalDate startDate = AppTime.today().minusDays(CompanyService.periodDays(period));
         LocalDateTime startDateTime = startDate.atStartOfDay();
         LocalDate today = AppTime.today();
 
@@ -274,15 +274,5 @@ public class EmpresaService {
 
     private PeerDTO peer(User u) {
         return new PeerDTO(u.getId(), u.getNome(), u.getEmail(), u.getAvatarUrl(), null);
-    }
-
-    private LocalDate periodStartDate(String period) {
-        LocalDate today = AppTime.today();
-        return switch (period == null ? "month" : period) {
-            case "week" -> today.minusDays(7);
-            case "q" -> today.minusDays(90);
-            case "year" -> today.minusDays(365);
-            default -> today.minusDays(30);
-        };
     }
 }

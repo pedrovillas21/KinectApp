@@ -5,8 +5,8 @@ import com.kinetic.exceptions.AiQuotaExceededException;
 import com.kinetic.models.User;
 import com.kinetic.repositories.TrainerClientRepository;
 import com.kinetic.repositories.UserRepository;
-import com.kinetic.repositories.WorkoutExecutionLogRepository;
 import com.kinetic.repositories.WorkoutPlanRepository;
+import com.kinetic.repositories.WorkoutSessionRepository;
 import com.kinetic.security.InMemoryRateLimiter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,7 +36,7 @@ class WorkoutServiceAiQuotaTest {
     private final WorkoutPlanRepository plans = mock(WorkoutPlanRepository.class);
     private final UserRepository users = mock(UserRepository.class);
     private final WorkoutService service = new WorkoutService(gemini, plans, users,
-            mock(PlanCycleSnapshotService.class), mock(WorkoutExecutionLogRepository.class),
+            mock(PlanCycleSnapshotService.class), mock(WorkoutSessionRepository.class),
             mock(TrainerClientRepository.class), new TransactionTemplate(mock(PlatformTransactionManager.class)),
             new InMemoryRateLimiter(System::currentTimeMillis));
 

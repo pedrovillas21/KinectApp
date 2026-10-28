@@ -17,6 +17,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +49,15 @@ public class WorkoutSession {
     /** Id gerado pelo app para tornar o registro idempotente (nulo em sessões antigas). */
     @Column(name = "client_session_id")
     private UUID clientSessionId;
+
+    /** Ficha dos exercícios registrados; nula se o treino misturou fichas. Base do rodízio da Home. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "workout_plan_id")
+    @JsonIgnore
+    private WorkoutPlan workoutPlan;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt = Instant.now();
 
     @OneToMany(mappedBy = "workoutSession", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ExerciseSetLog> setLogs = new ArrayList<>();

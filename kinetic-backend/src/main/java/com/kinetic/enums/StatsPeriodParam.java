@@ -5,38 +5,43 @@ import com.kinetic.utils.AppTime;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
+import java.util.Locale;
+import java.util.function.UnaryOperator;
 
 public enum StatsPeriodParam {
 
-    WEEK {
-        @Override public LocalDate startDate()         { return AppTime.today().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)); }
-        @Override public int targetWeeks()             { return 1; }
-        @Override public String insightTag()           { return "Foco da semana"; }
-        @Override public String id()                   { return "week"; }
-    },
-    MONTH {
-        @Override public LocalDate startDate()         { return AppTime.today().withDayOfMonth(1); }
-        @Override public int targetWeeks()             { return 4; }
-        @Override public String insightTag()           { return "Destaque do mês"; }
-        @Override public String id()                   { return "month"; }
-    },
-    Q {
-        @Override public LocalDate startDate()         { return AppTime.today().minusDays(89); }
-        @Override public int targetWeeks()             { return 13; }
-        @Override public String insightTag()           { return "Tendência trimestral"; }
-        @Override public String id()                   { return "q"; }
-    },
-    YEAR {
-        @Override public LocalDate startDate()         { return AppTime.today().minusDays(364); }
-        @Override public int targetWeeks()             { return 52; }
-        @Override public String insightTag()           { return "Visão anual"; }
-        @Override public String id()                   { return "year"; }
-    };
+    WEEK(today -> today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)), 1, "Foco da semana"),
+    MONTH(today -> today.withDayOfMonth(1), 4, "Destaque do mês"),
+    Q(today -> today.minusDays(89), 13, "Tendência trimestral"),
+    YEAR(today -> today.minusDays(364), 52, "Visão anual");
 
-    public abstract LocalDate startDate();
-    public abstract int targetWeeks();
-    public abstract String insightTag();
-    public abstract String id();
+    /** Início do período a partir de hoje. */
+    private final UnaryOperator<LocalDate> startFromToday;
+    private final int targetWeeks;
+    private final String insightTag;
+
+    StatsPeriodParam(UnaryOperator<LocalDate> startFromToday, int targetWeeks, String insightTag) {
+        this.startFromToday = startFromToday;
+        this.targetWeeks = targetWeeks;
+        this.insightTag = insightTag;
+    }
+
+    public LocalDate startDate() {
+        return startFromToday.apply(AppTime.today());
+    }
+
+    public int targetWeeks() {
+        return targetWeeks;
+    }
+
+    public String insightTag() {
+        return insightTag;
+    }
+
+    /** Id usado pelos clientes: "week", "month", "q" ou "year". */
+    public String id() {
+        return name().toLowerCase(Locale.ROOT);
+    }
 
     public LocalDate endDate() {
         return AppTime.today();

@@ -256,7 +256,7 @@ public class CompanyService {
 
     @Transactional(readOnly = true)
     public RootMetricsDTO getMetrics(String period) {
-        LocalDateTime start = periodStart(period);
+        LocalDateTime start = LocalDateTime.now().minusDays(periodDays(period));
 
         long totalCompanies = companyRepository.count();
         long totalPersonais = userRepository.countByRole(Role.PERSONAL);
@@ -276,14 +276,13 @@ public class CompanyService {
         return new RootMetricsDTO(totalCompanies, totalPersonais, totalAlunos, newUsers, growth);
     }
 
-    /** Mapeia o id de período do painel ("week"/"month"/"q"/"year") no início da janela. */
-    private LocalDateTime periodStart(String period) {
-        LocalDateTime now = LocalDateTime.now();
+    /** Tamanho em dias da janela de um id de período do painel ("week"/"month"/"q"/"year"). */
+    static int periodDays(String period) {
         return switch (period == null ? "month" : period) {
-            case "week" -> now.minusDays(7);
-            case "q" -> now.minusDays(90);
-            case "year" -> now.minusDays(365);
-            default -> now.minusDays(30);
+            case "week" -> 7;
+            case "q" -> 90;
+            case "year" -> 365;
+            default -> 30;
         };
     }
 }

@@ -1,5 +1,5 @@
 import api from './api';
-import { compressImage } from '../utils/compressImage';
+import { imageFormData } from '../utils/compressImage';
 import type {
   UserCard,
   SquadMember,
@@ -23,13 +23,7 @@ export const uploadMedia = async (
   originalUri: string,
   folder: 'posts' | 'stories' = 'posts',
 ): Promise<string> => {
-  const uri = await compressImage(originalUri);
-  const name = uri.split('/').pop() ?? `${Date.now()}.jpg`;
-  const match = /\.(\w+)$/.exec(name);
-  const ext = (match?.[1] ?? 'jpg').toLowerCase();
-  const type = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
-  const form = new FormData();
-  form.append('file', { uri, name, type } as any);
+  const form = await imageFormData(originalUri);
   const res = await api.post<{ url: string }>('/social/media', form, {
     params: { folder },
     headers: { 'Content-Type': 'multipart/form-data' },
@@ -42,6 +36,24 @@ export const uploadMedia = async (
 export const deleteMedia = async (url: string): Promise<void> => {
   await api.delete('/social/media', { params: { url } });
 };
+
+/**
+ * Sobe a foto e cria o post/story com ela. Se a criação falhar depois do upload, apaga a
+ * mídia órfã (best-effort) e repassa o erro para a tela avisar.
+ */
+export async function uploadAndCreate<T>(
+  localUri: string,
+  folder: 'posts' | 'stories',
+  create: (mediaUrl: string) => Promise<T>,
+): Promise<T> {
+  const mediaUrl = await uploadMedia(localUri, folder);
+  try {
+    return await create(mediaUrl);
+  } catch (e) {
+    deleteMedia(mediaUrl).catch(() => {});
+    throw e;
+  }
+}
 
 export const searchUsers = async (q: string): Promise<UserCard[]> => {
   const res = await api.get<UserCard[]>('/social/users/search', { params: { q } });
@@ -66,17 +78,8 @@ export const removeConnection = async (userId: string): Promise<void> => {
   await api.delete(`/social/connections/${userId}`);
 };
 
-export const toggleInSquad = async (userId: string): Promise<void> => {
-  await api.post(`/social/squad/${userId}/toggle`);
-};
-
 export const getSquad = async (): Promise<SquadMember[]> => {
   const res = await api.get<SquadMember[]>('/social/squad');
-  return res.data;
-};
-
-export const getSquadStatus = async (): Promise<SquadMember[]> => {
-  const res = await api.get<SquadMember[]>('/social/squad/status');
   return res.data;
 };
 

@@ -1,5 +1,6 @@
 package com.kinetic.services;
 
+import lombok.RequiredArgsConstructor;
 import com.kinetic.utils.AppTime;
 
 import com.kinetic.dtos.ChangePasswordDTO;
@@ -15,7 +16,7 @@ import com.kinetic.repositories.TrainerClientRepository;
 import com.kinetic.repositories.UserLoginStreakRepository;
 import com.kinetic.repositories.UserRepository;
 import com.kinetic.repositories.WeightHistoryRepository;
-import com.kinetic.repositories.WorkoutExecutionLogRepository;
+import com.kinetic.repositories.WorkoutSessionRepository;
 import com.kinetic.utils.DocumentValidator;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,37 +26,19 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final WeightHistoryRepository weightHistoryRepository;
     private final UserLoginStreakRepository userLoginStreakRepository;
-    private final WorkoutExecutionLogRepository workoutExecutionLogRepository;
+    private final WorkoutSessionRepository workoutSessionRepository;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenService refreshTokenService;
     private final TrainerClientRepository trainerClientRepository;
     private final TermsService termsService;
-
-    public UserService(UserRepository userRepository,
-                       WeightHistoryRepository weightHistoryRepository,
-                       UserLoginStreakRepository userLoginStreakRepository,
-                       WorkoutExecutionLogRepository workoutExecutionLogRepository,
-                       PasswordEncoder passwordEncoder,
-                       RefreshTokenService refreshTokenService,
-                       TrainerClientRepository trainerClientRepository,
-                       TermsService termsService) {
-        this.userRepository = userRepository;
-        this.weightHistoryRepository = weightHistoryRepository;
-        this.userLoginStreakRepository = userLoginStreakRepository;
-        this.workoutExecutionLogRepository = workoutExecutionLogRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.refreshTokenService = refreshTokenService;
-        this.trainerClientRepository = trainerClientRepository;
-        this.termsService = termsService;
-    }
 
     @Transactional
     public void updateUserWeight(String userEmail, UpdateWeightRequestDTO dto) {
@@ -146,8 +129,9 @@ public class UserService {
         User user = userRepository.getByEmailOrThrow(userEmail);
 
         LocalDate memberSince = user.getCreatedAt() != null ? user.getCreatedAt().toLocalDate() : null;
-        int streak = calculateConsecutiveLoginStreak(user);
-        int totalWorkouts = (int) workoutExecutionLogRepository.countByUser(user);
+        int streak = TrainingSummaryService.streakEndingAt(
+                new HashSet<>(userLoginStreakRepository.findAllLoginDatesByUser(user)), AppTime.today());
+        int totalWorkouts = (int) workoutSessionRepository.countByUserId(user.getId());
 
         return new UserProfileResponseDTO(
                 user.getNome(),
@@ -191,22 +175,5 @@ public class UserService {
         } catch (DataIntegrityViolationException ignored) {
             // concurrent insert hit unique constraint — login already recorded today
         }
-    }
-
-    private int calculateConsecutiveLoginStreak(User user) {
-        LocalDate today = AppTime.today();
-        Set<LocalDate> loginDates = new HashSet<>(
-                userLoginStreakRepository.findAllLoginDatesByUser(user)
-        );
-        int streak = 0;
-        for (int i = 0; ; i++) {
-            if (loginDates.contains(today.minusDays(i))) {
-                streak++;
-            } else if (i > 0) {
-                break;
-            }
-            // i == 0 and today missing: keep going to allow streak from yesterday
-        }
-        return streak;
     }
 }

@@ -34,7 +34,7 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
     record Rule(String name, String method, String pattern, int limit, Duration window) {}
 
     static final List<Rule> RULES = List.of(
-            // Upload: cada arquivo (até 10 MB) ocupa o Storage e gasta banda.
+            // Upload: cada arquivo (até 3 MB) ocupa o Storage e gasta banda.
             new Rule("upload-midia", "POST", "/api/social/media", 30, Duration.ofHours(1)),
             new Rule("upload-avatar", "PUT", "/api/users/me/avatar", 10, Duration.ofHours(1)),
             // Social: spam de conteúdo e de pedidos de amizade.

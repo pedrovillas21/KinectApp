@@ -15,7 +15,6 @@ import {
   GeistMono_500Medium,
   GeistMono_600SemiBold,
 } from '@expo-google-fonts/geist-mono';
-import { ThemeProvider } from './src/contexts/ThemeContext';
 import { AuthProvider, AuthContext } from './src/contexts/AuthContext';
 import { TextScaleProvider, useTextScale } from './src/contexts/TextScaleContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -61,12 +60,10 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <TextScaleProvider>
-        <ThemeProvider>
-          <AuthProvider>
-            <AppContent />
-            <AlertHost />
-          </AuthProvider>
-        </ThemeProvider>
+        <AuthProvider>
+          <AppContent />
+          <AlertHost />
+        </AuthProvider>
       </TextScaleProvider>
     </SafeAreaProvider>
   );

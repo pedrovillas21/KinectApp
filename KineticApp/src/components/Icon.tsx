@@ -29,9 +29,7 @@ export type IconName =
   | 'flame'
   | 'moon'
   | 'sun'
-  | 'dot'
   | 'bolt'
-  | 'key'
   | 'arrow-up'
   | 'arrow-down'
   | 'arrow-right'
@@ -47,7 +45,6 @@ export type IconName =
   | 'play'
   | 'trophy'
   | 'share'
-  | 'more'
   | 'chevron-right'
   | 'settings'
   | 'link'
@@ -211,19 +208,8 @@ export default function Icon({ name, size: baseSize = 22, color = '#00E5FF', str
           </>
         );
 
-      case 'dot':
-        return <Circle cx={12} cy={12} r={4} {...solid} />;
-
       case 'bolt':
         return <Path d="M13 2L3 14h8l-1 8 11-13h-8z" {...solid} />;
-
-      case 'key':
-        return (
-          <>
-            <Circle cx={7.5} cy={15.5} r={4.5} {...stroke} />
-            <Path d="M10.7 12.3L20 3M16 4l3 3M14 6l3 3" {...stroke} />
-          </>
-        );
 
       case 'arrow-up':
         return <Path d="M12 19V5M5 12l7-7 7 7" {...stroke} />;
@@ -289,15 +275,6 @@ export default function Icon({ name, size: baseSize = 22, color = '#00E5FF', str
 
       case 'share':
         return <Path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" {...stroke} />;
-
-      case 'more':
-        return (
-          <>
-            <Circle cx={5} cy={12} r={1.6} {...solid} />
-            <Circle cx={12} cy={12} r={1.6} {...solid} />
-            <Circle cx={19} cy={12} r={1.6} {...solid} />
-          </>
-        );
 
       case 'chevron-right':
         return <Path d="M9 6l6 6-6 6" {...stroke} />;

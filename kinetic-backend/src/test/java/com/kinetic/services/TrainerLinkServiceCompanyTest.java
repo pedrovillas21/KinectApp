@@ -65,6 +65,7 @@ class TrainerLinkServiceCompanyTest {
         link.setCompanyId(companyId);
         when(users.getByEmailOrThrow(student.getEmail())).thenReturn(student);
         when(links.findByStudentIdAndStatus(student.getId(), TrainerLinkStatus.ATIVO)).thenReturn(Optional.of(link));
+        when(links.getActiveOfStudent(student.getId())).thenCallRealMethod();
 
         service.endLinkByStudent(student.getEmail());
 

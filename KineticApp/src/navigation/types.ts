@@ -1,6 +1,6 @@
 import type { CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { FeedPostData } from '../types';
 
 /** Abas do app logado, na ordem da barra. */
@@ -27,7 +27,7 @@ export type FinishedWorkout = {
 /** Pilha do app logado (abas + telas empilhadas por cima). */
 export type MainStackParamList = {
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
-  ActiveSession: { workoutData?: unknown; workoutPlanId?: string } | undefined;
+  ActiveSession: { workoutData?: unknown } | undefined;
   /** Câmera em tela cheia para a foto do treino recém-concluído. */
   WorkoutCamera: { workout: FinishedWorkout };
   /** Prévia do post com a faixa de dados do treino. */
@@ -50,8 +50,21 @@ export type MainStackParamList = {
   ProfilePosts: { userId: string; startId: string; items: FeedPostData[]; page: number; last: boolean };
 };
 
+/** Telas de entrada (usuário deslogado). */
+export type AuthStackParamList = {
+  Welcome: undefined;
+  RecurringUser: undefined;
+  Login: { email?: string } | undefined;
+  Register: undefined;
+  ForgotPassword: undefined;
+  VerifyCode: { email: string };
+  ResetPassword: { email: string; code: string };
+  ConfirmEmail: { email: string };
+};
+
+export type AuthScreenProps<R extends keyof AuthStackParamList> = NativeStackScreenProps<AuthStackParamList, R>;
+
 export type MainStackScreenProps<R extends keyof MainStackParamList> = NativeStackScreenProps<MainStackParamList, R>;
-export type MainStackNavigation = NativeStackNavigationProp<MainStackParamList>;
 
 /** Props de uma aba: navega entre abas e também para as telas da pilha. */
 export type MainTabScreenProps<R extends keyof MainTabParamList> = CompositeScreenProps<

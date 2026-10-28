@@ -13,6 +13,7 @@ import api, {
 } from '../services/api';
 import { clearTokens, setAccessToken } from '../services/tokenStorage';
 import { queryClient } from '../services/queryClient';
+import { accountError } from '../services/authService';
 import { isPanelRole } from '../config/nav';
 
 const USER_KEY = 'kinetic_web_user';
@@ -63,10 +64,6 @@ interface AuthContextValue {
   totpSetup: (challengeToken: string) => Promise<{ otpauthUri: string; secret: string } | { error: string }>;
   /** Código do app (ou de recuperação, com recovery=true); abre a sessão. */
   totpVerify: (challengeToken: string, code: string, recovery?: boolean) => Promise<AuthResult>;
-  confirmEmail: (email: string, code: string) => Promise<AuthResult>;
-  resendConfirmation: (email: string) => Promise<AuthResult>;
-  requestPasswordReset: (email: string) => Promise<AuthResult>;
-  resetPassword: (email: string, code: string, newPassword: string) => Promise<AuthResult>;
 }
 
 interface LoginResponse {
@@ -93,8 +90,8 @@ export const useAuth = (): AuthContextValue => useContext(AuthContext);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<KineticWebUser | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+  const isLoggedIn = currentUser !== null;
 
   // Restaura a sessão: usuário salvo + cookie de refresh válido → logado.
   // O cookie é HttpOnly (não dá pra checar sua existência aqui), então a
@@ -107,20 +104,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         const user = JSON.parse(userJson) as KineticWebUser;
         if (!isPanelRole(user.role)) {
-          await clearSession();
+          clearSession();
           return;
         }
 
         const newToken = await refreshAccessToken();
         if (!newToken) {
-          await clearSession();
+          clearSession();
           return;
         }
 
         setCurrentUser(user);
-        setIsLoggedIn(true);
       } catch {
-        await clearSession();
+        clearSession();
       } finally {
         setIsLoadingAuth(false);
       }
@@ -128,8 +124,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     void bootstrap();
   }, []);
 
-  const clearSession = async (): Promise<void> => {
-    await clearTokens();
+  const clearSession = (): void => {
+    clearTokens();
     localStorage.removeItem(USER_KEY);
     queryClient.clear();
   };
@@ -191,10 +187,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const user: KineticWebUser = { id: String(id), nome, email: userEmail, role };
 
-    await setAccessToken(token);
+    setAccessToken(token);
     localStorage.setItem(USER_KEY, JSON.stringify(user));
     setCurrentUser(user);
-    setIsLoggedIn(true);
     return { success: true };
   };
 
@@ -232,64 +227,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const confirmEmail = async (email: string, code: string): Promise<AuthResult> => {
-    try {
-      await api.post('/auth/confirm-email', { email: email.trim(), code });
-      return { success: true };
-    } catch (e: unknown) {
-      const err = e as { response?: { data?: unknown } };
-      const message = err.response?.data || 'Não foi possível confirmar o e-mail.';
-      return {
-        success: false,
-        error: typeof message === 'string' ? message : JSON.stringify(message),
-      };
-    }
-  };
-
-  // O backend responde igual exista a conta ou não; só falha por rede ou e-mail malformado.
-  const resendConfirmation = async (email: string): Promise<AuthResult> => {
-    try {
-      await api.post('/auth/resend-confirmation', { email: email.trim() });
-      return { success: true };
-    } catch (e: unknown) {
-      const err = e as { response?: { data?: unknown } };
-      const message = err.response?.data || 'Não foi possível reenviar o código. Tente novamente.';
-      return {
-        success: false,
-        error: typeof message === 'string' ? message : JSON.stringify(message),
-      };
-    }
-  };
-
-  // Resposta uniforme, exista a conta ou não; só falha por rede ou e-mail malformado.
-  const requestPasswordReset = async (email: string): Promise<AuthResult> => {
-    try {
-      await api.post('/auth/forgot-password', { email: email.trim() });
-      return { success: true };
-    } catch (e: unknown) {
-      const err = e as { response?: { data?: unknown } };
-      const message = err.response?.data || 'Não foi possível enviar o código. Tente novamente.';
-      return {
-        success: false,
-        error: typeof message === 'string' ? message : JSON.stringify(message),
-      };
-    }
-  };
-
-  const resetPassword = async (email: string, code: string, newPassword: string): Promise<AuthResult> => {
-    try {
-      await api.post('/auth/reset-password', { email: email.trim(), code, newPassword });
-      return { success: true };
-    } catch (e: unknown) {
-      const err = e as { response?: { data?: unknown } };
-      const message = err.response?.data || 'Não foi possível redefinir a senha.';
-      return {
-        success: false,
-        error: typeof message === 'string' ? message : JSON.stringify(message),
-      };
-    }
-  };
-
   /** Cadastro de personal — envia role PERSONAL (whitelist do backend). */
   const register = async ({
     name,
@@ -321,12 +258,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       return { success: true };
     } catch (e: unknown) {
-      const err = e as { response?: { data?: unknown } };
-      const message = err.response?.data || 'Erro ao cadastrar. Tente novamente.';
-      return {
-        success: false,
-        error: typeof message === 'string' ? message : JSON.stringify(message),
-      };
+      return accountError(e, 'Erro ao cadastrar. Tente novamente.');
     }
   };
 
@@ -335,13 +267,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // O refresh token vai no cookie HttpOnly; o backend o revoga e limpa
       // o cookie na resposta.
       await logoutUser();
-      await clearTokens();
+      clearTokens();
       localStorage.removeItem(USER_KEY);
     } finally {
       // Outro login na mesma máquina não pode ver dados em cache da conta anterior.
       queryClient.clear();
       setCurrentUser(null);
-      setIsLoggedIn(false);
     }
   }, []);
 
@@ -362,10 +293,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         register,
         totpSetup,
         totpVerify,
-        confirmEmail,
-        resendConfirmation,
-        requestPasswordReset,
-        resetPassword,
       }}
     >
       {children}

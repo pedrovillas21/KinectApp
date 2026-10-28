@@ -1,5 +1,6 @@
 package com.kinetic.services;
 
+import lombok.RequiredArgsConstructor;
 import com.kinetic.models.User;
 import com.kinetic.repositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -12,15 +13,11 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class PresenceService {
 
     private final UserRepository userRepository;
     private final JdbcTemplate jdbc;
-
-    public PresenceService(UserRepository userRepository, JdbcTemplate jdbc) {
-        this.userRepository = userRepository;
-        this.jdbc = jdbc;
-    }
 
     /**
      * Called by the LastActiveInterceptor — gated write (max once per 60s).

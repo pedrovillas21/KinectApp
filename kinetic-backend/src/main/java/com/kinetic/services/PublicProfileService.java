@@ -1,5 +1,6 @@
 package com.kinetic.services;
 
+import lombok.RequiredArgsConstructor;
 import com.kinetic.utils.AppTime;
 
 import com.kinetic.dtos.BestSetDTO;
@@ -34,6 +35,7 @@ import java.util.UUID;
  * dados de treino — peso corporal nunca sai daqui.
  */
 @Service
+@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class PublicProfileService {
 
@@ -42,18 +44,6 @@ public class PublicProfileService {
     private final SocialPostRepository postRepository;
     private final UserConnectionRepository connectionRepository;
     private final WorkoutSessionRepository workoutSessionRepository;
-
-    public PublicProfileService(SocialService socialService,
-                                TrainingSummaryService trainingSummaryService,
-                                SocialPostRepository postRepository,
-                                UserConnectionRepository connectionRepository,
-                                WorkoutSessionRepository workoutSessionRepository) {
-        this.socialService = socialService;
-        this.trainingSummaryService = trainingSummaryService;
-        this.postRepository = postRepository;
-        this.connectionRepository = connectionRepository;
-        this.workoutSessionRepository = workoutSessionRepository;
-    }
 
     public PublicProfileDTO getProfile(String email, UUID userId) {
         User me = socialService.findByEmail(email);
@@ -66,7 +56,7 @@ public class PublicProfileService {
         return new PublicProfileDTO(
                 id,
                 target.getNome(),
-                SocialService.avatarOf(target),
+                target.getAvatarUrl(),
                 target.getCreatedAt() != null ? target.getCreatedAt().toLocalDate() : null,
                 isMe,
                 isMe ? "SELF" : socialService.connectionState(me, target),
@@ -105,10 +95,7 @@ public class PublicProfileService {
             throw new IllegalArgumentException("Não dá para comparar com você mesmo.");
         }
         User friend = socialService.findById(friendId);
-        boolean accepted = socialService.findPair(me.getId(), friend.getId())
-                .map(c -> "ACCEPTED".equals(c.getStatus()))
-                .orElse(false);
-        if (!accepted) {
+        if (!socialService.canSeeActivity(me, friend)) {
             throw new ForbiddenException("Só dá para comparar progresso com amigos.");
         }
 
@@ -135,7 +122,7 @@ public class PublicProfileService {
         return new CompareSideDTO(
                 u.getId(),
                 u.getNome(),
-                SocialService.avatarOf(u),
+                u.getAvatarUrl(),
                 trainingSummaryService.weeklyMinutes(u.getId(), weekStarts),
                 trainingSummaryService.sessionsThisMonth(u.getId()),
                 trainingSummaryService.streakDays(u.getId()),

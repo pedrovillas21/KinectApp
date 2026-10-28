@@ -1,5 +1,7 @@
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { setStatusBarHidden } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions, type CameraType, type FlashMode } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
@@ -22,6 +24,15 @@ export default function WorkoutCameraScreen({ navigation, route }: MainStackScre
   const [facing, setFacing] = useState<CameraType>('back');
   const [flash, setFlash] = useState<FlashMode>('off');
   const [ready, setReady] = useState(false);
+
+  // Status bar escondida só com a câmera em foco. A opção statusBarHidden da rota exigiria
+  // UIViewControllerBasedStatusBarAppearance = YES no iOS, e o app usa NO (expo-status-bar).
+  useFocusEffect(
+    useCallback(() => {
+      setStatusBarHidden(true, 'fade');
+      return () => setStatusBarHidden(false, 'fade');
+    }, []),
+  );
 
   const openPost = (photoUri: string) => navigation.navigate('NewWorkoutPost', { workout, photoUri });
 
@@ -80,7 +91,8 @@ export default function WorkoutCameraScreen({ navigation, route }: MainStackScre
 
   // Moldura 4:5 (o formato do post) centrada na tela.
   // shortcut: a foto não é recortada ao que a moldura mostra; o feed corta o centro em 4:5,
-  // então sai um pouco mais aberta nas laterais. Recortar exato pede expo-image-manipulator.
+  // então sai um pouco mais aberta nas laterais. Recortar exato: expo-image-manipulator
+  // (já usado em utils/compressImage).
   const frameH = Math.min(width * 1.25, height * 0.62);
   const frameW = frameH * 0.8;
 

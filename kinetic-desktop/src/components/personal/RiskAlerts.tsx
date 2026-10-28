@@ -4,9 +4,11 @@ import { AnimatePresence, motion } from 'motion/react';
 import { BellOff, BellRing, ChevronRight, MessageCircle, ShieldCheck } from 'lucide-react';
 import Avatar from '../Avatar';
 import { EASE_OUT } from '../motion/primitives';
-import PauseAlertDialog, { formatPauseDate, pauseReasonLabel, resumeStudentAlerts } from './PauseAlertDialog';
+import PauseAlertDialog, { pauseReasonLabel, resumeStudentAlerts } from './PauseAlertDialog';
 import { whatsappUrl } from '../../utils/whatsapp';
 import type { RiskAlert, StudentEngagement, TrainerLink } from '../../types';
+import { dayMonth } from '../../utils/dates';
+import { firstNameOf } from '../../utils/names';
 
 const COLLAPSED_LIMIT = 6;
 
@@ -107,7 +109,7 @@ export default function RiskAlerts({
             {shown.map(({ link, engagement: e }) => {
               const primary = e.alerts[0];
               const high = e.risk === 'ALTO';
-              const firstName = link.peer.nome.trim().split(/\s+/)[0] ?? link.peer.nome;
+              const firstName = firstNameOf(link.peer.nome);
               const pause = e.pause;
               const isSnoozed = !!pause;
               return (
@@ -144,7 +146,7 @@ export default function RiskAlerts({
                       {pause && (
                         <p className="mt-1.5 text-[13px] text-k-text-dim">
                           <span className="font-medium text-k-text-soft">
-                            {pauseReasonLabel(pause.reason)} · pausado até {formatPauseDate(pause.until)}
+                            {pauseReasonLabel(pause.reason)} · pausado até {dayMonth(pause.until)}
                           </span>
                           {pause.note && ` — ${pause.note}`}
                         </p>

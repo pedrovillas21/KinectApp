@@ -1,6 +1,6 @@
 import type { StatsPeriodId } from '../types';
 
-/** Segmented control de período — reusa os PERIODS do dashboard do personal. */
+/** Períodos de análise (o seletor do DashboardTab usa a mesma lista). */
 export const PERIODS: { id: StatsPeriodId; label: string }[] = [
   { id: 'week', label: 'Semana' },
   { id: 'month', label: 'Mês' },

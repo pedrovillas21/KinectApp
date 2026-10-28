@@ -16,7 +16,7 @@ public record CreateCompanyRequestDTO(
         @NotBlank(message = "O CNPJ é obrigatório.")
         String companyCnpj,
         @NotBlank(message = "Escolha o apelido da rede (usado no login das filiais).")
-        @Pattern(regexp = "^[a-z0-9]([a-z0-9-]{0,38}[a-z0-9])?$",
+        @Pattern(regexp = ValidationRules.HANDLE_REGEX,
                 message = "Apelido: letras minúsculas, números e hífen, até 40 caracteres.")
         String slug,
         @NotBlank(message = "O nome do dono é obrigatório.")

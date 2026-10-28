@@ -15,30 +15,7 @@ import api from '../services/api';
 import { getMyTrainer } from '../services/trainerService';
 import { KINETIC } from '../theme/kinetic';
 import type { MainTabScreenProps } from '../navigation/types';
-import type { HomeDashboardResponseDTO, NextWorkoutDTO, TrainerPeer } from '../types';
-
-// ─── Tipos locais (usados apenas para navegar ao ActiveSession) ───────────────
-
-interface ExerciseAPI {
-  id: string;
-  name: string;
-  muscles: string;
-  type: string;
-  sets: number;
-  reps: string;
-  weight: string;
-  restTime: string;
-}
-
-interface WorkoutPlanAPI {
-  id: string;
-  title: string;
-  subtitle?: string | null;
-  tag?: string | null;
-  level?: string | null;
-  createdAt?: string | null;
-  data: ExerciseAPI[];
-}
+import type { HomeDashboardResponseDTO, NextWorkoutDTO, TrainerPeer, WorkoutPlanItem } from '../types';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -60,9 +37,10 @@ export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
     api.get<HomeDashboardResponseDTO>('/home/dashboard').then((r) => r.data),
   );
   const plansRes = useFocusResource('workouts/my-plans', () =>
-    api.get<WorkoutPlanAPI[]>('/workouts/my-plans').then((r) => (Array.isArray(r.data) ? r.data : [])),
+    api.get<WorkoutPlanItem[]>('/workouts/my-plans').then((r) => (Array.isArray(r.data) ? r.data : [])),
   );
-  const trainerRes = useFocusResource('me/trainer', () =>
+  // Só o par do vínculo ATIVO; o vínculo inteiro fica em 'me/trainer' (Protocolo/Anamnese).
+  const trainerRes = useFocusResource('me/trainer-peer', () =>
     getMyTrainer().then((link) => (link?.status === 'ATIVO' ? link.peer : null)),
   );
 
@@ -86,10 +64,7 @@ export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
     (workout: NextWorkoutDTO): void => {
       const plan = plans.find((p) => p.id === workout.workoutPlanId);
       if (!plan) return;
-      navigation.navigate('ActiveSession', {
-        workoutData: plan,
-        workoutPlanId: workout.workoutPlanId,
-      });
+      navigation.navigate('ActiveSession', { workoutData: plan });
     },
     [navigation, plans],
   );
@@ -107,11 +82,9 @@ export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
         <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} tintColor={KINETIC.primary} />
       }
     >
-      {isLoading ? (
-        <ActivityIndicator color={KINETIC.primary} />
-      ) : !dashboard ? (
-        <StaleBanner visible hasData={false} onRetry={refreshAll} />
-      ) : (
+      {isLoading && <ActivityIndicator color={KINETIC.primary} />}
+      {!isLoading && !dashboard && <StaleBanner visible hasData={false} onRetry={refreshAll} />}
+      {!isLoading && dashboard && (
         <>
           <StaleBanner visible={dashboardRes.error || plansRes.error} onRetry={refreshAll} />
           <HomeHeader
@@ -125,7 +98,7 @@ export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
             <OnboardingPrompt name={firstName} onGenerateWorkout={() => navigation.navigate('Train')} />
           ) : (
             <View style={styles.sections}>
-              {dashboard?.week && dashboard.week.length > 0 ? <WeekStrip days={dashboard.week} /> : null}
+              {dashboard.week && dashboard.week.length > 0 ? <WeekStrip days={dashboard.week} /> : null}
 
               {nextWorkout ? (
                 <TodayWorkoutCard
@@ -136,10 +109,10 @@ export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
               ) : null}
 
               <HomeStatsRow
-                monthSessions={dashboard?.monthSessions ?? dashboard?.completedSessions ?? 0}
-                monthTarget={dashboard?.targetSessions ?? 0}
+                monthSessions={dashboard.monthSessions ?? dashboard.completedSessions ?? 0}
+                monthTarget={dashboard.targetSessions ?? 0}
                 streakDays={streakDays}
-                volume7dKg={dashboard?.volume7dKg ?? 0}
+                volume7dKg={dashboard.volume7dKg ?? 0}
               />
 
               {trainer ? (

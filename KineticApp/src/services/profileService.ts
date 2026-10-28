@@ -1,5 +1,5 @@
 import api from './api';
-import { compressImage } from '../utils/compressImage';
+import { imageFormData } from '../utils/compressImage';
 import type { CompareProgress, Page, PublicProfile, WorkoutSummary } from '../types';
 
 /**
@@ -32,12 +32,7 @@ export const httpStatus = (e: unknown): number | undefined =>
  * A foto é pública (bucket próprio), diferente das fotos de posts.
  */
 export const updateMyAvatar = async (originalUri: string): Promise<string> => {
-  const uri = await compressImage(originalUri);
-  const name = uri.split('/').pop() ?? `${Date.now()}.jpg`;
-  const ext = (/\.(\w+)$/.exec(name)?.[1] ?? 'jpg').toLowerCase();
-  const type = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
-  const form = new FormData();
-  form.append('file', { uri, name, type } as any);
+  const form = await imageFormData(originalUri);
   const res = await api.put<{ avatarUrl: string }>('/users/me/avatar', form, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });

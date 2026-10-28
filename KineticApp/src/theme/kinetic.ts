@@ -1,9 +1,8 @@
 /**
  * Tokens visuais da identidade "Kinetic" (Dark + Ciano Neon).
  *
- * Fonte única de cor, raio, fonte e tipografia do app. `colors.ts` e
- * `statsTokens.ts` reexportam daqui para as telas antigas herdarem a paleta
- * do redesign sem precisar ser reescritas.
+ * Fonte única de cor, raio, fonte e tipografia do app. `statsTokens.ts`
+ * reexporta daqui para a aba Progresso.
  */
 export const KINETIC = {
   bg: '#131313',
@@ -42,7 +41,6 @@ export const KINETIC = {
   warn: '#f5b945',
   /** Recordes / conquistas. */
   record: '#F5B13D',
-  recordBg: '#3a2f1c',
   danger: '#ff6b6b',
   dangerDim: 'rgba(255,107,107,0.12)',
 
@@ -83,7 +81,6 @@ export const TYPE = {
   body: { fontFamily: FONT.regular, fontSize: 14, lineHeight: 20 },
   bodyStrong: { fontFamily: FONT.semibold, fontSize: 14, lineHeight: 20 },
   bodyMedium: { fontFamily: FONT.medium, fontSize: 14, lineHeight: 20 },
-  input: { fontFamily: FONT.regular, fontSize: 15, lineHeight: 20 },
   label: { fontFamily: FONT.semibold, fontSize: 15, lineHeight: 20 },
   caption: { fontFamily: FONT.regular, fontSize: 12, lineHeight: 16 },
   captionStrong: { fontFamily: FONT.semibold, fontSize: 12, lineHeight: 16 },
@@ -112,15 +109,6 @@ export const rankingPositionColor = (position: number): string => {
   if (position === 1) return KINETIC.gold;
   if (position === 2) return KINETIC.silver;
   if (position === 3) return KINETIC.bronze;
-  return KINETIC.textMuted;
-};
-
-/**
- * Cor do avatar de presença: TRAINING=verde, ONLINE=ciano, OFFLINE=cinza.
- */
-export const presenceColor = (status: 'TRAINING' | 'ONLINE' | 'OFFLINE'): string => {
-  if (status === 'TRAINING') return KINETIC.success;
-  if (status === 'ONLINE') return KINETIC.primary;
   return KINETIC.textMuted;
 };
 

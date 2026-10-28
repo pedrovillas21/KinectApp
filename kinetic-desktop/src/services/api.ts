@@ -63,7 +63,7 @@ export const refreshAccessToken = async (): Promise<string | null> => {
       const newToken = res.data?.token;
       if (!newToken) return null;
 
-      await setAccessToken(newToken);
+      setAccessToken(newToken);
       // O backend já regravou o cookie com o refresh token rotacionado.
       return newToken;
     } catch {
@@ -89,17 +89,16 @@ const PUBLIC_ROUTES = [
 ];
 
 api.interceptors.request.use(
-  async (config: InternalAxiosRequestConfig) => {
+  (config: InternalAxiosRequestConfig) => {
     const isPublic = PUBLIC_ROUTES.some(route => config.url?.startsWith(route));
     if (!isPublic) {
-      const token = await getAccessToken();
+      const token = getAccessToken();
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
     }
     return config;
   },
-  (error: AxiosError) => Promise.reject(error),
 );
 
 /** Disparado quando a API responde TERMS_REQUIRED: o TermsGate volta a pedir o aceite. */
@@ -129,7 +128,7 @@ api.interceptors.response.use(
       if (_signOutHandler) {
         await _signOutHandler();
       } else {
-        await clearTokens();
+        clearTokens();
       }
     }
 

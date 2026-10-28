@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/social")
+@RequiredArgsConstructor
 @Tag(
         name = "Social",
         description = "Feed, stories, conexões entre usuários, curtidas e comentários — a rede social do app."
@@ -30,11 +32,6 @@ public class SocialController extends BaseController {
 
     private final SocialService socialService;
     private final PublicProfileService publicProfileService;
-
-    public SocialController(SocialService socialService, PublicProfileService publicProfileService) {
-        this.socialService = socialService;
-        this.publicProfileService = publicProfileService;
-    }
 
     /** Teto de itens por página nas listas paginadas (feed e perfil). */
     private static final int MAX_PAGE_SIZE = 50;
@@ -101,12 +98,8 @@ public class SocialController extends BaseController {
     )
     @PostMapping("/connections")
     public ResponseEntity<?> sendConnection(@RequestBody Map<String, UUID> body) {
-        try {
-            socialService.sendConnection(currentUserEmail(), body.get("addresseeId"));
-            return ResponseEntity.status(HttpStatus.CREATED).build();
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
+        socialService.sendConnection(currentUserEmail(), body.get("addresseeId"));
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @Operation(
@@ -129,8 +122,6 @@ public class SocialController extends BaseController {
         try {
             socialService.acceptConnection(currentUserEmail(), id);
             return ResponseEntity.ok().build();
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         }
@@ -143,14 +134,8 @@ public class SocialController extends BaseController {
     )
     @DeleteMapping("/connections/{id}")
     public ResponseEntity<?> removeConnection(@PathVariable UUID id) {
-        try {
-            socialService.removeConnection(currentUserEmail(), id);
-            return ResponseEntity.noContent().build();
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-        }
+        socialService.removeConnection(currentUserEmail(), id);
+        return ResponseEntity.noContent().build();
     }
 
     // ── Squad ────────────────────────────────────────────────────────────────
@@ -178,16 +163,6 @@ public class SocialController extends BaseController {
         } catch (EntityNotFoundException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-    }
-
-    @Operation(
-            summary = "Ver o squad com status de presença",
-            description = "Igual a /api/social/squad, mas pensado para telas que mostram quem do squad está ativo/"
-                    + "treinando agora."
-    )
-    @GetMapping("/squad/status")
-    public ResponseEntity<List<SquadMemberDTO>> getSquadStatus() {
-        return ResponseEntity.ok(socialService.getSquad(currentUserEmail()));
     }
 
     // ── Feed ─────────────────────────────────────────────────────────────────

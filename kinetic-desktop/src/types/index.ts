@@ -8,11 +8,6 @@
 
 export type StatsPeriodId = 'week' | 'month' | 'q' | 'year';
 
-export interface StatsPeriodOption {
-  id: StatsPeriodId;
-  label: string;
-}
-
 export interface VolumeByMuscleGroupDTO {
   muscleGroup: string;
   volume: number;
@@ -405,7 +400,6 @@ export interface WorkoutPlanInput {
 
 // ── Fichas com IA (pedido do personal → prévia → aprovação) ─────────────────
 
-/** Anamnese do aluno que vai para a IA — espelha AiPlanContextDTO. null = não informado. */
 /** GET/PUT /trainer/students/{id}/protocol — espelha StudentProtocolDTOs. */
 export interface StudentProtocol {
   goal: string | null;
@@ -430,6 +424,7 @@ export interface StudentProtocolUpdate {
   medicalConditions: string | null;
 }
 
+/** Anamnese do aluno que vai para a IA — espelha AiPlanContextDTO. null = não informado. */
 export interface AiPlanContext {
   goal: string | null;
   level: string;

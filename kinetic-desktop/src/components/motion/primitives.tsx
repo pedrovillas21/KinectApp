@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect } from 'react';
 import {
   animate,
   motion,
@@ -56,70 +56,3 @@ export function CountUp({ value, format, duration = 1.1, className }: CountUpPro
   return <motion.span className={className}>{text}</motion.span>;
 }
 
-interface ProgressRingProps {
-  /** 0–100; valores fora disso são limitados. */
-  value: number;
-  size: number;
-  stroke: number;
-  /** Hex (#rrggbb) — o brilho opcional usa o mesmo tom com alpha. */
-  color?: string;
-  glow?: boolean;
-  delay?: number;
-  children?: ReactNode;
-}
-
-/** Anel de progresso que se preenche (e troca de cor) com animação. */
-export function ProgressRing({
-  value,
-  size,
-  stroke,
-  color = '#00e5ff',
-  glow = false,
-  delay = 0,
-  children,
-}: ProgressRingProps) {
-  const r = (size - stroke) / 2;
-  const circumference = 2 * Math.PI * r;
-  const pct = Math.max(0, Math.min(100, value));
-
-  return (
-    <div className="relative shrink-0" style={{ width: size, height: size }}>
-      <svg
-        width={size}
-        height={size}
-        viewBox={`0 0 ${size} ${size}`}
-        className="-rotate-90"
-        aria-hidden="true"
-      >
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          fill="none"
-          stroke="rgba(255,255,255,0.07)"
-          strokeWidth={stroke}
-        />
-        <motion.circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          fill="none"
-          strokeWidth={stroke}
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          initial={{ strokeDashoffset: circumference, stroke: color }}
-          animate={{ strokeDashoffset: circumference * (1 - pct / 100), stroke: color }}
-          transition={{ duration: 1.2, ease: EASE_OUT, delay }}
-          style={{
-            // Com 0% a ponta arredondada viraria um "pingo" solto.
-            opacity: pct > 0 ? 1 : 0,
-            filter: glow ? `drop-shadow(0 0 6px ${color}73)` : undefined,
-          }}
-        />
-      </svg>
-      {children && (
-        <div className="absolute inset-0 flex items-center justify-center">{children}</div>
-      )}
-    </div>
-  );
-}

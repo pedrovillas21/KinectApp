@@ -1,5 +1,6 @@
 package com.kinetic.services;
 
+import lombok.RequiredArgsConstructor;
 import com.kinetic.utils.AppTime;
 
 import com.kinetic.dtos.GenerateWorkoutRequestDto;
@@ -15,8 +16,8 @@ import com.kinetic.models.User;
 import com.kinetic.models.WorkoutPlan;
 import com.kinetic.repositories.TrainerClientRepository;
 import com.kinetic.repositories.UserRepository;
-import com.kinetic.repositories.WorkoutExecutionLogRepository;
 import com.kinetic.repositories.WorkoutPlanRepository;
+import com.kinetic.repositories.WorkoutSessionRepository;
 import com.kinetic.security.RateLimiter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,8 +26,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.text.Normalizer;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.Period;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,6 +42,7 @@ import java.util.UUID;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class WorkoutService {
 
     /** Intervalo mínimo entre fichas geradas por IA para o próprio aluno (cota do app). */
@@ -51,7 +55,6 @@ public class WorkoutService {
     static final int MAX_AI_ATTEMPTS_PER_HOUR = 5;
     private static final long ATTEMPT_WINDOW_MS = Duration.ofHours(1).toMillis();
 
-
     private static final Set<String> SECTIONS = Set.of("AQUECIMENTO", "PRINCIPAL", "FINALIZACAO");
     private static final String DEFAULT_SECTION = "PRINCIPAL";
 
@@ -59,28 +62,10 @@ public class WorkoutService {
     private final WorkoutPlanRepository workoutPlanRepository;
     private final UserRepository userRepository;
     private final PlanCycleSnapshotService planCycleSnapshotService;
-    private final WorkoutExecutionLogRepository workoutExecutionLogRepository;
+    private final WorkoutSessionRepository workoutSessionRepository;
     private final TrainerClientRepository trainerClientRepository;
     private final TransactionTemplate transactionTemplate;
     private final RateLimiter rateLimiter;
-
-    public WorkoutService(GeminiService geminiService,
-                          WorkoutPlanRepository workoutPlanRepository,
-                          UserRepository userRepository,
-                          PlanCycleSnapshotService planCycleSnapshotService,
-                          WorkoutExecutionLogRepository workoutExecutionLogRepository,
-                          TrainerClientRepository trainerClientRepository,
-                          TransactionTemplate transactionTemplate,
-                          RateLimiter rateLimiter) {
-        this.geminiService = geminiService;
-        this.workoutPlanRepository = workoutPlanRepository;
-        this.userRepository = userRepository;
-        this.planCycleSnapshotService = planCycleSnapshotService;
-        this.workoutExecutionLogRepository = workoutExecutionLogRepository;
-        this.trainerClientRepository = trainerClientRepository;
-        this.transactionTemplate = transactionTemplate;
-        this.rateLimiter = rateLimiter;
-    }
 
     /**
      * Sem @Transactional: a chamada à IA leva até minutos e não pode segurar uma conexão
@@ -97,7 +82,7 @@ public class WorkoutService {
             throw new IllegalArgumentException("Idade derivada (%d anos) esta fora do intervalo permitido (10-120).".formatted(age));
         }
 
-        User user = findUserByEmail(userEmail);
+        User user = userRepository.getByEmailOrThrow(userEmail);
 
         // Com vínculo ativo, protocolo e treino são do personal: depois do onboarding (ou se ele
         // já montou alguma ficha) o aluno não regenera nem muda objetivo/nível/frequência por aqui.
@@ -150,7 +135,7 @@ public class WorkoutService {
     private List<WorkoutPlanResponseDTO> saveGeneratedPlans(String userEmail, GenerateWorkoutRequestDto request,
                                                             double heightCm, List<GeneratedWorkoutPlanDto> generatedDtos) {
         // Recarrega dentro da transação: o perfil pode ter mudado durante a chamada à IA.
-        User user = findUserByEmail(userEmail);
+        User user = userRepository.getByEmailOrThrow(userEmail);
 
         // Captura estado pré-regeneração antes de sobrescrever o perfil
         String oldGoal = user.getGoal();
@@ -242,7 +227,7 @@ public class WorkoutService {
 
     @Transactional(readOnly = true)
     public List<WorkoutPlanResponseDTO> getMyPlans(String userEmail) {
-        User user = findUserByEmail(userEmail);
+        User user = userRepository.getByEmailOrThrow(userEmail);
 
         // Uma unica query agregada (sem N+1): ultima conclusao por plano do usuario.
         Map<UUID, LocalDateTime> lastCompletionByPlan = buildLastCompletionMap(user.getId());
@@ -254,20 +239,13 @@ public class WorkoutService {
     }
 
     /**
-     * Monta o mapa plano -> ultima data de conclusao a partir da query agregada.
-     * Cast defensivo: MAX(completionDate) pode voltar como java.sql.Timestamp ou
-     * LocalDateTime dependendo da versao do driver do PostgreSQL.
+     * Monta o mapa plano -> ultimo treino a partir da query agregada. Volta como
+     * LocalDateTime no fuso do servidor, que o JacksonConfig serializa em UTC.
      */
     private Map<UUID, LocalDateTime> buildLastCompletionMap(UUID userId) {
         Map<UUID, LocalDateTime> map = new HashMap<>();
-        for (Object[] row : workoutExecutionLogRepository.findLatestCompletionPerPlan(userId)) {
-            UUID planId = (UUID) row[0];
-            Object raw = row[1];
-            if (raw == null) continue;
-            LocalDateTime last = (raw instanceof java.sql.Timestamp ts)
-                    ? ts.toLocalDateTime()
-                    : (LocalDateTime) raw;
-            map.put(planId, last);
+        for (Object[] row : workoutSessionRepository.findLatestSessionPerPlan(userId)) {
+            map.put((UUID) row[0], LocalDateTime.ofInstant((Instant) row[1], ZoneId.systemDefault()));
         }
         return map;
     }
@@ -278,10 +256,6 @@ public class WorkoutService {
             throw new AiQuotaExceededException(
                     "Muitas tentativas de gerar a ficha. Aguarde uma hora e tente novamente.");
         }
-    }
-
-    private User findUserByEmail(String userEmail) {
-        return userRepository.getByEmailOrThrow(userEmail);
     }
 
     /**

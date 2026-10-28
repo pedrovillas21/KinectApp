@@ -8,20 +8,16 @@ import {
   Users,
   MessageSquareText,
   BarChart3,
-  IdCard,
   type LucideIcon,
 } from 'lucide-react';
 
 /**
- * Fonte única da navegação do painel: itens de sidebar keyed por papel, mapa
- * papel → home e o gate de "papéis do painel" (ALUNO fica de fora — usa o app).
- * Consumido por AppShell, AuthContext, ProtectedRoute e LoginPage.
+ * Papéis do painel (ALUNO fica de fora — usa o app), home de cada papel e a barra
+ * lateral do AppShell (ROOT, EMPRESA e DONO; o PERSONAL tem a própria, no PersonalShell).
  */
 
 /** EMPRESA = conta de uma filial; DONO = dono da rede, que cadastra e acompanha as filiais. */
 export type PanelRole = 'PERSONAL' | 'EMPRESA' | 'DONO' | 'ROOT';
-
-export const PANEL_ROLES: readonly PanelRole[] = ['PERSONAL', 'EMPRESA', 'DONO', 'ROOT'];
 
 /** True só para papéis que podem logar no painel web (ALUNO é barrado). */
 export const isPanelRole = (role: string | null | undefined): role is PanelRole =>
@@ -49,11 +45,7 @@ export interface NavItem {
   comingSoon?: boolean;
 }
 
-export const NAV_BY_ROLE: Record<PanelRole, NavItem[]> = {
-  PERSONAL: [
-    { label: 'Alunos', path: '/students', icon: Users },
-    { label: 'Meu perfil', path: '/perfil', icon: IdCard },
-  ],
+export const NAV_BY_ROLE: Record<Exclude<PanelRole, 'PERSONAL'>, NavItem[]> = {
   ROOT: [
     { label: 'Visão Geral', shortLabel: 'Início', path: '/root', icon: LayoutDashboard },
     { label: 'Empresas', path: '/root/empresas', icon: Building2 },

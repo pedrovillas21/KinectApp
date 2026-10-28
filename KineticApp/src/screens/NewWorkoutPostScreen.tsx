@@ -7,7 +7,7 @@ import WorkoutPhotoStrip from '../components/WorkoutPhotoStrip';
 import { Avatar, Button, ListGroup, ListRow, Screen, StackHeader, Text } from '../components/ui';
 import { showAlert } from '../components/ui/AlertHost';
 import { AuthContext } from '../contexts/AuthContext';
-import { createPost, deleteMedia, uploadMedia } from '../services/socialService';
+import { createPost, uploadAndCreate } from '../services/socialService';
 import { FONT, KINETIC, RADIUS } from '../theme/kinetic';
 import type { MainStackScreenProps } from '../navigation/types';
 import type { PostIntensity } from '../types';
@@ -23,19 +23,12 @@ export default function NewWorkoutPostScreen({ navigation, route }: MainStackScr
   const publish = async () => {
     if (posting) return;
     setPosting(true);
-    let uploadedUrl: string | undefined;
     try {
-      uploadedUrl = await uploadMedia(photoUri, 'posts');
-      await createPost({
-        intensity,
-        caption: caption.trim() || undefined,
-        imageUrl: uploadedUrl,
-        clientSessionId: workout.clientSessionId,
-      });
+      await uploadAndCreate(photoUri, 'posts', (imageUrl) =>
+        createPost({ intensity, caption: caption.trim() || undefined, imageUrl, clientSessionId: workout.clientSessionId }),
+      );
       navigation.navigate('MainTabs', { screen: 'Social', params: { refreshAt: Date.now() } });
     } catch {
-      // Foto subiu mas o post falhou: remove a mídia órfã (best-effort), igual ao NewPostModal.
-      if (uploadedUrl) deleteMedia(uploadedUrl).catch(() => {});
       showAlert('Não foi possível publicar', 'Verifique sua conexão e tente novamente.');
       setPosting(false);
     }

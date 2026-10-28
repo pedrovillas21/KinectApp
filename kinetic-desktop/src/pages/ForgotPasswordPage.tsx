@@ -1,11 +1,11 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { useAuth } from '../contexts/AuthContext';
 import { ArrowLeft, ArrowRight, Eye, EyeOff, KeyRound, Loader2, MailCheck, ShieldCheck } from 'lucide-react';
 import KineticLogo from '../components/KineticLogo';
 import { riseItem, staggerContainer } from '../components/motion/primitives';
 import AuthBrandPanel, { authInputClass } from '../components/AuthBrandPanel';
+import { requestPasswordReset, resetPassword } from '../services/authService';
 
 const HIGHLIGHTS = [
   { icon: MailCheck, title: 'Código no seu e-mail', text: 'Enviamos 6 dígitos que valem por 15 minutos.' },
@@ -19,7 +19,6 @@ const PASSWORD_RULE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*_=+-]).{8,20}$/;
 // Dois passos na mesma página: pedir o código (resposta uniforme, exista a conta ou
 // não) e depois informar código + nova senha. O e-mail fica em memória, nunca na URL.
 export default function ForgotPasswordPage() {
-  const { requestPasswordReset, resetPassword } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const initialEmail = (location.state as { email?: string } | null)?.email ?? '';

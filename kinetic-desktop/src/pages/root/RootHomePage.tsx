@@ -24,29 +24,10 @@ import {
 import { useIsMobile } from '../../utils/useIsMobile';
 import { getMetrics } from '../../services/rootService';
 import type { RootMetrics, StatsPeriodId } from '../../types';
+import { dayMonth } from '../../utils/dates';
+import { CHART, chartTooltipStyle } from '../../components/chart-theme';
 
 const nf = new Intl.NumberFormat('pt-BR');
-
-const CHART = {
-  mark: '#00a5b8', // série validada (dataviz) para dark
-  grid: 'rgba(255,255,255,0.06)',
-  tick: 'rgba(245, 246, 247, 0.36)',
-} as const;
-
-const tooltipStyle = {
-  background: '#1c1b1b',
-  border: '1px solid rgba(255,255,255,0.08)',
-  borderRadius: '12px',
-  fontSize: '12px',
-  color: '#f5f6f7',
-  padding: '8px 12px',
-};
-
-const shortDate = (iso: string): string => {
-  const d = new Date(`${iso}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return iso;
-  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
-};
 
 export default function RootHomePage() {
   const navigate = useNavigate();
@@ -69,7 +50,7 @@ export default function RootHomePage() {
     };
   }, [period]);
 
-  const growthData = (metrics?.growth ?? []).map((p) => ({ date: shortDate(p.date), contas: p.count }));
+  const growthData = (metrics?.growth ?? []).map((p) => ({ date: dayMonth(p.date), contas: p.count }));
 
   return (
     <div className="flex flex-col min-h-full">
@@ -159,7 +140,7 @@ export default function RootHomePage() {
                         tickLine={false}
                       />
                       <Tooltip
-                        contentStyle={tooltipStyle}
+                        contentStyle={chartTooltipStyle}
                         formatter={(value) => [nf.format(Number(value)), 'Contas']}
                       />
                       <Line

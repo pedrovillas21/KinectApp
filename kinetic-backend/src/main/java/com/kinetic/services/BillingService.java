@@ -1,5 +1,6 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.AppTime;
 import com.kinetic.billing.GatewayEvent;
 import com.kinetic.billing.PaymentGateway;
 import com.kinetic.dtos.BillingOverviewDTO;
@@ -83,10 +84,10 @@ public class BillingService {
     /** Depois do prazo, trocar quem fica ativo só a cada N dias. */
     static final int ACTIVE_SWAP_COOLDOWN_DAYS = 30;
     private static final DateTimeFormatter DAY_MONTH = DateTimeFormatter.ofPattern("dd/MM").withZone(
-            ZoneId.of("America/Sao_Paulo"));
+            AppTime.ZONE);
     private static final DateTimeFormatter HOUR_MINUTE = DateTimeFormatter.ofPattern("HH:mm").withZone(
-            ZoneId.of("America/Sao_Paulo"));
-    private static final ZoneId BILLING_ZONE = ZoneId.of("America/Sao_Paulo");
+            AppTime.ZONE);
+    private static final ZoneId BILLING_ZONE = AppTime.ZONE;
 
     private final TrainerSubscriptionRepository subscriptionRepository;
     private final TrainerClientRepository trainerClientRepository;

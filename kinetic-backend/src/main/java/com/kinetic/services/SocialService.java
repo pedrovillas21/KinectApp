@@ -1,5 +1,6 @@
 package com.kinetic.services;
 
+import lombok.RequiredArgsConstructor;
 import com.kinetic.dtos.*;
 import com.kinetic.enums.PresenceStatus;
 import com.kinetic.exceptions.ForbiddenException;
@@ -19,6 +20,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 @SuppressWarnings("null")
 public class SocialService {
 
@@ -30,24 +32,6 @@ public class SocialService {
     private final StorageService storageService;
     private final WorkoutSessionRepository workoutSessionRepository;
     private final TrainingSummaryService trainingSummaryService;
-
-    public SocialService(UserRepository userRepository,
-                         UserConnectionRepository connectionRepository,
-                         SocialPostRepository postRepository,
-                         PostLikeRepository likeRepository,
-                         PostCommentRepository commentRepository,
-                         StorageService storageService,
-                         WorkoutSessionRepository workoutSessionRepository,
-                         TrainingSummaryService trainingSummaryService) {
-        this.userRepository = userRepository;
-        this.connectionRepository = connectionRepository;
-        this.postRepository = postRepository;
-        this.likeRepository = likeRepository;
-        this.commentRepository = commentRepository;
-        this.storageService = storageService;
-        this.workoutSessionRepository = workoutSessionRepository;
-        this.trainingSummaryService = trainingSummaryService;
-    }
 
     // ── Media ────────────────────────────────────────────────────────────────
 
@@ -73,7 +57,7 @@ public class SocialService {
         List<User> matches = userRepository
                 .findTop30ByNomeContainingIgnoreCaseAndIdNotOrderByNomeAsc(term, me.getId());
         return matches.stream()
-                .map(u -> new UserCardDTO(u.getId(), u.getNome(), avatarOf(u), connectionState(me, u)))
+                .map(u -> new UserCardDTO(u.getId(), u.getNome(), u.getAvatarUrl(), connectionState(me, u)))
                 .toList();
     }
 
@@ -121,7 +105,7 @@ public class SocialService {
         return connectionRepository.findPendingIncomingFor(me.getId()).stream()
                 .map(c -> {
                     User r = c.getRequester();
-                    return new PendingRequestDTO(c.getId(), r.getId(), r.getNome(), avatarOf(r), c.getCreatedAt());
+                    return new PendingRequestDTO(c.getId(), r.getId(), r.getNome(), r.getAvatarUrl(), c.getCreatedAt());
                 })
                 .toList();
     }
@@ -135,12 +119,12 @@ public class SocialService {
         return accepted.stream()
                 .filter(c -> isInSquad(c, me.getId()))
                 .map(c -> {
-                    User friend = friendOf(c, me.getId());
+                    User friend = c.otherSide(me.getId());
                     return new SquadMemberDTO(
                             friend.getId(),
                             friend.getNome(),
-                            avatarOf(friend),
-                            derivePresence(friend).name(),
+                            friend.getAvatarUrl(),
+                            presenceOf(friend).name(),
                             hasNewUpdate(friend)
                     );
                 })
@@ -287,7 +271,7 @@ public class SocialService {
         List<StoryGroupDTO> groups = new ArrayList<>();
         grouped.forEach((authorId, list) -> {
             User a = authors.get(authorId);
-            groups.add(new StoryGroupDTO(a.getId(), a.getNome(), avatarOf(a), list));
+            groups.add(new StoryGroupDTO(a.getId(), a.getNome(), a.getAvatarUrl(), list));
         });
 
         // Minha própria story primeiro; demais ordenadas pela story mais recente.
@@ -334,7 +318,7 @@ public class SocialService {
                         c.getId(),
                         c.getUser().getId(),
                         c.getUser().getNome(),
-                        avatarOf(c.getUser()),
+                        c.getUser().getAvatarUrl(),
                         c.getBody(),
                         c.getCreatedAt()
                 ))
@@ -350,7 +334,7 @@ public class SocialService {
         comment.setUser(me);
         comment.setBody(req.body());
         commentRepository.saveAndFlush(comment);
-        return new CommentDTO(comment.getId(), me.getId(), me.getNome(), avatarOf(me), comment.getBody(), comment.getCreatedAt());
+        return new CommentDTO(comment.getId(), me.getId(), me.getNome(), me.getAvatarUrl(), comment.getBody(), comment.getCreatedAt());
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -365,7 +349,8 @@ public class SocialService {
                 .orElseThrow(() -> new EntityNotFoundException("Post not found"));
     }
 
-    private PresenceStatus derivePresence(User u) {
+    /** Treinando (sessão ativa, visto há menos de 5 min), online (visto há menos de 2 min) ou offline. */
+    static PresenceStatus presenceOf(User u) {
         if (u.getLastActive() == null) return PresenceStatus.OFFLINE;
         LocalDateTime now = LocalDateTime.now();
         if (u.getActiveSessionId() != null
@@ -386,15 +371,10 @@ public class SocialService {
                 .orElse(false);
     }
 
-    /** Conexão entre dois usuários, em qualquer direção e status. */
-    public Optional<UserConnection> findPair(UUID a, UUID b) {
-        return connectionRepository.findPair(a, b);
-    }
-
     /** true se {@code me} é o próprio {@code target} ou amigo aceito dele. */
     public boolean canSeeActivity(User me, User target) {
         if (me.getId().equals(target.getId())) return true;
-        return findPair(me.getId(), target.getId())
+        return connectionRepository.findPair(me.getId(), target.getId())
                 .map(c -> "ACCEPTED".equals(c.getStatus()))
                 .orElse(false);
     }
@@ -420,13 +400,9 @@ public class SocialService {
         return Boolean.TRUE.equals(c.getAddresseeInSquad());
     }
 
-    private User friendOf(UserConnection c, UUID meId) {
-        return c.getRequester().getId().equals(meId) ? c.getAddressee() : c.getRequester();
-    }
-
     private List<UUID> getConnectedIds(User me) {
         return connectionRepository.findAcceptedFor(me.getId()).stream()
-                .map(c -> friendOf(c, me.getId()).getId())
+                .map(c -> c.otherSide(me.getId()).getId())
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
@@ -461,7 +437,7 @@ public class SocialService {
                                       Map<String, String> signedUrls,
                                       Map<UUID, WorkoutSummaryDTO> workouts) {
         User author = p.getAuthor();
-        FeedAuthorDTO authorDTO = new FeedAuthorDTO(author.getId(), author.getNome(), avatarOf(author));
+        FeedAuthorDTO authorDTO = new FeedAuthorDTO(author.getId(), author.getNome(), author.getAvatarUrl());
 
         String duration = formatDuration(p.getDurationMinutes());
         String calories = formatCalories(p.getCalories());
@@ -513,11 +489,6 @@ public class SocialService {
         if (hours < 24) return hours + " HRS AGO";
         long days = hours / 24;
         return days + " DAYS AGO";
-    }
-
-    /** Foto de perfil ou null (o app e o painel mostram as iniciais do nome). */
-    static String avatarOf(User u) {
-        return u.getAvatarUrl();
     }
 
     User findByEmail(String email) {

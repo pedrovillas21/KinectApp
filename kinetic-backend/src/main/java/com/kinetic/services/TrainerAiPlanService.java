@@ -1,5 +1,6 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.Strings;
 import com.kinetic.utils.AppTime;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -91,13 +92,13 @@ public class TrainerAiPlanService {
         User student = trainerLinkService.resolveOwnedStudent(trainerEmail, studentId);
         int activePlans = workoutPlanRepository.findByUserIdAndStatus(student.getId(), "active").size();
         return new AiPlanContextDTO(
-                blankToNull(student.getGoal()),
+                Strings.trimOrNull(student.getGoal()),
                 TrainerPlanService.resolveLevel(null, null, student.getLevel()),
                 ageOf(student.getBirthDate()),
                 student.getWeight(),
                 student.getHeight(),
                 student.getFrequency(),
-                blankToNull(student.getMedicalConditions()),
+                Strings.trimOrNull(student.getMedicalConditions()),
                 activePlans);
     }
 
@@ -217,7 +218,7 @@ public class TrainerAiPlanService {
      */
     private void closeCurrentCycle(User student) {
         Optional<LocalDateTime> cycleStart = workoutPlanRepository.findEarliestActiveCreatedAt(student.getId());
-        String goal = blankToNull(student.getGoal());
+        String goal = Strings.trimOrNull(student.getGoal());
         if (cycleStart.isPresent() && goal != null) {
             double weight = student.getWeight() != null ? student.getWeight() : 0.0;
             planCycleSnapshotService.captureSnapshot(student, cycleStart.get().toLocalDate(), goal, weight);
@@ -228,7 +229,7 @@ public class TrainerAiPlanService {
 
     private String buildPrompt(User student, TrainerAiPlanRequestDTO request, String level) {
         Integer age = ageOf(student.getBirthDate());
-        String medical = blankToNull(student.getMedicalConditions());
+        String medical = Strings.trimOrNull(student.getMedicalConditions());
         String duration = request.durationMinutes() != null
                 ? "até " + request.durationMinutes() + " minutos por treino"
                 : "não definida pelo personal (entre 45 e 75 minutos por treino)";
@@ -305,7 +306,7 @@ public class TrainerAiPlanService {
                 request.planCount(),
                 duration,
                 level,
-                orUnknown(blankToNull(student.getGoal())),
+                orUnknown(Strings.trimOrNull(student.getGoal())),
                 age != null ? age + " anos" : "não informada",
                 student.getWeight() != null ? "%.1f kg".formatted(student.getWeight()) : "não informado",
                 student.getHeight() != null ? "%.0f cm".formatted(student.getHeight()) : "não informada",
@@ -401,20 +402,14 @@ public class TrainerAiPlanService {
     }
 
     private static String clip(String value, int max) {
-        String text = blankToNull(value);
+        String text = Strings.trimOrNull(value);
         if (text == null) return null;
         return text.length() > max ? text.substring(0, max).trim() : text;
     }
 
     private static String upper(String value) {
-        String text = blankToNull(value);
+        String text = Strings.trimOrNull(value);
         return text == null ? null : text.toUpperCase(Locale.ROOT);
-    }
-
-    private static String blankToNull(String value) {
-        if (value == null) return null;
-        String trimmed = value.trim();
-        return trimmed.isEmpty() ? null : trimmed;
     }
 
     private static String orUnknown(String value) {

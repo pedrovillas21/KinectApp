@@ -18,6 +18,7 @@ import {
 import { qk, refreshTrainerData } from '../../services/queryClient';
 import { dayMonth, fullDate, todayIso } from '../../utils/dates';
 import type { AssessmentInput, AssessmentMeasures, PhysicalAssessment } from '../../types';
+import { errorMessage } from '../../utils/errors';
 
 type Draft = Record<keyof AssessmentMeasures, string> & { assessedOn: string; notes: string };
 
@@ -55,11 +56,6 @@ function toInput(d: Draft): AssessmentInput | 'erro' {
   }
   return input;
 }
-
-const errorText = (err: unknown, fallback: string) => {
-  const data = (err as { response?: { data?: unknown } }).response?.data;
-  return typeof data === 'string' && data ? data : fallback;
-};
 
 const tooltipStyle = {
   background: '#1c1b1b',
@@ -110,7 +106,7 @@ export default function AssessmentsTab({ studentId, studentFirstName }: { studen
       setEditing(null);
       load();
     } catch (err) {
-      toast.error(errorText(err, 'Não foi possível salvar a avaliação.'));
+      toast.error(errorMessage(err, 'Não foi possível salvar a avaliação.'));
     } finally {
       setSaving(false);
     }
@@ -125,7 +121,7 @@ export default function AssessmentsTab({ studentId, studentFirstName }: { studen
       setDeleting(null);
       load();
     } catch (err) {
-      toast.error(errorText(err, 'Não foi possível apagar.'));
+      toast.error(errorMessage(err, 'Não foi possível apagar.'));
     } finally {
       setDeleteBusy(false);
     }

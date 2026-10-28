@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ChevronRight } from 'lucide-react';
 import FormDialog, { formLabelClass } from './FormDialog';
-import { billingErrorMessage } from '../../services/billingService';
 import { pauseAlerts, resumeAlerts } from '../../services/trainerService';
 import { qk, queryClient } from '../../services/queryClient';
 import type { AlertPause, AlertPauseReason } from '../../types';
+import { errorMessage } from '../../utils/errors';
+import { firstNameOf } from '../../utils/names';
 
 /** Motivos da pausa, com a duração sugerida para cada um. */
 export const PAUSE_REASONS: { value: AlertPauseReason; label: string; days: number }[] = [
@@ -21,12 +22,6 @@ const NOTE_MAX = 500;
 
 export const pauseReasonLabel = (reason: AlertPauseReason | null) =>
   PAUSE_REASONS.find((r) => r.value === reason)?.label ?? 'Pausado';
-
-/** "12/11" a partir de yyyy-mm-dd, sem passar por fuso. */
-export const formatPauseDate = (iso: string) => {
-  const [, m, d] = iso.split('-');
-  return `${d}/${m}`;
-};
 
 /** Desfaz a pausa: o aluno volta para a fila de hoje e para os alertas de risco. */
 export const resumeStudentAlerts = async (studentId: string) => {
@@ -89,7 +84,7 @@ export default function PauseAlertDialog({
       toast.success('Alerta pausado', { description: `${studentName} volta para a fila em ${days} dias.` });
       onClose();
     } catch (err) {
-      toast.error(billingErrorMessage(err, 'Não foi possível salvar. Tente novamente.'));
+      toast.error(errorMessage(err, 'Não foi possível salvar. Tente novamente.'));
     } finally {
       setBusy(false);
     }
@@ -98,7 +93,7 @@ export default function PauseAlertDialog({
   return (
     <FormDialog
       open={open}
-      title={`Resolver alerta de ${studentName.split(/\s+/)[0]}`}
+      title={`Resolver alerta de ${firstNameOf(studentName)}`}
       description={alertMessage}
       submitLabel={`Pausar por ${days} dias`}
       busy={busy}

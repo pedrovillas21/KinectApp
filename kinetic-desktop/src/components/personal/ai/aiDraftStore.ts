@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import type { AiRequestForm, PreviewPlan } from './aiDraft';
 import type { AiPlanPreview, WorkoutPlan } from '../../../types';
+import { firstNameOf } from '../../../utils/names';
 
 export type AiFlowStep = 'compose' | 'generating' | 'preview' | 'edit';
 
@@ -57,7 +58,7 @@ export function newAiDraft(studentId: string, studentName: string, currentPlans:
   return {
     studentId,
     studentName,
-    studentFirstName: studentName.trim().split(/\s+/)[0] ?? studentName,
+    studentFirstName: firstNameOf(studentName),
     step: 'compose',
     form: {
       prompt: '',

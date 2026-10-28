@@ -15,8 +15,8 @@ public record LogSessionRequestDTO(
     @NotNull @Positive @Max(value = 21600, message = "Duração do treino deve ser de no máximo 6 horas.") Integer durationInSeconds,
     @NotNull LocalDate date,
     // Uma ficha tem até 30 exercícios de até 20 séries (TrainerExerciseRequestDTO): 600 cobre qualquer treino real.
+    // A ficha do treino sai dos exercícios: um workoutPlanId enviado por app antigo é ignorado.
     @NotEmpty @Size(max = 600, message = "Treino com séries demais.") @Valid List<SetLogDto> exercisesLog,
-    UUID workoutPlanId,
     // Gerado pelo app uma vez por treino e repetido em toda tentativa de envio:
     // o mesmo id nunca vira dois registros. Opcional para clientes antigos.
     UUID clientSessionId

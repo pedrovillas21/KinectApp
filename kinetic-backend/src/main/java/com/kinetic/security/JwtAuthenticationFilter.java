@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -55,7 +54,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String userEmail = claims.getSubject();
 
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = this.customUserDetailsService.loadUserByUsername(userEmail);
+                KineticUserDetails userDetails = this.customUserDetailsService.loadUserByUsername(userEmail);
 
                 // Compliance: um access token ainda válido de uma conta suspensa/
                 // bloqueada é barrado aqui (o token de curta duração não sobrevive
@@ -68,8 +67,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 // Senha trocada/redefinida depois da emissão: o token pode estar com quem
                 // motivou a troca. Mesmo 401 de token inválido, para o cliente renovar ou sair.
-                if (userDetails instanceof KineticUserDetails details
-                        && details.isIssuedBeforeCredentialsChange(JwtUtil.issuedAt(claims))) {
+                if (userDetails.isIssuedBeforeCredentialsChange(JwtUtil.issuedAt(claims))) {
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     response.getWriter().write("Unauthorized: sessão encerrada após a troca de senha.");
                     return;
@@ -82,26 +80,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 );
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                // Conta antiga sem celular: só passa o necessário para cadastrá-lo.
-                if (userDetails instanceof KineticUserDetails details
-                        && details.isPhoneRequired()
-                        && !allowedWhilePending(request)) {
+                // Cadastro pendente: conta antiga sem celular, ou sem o aceite da versão vigente dos
+                // termos. Só passa o necessário para resolver a pendência (ou para o titular exercer
+                // os direitos dele: exportar e excluir a conta).
+                String pendingBody = userDetails.isPhoneRequired() ? PHONE_REQUIRED_BODY
+                        : userDetails.isTermsRequired() ? TERMS_REQUIRED_BODY
+                        : null;
+                if (pendingBody != null && !allowedWhilePending(request)) {
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                     response.setContentType("application/json");
                     response.setCharacterEncoding("UTF-8");
-                    response.getWriter().write(PHONE_REQUIRED_BODY);
-                    return;
-                }
-
-                // Sem o aceite da versão vigente, nenhum dado é tratado além do necessário para aceitar
-                // (ou para o titular exercer os direitos dele: exportar e excluir a conta).
-                if (userDetails instanceof KineticUserDetails details
-                        && details.isTermsRequired()
-                        && !allowedWhilePending(request)) {
-                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                    response.setContentType("application/json");
-                    response.setCharacterEncoding("UTF-8");
-                    response.getWriter().write(TERMS_REQUIRED_BODY);
+                    response.getWriter().write(pendingBody);
                     return;
                 }
 

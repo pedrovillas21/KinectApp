@@ -1,10 +1,12 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.Numbers;
 import com.kinetic.utils.AppTime;
 
 import com.kinetic.dtos.AchievementDTO;
 import com.kinetic.dtos.BestSetDTO;
 import com.kinetic.dtos.HomeWeekDayDTO;
+import com.kinetic.dtos.MonthlyStatsResponseDTO;
 import com.kinetic.dtos.PersonalRecordDTO;
 import com.kinetic.dtos.WorkoutExerciseSummaryDTO;
 import com.kinetic.dtos.WorkoutSummaryDTO;
@@ -13,6 +15,7 @@ import com.kinetic.models.ExerciseSetLog;
 import com.kinetic.models.WorkoutSession;
 import com.kinetic.repositories.ExerciseSetLogRepository;
 import com.kinetic.repositories.WorkoutSessionRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +45,7 @@ import java.util.stream.Collectors;
  * <p>Convenção de semana: começa no domingo (a mesma do gráfico semanal e do ranking).
  */
 @Service
+@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class TrainingSummaryService {
 
@@ -52,12 +56,6 @@ public class TrainingSummaryService {
 
     private final WorkoutSessionRepository workoutSessionRepository;
     private final ExerciseSetLogRepository exerciseSetLogRepository;
-
-    public TrainingSummaryService(WorkoutSessionRepository workoutSessionRepository,
-                                  ExerciseSetLogRepository exerciseSetLogRepository) {
-        this.workoutSessionRepository = workoutSessionRepository;
-        this.exerciseSetLogRepository = exerciseSetLogRepository;
-    }
 
     // ── Datas ────────────────────────────────────────────────────────────────
 
@@ -84,19 +82,20 @@ public class TrainingSummaryService {
      */
     public int streakDays(UUID userId) {
         LocalDate today = AppTime.today();
-        Set<LocalDate> sessionDates = new HashSet<>(
-                workoutSessionRepository.findSessionDatesByUserIdBetween(userId, today.minusDays(365), today)
-        );
+        return streakEndingAt(new HashSet<>(
+                workoutSessionRepository.findSessionDatesByUserIdBetween(userId, today.minusDays(365), today)), today);
+    }
+
+    /** Dias seguidos presentes em {@code days} terminando em {@code today}; sem {@code today}, conta a partir da véspera. */
+    public static int streakEndingAt(Set<LocalDate> days, LocalDate today) {
         int streak = 0;
-        for (int i = 0; i < 366; i++) {
-            LocalDate checkDate = today.minusDays(i);
-            if (sessionDates.contains(checkDate)) {
+        for (int i = 0; ; i++) {
+            if (days.contains(today.minusDays(i))) {
                 streak++;
             } else if (i > 0) {
-                break;
+                return streak;
             }
         }
-        return streak;
     }
 
     /** Maior sequência de dias seguidos com treino em todo o histórico. */
@@ -144,10 +143,32 @@ public class TrainingSummaryService {
                 userId, startOfMonth, startOfMonth.plusMonths(1));
     }
 
+    /**
+     * Treinos do mês contra a meta (frequência semanal × 4), com a aderência em % limitada a 100.
+     * Sem frequência definida não há meta: tudo zerado.
+     */
+    public static MonthlyStatsResponseDTO monthlyAdherence(long monthSessions, Integer weeklyFrequency) {
+        if (weeklyFrequency == null || weeklyFrequency <= 0) return new MonthlyStatsResponseDTO(0, 0, 0);
+        int target = weeklyFrequency * 4;
+        int efficiency = (int) Math.min(100, Math.round(monthSessions * 100.0 / target));
+        return new MonthlyStatsResponseDTO(monthSessions, target, efficiency);
+    }
+
+    /** Volume (kg) por grupo muscular entre as datas, ambas inclusivas; grupo vazio vira "Outros". */
+    public Map<String, Double> volumeByMuscle(UUID userId, LocalDate start, LocalDate end) {
+        Map<String, Double> map = new LinkedHashMap<>();
+        for (Object[] row : exerciseSetLogRepository.findVolumeByMuscleGroupBetween(userId, start, end)) {
+            String muscle = (row[0] != null) ? (String) row[0] : "Outros";
+            double vol = (row[1] instanceof Number n) ? n.doubleValue() : 0.0;
+            map.put(muscle, vol);
+        }
+        return map;
+    }
+
     /** Volume (reps × carga, kg) entre as datas, ambas inclusivas. */
     public double volumeBetween(UUID userId, LocalDate start, LocalDate end) {
         Double v = exerciseSetLogRepository.sumVolumeForUserBetween(userId, start, end);
-        return v != null ? round1(v) : 0.0;
+        return v != null ? Numbers.round1(v) : 0.0;
     }
 
     /** Domingo a sábado da semana atual, marcando os dias com treino e o dia de hoje. */
@@ -335,7 +356,7 @@ public class TrainingSummaryService {
                 session.getSessionDate(),
                 title,
                 session.getDurationInSeconds(),
-                round1(volume),
+                Numbers.round1(volume),
                 countRecords(session, sessionMax),
                 exercises.size() > CARD_EXERCISES ? List.copyOf(exercises.subList(0, CARD_EXERCISES)) : exercises,
                 Math.max(0, exercises.size() - CARD_EXERCISES)
@@ -388,9 +409,5 @@ public class TrainingSummaryService {
         return new AchievementDTO(code, title, description, unlocked,
                 unlocked ? orderedDates.get(target - 1) : null,
                 Math.min(orderedDates.size(), target), target);
-    }
-
-    private static double round1(double v) {
-        return Math.round(v * 10.0) / 10.0;
     }
 }

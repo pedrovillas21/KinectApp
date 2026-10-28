@@ -8,7 +8,7 @@ import CameraCapture from './CameraCapture';
 import { BottomSheet, Button, ListGroup, ListRow, Text } from './ui';
 import { showAlert } from './ui/AlertHost';
 import { AuthContext } from '../contexts/AuthContext';
-import { createPost, uploadMedia, deleteMedia } from '../services/socialService';
+import { createPost, uploadAndCreate } from '../services/socialService';
 import { getUserWorkouts } from '../services/profileService';
 import { formatDurationSeconds, formatShortDate, formatThousands, parseLocalDate } from '../utils/formatters';
 import type { FeedPostData, PostIntensity, WorkoutSummary } from '../types';
@@ -103,17 +103,12 @@ export default function NewPostModal({ visible, onClose, onPostCreated }: Props)
   const handlePost = async () => {
     if (posting) return;
     setPosting(true);
-    let uploadedUrl: string | undefined;
     try {
-      // Sobe a foto ao Storage primeiro: assim grava a URL pública (visível em
-      // qualquer aparelho) em vez do caminho local do dispositivo.
-      uploadedUrl = imageUri ? await uploadMedia(imageUri, 'posts') : undefined;
-      const post = await createPost({
-        intensity,
-        caption: caption.trim() || undefined,
-        imageUrl: uploadedUrl,
-        workoutSessionId: workout?.id,
-      });
+      const base = { intensity, caption: caption.trim() || undefined, workoutSessionId: workout?.id };
+      // Com foto, ela sobe ao Storage primeiro: o post grava o identificador dela, não o caminho local.
+      const post = imageUri
+        ? await uploadAndCreate(imageUri, 'posts', (imageUrl) => createPost({ ...base, imageUrl }))
+        : await createPost(base);
       onPostCreated(post);
       setCaption('');
       setImageUri(null);
@@ -121,9 +116,6 @@ export default function NewPostModal({ visible, onClose, onPostCreated }: Props)
       setIntensity('MODERADO');
       close();
     } catch {
-      // Se a foto já subiu mas a criação do post falhou, remove a mídia órfã
-      // (best-effort) para não acumular lixo no bucket.
-      if (uploadedUrl) deleteMedia(uploadedUrl).catch(() => {});
       // Mantém o modal aberto para o usuário tentar de novo (upload pode falhar por rede).
       showAlert('Não foi possível publicar', 'Verifique sua conexão e tente novamente.');
     } finally {
@@ -205,16 +197,19 @@ export default function NewPostModal({ visible, onClose, onPostCreated }: Props)
     </View>
   );
 
-  const picker = (
-    <View style={styles.body}>
-      {loadError ? (
+  // Erro, carregando, vazio ou a lista dos treinos recentes.
+  const renderRecent = () => {
+    if (loadError) {
+      return (
         <View style={styles.state}>
           <Text variant="bodyStrong">Não foi possível carregar seus treinos</Text>
           <Button label="Tentar novamente" variant="secondary" size="sm" block={false} onPress={loadRecent} />
         </View>
-      ) : recent === null ? (
-        <ActivityIndicator color={KINETIC.primary} style={styles.state} />
-      ) : recent.length === 0 ? (
+      );
+    }
+    if (recent === null) return <ActivityIndicator color={KINETIC.primary} style={styles.state} />;
+    if (recent.length === 0) {
+      return (
         <View style={styles.state}>
           <View style={styles.photoIcon}>
             <Icon name="calendar" size={20} color={KINETIC.primary} />
@@ -224,26 +219,29 @@ export default function NewPostModal({ visible, onClose, onPostCreated }: Props)
             Finalize um treino para compartilhá-lo aqui.
           </Text>
         </View>
-      ) : (
-        <ListGroup title="Últimos 7 dias" style={styles.group}>
-          {recent.map((w) => (
-            <ListRow
-              key={w.id}
-              icon="dumbbell"
-              title={w.title || 'Treino livre'}
-              subtitle={workoutSubtitle(w)}
-              onPress={() => {
-                setWorkout(w);
-                setPicking(false);
-              }}
-              selected={w.id === workout?.id}
-              accessory={w.id === workout?.id ? <Icon name="check" size={18} color={KINETIC.primary} /> : undefined}
-            />
-          ))}
-        </ListGroup>
-      )}
-    </View>
-  );
+      );
+    }
+    return (
+      <ListGroup title="Últimos 7 dias" style={styles.group}>
+        {recent.map((w) => (
+          <ListRow
+            key={w.id}
+            icon="dumbbell"
+            title={w.title || 'Treino livre'}
+            subtitle={workoutSubtitle(w)}
+            onPress={() => {
+              setWorkout(w);
+              setPicking(false);
+            }}
+            selected={w.id === workout?.id}
+            accessory={w.id === workout?.id ? <Icon name="check" size={18} color={KINETIC.primary} /> : undefined}
+          />
+        ))}
+      </ListGroup>
+    );
+  };
+
+  const picker = <View style={styles.body}>{renderRecent()}</View>;
 
   return (
     <>

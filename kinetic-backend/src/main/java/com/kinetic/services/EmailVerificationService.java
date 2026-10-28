@@ -2,7 +2,6 @@ package com.kinetic.services;
 
 import com.kinetic.enums.UserStatus;
 import com.kinetic.exceptions.InvalidCodeException;
-import com.kinetic.exceptions.TooManyAttemptsException;
 import com.kinetic.models.EmailVerificationCode;
 import com.kinetic.models.User;
 import com.kinetic.repositories.EmailVerificationCodeRepository;
@@ -12,25 +11,23 @@ import com.kinetic.utils.EmailTemplates;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataIntegrityViolationException;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 /**
  * Confirmação de e-mail no cadastro: prova que quem criou a conta é dono da caixa.
  *
  * <p>O código vai por e-mail logo após o cadastro e de novo quando uma conta não
  * confirmada tenta logar com a senha certa. Vale 30 minutos, aceita no máximo 5
- * tentativas erradas e um novo envio para a mesma conta só sai depois de 60 segundos.
+ * tentativas erradas e um novo envio para a mesma conta só sai depois de 60 segundos
+ * (regras comuns em {@link OneTimeCodes}).
  */
 @Service
 @RequiredArgsConstructor
@@ -39,23 +36,12 @@ public class EmailVerificationService {
     private static final Logger log = LoggerFactory.getLogger(EmailVerificationService.class);
 
     static final Duration CODE_TTL = Duration.ofMinutes(30);
-    static final Duration RESEND_COOLDOWN = Duration.ofSeconds(60);
-    static final int MAX_ATTEMPTS = 5;
-
-    /** Palpites por conta somando todos os códigos da janela (o reenvio não zera). */
-    static final int MAX_GUESSES_PER_HOUR = 10;
-    static final long GUESS_WINDOW_MS = Duration.ofHours(1).toMillis();
-
-    private static final String INVALID_CODE = "Código inválido ou expirado. Solicite um novo código.";
-    private static final String TOO_MANY_GUESSES = "Muitas tentativas com código errado. Aguarde uma hora e tente de novo.";
 
     private final UserRepository userRepository;
     private final EmailVerificationCodeRepository codeRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final RateLimiter rateLimiter;
-
-    private final SecureRandom secureRandom = new SecureRandom();
 
     /** Reenvio pedido pelo cliente: responde igual exista a conta ou não. */
     public void requestCode(String email) {
@@ -72,24 +58,8 @@ public class EmailVerificationService {
             return;
         }
 
-        Optional<EmailVerificationCode> existing = codeRepository.findByUser(user);
-        if (existing.isPresent()
-                && existing.get().getCreatedAt().isAfter(Instant.now().minus(RESEND_COOLDOWN))) {
-            return;
-        }
-
-        String code = String.format("%06d", secureRandom.nextInt(1_000_000));
-        try {
-            codeRepository.deleteByUser(user);
-            EmailVerificationCode entity = new EmailVerificationCode();
-            entity.setUser(user);
-            entity.setCodeHash(passwordEncoder.encode(code));
-            entity.setCreatedAt(Instant.now());
-            entity.setExpiresAt(Instant.now().plus(CODE_TTL));
-            entity.setAttempts(0);
-            codeRepository.save(entity);
-        } catch (DataIntegrityViolationException e) {
-            // Dois pedidos simultâneos para a mesma conta: o outro já gerou o código.
+        String code = OneTimeCodes.issue(codeRepository, passwordEncoder, user, EmailVerificationCode::new, CODE_TTL);
+        if (code == null) {
             return;
         }
 
@@ -109,34 +79,13 @@ public class EmailVerificationService {
     @Transactional(noRollbackFor = InvalidCodeException.class)
     public void confirm(String email, String code) {
         User user = userRepository.findByEmail(email.trim())
-                .orElseThrow(() -> new InvalidCodeException(INVALID_CODE));
+                .orElseThrow(() -> new InvalidCodeException(OneTimeCodes.INVALID_CODE));
         if (user.isEmailVerified()) {
             return;
         }
 
-        EmailVerificationCode verificationCode = codeRepository.findByUser(user)
-                .orElseThrow(() -> new InvalidCodeException(INVALID_CODE));
+        OneTimeCodes.consume(codeRepository, passwordEncoder, rateLimiter, "confirm-guess:", user, code);
 
-        // Limite por conta que sobrevive ao reenvio (ver PasswordResetService).
-        if (rateLimiter.acquire("confirm-guess:" + user.getId(), MAX_GUESSES_PER_HOUR, GUESS_WINDOW_MS) > 0) {
-            throw new TooManyAttemptsException(TOO_MANY_GUESSES);
-        }
-
-        // A tentativa é contada antes do bcrypt: em rajada paralela, cada requisição
-        // espera a anterior e o limite de MAX_ATTEMPTS vale de verdade.
-        if (codeRepository.reserveAttempt(verificationCode.getId(), MAX_ATTEMPTS, Instant.now()) == 0) {
-            codeRepository.deleteByUser(user);
-            throw new InvalidCodeException(INVALID_CODE);
-        }
-
-        if (!passwordEncoder.matches(code, verificationCode.getCodeHash())) {
-            if (verificationCode.getAttempts() + 1 >= MAX_ATTEMPTS) {
-                codeRepository.deleteByUser(user);
-            }
-            throw new InvalidCodeException(INVALID_CODE);
-        }
-
-        codeRepository.deleteByUser(user);
         user.setEmailVerified(true);
         userRepository.save(user);
     }

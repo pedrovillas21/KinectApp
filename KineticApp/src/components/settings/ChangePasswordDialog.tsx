@@ -2,10 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { KINETIC } from '../../theme/kinetic';
 import { Button, Dialog, Text, TextField } from '../ui';
+import { PASSWORD_REGEX, PASSWORD_RULE_MESSAGE } from '../../constants/password';
 
-// Mesmo padrão do backend (ChangePasswordDTO): 8–20 caracteres, com ao menos
-// uma minúscula, uma maiúscula e um caractere especial.
-const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*_=+-]).{8,20}$/;
 
 interface ChangePasswordDialogProps {
   visible: boolean;
@@ -36,7 +34,7 @@ export default function ChangePasswordDialog({ visible, onClose, onSubmit, onSuc
   const handleSubmit = async () => {
     if (!current || !next || !confirm) return setError('Preencha todos os campos.');
     if (!PASSWORD_REGEX.test(next)) {
-      return setError('A nova senha precisa de 8 a 20 caracteres, com maiúscula, minúscula e um caractere especial.');
+      return setError(PASSWORD_RULE_MESSAGE);
     }
     if (next !== confirm) return setError('A confirmação não corresponde à nova senha.');
     if (next === current) return setError('A nova senha deve ser diferente da atual.');

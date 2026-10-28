@@ -5,7 +5,6 @@ import com.kinetic.dtos.PersonalRecordDTO;
 import com.kinetic.dtos.PublicProfileDTO;
 import com.kinetic.exceptions.ForbiddenException;
 import com.kinetic.models.User;
-import com.kinetic.models.UserConnection;
 import com.kinetic.repositories.SocialPostRepository;
 import com.kinetic.repositories.UserConnectionRepository;
 import com.kinetic.repositories.WorkoutSessionRepository;
@@ -16,7 +15,6 @@ import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -57,16 +55,13 @@ class PublicProfileServiceTest {
 
     @Test
     void compareWithoutAcceptedFriendshipIsForbidden() {
-        when(social.findPair(me.getId(), other.getId())).thenReturn(Optional.of(connection("PENDING")));
-        assertThrows(ForbiddenException.class, () -> service.compare(EMAIL, other.getId()));
-
-        when(social.findPair(me.getId(), other.getId())).thenReturn(Optional.empty());
+        when(social.canSeeActivity(me, other)).thenReturn(false);
         assertThrows(ForbiddenException.class, () -> service.compare(EMAIL, other.getId()));
     }
 
     @Test
     void compareWithFriendReturnsOnlySharedRecords() {
-        when(social.findPair(me.getId(), other.getId())).thenReturn(Optional.of(connection("ACCEPTED")));
+        when(social.canSeeActivity(me, other)).thenReturn(true);
         Map<String, PersonalRecordDTO> mine = new LinkedHashMap<>();
         mine.put("supino reto", new PersonalRecordDTO("Supino Reto", 80, 5, LocalDate.now()));
         mine.put("rosca", new PersonalRecordDTO("Rosca", 20, 10, LocalDate.now()));
@@ -125,11 +120,5 @@ class PublicProfileServiceTest {
         u.setId(UUID.randomUUID());
         u.setNome(name);
         return u;
-    }
-
-    private static UserConnection connection(String status) {
-        UserConnection c = new UserConnection();
-        c.setStatus(status);
-        return c;
     }
 }

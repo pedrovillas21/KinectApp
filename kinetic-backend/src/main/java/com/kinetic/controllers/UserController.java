@@ -15,10 +15,9 @@ import com.kinetic.services.TermsService;
 import com.kinetic.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -35,6 +34,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
+@RequiredArgsConstructor
 @Tag(
         name = "Usuário",
         description = "Dados de perfil, senha, celular e peso do usuário logado (dados pessoais, não de treino)."
@@ -47,32 +47,14 @@ public class UserController extends BaseController {
     private final AvatarService avatarService;
     private final TermsService termsService;
 
-    public UserController(UserService userService,
-                          DataExportService dataExportService,
-                          AccountDeletionService accountDeletionService,
-                          AvatarService avatarService,
-                          TermsService termsService) {
-        this.userService = userService;
-        this.dataExportService = dataExportService;
-        this.accountDeletionService = accountDeletionService;
-        this.avatarService = avatarService;
-        this.termsService = termsService;
-    }
-
     @Operation(
             summary = "Ver os dados de perfil do usuário logado",
             description = "Busca no banco os dados cadastrais do usuário (nome, e-mail, dados físicos etc.) a "
                     + "partir do token enviado — não é preciso informar nenhum ID."
     )
     @GetMapping("/profile")
-    public ResponseEntity<?> getProfile() {
-        String userEmail = currentUserEmail();
-        try {
-            UserProfileResponseDTO profile = userService.getUserProfile(userEmail);
-            return ResponseEntity.ok(profile);
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
+    public ResponseEntity<UserProfileResponseDTO> getProfile() {
+        return ResponseEntity.ok(userService.getUserProfile(currentUserEmail()));
     }
 
     @Operation(
@@ -81,16 +63,9 @@ public class UserController extends BaseController {
                     + "banco. Exige a senha atual por segurança, mesmo com o usuário já logado."
     )
     @PostMapping("/change-password")
-    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordDTO request) {
-        String userEmail = currentUserEmail();
-        try {
-            userService.changePassword(userEmail, request);
-            return ResponseEntity.ok("Senha alterada com sucesso.");
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
+    public ResponseEntity<String> changePassword(@Valid @RequestBody ChangePasswordDTO request) {
+        userService.changePassword(currentUserEmail(), request);
+        return ResponseEntity.ok("Senha alterada com sucesso.");
     }
 
     @Operation(
@@ -99,17 +74,9 @@ public class UserController extends BaseController {
                     + "gráficos de evolução."
     )
     @PostMapping("/weight")
-    public ResponseEntity<?> updateWeight(@Valid @RequestBody UpdateWeightRequestDTO request) {
-        String userEmail = currentUserEmail();
-
-        try {
-            userService.updateUserWeight(userEmail, request);
-            return ResponseEntity.ok().build();
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
+    public ResponseEntity<Void> updateWeight(@Valid @RequestBody UpdateWeightRequestDTO request) {
+        userService.updateUserWeight(currentUserEmail(), request);
+        return ResponseEntity.ok().build();
     }
 
     @Operation(
@@ -118,15 +85,8 @@ public class UserController extends BaseController {
                     + "no atalho de WhatsApp entre aluno e personal (só exposto com vínculo ativo)."
     )
     @PutMapping("/phone")
-    public ResponseEntity<?> updatePhone(@Valid @RequestBody UpdatePhoneRequestDTO request) {
-        String userEmail = currentUserEmail();
-        try {
-            return ResponseEntity.ok(Map.of("phone", userService.updatePhone(userEmail, request)));
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
+    public ResponseEntity<Map<String, String>> updatePhone(@Valid @RequestBody UpdatePhoneRequestDTO request) {
+        return ResponseEntity.ok(Map.of("phone", userService.updatePhone(currentUserEmail(), request)));
     }
 
     @Operation(
@@ -171,7 +131,7 @@ public class UserController extends BaseController {
 
     @Operation(
             summary = "Trocar a foto de perfil",
-            description = "Recebe a imagem (campo \"file\", formulário multipart, até 10MB), grava como foto de perfil "
+            description = "Recebe a imagem (campo \"file\", formulário multipart, até 3 MB), grava como foto de perfil "
                     + "do usuário logado e devolve o endereço público dela em \"avatarUrl\". A foto anterior é "
                     + "apagada. A foto de perfil é pública (qualquer pessoa com o endereço consegue ver)."
     )

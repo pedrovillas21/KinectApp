@@ -15,21 +15,14 @@ import {
   Wand2,
   type LucideIcon,
 } from 'lucide-react';
-import {
-  aiTotalLimit,
-  billingErrorMessage,
-  buyAiPack,
-  cancelSubscription,
-  daysUntil,
-  formatBRL,
-  formatDate,
-  getBilling,
-  subscribePlan,
-} from '../services/billingService';
+import { aiTotalLimit, buyAiPack, cancelSubscription, getBilling, subscribePlan } from '../services/billingService';
 import ActiveStudentsPicker from '../components/personal/ActiveStudentsPicker';
 import ConfirmDialog from '../components/personal/ConfirmDialog';
 import { qk, queryClient } from '../services/queryClient';
 import type { BillingOverview, BillingPlanOption } from '../types';
+import { errorMessage } from '../utils/errors';
+import { dayMonthLong, daysUntil } from '../utils/dates';
+import { formatBRL } from '../utils/money';
 
 /** Abre a página de pagamento: rota do painel (demo) ou página do gateway em nova aba. */
 function openCheckout(url: string, navigate: (to: string) => void) {
@@ -75,7 +68,7 @@ export default function BillingPage() {
         openCheckout(next.checkoutUrl, navigate);
       }
     } catch (err) {
-      toast.error(billingErrorMessage(err, 'Não foi possível escolher o plano. Tente novamente.'));
+      toast.error(errorMessage(err, 'Não foi possível escolher o plano. Tente novamente.'));
     } finally {
       setBusyPlan(null);
     }
@@ -89,7 +82,7 @@ export default function BillingPage() {
       setBilling(next);
       if (next.aiPackCheckoutUrl) openCheckout(next.aiPackCheckoutUrl, navigate);
     } catch (err) {
-      toast.error(billingErrorMessage(err, 'Não foi possível comprar o pacote. Tente novamente.'));
+      toast.error(errorMessage(err, 'Não foi possível comprar o pacote. Tente novamente.'));
     } finally {
       setBuyingPack(false);
     }
@@ -102,7 +95,7 @@ export default function BillingPage() {
       toast.success('Assinatura cancelada');
       setCancelOpen(false);
     } catch (err) {
-      toast.error(billingErrorMessage(err, 'Não foi possível cancelar. Tente novamente.'));
+      toast.error(errorMessage(err, 'Não foi possível cancelar. Tente novamente.'));
     } finally {
       setCanceling(false);
     }
@@ -327,7 +320,7 @@ export default function BillingPage() {
         title="Cancelar assinatura?"
         description={
           billing?.currentPeriodEnd
-            ? `Não haverá novas cobranças. Seu plano continua valendo até ${formatDate(billing.currentPeriodEnd)}; depois disso você volta ao plano Grátis. Alunos acima do limite do Grátis ficam congelados (só leitura) até você assinar de novo.`
+            ? `Não haverá novas cobranças. Seu plano continua valendo até ${dayMonthLong(billing.currentPeriodEnd)}; depois disso você volta ao plano Grátis. Alunos acima do limite do Grátis ficam congelados (só leitura) até você assinar de novo.`
             : 'A cobrança em aberto será cancelada e você volta ao teste grátis (ou ao plano Grátis, se o teste já acabou).'
         }
         confirmLabel={canceling ? 'Cancelando…' : 'Cancelar assinatura'}
@@ -426,7 +419,7 @@ function CurrentPlan({
       title = trialDays > 0 ? 'Teste grátis' : 'Plano Grátis';
       detail =
         trialDays > 0
-          ? `Termina em ${trialDays} ${trialDays === 1 ? 'dia' : 'dias'} (${formatDate(billing.trialEndsAt)}).`
+          ? `Termina em ${trialDays} ${trialDays === 1 ? 'dia' : 'dias'} (${dayMonthLong(billing.trialEndsAt)}).`
           : 'Seu teste acabou. Assine para ter mais alunos e fichas com IA.';
       alert = trialDays > 0 && trialDays <= 3;
       break;
@@ -437,7 +430,7 @@ function CurrentPlan({
       break;
     case 'ATIVA':
       title = `Plano ${billing.planName}`;
-      detail = billing.currentPeriodEnd ? `Renova em ${formatDate(billing.currentPeriodEnd)}.` : 'Assinatura ativa.';
+      detail = billing.currentPeriodEnd ? `Renova em ${dayMonthLong(billing.currentPeriodEnd)}.` : 'Assinatura ativa.';
       break;
     case 'ATRASADA':
       title = `Plano ${billing.planName} · pagamento atrasado`;
@@ -448,7 +441,7 @@ function CurrentPlan({
       const stillValid = !!billing.currentPeriodEnd && daysUntil(billing.currentPeriodEnd) > 0;
       title = stillValid ? 'Assinatura cancelada' : 'Plano Grátis';
       detail = stillValid
-        ? `Seu plano ${billing.planName} vale até ${formatDate(billing.currentPeriodEnd)}.`
+        ? `Seu plano ${billing.planName} vale até ${dayMonthLong(billing.currentPeriodEnd)}.`
         : 'Assine de novo para ter mais alunos e fichas com IA.';
       alert = stillValid;
     }
@@ -494,7 +487,7 @@ function CurrentPlan({
       />
       {billing.aiGenerationsLimit !== null ? (
         <Usage
-          label={`Fichas com IA${billing.aiResetsAt ? ` · renova em ${formatDate(billing.aiResetsAt)}` : ''}`}
+          label={`Fichas com IA${billing.aiResetsAt ? ` · renova em ${dayMonthLong(billing.aiResetsAt)}` : ''}`}
           used={billing.aiGenerationsUsed}
           limit={aiTotalLimit(billing)}
         />

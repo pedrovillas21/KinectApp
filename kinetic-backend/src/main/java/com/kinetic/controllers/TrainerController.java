@@ -197,7 +197,7 @@ public class TrainerController extends BaseController {
         return ResponseEntity.ok(trainerLinkService.listStudents(currentUserEmail()));
     }
 
-    // ── Dashboard do aluno (Fase 3 básica) ──────────────────────────────────
+    // ── Dashboard do aluno ──────────────────────────────────────────────────
     // Reusa os services self-scoped por e-mail: o gate de posse
     // (resolveOwnedStudentEmail) traduz studentId → e-mail só quando existe
     // vínculo ATIVO com o personal logado; sem vínculo, 404.
@@ -229,8 +229,8 @@ public class TrainerController extends BaseController {
 
     @Operation(
             summary = "Ver as estatísticas mensais de todos os alunos",
-            description = "Mesmo cálculo de GET /students/{studentId}/monthly-stats para cada aluno com vínculo "
-                    + "ATIVO, numa resposta só: mapa studentId → estatísticas."
+            description = "Para cada aluno com vínculo ATIVO, treinos feitos no mês corrente, meta (frequência × 4) "
+                    + "e aderência em % (até 100), numa resposta só: mapa studentId → estatísticas."
     )
     @GetMapping("/students/monthly-stats")
     public ResponseEntity<Map<UUID, MonthlyStatsResponseDTO>> studentsMonthlyStats() {
@@ -256,16 +256,6 @@ public class TrainerController extends BaseController {
         return trainerEventService.subscribe(currentUserEmail());
     }
 
-    @Operation(
-            summary = "Ver as estatísticas mensais de um aluno",
-            description = "Mesmo cálculo de GET /api/sessions/monthly-stats, mas sobre o histórico do aluno "
-                    + "informado. Exige vínculo ATIVO entre o personal logado e o aluno; sem vínculo, responde 404."
-    )
-    @GetMapping("/students/{studentId}/monthly-stats")
-    public ResponseEntity<MonthlyStatsResponseDTO> studentMonthlyStats(@PathVariable @NonNull UUID studentId) {
-        String studentEmail = trainerLinkService.resolveOwnedStudentEmail(currentUserEmail(), studentId);
-        return ResponseEntity.ok(workoutSessionService.getMonthlyStats(studentEmail));
-    }
 
     // ── Fichas do aluno (prescrição pelo personal) ──────────────────────────
     // Mesmo gate de posse: sem vínculo ATIVO com o aluno, 404.

@@ -15,11 +15,10 @@ interface Props {
   /** Toque no autor (avatar/nome) → perfil dele. */
   onPressAuthor?: (userId: string) => void;
   /** Sem margem lateral nem divisória (post aberto dentro de um balão). */
-  bare?: boolean;
 }
 
 /** Post do feed no estilo do redesign: autor, treino resumido, foto, exercícios e ações. */
-export default function FeedPost({ post, onToggleLike, onOpenComments, onPressAuthor, bare }: Props) {
+export default function FeedPost({ post, onToggleLike, onOpenComments, onPressAuthor }: Props) {
   const [isLiked, setIsLiked] = useState(post.isLikedByMe);
   const [likesCount, setLikesCount] = useState(post.likesCount);
 
@@ -57,7 +56,7 @@ export default function FeedPost({ post, onToggleLike, onOpenComments, onPressAu
   const more = post.moreExercises ?? 0;
 
   return (
-    <View style={bare ? styles.postBare : styles.post}>
+    <View style={styles.post}>
       <View style={styles.header}>
         <Pressable
           accessibilityRole="button"
@@ -170,7 +169,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: KINETIC.hairline,
   },
-  postBare: { paddingTop: 4 },
   header: { flexDirection: 'row', alignItems: 'center' },
   author: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 10 },
   authorTexts: { flex: 1, minWidth: 0, gap: 2 },

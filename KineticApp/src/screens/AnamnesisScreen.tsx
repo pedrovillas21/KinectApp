@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Linking, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { Button, Screen, StackHeader, Text } from '../components/ui';
 import { showAlert } from '../components/ui/AlertHost';
@@ -7,7 +7,7 @@ import useFocusResource from '../hooks/useFocusResource';
 import { confirmMyAnamnesis, getMyProtocol, getMyTrainer } from '../services/trainerService';
 import { KINETIC, RADIUS } from '../theme/kinetic';
 import { formatDayMonthYear } from '../utils/formatters';
-import { whatsappUrl } from '../utils/whatsapp';
+import { openWhatsApp } from '../utils/whatsapp';
 import type { MainStackScreenProps } from '../navigation/types';
 import type { StudentProtocol } from '../types';
 
@@ -59,9 +59,7 @@ export default function AnamnesisScreen({ navigation }: MainStackScreenProps<'An
 
   const talkToTrainer = () => {
     if (!phone) return;
-    Linking.openURL(
-      whatsappUrl(phone, `Oi, ${trainerName}! Conferi minha anamnese no app e algo não está de acordo com o que conversamos.`),
-    ).catch(() => showAlert('WhatsApp', 'Não foi possível abrir o WhatsApp neste aparelho.'));
+    openWhatsApp(phone, `Oi, ${trainerName}! Conferi minha anamnese no app e algo não está de acordo com o que conversamos.`);
   };
 
   return (

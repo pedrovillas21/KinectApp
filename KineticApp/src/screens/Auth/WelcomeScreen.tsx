@@ -2,14 +2,12 @@ import React, { useEffect, useRef } from 'react';
 import { AccessibilityInfo, Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
 import { Text } from '../../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Svg, { Path } from 'react-native-svg';
 import { FONT, KINETIC } from '../../theme/kinetic';
 import { PRIVACY_URL, TERMS_URL, openLegal } from '../../config/legal';
+import type { AuthScreenProps } from '../../navigation/types';
 
-type Props = {
-  navigation: NativeStackNavigationProp<any>;
-};
+type Props = AuthScreenProps<'Welcome'>;
 
 // As três barras da marca, na ordem em que entram.
 const BARS = [

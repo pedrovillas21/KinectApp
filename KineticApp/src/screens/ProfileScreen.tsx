@@ -100,7 +100,8 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
   const accountRes = useFocusResource('users/profile', () =>
     api.get<UserProfileResponse>('/users/profile').then((r) => r.data),
   );
-  const trainerRes = useFocusResource('me/trainer', () =>
+  // Só o par do vínculo ATIVO; o vínculo inteiro fica em 'me/trainer' (Protocolo/Anamnese).
+  const trainerRes = useFocusResource('me/trainer-peer', () =>
     getMyTrainer().then((link) => (link?.status === 'ATIVO' ? link.peer : null)),
   );
   const profile: PublicProfile | null = profileRes.data ?? null;
@@ -129,7 +130,6 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
   };
 
   const name = profile?.name ?? account?.fullName ?? currentUser?.nome ?? '';
-  const firstName = name.split(' ')[0];
 
   const shareProfile = () => {
     Share.share({ message: `Treino com o Kinetic. Me adicione lá: ${name}` }).catch(() => {});

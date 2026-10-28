@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Linking, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import OptionPickerDialog from '../components/profile/protocol/OptionPickerDialog';
 import MetricsDialog from '../components/profile/protocol/MetricsDialog';
@@ -19,7 +19,8 @@ import {
 import api from '../services/api';
 import useFocusResource from '../hooks/useFocusResource';
 import { getMyProtocol, getMyTrainer } from '../services/trainerService';
-import { whatsappUrl } from '../utils/whatsapp';
+import { generateWorkout } from '../services/workoutService';
+import { openWhatsApp } from '../utils/whatsapp';
 import { KINETIC } from '../theme/kinetic';
 import type { MainStackScreenProps } from '../navigation/types';
 import type { GenerateWorkoutRequest, UserProfileResponse } from '../types';
@@ -79,9 +80,7 @@ export default function ProtocolScreen({ navigation }: MainStackScreenProps<'Pro
         level,
         medicalConditions: medicalConditions?.trim() || 'Nenhuma',
       };
-      // O backend tenta até N modelos com 120s de read timeout cada.
-      // 3 modelos × 120s + 60s de buffer = 420s. Mantemos 480s para folga.
-      await api.post('/workouts/generate', payload, { timeout: 480000 });
+      await generateWorkout(payload);
       showAlert('Pronto!', 'Seu treino foi regenerado com sucesso com base nos novos dados.');
       navigation.navigate('MainTabs', { screen: 'Home' });
     } catch (e) {
@@ -129,9 +128,7 @@ export default function ProtocolScreen({ navigation }: MainStackScreenProps<'Pro
     const lock = <Icon name="lock" size={14} color={KINETIC.textMuted} />;
     const talk = () => {
       if (!phone) return;
-      Linking.openURL(whatsappUrl(phone, `Oi, ${trainerName}!`)).catch(() =>
-        showAlert('WhatsApp', 'Não foi possível abrir o WhatsApp neste aparelho.'),
-      );
+      openWhatsApp(phone, `Oi, ${trainerName}!`);
     };
     return (
       <Screen edges={['top', 'bottom', 'left', 'right']} header={header} contentStyle={styles.content}>

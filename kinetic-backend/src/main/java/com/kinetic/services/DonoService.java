@@ -1,5 +1,6 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.Strings;
 import com.kinetic.dtos.EmpresaAnalyticsDTO;
 import com.kinetic.dtos.EmpresaStudentLinkDTO;
 import com.kinetic.dtos.FeedbackDTO;
@@ -200,8 +201,8 @@ public class DonoService {
     private void apply(Company unit, UnitDTOs.Request dto) {
         unit.setNome(dto.nome().trim());
         unit.setCnpj(companyService.requireValidCnpj(dto.cnpj(), unit.getId()));
-        unit.setAddress(blankToNull(dto.address()));
-        unit.setPhone(blankToNull(dto.phone()));
+        unit.setAddress(Strings.trimOrNull(dto.address()));
+        unit.setPhone(Strings.trimOrNull(dto.phone()));
         unit.setResponsibleName(dto.responsibleName().trim());
         unit.setContactEmail(dto.responsibleEmail().trim());
     }
@@ -217,9 +218,5 @@ public class DonoService {
                 unit.isActive(),
                 account != null && account.getTotpEnabledAt() != null,
                 personais, alunos, unit.getCreatedAt());
-    }
-
-    private static String blankToNull(String s) {
-        return s == null || s.isBlank() ? null : s.trim();
     }
 }

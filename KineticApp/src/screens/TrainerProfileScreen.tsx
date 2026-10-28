@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Linking, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 
 import InviteDialog from '../components/InviteDialog';
 import Icon from '../components/Icon';
@@ -10,7 +10,7 @@ import useFocusResource from '../hooks/useFocusResource';
 import { KINETIC, RADIUS } from '../theme/kinetic';
 import { formatRelativeDays } from '../utils/dateRelative';
 import { formatMonthShortYear } from '../utils/formatters';
-import { whatsappUrl } from '../utils/whatsapp';
+import { openWhatsApp } from '../utils/whatsapp';
 import type { MainStackScreenProps } from '../navigation/types';
 import type { MyTrainerProfile } from '../types';
 import { showAlert } from '../components/ui/AlertHost';
@@ -96,11 +96,9 @@ export default function TrainerProfileScreen({ navigation }: MainStackScreenProp
   const filledAnything = !!(t.bio || t.specialties.length || t.education.length || hasInfo);
   const lastReview = data.lastReviewAt ? formatRelativeDays(data.lastReviewAt).toLowerCase() : '—';
 
-  const openWhatsApp = () => {
+  const handleWhatsApp = () => {
     if (!t.phone) return;
-    Linking.openURL(whatsappUrl(t.phone, `Oi, ${firstName}!`)).catch(() =>
-      showAlert('WhatsApp', 'Não foi possível abrir o WhatsApp neste aparelho.'),
-    );
+    openWhatsApp(t.phone, `Oi, ${firstName}!`);
   };
 
   const confirmEndLink = () =>
@@ -148,7 +146,7 @@ export default function TrainerProfileScreen({ navigation }: MainStackScreenProp
       footer={
         t.phone ? (
           <View style={styles.footer}>
-            <Button label="Conversar no WhatsApp" icon="comment" variant="whatsapp" onPress={openWhatsApp} />
+            <Button label="Conversar no WhatsApp" icon="comment" variant="whatsapp" onPress={handleWhatsApp} />
           </View>
         ) : null
       }

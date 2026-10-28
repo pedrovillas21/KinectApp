@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import { Text } from './ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS } from '../theme/colors';
 import Icon from './Icon';
 import { Avatar } from './ui';
 import type { StoryGroup } from '../types';
@@ -187,7 +186,6 @@ const styles = StyleSheet.create({
   },
   name: { color: '#FFF', fontSize: 14, fontWeight: 'bold' },
   time: { color: 'rgba(255,255,255,0.7)', fontSize: 12 },
-  close: { color: '#FFF', fontSize: 22, fontWeight: '300' },
   media: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   image: { width, height: '100%' },
   noImage: { justifyContent: 'center', alignItems: 'center' },

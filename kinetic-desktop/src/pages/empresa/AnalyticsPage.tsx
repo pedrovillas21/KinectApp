@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
 import PageHeader from '../../components/PageHeader';
 import PeriodTabs from '../../components/PeriodTabs';
 import { EmptyCard, SectionCard, StatGrid, StatGridSkeleton, StatTile } from '../../components/stat-primitives';
 import { InstructorBarChart, VolumeLineChart } from '../../components/empresa-charts';
 import { getAnalytics } from '../../services/empresaService';
 import type { EmpresaAnalytics, StatsPeriodId } from '../../types';
+import useEmpresaAnalytics from './useEmpresaAnalytics';
 
 const nf = new Intl.NumberFormat('pt-BR');
 
@@ -20,23 +20,10 @@ export default function AnalyticsPage({
   title = 'Analytics',
   subtitle = 'Retenção, volume e desempenho da unidade',
 }: Props) {
-  const [period, setPeriod] = useState<StatsPeriodId>('month');
-  const [data, setData] = useState<EmpresaAnalytics | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    load(period)
-      .then((d) => !cancelled && setData(d))
-      .catch(() => !cancelled && setError('Não foi possível carregar as analytics.'))
-      .finally(() => !cancelled && setLoading(false));
-    return () => {
-      cancelled = true;
-    };
-  }, [period, load]);
+  const { period, setPeriod, data, loading, error } = useEmpresaAnalytics(
+    load,
+    'Não foi possível carregar as analytics.',
+  );
 
   return (
     <div className="flex flex-col min-h-full">

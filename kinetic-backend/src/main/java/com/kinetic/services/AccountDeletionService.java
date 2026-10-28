@@ -1,5 +1,6 @@
 package com.kinetic.services;
 
+import lombok.RequiredArgsConstructor;
 import com.kinetic.billing.PaymentGateway;
 import com.kinetic.enums.Role;
 import com.kinetic.enums.SubscriptionStatus;
@@ -47,6 +48,7 @@ import java.util.UUID;
  * um delete em massa por JPQL não navega relacionamentos.
  */
 @Service
+@RequiredArgsConstructor
 public class AccountDeletionService {
 
     public static final String BY_TITULAR = "TITULAR";
@@ -64,22 +66,6 @@ public class AccountDeletionService {
     private final PaymentGateway paymentGateway;
     private final LegalRetentionService retentionService;
     private final Pseudonymizer pseudonymizer;
-
-    public AccountDeletionService(UserRepository userRepository,
-                                  TrainerSubscriptionRepository subscriptionRepository,
-                                  PasswordEncoder passwordEncoder,
-                                  StorageService storageService,
-                                  PaymentGateway paymentGateway,
-                                  LegalRetentionService retentionService,
-                                  Pseudonymizer pseudonymizer) {
-        this.userRepository = userRepository;
-        this.subscriptionRepository = subscriptionRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.storageService = storageService;
-        this.paymentGateway = paymentGateway;
-        this.retentionService = retentionService;
-        this.pseudonymizer = pseudonymizer;
-    }
 
     /**
      * Apaga a conta de {@code userEmail} e tudo o que é dela. Senha errada ou conta
@@ -125,14 +111,13 @@ public class AccountDeletionService {
         retainPaidCharges(user);
         retainApprovedAiGenerations(user);
 
-        // Tabelas anteriores ao Flyway (FKs NO ACTION), de filho para pai. Séries e
-        // execuções também são apagadas pelo lado da ficha, caso alguma linha de outro
-        // usuário aponte para uma ficha desta conta.
+        // Tabelas anteriores ao Flyway (FKs NO ACTION), de filho para pai. Séries também
+        // são apagadas pelo lado da ficha, caso alguma linha de outro usuário aponte para
+        // uma ficha desta conta.
         String ownPlans = "SELECT id FROM workout_plans WHERE user_id = :id";
         String ownExercises = "SELECT id FROM exercises WHERE workout_plan_id IN (" + ownPlans + ")";
         execute("DELETE FROM exercise_set_logs WHERE session_id IN (SELECT id FROM workout_sessions WHERE user_id = :id) "
                 + "OR exercise_id IN (" + ownExercises + ")", userId);
-        execute("DELETE FROM workout_execution_logs WHERE user_id = :id OR workout_plan_id IN (" + ownPlans + ")", userId);
         execute("DELETE FROM workout_sessions WHERE user_id = :id", userId);
         execute("DELETE FROM exercises WHERE workout_plan_id IN (" + ownPlans + ")", userId);
         execute("DELETE FROM workout_plans WHERE user_id = :id", userId);

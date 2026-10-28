@@ -1,13 +1,12 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import { Activity, ArrowLeft, KeyRound, Mail } from 'lucide-react';
+import { confirmEmail, resendConfirmation } from '../services/authService';
 
 // Aberta depois do cadastro e quando o login recusa uma conta não confirmada; nos
 // dois casos o backend já enviou o código. O e-mail chega por location.state (e
 // não pela URL, para não ficar no histórico); se faltar, o campo é editável.
 export default function ConfirmEmailPage() {
-  const { confirmEmail, resendConfirmation } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const initialEmail = (location.state as { email?: string } | null)?.email ?? '';

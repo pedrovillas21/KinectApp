@@ -15,7 +15,6 @@ public record HomeDashboardResponseDTO(
         int efficiencyPercentage,
         NextWorkoutResponseDTO nextWorkout,
         List<RankingEntryDTO> ranking,
-        List<WeeklyActivityPointDTO> weeklyActivity,
         long monthSessions,
         double volume7dKg,
         List<HomeWeekDayDTO> week

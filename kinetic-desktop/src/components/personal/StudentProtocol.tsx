@@ -7,6 +7,8 @@ import { qk } from '../../services/queryClient';
 import FormDialog from './FormDialog';
 import { LEVELS } from './workoutVocab';
 import type { StudentProtocol } from '../../types';
+import { errorMessage } from '../../utils/errors';
+import { firstNameOf } from '../../utils/names';
 
 /** Mesmos valores canônicos do app (KineticApp/src/constants/protocol.ts) e do backend. */
 export const GOALS: { value: string; label: string; detail: string }[] = [
@@ -32,13 +34,13 @@ const shortDate = (iso: string | null): string | null => {
     : d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', year: 'numeric' }).replace(/\./g, '');
 };
 
-const firstName = (name: string | null) => name?.trim().split(/\s+/)[0] ?? null;
+const firstNameOrNull = (name: string | null) => (name ? firstNameOf(name) : null);
 
 /** "Por você · 15 out 2026" / "Pelo aluno · 12 jul 2026". */
 function authorLine(byStudent: boolean, byName: string | null, at: string | null, studentFirstName: string): string | null {
   const date = shortDate(at);
   if (!at && !byName) return null;
-  const who = byStudent ? `Por ${studentFirstName}` : byName ? `Por ${firstName(byName)}` : null;
+  const who = byStudent ? `Por ${studentFirstName}` : byName ? `Por ${firstNameOrNull(byName)}` : null;
   return [who, date].filter(Boolean).join(' · ') || null;
 }
 
@@ -195,8 +197,7 @@ export function ProtocolDialog({
       onSaved?.(saved);
       onClose();
     } catch (err: unknown) {
-      const data = (err as { response?: { data?: unknown } }).response?.data;
-      setError(typeof data === 'string' && data ? data : 'Não foi possível salvar. Tente novamente.');
+      setError(errorMessage(err, 'Não foi possível salvar. Tente novamente.'));
     } finally {
       setBusy(false);
     }

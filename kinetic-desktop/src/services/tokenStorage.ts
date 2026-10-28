@@ -8,14 +8,8 @@
 
 const ACCESS_KEY = 'kinetic_access_token';
 
-export const getAccessToken = (): Promise<string | null> =>
-  Promise.resolve(localStorage.getItem(ACCESS_KEY));
+export const getAccessToken = (): string | null => localStorage.getItem(ACCESS_KEY);
 
-export const setAccessToken = (token: string): Promise<void> => {
-  localStorage.setItem(ACCESS_KEY, token);
-  return Promise.resolve();
-};
+export const setAccessToken = (token: string): void => localStorage.setItem(ACCESS_KEY, token);
 
-export const clearTokens = async (): Promise<void> => {
-  localStorage.removeItem(ACCESS_KEY);
-};
+export const clearTokens = (): void => localStorage.removeItem(ACCESS_KEY);

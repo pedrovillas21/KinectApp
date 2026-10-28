@@ -9,7 +9,6 @@ export interface LogSessionRequestDTO {
   durationInSeconds: number;
   date: string; // ISO format YYYY-MM-DD
   exercisesLog: SetLogDto[];
-  workoutPlanId?: string;
   // Gerado uma vez por treino e repetido em toda tentativa: o backend não grava duas vezes.
   clientSessionId?: string;
 }
@@ -111,6 +110,37 @@ export interface StatsActivityDTO {
   buckets: ActivityBucketDTO[];
 }
 
+/** Exercício de uma ficha (GET /workouts/my-plans). */
+export interface PlanExercise {
+  id?: string;
+  name: string;
+  muscles: string;
+  type: string;
+  sets: number | string;
+  reps: number | string;
+  weight: string | null;
+  restTime: string | null;
+  section?: string | null;
+  /** Observação do personal (fichas prescritas pelo painel). Null nas fichas da IA. */
+  notes?: string | null;
+}
+
+/** Ficha de GET /workouts/my-plans (Home e Treinos dividem a mesma chave de cache). */
+export interface WorkoutPlanItem {
+  id: string;
+  title: string;
+  subtitle?: string | null;
+  tag?: string | null;
+  level?: string | null;
+  estimatedDurationMinutes?: number | null;
+  estimatedTotalVolumeKg?: number | null;
+  lastCompletedAt?: string | null;
+  createdAt?: string | null;
+  /** Nome do personal que montou a ficha; null/ausente = gerada por IA. */
+  prescribedByName?: string | null;
+  data: PlanExercise[];
+}
+
 export interface NextWorkoutDTO {
   /** Tag exibida no card (ex.: "PUSH · DIA 3 DE 5"). */
   tag: string;
@@ -172,30 +202,6 @@ export interface RankingEntryDTO {
   isCurrentUser: boolean;
 }
 
-export interface WeeklyActivityPointDTO {
-  /** Rótulo curto do dia (ex.: "Seg"). */
-  day: string;
-  /** Minutos treinados naquele dia. */
-  minutes: number;
-  /** True quando este ponto corresponde ao dia atual. */
-  isToday: boolean;
-}
-
-/** Resposta crua de GET /api/sessions/weekly-activity. */
-export interface WeeklyActivityDayApiDTO {
-  /** Data no formato ISO YYYY-MM-DD. */
-  date: string;
-  /** Minutos treinados nesse dia (já agregados pelo back-end). */
-  minutes: number;
-}
-
-export interface WeeklyActivityApiResponseDTO {
-  weekStartDate: string;
-  weekEndDate: string;
-  totalMinutes: number;
-  days: WeeklyActivityDayApiDTO[];
-}
-
 export interface HomeDashboardResponseDTO {
   /** Status de onboarding do treino (back-end). */
   workoutOnboardingCompleted: boolean;
@@ -210,8 +216,6 @@ export interface HomeDashboardResponseDTO {
   nextWorkout: NextWorkoutDTO | null;
   /** Top entradas do ranking semanal da arena. */
   ranking: RankingEntryDTO[];
-  /** Pontos da semana corrente para o gráfico de barras. */
-  weeklyActivity: WeeklyActivityPointDTO[];
   /** Treinos no mês corrente (redesign). */
   monthSessions?: number;
   /** Volume (reps × carga) dos últimos 7 dias, hoje incluso. */
@@ -243,10 +247,6 @@ export interface PlanEvolutionResponseDTO {
   /** Volume por grupo muscular do ciclo anterior (para detalhe). */
   volumeByMuscle: Record<string, number> | null;
   insight: StatsInsightDTO | null;
-}
-
-export interface UpdateWeightRequestDTO {
-  newWeight: number;
 }
 
 // ── Social ─────────────────────────────────────────────────────────────────
@@ -421,7 +421,6 @@ export interface TrainerPeer {
   phone: string | null;
 }
 
-/** Vínculo personal↔aluno — espelha TrainerLinkDTO do backend. */
 /** GET /api/me/protocol: protocolo e anamnese, com quem registrou por último. */
 export interface StudentProtocol {
   goal: string | null;
@@ -440,6 +439,7 @@ export interface StudentProtocol {
   anamnesisConfirmedAt: string | null;
 }
 
+/** Vínculo personal↔aluno — espelha TrainerLinkDTO do backend. */
 export interface TrainerLink {
   id: string;
   peer: TrainerPeer;

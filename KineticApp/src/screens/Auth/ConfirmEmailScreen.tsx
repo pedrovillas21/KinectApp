@@ -6,27 +6,18 @@ import {
 } from 'react-native';
 import { Text } from '../../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RouteProp } from '@react-navigation/native';
-import { ThemeContext } from '../../contexts/ThemeContext';
 import { AuthContext } from '../../contexts/AuthContext';
-import { COLORS } from '../../theme/colors';
-import HeaderLogo from '../../components/HeaderLogo';
-import CustomInput from '../../components/CustomInput';
-import PrimaryButton from '../../components/PrimaryButton';
+import { KINETIC } from '../../theme/kinetic';
+import { Button, StackHeader, TextField } from '../../components/ui';
 import { showAlert } from '../../components/ui/AlertHost';
 import KeyboardAvoider from '../../components/ui/KeyboardAvoider';
+import type { AuthScreenProps } from '../../navigation/types';
 
-type Props = {
-  navigation: NativeStackNavigationProp<any>;
-  // Mesmo padrão do ResetPasswordScreen: navigator não tipado.
-  route: RouteProp<Record<string, { email?: string } | undefined>, string>;
-};
+type Props = AuthScreenProps<'ConfirmEmail'>;
 
 // Aberta depois do cadastro e quando o login recusa uma conta não confirmada.
 // Nos dois casos o backend já enviou o código.
 export default function ConfirmEmailScreen({ navigation, route }: Props) {
-  const { isDarkMode } = useContext(ThemeContext);
   const { confirmEmail, resendConfirmation } = useContext(AuthContext);
 
   const email = route?.params?.email ?? '';
@@ -69,65 +60,43 @@ export default function ConfirmEmailScreen({ navigation, route }: Props) {
   };
 
   return (
-    <SafeAreaView
-      style={[
-        styles.container,
-        { backgroundColor: isDarkMode ? COLORS.darkBackground : COLORS.lightBackground },
-      ]}
-    >
-      <KeyboardAvoider style={styles.inner}
-      >
-        <HeaderLogo showBack />
-
+    <SafeAreaView style={styles.container}>
+      <StackHeader onBack={() => navigation.goBack()} />
+      <KeyboardAvoider style={styles.inner}>
         <ScrollView
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Text
-            style={[
-              styles.title,
-              { color: isDarkMode ? COLORS.textPrimaryDark : COLORS.textPrimaryLight },
-            ]}
-          >
-            Confirme seu E-mail
-          </Text>
-          <Text
-            style={[
-              styles.subtitle,
-              { color: isDarkMode ? COLORS.textSecondaryDark : COLORS.textSecondaryLight },
-            ]}
-          >
+          <Text style={styles.title}>Confirme seu E-mail</Text>
+          <Text style={styles.subtitle}>
             {email
               ? `Enviamos um código de 6 dígitos para ${email}. Ele vale por 30 minutos.`
               : 'Enviamos um código de 6 dígitos para o seu e-mail.'}
           </Text>
 
-          <CustomInput
-            label="CÓDIGO DE CONFIRMAÇÃO"
+          <TextField
+            label="Código de confirmação"
             placeholder="000000"
             value={code}
-            onChangeText={text => setCode(text.replace(/\D/g, ''))}
+            onChangeText={(text) => setCode(text.replace(/\D/g, ''))}
             keyboardType="number-pad"
             maxLength={6}
             autoCorrect={false}
             autoComplete="one-time-code"
+            mono
+            style={styles.field}
           />
 
-          <PrimaryButton
-            title="CONFIRMAR"
+          <Button
+            label="Confirmar"
             onPress={handleConfirm}
-            isLoading={loading}
+            loading={loading}
             disabled={!isCodeValid || !email}
           />
 
           <TouchableOpacity style={styles.resendButton} onPress={handleResend} disabled={resending || !email}>
-            <Text
-              style={[
-                styles.resendText,
-                { color: isDarkMode ? COLORS.textSecondaryDark : COLORS.textSecondaryLight },
-              ]}
-            >
+            <Text style={styles.resendText}>
               {resending ? 'Reenviando...' : 'Não recebeu? Reenviar código'}
             </Text>
           </TouchableOpacity>
@@ -138,18 +107,21 @@ export default function ConfirmEmailScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: KINETIC.bg },
   inner: { flex: 1, paddingHorizontal: 24 },
   content: { flexGrow: 1, justifyContent: 'center', paddingBottom: 40 },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
     marginBottom: 8,
+    color: KINETIC.text,
   },
   subtitle: {
     fontSize: 16,
     marginBottom: 40,
+    color: KINETIC.textSecondary,
   },
+  field: { marginBottom: 20 },
   resendButton: { alignItems: 'center', marginTop: 24 },
-  resendText: { fontSize: 14, fontWeight: 'bold' },
+  resendText: { fontSize: 14, fontWeight: 'bold', color: KINETIC.textSecondary },
 });

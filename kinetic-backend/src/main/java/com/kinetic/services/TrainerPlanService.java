@@ -1,5 +1,6 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.Strings;
 import com.kinetic.dtos.TrainerExerciseRequestDTO;
 import com.kinetic.enums.LoadType;
 import com.kinetic.dtos.TrainerWorkoutPlanRequestDTO;
@@ -141,7 +142,7 @@ public class TrainerPlanService {
         plan.setLevel(resolveLevel(request.level(), plan.getLevel(), student.getLevel()));
         plan.setEstimatedDurationMinutes(request.estimatedDurationMinutes());
 
-        String subtitle = trimOrNull(request.subtitle());
+        String subtitle = Strings.trimOrNull(request.subtitle());
         plan.setSubtitle(subtitle != null ? subtitle : subtitleFromMuscles(request.exercises()));
     }
 
@@ -151,11 +152,11 @@ public class TrainerPlanService {
         exercise.setType(upperOrNull(dto.type()));
         exercise.setSets(dto.sets());
         exercise.setReps(dto.reps().trim());
-        exercise.setWeight(trimOrNull(dto.weight()));
+        exercise.setWeight(Strings.trimOrNull(dto.weight()));
         exercise.setLoadType(dto.loadType() != null ? dto.loadType() : LoadType.infer(dto.weight()));
-        exercise.setRestTime(trimOrNull(dto.restTime()));
+        exercise.setRestTime(Strings.trimOrNull(dto.restTime()));
         exercise.setSection(resolveSection(dto.section()));
-        exercise.setNotes(trimOrNull(dto.notes()));
+        exercise.setNotes(Strings.trimOrNull(dto.notes()));
         exercise.setSortOrder(sortOrder);
     }
 
@@ -196,14 +197,8 @@ public class TrainerPlanService {
         return subtitle.length() > SUBTITLE_MAX ? subtitle.substring(0, SUBTITLE_MAX) : subtitle;
     }
 
-    private static String trimOrNull(String value) {
-        if (value == null) return null;
-        String trimmed = value.trim();
-        return trimmed.isEmpty() ? null : trimmed;
-    }
-
     private static String upperOrNull(String value) {
-        String trimmed = trimOrNull(value);
+        String trimmed = Strings.trimOrNull(value);
         return trimmed == null ? null : trimmed.toUpperCase(Locale.ROOT);
     }
 }

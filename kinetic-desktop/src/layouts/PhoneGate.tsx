@@ -1,20 +1,23 @@
-import { useEffect, useState } from 'react';
-import { Outlet, useOutletContext } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
 import PhoneDialog from '../components/PhoneDialog';
 import { getMyPhone } from '../services/userService';
+import { qk, queryClient } from '../services/queryClient';
 import { useTrainerLiveUpdates } from '../services/trainerEvents';
 
-type PhoneState = 'checking' | 'missing' | 'ok';
-
-interface PhoneGateContext {
-  /** Celular (DDD + número); null só se a checagem falhou por rede. */
-  phone: string | null;
-  setPhone: (phone: string) => void;
+/**
+ * Celular do personal logado (DDD + número). Buscado uma vez; o PhoneDialog atualiza
+ * o cache ao salvar. `phone` é null se ainda não cadastrado ou se a busca falhou.
+ */
+export function useMyPhone() {
+  const query = useQuery({ queryKey: qk.myPhone, queryFn: getMyPhone, staleTime: Infinity });
+  return {
+    query,
+    phone: query.data ?? null,
+    setPhone: (phone: string) => queryClient.setQueryData(qk.myPhone, phone),
+  };
 }
-
-/** Celular do personal logado, para as telas sob o PhoneGate (ex.: botão do cabeçalho). */
-export const usePersonalPhone = (): PhoneGateContext => useOutletContext<PhoneGateContext>();
 
 /**
  * Layout das rotas do PERSONAL: o celular virou obrigatório (atalho de WhatsApp com
@@ -24,40 +27,23 @@ export const usePersonalPhone = (): PhoneGateContext => useOutletContext<PhoneGa
  */
 export default function PhoneGate() {
   const { signOut } = useAuth();
-  const [state, setState] = useState<PhoneState>('checking');
-  const [phone, setPhone] = useState<string | null>(null);
+  const { query, setPhone } = useMyPhone();
+  const missing = query.data === null;
   // Avisos em tempo real só depois do celular: antes disso o backend barra a API.
-  useTrainerLiveUpdates(state === 'ok');
+  useTrainerLiveUpdates(!query.isPending && !missing);
 
-  useEffect(() => {
-    let active = true;
-    getMyPhone()
-      .then((current) => {
-        if (!active) return;
-        setPhone(current);
-        setState(current ? 'ok' : 'missing');
-      })
-      .catch(() => active && setState('ok'));
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  if (state === 'checking') {
+  if (query.isPending) {
     return <div className="h-dvh w-full bg-k-bg" />;
   }
 
-  if (state === 'missing') {
+  if (missing) {
     return (
       <div className="h-dvh w-full bg-k-bg">
         <PhoneDialog
           open
           onOpenChange={() => undefined}
           phone={null}
-          onSaved={(saved) => {
-            setPhone(saved);
-            setState('ok');
-          }}
+          onSaved={setPhone}
           required
           onSignOut={() => void signOut()}
         />
@@ -65,5 +51,5 @@ export default function PhoneGate() {
     );
   }
 
-  return <Outlet context={{ phone, setPhone } satisfies PhoneGateContext} />;
+  return <Outlet />;
 }

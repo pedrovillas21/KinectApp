@@ -1,5 +1,7 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.Hashing;
+import com.kinetic.utils.Strings;
 import com.kinetic.dtos.InviteCodePreviewDTO;
 import com.kinetic.dtos.TrainerInviteCodeDTO;
 import com.kinetic.dtos.TrainerLinkDTO;
@@ -25,14 +27,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -83,7 +81,7 @@ public class TrainerInviteCodeService {
 
         TrainerInviteCode invite = new TrainerInviteCode();
         invite.setTrainer(trainer);
-        invite.setLabel(normalizeLabel(label));
+        invite.setLabel(Strings.trimOrNull(label));
         invite.setCreatedAt(now);
         String code = assignFreshCode(invite, now);
         return toDto(codeRepository.save(invite), code, now);
@@ -190,7 +188,7 @@ public class TrainerInviteCodeService {
         if (normalized.length() != CODE_LENGTH) {
             throw new EntityNotFoundException(INVALID_CODE);
         }
-        TrainerInviteCode invite = codeRepository.findByCodeHashFetchTrainer(sha256(normalized))
+        TrainerInviteCode invite = codeRepository.findByCodeHashFetchTrainer(Hashing.sha256Hex(normalized))
                 .orElseThrow(() -> new EntityNotFoundException(INVALID_CODE));
         User trainer = invite.getTrainer();
         if (invite.getRedeemedAt() != null
@@ -223,7 +221,7 @@ public class TrainerInviteCodeService {
             chars[i] = ALPHABET[secureRandom.nextInt(ALPHABET.length)];
         }
         String code = new String(chars);
-        invite.setCodeHash(sha256(code));
+        invite.setCodeHash(Hashing.sha256Hex(code));
         invite.setExpiresAt(now.plus(CODE_TTL));
         return code;
     }
@@ -232,21 +230,6 @@ public class TrainerInviteCodeService {
     static String normalizeCode(String raw) {
         if (raw == null) return "";
         return raw.toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9]", "");
-    }
-
-    private static String normalizeLabel(String label) {
-        if (label == null) return null;
-        String trimmed = label.trim();
-        return trimmed.isEmpty() ? null : trimmed;
-    }
-
-    private static String sha256(String value) {
-        try {
-            byte[] digest = MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(digest);
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 indisponível na JVM", e);
-        }
     }
 
     private static TrainerInviteCodeDTO toDto(TrainerInviteCode invite, String code, Instant now) {

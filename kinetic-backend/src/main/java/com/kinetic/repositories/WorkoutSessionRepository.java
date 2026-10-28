@@ -23,8 +23,6 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
             LocalDate endDate
     );
 
-    boolean existsByUserIdAndSessionDate(UUID userId, LocalDate sessionDate);
-
     /** Segundos de treino já gravados pelo usuário no dia. */
     @Query("SELECT COALESCE(SUM(ws.durationInSeconds), 0) FROM WorkoutSession ws "
             + "WHERE ws.user.id = :userId AND ws.sessionDate = :date")
@@ -110,6 +108,14 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
     );
 
     long countByUserId(UUID userId);
+
+    /** Último treino com ficha: a próxima ficha do rodízio da Home é a seguinte a ela. */
+    Optional<WorkoutSession> findFirstByUserIdAndWorkoutPlanIsNotNullOrderByCreatedAtDesc(UUID userId);
+
+    /** Último treino de cada ficha do usuário. Cada linha: [ficha.id (UUID), MAX(createdAt) (Instant)]. */
+    @Query("SELECT ws.workoutPlan.id, MAX(ws.createdAt) FROM WorkoutSession ws "
+            + "WHERE ws.user.id = :userId AND ws.workoutPlan IS NOT NULL GROUP BY ws.workoutPlan.id")
+    List<Object[]> findLatestSessionPerPlan(@Param("userId") UUID userId);
 
     Optional<WorkoutSession> findByUserIdAndClientSessionId(UUID userId, UUID clientSessionId);
 

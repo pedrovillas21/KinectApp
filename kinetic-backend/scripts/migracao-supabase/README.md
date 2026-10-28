@@ -70,4 +70,3 @@ Nada muda no app nem no painel web: eles falam só com o backend.
 
 - **Pausar** (não apagar) o projeto antigo e deixá-lo assim por ~2 semanas como rede de segurança.
 - Apagar `kinetic.dump` e `.env.migracao` desta pasta: contêm dados e chaves de produção.
-- Atualizar `supabase/config.toml` (`project_id`) se usar o Supabase CLI.

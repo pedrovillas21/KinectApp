@@ -1,3 +1,6 @@
+import { Linking } from 'react-native';
+import { showAlert } from '../components/ui/AlertHost';
+
 /**
  * Atalho de WhatsApp entre personal e aluno. O backend guarda o celular como
  * DDD + número (11 dígitos, sem o +55).
@@ -7,6 +10,13 @@
 export function whatsappUrl(phone: string, text?: string): string {
   const base = `https://wa.me/55${phone.replace(/\D/g, '')}`;
   return text ? `${base}?text=${encodeURIComponent(text)}` : base;
+}
+
+/** Abre a conversa no WhatsApp; sem o app no aparelho, avisa. */
+export function openWhatsApp(phone: string, text?: string): void {
+  Linking.openURL(whatsappUrl(phone, text)).catch(() =>
+    showAlert('WhatsApp', 'Não foi possível abrir o WhatsApp neste aparelho.'),
+  );
 }
 
 /** Máscara progressiva para o input: (11) 98765-4321. */

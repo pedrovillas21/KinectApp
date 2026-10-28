@@ -6,11 +6,13 @@ import com.kinetic.services.StatsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/stats")
+@RequiredArgsConstructor
 @Tag(
         name = "Estatísticas",
         description = "Dashboards e comparativos calculados em cima do histórico de treinos do usuário logado."
@@ -18,10 +20,6 @@ import org.springframework.web.bind.annotation.*;
 public class StatsController extends BaseController {
 
     private final StatsService statsService;
-
-    public StatsController(StatsService statsService) {
-        this.statsService = statsService;
-    }
 
     @Operation(
             summary = "Ver o resumo de estatísticas de um período",

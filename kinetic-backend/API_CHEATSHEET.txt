@@ -133,7 +133,7 @@ POST /api/workouts/generate
 
 GET  /api/workouts/my-plans
   sem corpo.
-  -> use os IDs daqui (exerciseId, workoutPlanId) no Log Session abaixo.
+  -> use os IDs daqui (exerciseId) no Log Session abaixo.
 
 
 --------------------------------------------------------------------------
@@ -150,7 +150,7 @@ POST   /api/sessions/log
   [durationInSeconds]  inteiro positivo (duração total em segundos)
   [date]               data no formato yyyy-MM-dd
   [exercisesLog]       lista NÃO vazia de séries (objetos abaixo)
-  (workoutPlanId)      UUID da ficha (pegue em /api/workouts/my-plans)
+  (a ficha do treino sai dos exercícios; workoutPlanId é ignorado)
 
   Cada item de exercisesLog:
     [exerciseId]    UUID do exercício (de my-plans)
@@ -161,18 +161,11 @@ POST   /api/sessions/log
   {
     "durationInSeconds": 3600,
     "date": "2026-06-10",
-    "workoutPlanId": "<uuid-da-ficha>",
     "exercisesLog": [
       { "exerciseId": "<uuid>", "setNumber": 1, "repsPerformed": 12, "weightUsed": 40.0 },
       { "exerciseId": "<uuid>", "setNumber": 2, "repsPerformed": 10, "weightUsed": 42.5 }
     ]
   }
-
-GET    /api/sessions/monthly-stats
-  sem corpo.
-
-GET    /api/sessions/weekly-activity
-  sem corpo.
 
 
 --------------------------------------------------------------------------
@@ -214,9 +207,6 @@ GET    /api/social/squad
 
 POST   /api/social/squad/{userId}/toggle
   {userId} na URL = UUID do usuário. sem corpo.
-
-GET    /api/social/squad/status
-  sem corpo.
 
 GET    /api/social/feed?page=0&size=10
   query (opcional) page (padrão 0), size (padrão 10). sem corpo.

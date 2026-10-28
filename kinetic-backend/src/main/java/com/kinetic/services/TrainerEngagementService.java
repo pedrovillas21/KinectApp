@@ -5,7 +5,6 @@ import com.kinetic.utils.AppTime;
 import com.kinetic.dtos.AlertPauseRequestDTO;
 import com.kinetic.dtos.StudentEngagementDTO;
 import com.kinetic.enums.TrainerLinkStatus;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.lang.NonNull;
 import com.kinetic.models.TrainerClient;
 import com.kinetic.models.User;
@@ -103,9 +102,7 @@ public class TrainerEngagementService {
 
     private TrainerClient ownedLink(String trainerEmail, UUID studentId) {
         User trainer = userRepository.getByEmailOrThrow(trainerEmail);
-        return trainerClientRepository
-                .findByTrainerIdAndStudentIdAndStatus(trainer.getId(), studentId, TrainerLinkStatus.ATIVO)
-                .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado."));
+        return trainerClientRepository.getActiveLink(trainer.getId(), studentId);
     }
 
     /** Pausa em vigor hoje; vencida conta como sem pausa. */

@@ -32,18 +32,13 @@ import type {
   StatsPeriodId,
   StatsSummaryResponseDTO,
 } from '../types';
+import { PERIODS } from './PeriodTabs';
+import { dayMonth } from '../utils/dates';
 
 interface Props {
   studentId: string;
   studentFirstName: string;
 }
-
-const PERIODS: { id: StatsPeriodId; label: string }[] = [
-  { id: 'week', label: 'Semana' },
-  { id: 'month', label: 'Mês' },
-  { id: 'q', label: 'Trimestre' },
-  { id: 'year', label: 'Ano' },
-];
 
 const nf0 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
 const nf1 = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -53,12 +48,6 @@ const signed = (v: number) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${nfDelta.form
 
 /** PUSH/PULL/PERNAS/CORE → Push/Pull/Pernas/Core. */
 const groupLabel = (g: string) => g.charAt(0).toUpperCase() + g.slice(1).toLowerCase();
-
-const formatShortDate = (iso: string): string => {
-  const d = new Date(`${iso}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return iso;
-  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
-};
 
 const TILE = 'rounded-xl border border-white/[0.08]';
 
@@ -179,22 +168,24 @@ export default function DashboardTab({ studentId, studentFirstName }: Props) {
 
 // ─── Indicadores ─────────────────────────────────────────────────────────────
 
+/** Rodapé do KPI de peso: variação no período, ou de onde veio o número. */
+function weightFootnote(weight: StatsSummaryResponseDTO['weight']) {
+  if (weight.history.length > 1) {
+    return (
+      <>
+        <DeltaPill value={weight.delta} suffix=" kg" good={null} /> no período
+      </>
+    );
+  }
+  if (weight.history.length === 1) return 'Uma pesagem no período';
+  return weight.current > 0 ? 'Último peso informado no perfil' : 'Nenhuma pesagem registrada';
+}
+
 function KpiRow({ stats }: { stats: StatsSummaryResponseDTO }) {
   const hasPlan = stats.targetSessions > 0;
   const { weight, volume } = stats;
 
-  const weightFoot =
-    weight.history.length > 1 ? (
-      <>
-        <DeltaPill value={weight.delta} suffix=" kg" good={null} /> no período
-      </>
-    ) : weight.history.length === 1 ? (
-      'Uma pesagem no período'
-    ) : weight.current > 0 ? (
-      'Último peso informado no perfil'
-    ) : (
-      'Nenhuma pesagem registrada'
-    );
+  const weightFoot = weightFootnote(weight);
 
   return (
     <motion.section
@@ -333,7 +324,7 @@ function Charts({ stats, firstName }: { stats: StatsSummaryResponseDTO; firstNam
     .filter((g) => !g.isRest && g.volume > 0)
     .sort((a, b) => b.volume - a.volume);
   const weightData = stats.weight.history.map((p) => ({
-    date: formatShortDate(p.date),
+    date: dayMonth(p.date),
     peso: p.weight,
   }));
 
@@ -507,7 +498,7 @@ function CycleComparison({
   const started = !!evolution?.available && evolution.currentCycleStarted;
   const subtitle = [
     'Desde a última regeneração da ficha',
-    evolution?.currentCycleStart ? `, em ${formatShortDate(evolution.currentCycleStart)}` : '',
+    evolution?.currentCycleStart ? `, em ${dayMonth(evolution.currentCycleStart)}` : '',
     evolution?.goal ? ` · Meta: ${evolution.goal}` : '',
   ].join('');
 

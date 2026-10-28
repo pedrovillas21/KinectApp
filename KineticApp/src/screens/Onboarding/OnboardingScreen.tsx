@@ -9,28 +9,26 @@ import {
 import { Text, TextInput } from '../../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import KeyboardAvoider from '../../components/ui/KeyboardAvoider';
-import { ThemeContext } from '../../contexts/ThemeContext';
 import { AuthContext } from '../../contexts/AuthContext';
-import { COLORS } from '../../theme/colors';
-import CustomInput from '../../components/CustomInput';
-import PrimaryButton from '../../components/PrimaryButton';
+import { KINETIC } from '../../theme/kinetic';
+import { Button, TextField } from '../../components/ui';
 import Icon from '../../components/Icon';
 import TextSizePicker from '../../components/TextSizePicker';
-import api from '../../services/api';
+import { generateWorkout } from '../../services/workoutService';
+import {
+  DAYS_LABELS,
+  GOALS,
+  GOAL_API_MAP,
+  LEVELS,
+  LEVEL_API_MAP,
+  type GoalType,
+  type LevelType,
+} from '../../constants/protocol';
 import { showAlert } from '../../components/ui/AlertHost';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-// Type assertion para AuthContext (arquivo JS sem declaração de tipos)
-interface AuthContextValue {
-  completeOnboarding: (data: Record<string, unknown>) => Promise<void>;
-  signOut: () => Promise<void>;
-}
-
-export type GoalType = 'loss' | 'mass' | 'perf' | '';
-export type LevelType = 'beg' | 'int' | 'pro' | '';
-
-export interface OnboardingForm {
+interface OnboardingForm {
   goal: GoalType;
   birthDate: string; // Formato ISO: 'YYYY-MM-DD'
   weight: number;
@@ -40,18 +38,6 @@ export interface OnboardingForm {
   medicalConditions: string;
 }
 
-interface GoalDef {
-  id: Exclude<GoalType, ''>;
-  title: string;
-  sub: string;
-}
-
-interface LevelDef {
-  id: Exclude<LevelType, ''>;
-  title: string;
-  sub: string;
-}
-
 interface ProgressDotsProps {
   current: number;
   total: number;
@@ -59,32 +45,27 @@ interface ProgressDotsProps {
 
 interface StepGoalProps {
   value: GoalType;
-  onChange: (v: GoalType) => void;
-  isDark: boolean;
+  onChange: (v: GoalType) => void;
 }
 
 interface StepMetricsProps {
   data: OnboardingForm;
-  onChange: (data: OnboardingForm) => void;
-  isDark: boolean;
+  onChange: (data: OnboardingForm) => void;
 }
 
 interface StepLevelProps {
   value: LevelType;
-  onChange: (v: LevelType) => void;
-  isDark: boolean;
+  onChange: (v: LevelType) => void;
 }
 
 interface StepFreqProps {
   days: number[];
-  onChange: (days: number[]) => void;
-  isDark: boolean;
+  onChange: (days: number[]) => void;
 }
 
 interface StepAnamnesisProps {
   value: string;
-  onChange: (v: string) => void;
-  isDark: boolean;
+  onChange: (v: string) => void;
 }
 
 interface StepGeneratingProps {
@@ -93,20 +74,6 @@ interface StepGeneratingProps {
 }
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
-const GOALS: GoalDef[] = [
-  { id: 'mass', title: 'Ganho de Massa',   sub: 'Hipertrofia + sobrecarga progressiva' },
-  { id: 'loss', title: 'Perda de Gordura', sub: 'Déficit calórico + condicionamento metabólico' },
-  { id: 'perf', title: 'Performance',      sub: 'Força máxima, explosão e resistência' },
-];
-
-const LEVELS: LevelDef[] = [
-  { id: 'beg', title: 'Iniciante',     sub: 'Estou começando minha jornada agora.' },
-  { id: 'int', title: 'Intermediário', sub: 'Já treino há alguns meses com consistência.' },
-  { id: 'pro', title: 'Avançado',      sub: 'Anos de experiência e técnica refinada.' },
-];
-
-const DAYS_LABELS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
-
 const GEN_STEPS = [
   'Analisando perfil antropométrico',
   'Cruzando histórico com objetivo selecionado',
@@ -115,19 +82,6 @@ const GEN_STEPS = [
   'Selecionando exercícios compatíveis',
   'Montando ciclo de progressão',
 ];
-
-// Mapeamento de IDs internos para valores esperados pelo backend
-const GOAL_API_MAP: Record<Exclude<GoalType, ''>, string> = {
-  mass: 'Ganho de Massa',
-  loss: 'Perda de Gordura',
-  perf: 'Performance',
-};
-
-const LEVEL_API_MAP: Record<Exclude<LevelType, ''>, string> = {
-  beg: 'INICIANTE',
-  int: 'INTERMEDIÁRIO',
-  pro: 'PRO',
-};
 
 // ─── ProgressDots ─────────────────────────────────────────────────────────────
 function ProgressDots({ current, total }: ProgressDotsProps) {
@@ -142,7 +96,7 @@ function ProgressDots({ current, total }: ProgressDotsProps) {
             style={[
               styles.dot,
               { width: active ? 22 : done ? 12 : 8 },
-              (active || done) && { backgroundColor: COLORS.neonBlue },
+              (active || done) && { backgroundColor: KINETIC.primary },
             ]}
           />
         );
@@ -153,19 +107,17 @@ function ProgressDots({ current, total }: ProgressDotsProps) {
 
 // ─── StepTextSize ─────────────────────────────────────────────────────────────
 // Antes de tudo: quem tem dificuldade de leitura ajusta o texto já para o resto do cadastro.
-function StepTextSize({ isDark }: { isDark: boolean }) {
-  const textPrimary   = isDark ? COLORS.textPrimaryDark   : COLORS.textPrimaryLight;
-  const textSecondary = isDark ? COLORS.textSecondaryDark : COLORS.textSecondaryLight;
+function StepTextSize() {
 
   return (
     <>
       <Text style={styles.stepTag}>Antes de começar</Text>
-      <Text style={[styles.stepTitle, { color: textPrimary }]}>Tamanho do texto</Text>
-      <Text style={[styles.stepSub, { color: textSecondary }]}>
+      <Text style={[styles.stepTitle, { color: KINETIC.text }]}>Tamanho do texto</Text>
+      <Text style={[styles.stepSub, { color: KINETIC.textSecondary }]}>
         Escolha o tamanho mais confortável para ler. Textos e ícones de todo o app seguem essa escolha.
       </Text>
       <TextSizePicker />
-      <Text style={[styles.stepSub, { color: textSecondary, marginTop: 12 }]}>
+      <Text style={[styles.stepSub, { color: KINETIC.textSecondary, marginTop: 12 }]}>
         Você pode mudar isso depois em Configurações.
       </Text>
     </>
@@ -173,31 +125,28 @@ function StepTextSize({ isDark }: { isDark: boolean }) {
 }
 
 // ─── StepGoal ─────────────────────────────────────────────────────────────────
-function StepGoal({ value, onChange, isDark }: StepGoalProps) {
-  const textPrimary   = isDark ? COLORS.textPrimaryDark   : COLORS.textPrimaryLight;
-  const textSecondary = isDark ? COLORS.textSecondaryDark : COLORS.textSecondaryLight;
-  const cardBg        = isDark ? COLORS.darkCard          : COLORS.lightCard;
+function StepGoal({ value, onChange }: StepGoalProps) {
 
   return (
     <>
       <Text style={styles.stepTag}>Etapa 1 de 5</Text>
-      <Text style={[styles.stepTitle, { color: textPrimary }]}>Qual seu objetivo?</Text>
-      <Text style={[styles.stepSub, { color: textSecondary }]}>
+      <Text style={[styles.stepTitle, { color: KINETIC.text }]}>Qual seu objetivo?</Text>
+      <Text style={[styles.stepSub, { color: KINETIC.textSecondary }]}>
         Escolha um foco principal. Seu protocolo será calibrado para esse resultado.
       </Text>
       {GOALS.map(g => (
         <TouchableOpacity
           key={g.id}
-          style={[styles.card, { backgroundColor: cardBg }, value === g.id && styles.cardSelected]}
+          style={[styles.card, { backgroundColor: KINETIC.surface1 }, value === g.id && styles.cardSelected]}
           onPress={() => onChange(g.id)}
           activeOpacity={0.75}
         >
           <View style={{ flex: 1 }}>
-            <Text style={[styles.cardTitle, { color: textPrimary }]}>{g.title}</Text>
-            <Text style={[styles.cardSub, { color: textSecondary }]}>{g.sub}</Text>
+            <Text style={[styles.cardTitle, { color: KINETIC.text }]}>{g.title}</Text>
+            <Text style={[styles.cardSub, { color: KINETIC.textSecondary }]}>{g.sub}</Text>
           </View>
           <View style={[styles.radioCircle, value === g.id && styles.radioCircleSelected]}>
-            {value === g.id && <Icon name="check" size={13} color={COLORS.darkBackground} strokeWidth={3} />}
+            {value === g.id && <Icon name="check" size={13} color={KINETIC.bg} strokeWidth={3} />}
           </View>
         </TouchableOpacity>
       ))}
@@ -206,9 +155,7 @@ function StepGoal({ value, onChange, isDark }: StepGoalProps) {
 }
 
 // ─── StepMetrics ──────────────────────────────────────────────────────────────
-function StepMetrics({ data, onChange, isDark }: StepMetricsProps) {
-  const textPrimary   = isDark ? COLORS.textPrimaryDark   : COLORS.textPrimaryLight;
-  const textSecondary = isDark ? COLORS.textSecondaryDark : COLORS.textSecondaryLight;
+function StepMetrics({ data, onChange }: StepMetricsProps) {
 
   // Estado local para exibição em DD/MM/AAAA; form armazena ISO YYYY-MM-DD
   const [birthDisplay, setBirthDisplay] = useState<string>(
@@ -265,82 +212,71 @@ function StepMetrics({ data, onChange, isDark }: StepMetricsProps) {
   return (
     <>
       <Text style={styles.stepTag}>Etapa 2 de 5</Text>
-      <Text style={[styles.stepTitle, { color: textPrimary }]}>Sobre você</Text>
-      <Text style={[styles.stepSub, { color: textSecondary }]}>
+      <Text style={[styles.stepTitle, { color: KINETIC.text }]}>Sobre você</Text>
+      <Text style={[styles.stepSub, { color: KINETIC.textSecondary }]}>
         Usamos esses dados para calibrar cargas iniciais e estimar gasto calórico.
       </Text>
-      <CustomInput
-        label="DATA DE NASCIMENTO"
+      <TextField
+        label="Data de nascimento"
         placeholder="DD/MM/AAAA"
         value={birthDisplay}
         onChangeText={handleBirthChange}
-        secureTextEntry={false}
-        isPassword={false}
-        icon={null}
+        error={birthError || null}
         keyboardType="number-pad"
         maxLength={10}
         autoCorrect={false}
         autoComplete="off"
+        style={styles.field}
       />
-      {!!birthError && (
-        <Text style={styles.fieldError}>{birthError}</Text>
-      )}
-      <CustomInput
-        label="PESO (KG)"
+      <TextField
+        label="Peso (kg)"
         placeholder="78"
         value={data.weight > 0 ? String(data.weight) : ''}
         onChangeText={(v: string) => onChange({ ...data, weight: parseFloat(v) || 0 })}
-        secureTextEntry={false}
-        isPassword={false}
-        icon={null}
         keyboardType="numeric"
         maxLength={5}
         autoCorrect={false}
         autoComplete="off"
+        style={styles.field}
       />
-      <CustomInput
-        label="ALTURA (CM)"
+      <TextField
+        label="Altura (cm)"
         placeholder="175"
         value={data.height > 0 ? String(data.height) : ''}
         onChangeText={(v: string) => onChange({ ...data, height: parseFloat(v) || 0 })}
-        secureTextEntry={false}
-        isPassword={false}
-        icon={null}
         keyboardType="numeric"
         maxLength={3}
         autoCorrect={false}
         autoComplete="off"
+        style={styles.field}
       />
     </>
   );
 }
 
 // ─── StepLevel ────────────────────────────────────────────────────────────────
-function StepLevel({ value, onChange, isDark }: StepLevelProps) {
-  const textPrimary   = isDark ? COLORS.textPrimaryDark   : COLORS.textPrimaryLight;
-  const textSecondary = isDark ? COLORS.textSecondaryDark : COLORS.textSecondaryLight;
-  const cardBg        = isDark ? COLORS.darkCard          : COLORS.lightCard;
+function StepLevel({ value, onChange }: StepLevelProps) {
 
   return (
     <>
       <Text style={styles.stepTag}>Etapa 3 de 5</Text>
-      <Text style={[styles.stepTitle, { color: textPrimary }]}>Seu nível</Text>
-      <Text style={[styles.stepSub, { color: textSecondary }]}>
+      <Text style={[styles.stepTitle, { color: KINETIC.text }]}>Seu nível</Text>
+      <Text style={[styles.stepSub, { color: KINETIC.textSecondary }]}>
         Calibra a complexidade dos exercícios e a progressão de carga.
       </Text>
       {LEVELS.map(l => (
         <TouchableOpacity
           key={l.id}
-          style={[styles.card, { backgroundColor: cardBg }, value === l.id && styles.cardSelected]}
+          style={[styles.card, { backgroundColor: KINETIC.surface1 }, value === l.id && styles.cardSelected]}
           onPress={() => onChange(l.id)}
           activeOpacity={0.75}
         >
           <View style={{ flex: 1 }}>
-            <Text style={[styles.cardTitle, { color: textPrimary }]}>{l.title}</Text>
-            <Text style={[styles.cardSub, { color: textSecondary }]}>{l.sub}</Text>
+            <Text style={[styles.cardTitle, { color: KINETIC.text }]}>{l.title}</Text>
+            <Text style={[styles.cardSub, { color: KINETIC.textSecondary }]}>{l.sub}</Text>
           </View>
           <View style={[styles.radioCircle, value === l.id && styles.radioCircleSelected]}>
-            {value === l.id && <Icon name="check" size={13} color={COLORS.darkBackground} strokeWidth={3} />}
+            {value === l.id && <Icon name="check" size={13} color={KINETIC.bg} strokeWidth={3} />}
           </View>
         </TouchableOpacity>
       ))}
@@ -349,10 +285,7 @@ function StepLevel({ value, onChange, isDark }: StepLevelProps) {
 }
 
 // ─── StepFreq ─────────────────────────────────────────────────────────────────
-function StepFreq({ days, onChange, isDark }: StepFreqProps) {
-  const textPrimary   = isDark ? COLORS.textPrimaryDark   : COLORS.textPrimaryLight;
-  const textSecondary = isDark ? COLORS.textSecondaryDark : COLORS.textSecondaryLight;
-  const cardBg        = isDark ? COLORS.darkCard          : COLORS.lightCard;
+function StepFreq({ days, onChange }: StepFreqProps) {
 
   const toggle = (i: number) => {
     const next = days.includes(i)
@@ -375,15 +308,15 @@ function StepFreq({ days, onChange, isDark }: StepFreqProps) {
   return (
     <>
       <Text style={styles.stepTag}>Etapa 4 de 5</Text>
-      <Text style={[styles.stepTitle, { color: textPrimary }]}>Quando você treina?</Text>
-      <Text style={[styles.stepSub, { color: textSecondary }]}>
+      <Text style={[styles.stepTitle, { color: KINETIC.text }]}>Quando você treina?</Text>
+      <Text style={[styles.stepSub, { color: KINETIC.textSecondary }]}>
         Toque nos dias que você consegue treinar com consistência.
       </Text>
 
-      <View style={[styles.countCard, { backgroundColor: cardBg }]}>
+      <View style={[styles.countCard, { backgroundColor: KINETIC.surface1 }]}>
         <Text style={styles.countNumber}>{days.length}</Text>
         <View style={{ flex: 1 }}>
-          <Text style={[styles.countLabel, { color: textSecondary }]}>dias por semana</Text>
+          <Text style={[styles.countLabel, { color: KINETIC.textSecondary }]}>dias por semana</Text>
           <Text style={styles.countHint}>{hint}</Text>
         </View>
       </View>
@@ -397,11 +330,11 @@ function StepFreq({ days, onChange, isDark }: StepFreqProps) {
               onPress={() => toggle(i)}
               style={[
                 styles.dayChip,
-                { backgroundColor: selected ? COLORS.neonBlue : cardBg },
+                { backgroundColor: selected ? KINETIC.primary : KINETIC.surface1 },
               ]}
               activeOpacity={0.75}
             >
-              <Text style={[styles.dayChipText, { color: selected ? COLORS.darkBackground : textSecondary }]}>
+              <Text style={[styles.dayChipText, { color: selected ? KINETIC.bg : KINETIC.textSecondary }]}>
                 {d.slice(0, 1)}
               </Text>
             </TouchableOpacity>
@@ -422,10 +355,7 @@ function buildMedicalValue(chips: string[], text: string): string {
   return parts.join(', ');
 }
 
-function StepAnamnesis({ value, onChange, isDark }: StepAnamnesisProps) {
-  const textPrimary   = isDark ? COLORS.textPrimaryDark   : COLORS.textPrimaryLight;
-  const textSecondary = isDark ? COLORS.textSecondaryDark : COLORS.textSecondaryLight;
-  const cardBg        = isDark ? COLORS.darkCard          : COLORS.lightCard;
+function StepAnamnesis({ value, onChange }: StepAnamnesisProps) {
 
   const [selectedChips, setSelectedChips] = useState<string[]>(() =>
     value === NONE_CHIP ? [NONE_CHIP] : []
@@ -462,8 +392,8 @@ function StepAnamnesis({ value, onChange, isDark }: StepAnamnesisProps) {
   return (
     <>
       <Text style={styles.stepTag}>Etapa 5 de 5</Text>
-      <Text style={[styles.stepTitle, { color: textPrimary }]}>Segurança em primeiro lugar.</Text>
-      <Text style={[styles.stepSub, { color: textSecondary }]}>
+      <Text style={[styles.stepTitle, { color: KINETIC.text }]}>Segurança em primeiro lugar.</Text>
+      <Text style={[styles.stepSub, { color: KINETIC.textSecondary }]}>
         Você possui alguma lesão, dor articular ou restrição médica que devemos saber para adaptar o seu treino?
       </Text>
 
@@ -477,10 +407,10 @@ function StepAnamnesis({ value, onChange, isDark }: StepAnamnesisProps) {
               activeOpacity={0.75}
               style={[
                 styles.chip,
-                { backgroundColor: active ? COLORS.neonBlue : cardBg },
+                { backgroundColor: active ? KINETIC.primary : KINETIC.surface1 },
               ]}
             >
-              <Text style={[styles.chipText, { color: active ? COLORS.darkBackground : textSecondary }]}>
+              <Text style={[styles.chipText, { color: active ? KINETIC.bg : KINETIC.textSecondary }]}>
                 {chip}
               </Text>
             </TouchableOpacity>
@@ -491,10 +421,10 @@ function StepAnamnesis({ value, onChange, isDark }: StepAnamnesisProps) {
           activeOpacity={0.75}
           style={[
             styles.chip,
-            { backgroundColor: isNoneSelected ? COLORS.neonBlue : cardBg },
+            { backgroundColor: isNoneSelected ? KINETIC.primary : KINETIC.surface1 },
           ]}
         >
-          <Text style={[styles.chipText, { color: isNoneSelected ? COLORS.darkBackground : textSecondary }]}>
+          <Text style={[styles.chipText, { color: isNoneSelected ? KINETIC.bg : KINETIC.textSecondary }]}>
             {NONE_CHIP}
           </Text>
         </TouchableOpacity>
@@ -511,11 +441,11 @@ function StepAnamnesis({ value, onChange, isDark }: StepAnamnesisProps) {
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
             placeholder="Ex: hérnia de disco L4-L5, dor no ombro direito, asma..."
-            placeholderTextColor={COLORS.textSecondaryDark}
+            placeholderTextColor={KINETIC.textSecondary}
             textAlignVertical="top"
             style={[
               styles.anamnesisInput,
-              { backgroundColor: cardBg, color: textPrimary },
+              { backgroundColor: KINETIC.surface1, color: KINETIC.text },
               focused && styles.anamnesisInputFocused,
             ]}
           />
@@ -541,11 +471,11 @@ function StepGenerating({ goalLabel, daysCount }: StepGeneratingProps) {
   return (
     <>
       <Text style={styles.stepTag}>Construindo seu protocolo</Text>
-      <Text style={[styles.stepTitle, { color: COLORS.textPrimaryDark }]}>Calibrando para você</Text>
+      <Text style={[styles.stepTitle, { color: KINETIC.text }]}>Calibrando para você</Text>
       <Text style={styles.stepSub}>
         Foco: {goalLabel} · {daysCount} dias/semana
       </Text>
-      <ActivityIndicator size="large" color={COLORS.neonBlue} style={{ marginVertical: 28 }} />
+      <ActivityIndicator size="large" color={KINETIC.primary} style={{ marginVertical: 28 }} />
       <View style={{ gap: 8 }}>
         {GEN_STEPS.map((s, i) => {
           const done   = i < tick;
@@ -562,8 +492,8 @@ function StepGenerating({ goalLabel, daysCount }: StepGeneratingProps) {
               <Text
                 style={[
                   styles.genText,
-                  done   && { color: COLORS.textSecondaryDark, opacity: 0.5 },
-                  active && { color: COLORS.textPrimaryDark,   fontWeight: '600' },
+                  done   && { color: KINETIC.textSecondary, opacity: 0.5 },
+                  active && { color: KINETIC.text,   fontWeight: '600' },
                 ]}
               >
                 {s}
@@ -578,9 +508,7 @@ function StepGenerating({ goalLabel, daysCount }: StepGeneratingProps) {
 
 // ─── OnboardingScreen ─────────────────────────────────────────────────────────
 export default function OnboardingScreen() {
-  const { isDarkMode }                       = useContext(ThemeContext);
-  const { completeOnboarding, signOut }      = useContext(AuthContext) as AuthContextValue;
-  const isDark = isDarkMode;
+  const { completeOnboarding, skipOnboarding, signOut } = useContext(AuthContext);
 
   // -1 = tamanho do texto; 0–4 = perguntas; 5 = gerando.
   const [step, setStep] = useState<number>(-1);
@@ -610,14 +538,14 @@ export default function OnboardingScreen() {
 
   const ctaLabel = step === 4 ? 'GERAR TREINO COM IA  ⟩' : 'Continuar';
 
-  const generateWorkout = async (snapshot: OnboardingForm) => {
+  const handleGenerate = async (snapshot: OnboardingForm) => {
     if (!snapshot.goal || !snapshot.level) return;
 
     const goalApi  = GOAL_API_MAP[snapshot.goal];
     const levelApi = LEVEL_API_MAP[snapshot.level];
 
     try {
-      const response = await api.post('/workouts/generate', {
+      await generateWorkout({
         birthDate:         snapshot.birthDate,
         weight:            snapshot.weight,
         height:            snapshot.height,
@@ -625,10 +553,6 @@ export default function OnboardingScreen() {
         frequency:         snapshot.days.length,
         level:             levelApi,
         medicalConditions: snapshot.medicalConditions?.trim() || 'Nenhuma',
-      }, {
-        // O backend tenta até N modelos com 120s de read timeout cada.
-        // 3 modelos × 120s + 60s de buffer = 420s. Mantemos 480s para folga.
-        timeout: 480000,
       });
 
       await completeOnboarding({
@@ -638,7 +562,6 @@ export default function OnboardingScreen() {
         height:       snapshot.height,
         goal:         goalApi,
         frequency:    snapshot.days.length,
-        workoutPlans: response.data,
       });
     } catch (e) {
       const err = e as { response?: { data?: unknown } };
@@ -656,16 +579,14 @@ export default function OnboardingScreen() {
       // step 4 → 5: avança para tela de geração e inicia chamada à API
       const snapshot = formRef.current;
       setStep(5);
-      void generateWorkout(snapshot);
+      void handleGenerate(snapshot);
     }
   };
 
   const goalLabel = GOALS.find(g => g.id === form.goal)?.title ?? '—';
 
-  const bg = isDark ? COLORS.darkBackground : COLORS.lightBackground;
-
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: bg }]}>
+    <SafeAreaView style={styles.container}>
       <KeyboardAvoider>
         {/* TopBar: visível nos passos 0–4 */}
         {step < 5 && (
@@ -703,21 +624,21 @@ export default function OnboardingScreen() {
         )}
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {step === -1 && <StepTextSize isDark={isDark} />}
+          {step === -1 && <StepTextSize />}
           {step === 0 && (
-            <StepGoal value={form.goal} onChange={v => setForm({ ...form, goal: v })} isDark={isDark} />
+            <StepGoal value={form.goal} onChange={v => setForm({ ...form, goal: v })} />
           )}
           {step === 1 && (
-            <StepMetrics data={form} onChange={setForm} isDark={isDark} />
+            <StepMetrics data={form} onChange={setForm} />
           )}
           {step === 2 && (
-            <StepLevel value={form.level} onChange={v => setForm({ ...form, level: v })} isDark={isDark} />
+            <StepLevel value={form.level} onChange={v => setForm({ ...form, level: v })} />
           )}
           {step === 3 && (
-            <StepFreq days={form.days} onChange={v => setForm({ ...form, days: v })} isDark={isDark} />
+            <StepFreq days={form.days} onChange={v => setForm({ ...form, days: v })} />
           )}
           {step === 4 && (
-            <StepAnamnesis value={form.medicalConditions} onChange={v => setForm({ ...form, medicalConditions: v })} isDark={isDark} />
+            <StepAnamnesis value={form.medicalConditions} onChange={v => setForm({ ...form, medicalConditions: v })} />
           )}
           {step === 5 && (
             <StepGenerating goalLabel={goalLabel} daysCount={form.days.length} />
@@ -727,14 +648,14 @@ export default function OnboardingScreen() {
         {/* Footer CTA: visível nos passos 0–4 */}
         {step < 5 && (
           <View style={styles.footer}>
-            <PrimaryButton title={ctaLabel} onPress={handleAdvance} disabled={!canAdvance} isLoading={false} icon={null} />
+            <Button label={ctaLabel} onPress={handleAdvance} disabled={!canAdvance} />
             {step === 0 && (
               <TouchableOpacity
-                onPress={() => completeOnboarding({ level: 'INT' })}
+                onPress={() => void skipOnboarding()}
                 style={styles.footerSkip}
               >
                 <Text style={styles.footerSkipText}>NÃO, JÁ POSSUO TREINO</Text>
-                <Icon name="close" size={13} color={COLORS.textSecondaryDark} strokeWidth={2.4} />
+                <Icon name="close" size={13} color={KINETIC.textSecondary} strokeWidth={2.4} />
               </TouchableOpacity>
             )}
           </View>
@@ -748,6 +669,7 @@ export default function OnboardingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: KINETIC.bg,
   },
   scrollContent: {
     paddingHorizontal: 24,
@@ -767,16 +689,13 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: COLORS.darkCard,
+    backgroundColor: KINETIC.surface1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  backBtnDisabled: {
-    opacity: 0.35,
-  },
   backBtnText: {
     fontSize: 24,
-    color: COLORS.textSecondaryDark,
+    color: KINETIC.textSecondary,
     lineHeight: 28,
   },
   skipBtn: {
@@ -785,7 +704,7 @@ const styles = StyleSheet.create({
   skipBtnText: {
     fontSize: 12,
     fontWeight: '600',
-    color: COLORS.textSecondaryDark,
+    color: KINETIC.textSecondary,
   },
 
   // ProgressDots
@@ -797,12 +716,12 @@ const styles = StyleSheet.create({
   dot: {
     height: 3,
     borderRadius: 2,
-    backgroundColor: COLORS.borderDark,
+    backgroundColor: KINETIC.ghost,
   },
 
   // Step header
   stepTag: {
-    color: COLORS.neonBlue,
+    color: KINETIC.primary,
     fontWeight: '700',
     letterSpacing: 0.8,
     fontSize: 10,
@@ -821,7 +740,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 22,
     marginBottom: 24,
-    color: COLORS.textSecondaryDark,
+    color: KINETIC.textSecondary,
   },
 
   // Cards (Goal / Level)
@@ -835,7 +754,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   cardSelected: {
-    borderColor: COLORS.neonBlue,
+    borderColor: KINETIC.primary,
   },
   cardTitle: {
     fontSize: 16,
@@ -851,15 +770,15 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 11,
     borderWidth: 1.5,
-    borderColor: COLORS.borderDark,
+    borderColor: KINETIC.ghost,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 12,
     flexShrink: 0,
   },
   radioCircleSelected: {
-    backgroundColor: COLORS.neonBlue,
-    borderColor: COLORS.neonBlue,
+    backgroundColor: KINETIC.primary,
+    borderColor: KINETIC.primary,
   },
 
   // StepFreq
@@ -874,7 +793,7 @@ const styles = StyleSheet.create({
   countNumber: {
     fontSize: 52,
     fontWeight: '900',
-    color: COLORS.neonBlue,
+    color: KINETIC.primary,
     letterSpacing: -2,
     minWidth: 56,
     textAlign: 'center',
@@ -884,7 +803,7 @@ const styles = StyleSheet.create({
   },
   countHint: {
     fontSize: 12,
-    color: COLORS.textSecondaryDark,
+    color: KINETIC.textSecondary,
     marginTop: 4,
     lineHeight: 17,
   },
@@ -928,22 +847,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 22,
     borderWidth: 1.5,
-    borderColor: COLORS.borderDark,
+    borderColor: KINETIC.ghost,
     minHeight: 160,
   },
   anamnesisInputFocused: {
-    borderColor: COLORS.neonBlue,
+    borderColor: KINETIC.primary,
   },
   anamnesisHint: {
     fontSize: 12,
-    color: COLORS.textSecondaryDark,
+    color: KINETIC.textSecondary,
     marginTop: 8,
   },
-  fieldError: {
-    fontSize: 12,
-    color: '#FF5252',
-    marginTop: 4,
-    marginBottom: 4,
+  field: {
+    marginBottom: 20,
   },
 
   // StepGenerating
@@ -958,20 +874,20 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: COLORS.darkCard,
+    backgroundColor: KINETIC.surface1,
     flexShrink: 0,
   },
   genDotDone: {
-    backgroundColor: COLORS.neonBlue,
+    backgroundColor: KINETIC.primary,
   },
   genDotActive: {
     borderWidth: 1.5,
-    borderColor: COLORS.neonBlue,
+    borderColor: KINETIC.primary,
     backgroundColor: 'transparent',
   },
   genText: {
     fontSize: 13,
-    color: COLORS.textSecondaryDark,
+    color: KINETIC.textSecondary,
     fontWeight: '500',
   },
 
@@ -990,7 +906,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   footerSkipText: {
-    color: COLORS.textSecondaryDark,
+    color: KINETIC.textSecondary,
     fontSize: 12,
     fontWeight: '700',
     letterSpacing: 1,

@@ -33,6 +33,7 @@ import {
   vincularFuncionario,
 } from '../../services/empresaService';
 import type { UserAdmin } from '../../types';
+import ConfirmDialog from '../../components/personal/ConfirmDialog';
 
 export default function FuncionariosPage() {
   const [funcionarios, setFuncionarios] = useState<UserAdmin[]>([]);
@@ -228,33 +229,27 @@ export default function FuncionariosPage() {
         )}
       </div>
 
-      <Dialog open={toRemove !== null} onOpenChange={(o) => !o && setToRemove(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Desvincular funcionário</DialogTitle>
-            <DialogDescription>
-              {toRemove?.companyId ? (
-                <>
-                  <strong>{toRemove?.nome}</strong> deixará de ser funcionário da empresa, e os alunos que a empresa
-                  atribuiu a ele serão desvinculados.
-                </>
-              ) : (
-                <>
-                  O convite para <strong>{toRemove?.nome}</strong> será cancelado.
-                </>
-              )}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setToRemove(null)}>
-              Cancelar
-            </Button>
-            <Button variant="destructive" disabled={busyId === toRemove?.id} onClick={() => void confirmRemove()}>
-              {busyId === toRemove?.id ? 'Desvinculando…' : 'Desvincular'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={toRemove !== null}
+        title="Desvincular funcionário"
+        description={
+          toRemove?.companyId ? (
+            <>
+              <strong>{toRemove?.nome}</strong> deixará de ser funcionário da empresa, e os alunos que a empresa
+              atribuiu a ele serão desvinculados.
+            </>
+          ) : (
+            <>
+              O convite para <strong>{toRemove?.nome}</strong> será cancelado.
+            </>
+          )
+        }
+        confirmLabel="Desvincular"
+        destructive
+        busy={busyId === toRemove?.id}
+        onConfirm={() => void confirmRemove()}
+        onCancel={() => setToRemove(null)}
+      />
     </div>
   );
 }

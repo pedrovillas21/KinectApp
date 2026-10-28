@@ -28,9 +28,8 @@ import {
 } from '@/components/ui/table';
 import { desvincularAluno, listClientes, vincularAluno } from '../../services/empresaService';
 import type { EmpresaStudentLink } from '../../types';
-
-const formatDate = (iso: string): string =>
-  new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+import { dateLabel } from '../../utils/dates';
+import ConfirmDialog from '../../components/personal/ConfirmDialog';
 
 export default function ClientesPage() {
   const [clientes, setClientes] = useState<EmpresaStudentLink[]>([]);
@@ -174,7 +173,7 @@ export default function ClientesPage() {
                   leading={<Avatar name={link.student.nome} avatarUrl={link.student.avatarUrl} size={40} />}
                   title={link.student.nome}
                   subtitle={`Personal: ${link.trainer.nome}`}
-                  meta={<span>Vinculado em {formatDate(link.createdAt)}</span>}
+                  meta={<span>Vinculado em {dateLabel(link.createdAt)}</span>}
                   actionsLabel={`Ações de ${link.student.nome}`}
                   actions={[
                     {
@@ -211,7 +210,7 @@ export default function ClientesPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-k-text-dim">{link.trainer.nome}</TableCell>
-                      <TableCell className="text-k-text-dim">{formatDate(link.createdAt)}</TableCell>
+                      <TableCell className="text-k-text-dim">{dateLabel(link.createdAt)}</TableCell>
                       <TableCell className="text-right">
                         <Button
                           variant="ghost"
@@ -232,28 +231,20 @@ export default function ClientesPage() {
         )}
       </div>
 
-      <Dialog open={toRemove !== null} onOpenChange={(o) => !o && setToRemove(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Desvincular aluno</DialogTitle>
-            <DialogDescription>
-              O vínculo corporativo de <strong>{toRemove?.student.nome}</strong> será encerrado.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setToRemove(null)}>
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              disabled={busyId === toRemove?.linkId}
-              onClick={() => void confirmRemove()}
-            >
-              {busyId === toRemove?.linkId ? 'Desvinculando…' : 'Desvincular'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={toRemove !== null}
+        title="Desvincular aluno"
+        description={
+          <>
+            O vínculo corporativo de <strong>{toRemove?.student.nome}</strong> será encerrado.
+          </>
+        }
+        confirmLabel="Desvincular"
+        destructive
+        busy={busyId === toRemove?.linkId}
+        onConfirm={() => void confirmRemove()}
+        onCancel={() => setToRemove(null)}
+      />
     </div>
   );
 }

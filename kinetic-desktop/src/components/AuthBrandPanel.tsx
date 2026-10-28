@@ -32,7 +32,7 @@ export default function AuthBrandPanel({ contentKey, eyebrow, title, highlights 
         className="absolute inset-0 opacity-[0.35] [mask-image:radial-gradient(ellipse_at_top_left,black,transparent_70%)]"
         style={{
           backgroundImage:
-            'linear-gradient(var(--k-ghost) 1px, transparent 1px), linear-gradient(90deg, var(--k-ghost) 1px, transparent 1px)',
+            'linear-gradient(var(--color-k-ghost) 1px, transparent 1px), linear-gradient(90deg, var(--color-k-ghost) 1px, transparent 1px)',
           backgroundSize: '48px 48px',
         }}
       />

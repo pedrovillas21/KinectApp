@@ -44,6 +44,8 @@ import { dayMonth, monthLabel, shiftMonth, todayIso } from '../utils/dates';
 import { whatsappUrl } from '../utils/whatsapp';
 import { useAuth } from '../contexts/AuthContext';
 import type { ChargeStatus, PaymentMethod, StudentChargeItem } from '../types';
+import { errorMessage } from '../utils/errors';
+import { firstNameOf } from '../utils/names';
 
 const STATUS_META: Record<ChargeStatus, { label: string; className: string }> = {
   ATRASADO: { label: 'Atrasado', className: 'bg-k-alert/[0.14] text-k-alert' },
@@ -52,14 +54,9 @@ const STATUS_META: Record<ChargeStatus, { label: string; className: string }> = 
   CANCELADO: { label: 'Dispensado', className: 'bg-white/5 text-k-text-muted' },
 };
 
-const errorText = (err: unknown, fallback: string) => {
-  const data = (err as { response?: { data?: unknown } }).response?.data;
-  return typeof data === 'string' && data ? data : fallback;
-};
-
 /** Lembrete de cobrança pronto para o WhatsApp. */
 function reminderMessage(c: StudentChargeItem, pixKey: string | null, trainerFirstName?: string): string {
-  const first = c.studentName.trim().split(/\s+/)[0];
+  const first = firstNameOf(c.studentName);
   const hi = `Oi, ${first}!${trainerFirstName ? ` Aqui é ${trainerFirstName}.` : ''}`;
   const value = formatBRL(c.amountCents);
   const when =
@@ -74,7 +71,7 @@ type PlanTarget = { studentId: string; studentName: string; amountCents?: number
 
 export default function FinancePage() {
   const { currentUser } = useAuth();
-  const trainerFirstName = currentUser?.nome.trim().split(/\s+/)[0];
+  const trainerFirstName = (currentUser ? firstNameOf(currentUser.nome) : undefined);
   const [month, setMonth] = useState(() => todayIso().slice(0, 7));
   const financeQ = useQuery({ queryKey: qk.finance(month), queryFn: () => getFinance(month) });
   const data = financeQ.data ?? null;
@@ -104,7 +101,7 @@ export default function FinancePage() {
       toast.success(success);
       load();
     } catch (err) {
-      toast.error(errorText(err, failure));
+      toast.error(errorMessage(err, failure));
     } finally {
       setBusyId(null);
     }
@@ -125,11 +122,11 @@ export default function FinancePage() {
     setSavingPlan(true);
     try {
       await setStudentPlan(planTarget.studentId, planCents, planDayNum);
-      toast.success(`Mensalidade de ${planTarget.studentName.split(' ')[0]} salva`);
+      toast.success(`Mensalidade de ${firstNameOf(planTarget.studentName)} salva`);
       setPlanTarget(null);
       load();
     } catch (err) {
-      toast.error(errorText(err, 'Não foi possível salvar a mensalidade.'));
+      toast.error(errorMessage(err, 'Não foi possível salvar a mensalidade.'));
     } finally {
       setSavingPlan(false);
     }
@@ -140,11 +137,11 @@ export default function FinancePage() {
     setPaying(true);
     try {
       await payCharge(payTarget.id, payMethod, payDate);
-      toast.success(`Pagamento de ${payTarget.studentName.split(' ')[0]} registrado`);
+      toast.success(`Pagamento de ${firstNameOf(payTarget.studentName)} registrado`);
       setPayTarget(null);
       load();
     } catch (err) {
-      toast.error(errorText(err, 'Não foi possível registrar o pagamento.'));
+      toast.error(errorMessage(err, 'Não foi possível registrar o pagamento.'));
     } finally {
       setPaying(false);
     }
@@ -158,7 +155,7 @@ export default function FinancePage() {
       setPixDraft(null);
       load();
     } catch (err) {
-      toast.error(errorText(err, 'Não foi possível salvar a chave Pix.'));
+      toast.error(errorMessage(err, 'Não foi possível salvar a chave Pix.'));
     }
   };
 
@@ -358,7 +355,7 @@ export default function FinancePage() {
 
       <FormDialog
         open={!!planTarget}
-        title={`Mensalidade de ${planTarget?.studentName.split(' ')[0] ?? ''}`}
+        title={`Mensalidade de ${(planTarget ? firstNameOf(planTarget.studentName) : '')}`}
         description="As cobranças são criadas todo mês com este valor. Mudar o valor ajusta as cobranças em aberto a partir deste mês."
         submitLabel="Salvar mensalidade"
         busy={savingPlan}
@@ -442,7 +439,7 @@ export default function FinancePage() {
 
       <ConfirmDialog
         open={!!removeTarget}
-        title={`Encerrar a mensalidade de ${removeTarget?.studentName.split(' ')[0] ?? ''}?`}
+        title={`Encerrar a mensalidade de ${(removeTarget ? firstNameOf(removeTarget.studentName) : '')}?`}
         description="Novas cobranças deixam de ser criadas e as que ainda não venceram são canceladas. Cobranças atrasadas continuam na lista."
         confirmLabel="Encerrar mensalidade"
         destructive

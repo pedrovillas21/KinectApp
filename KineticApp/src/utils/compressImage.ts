@@ -22,3 +22,14 @@ export async function compressImage(uri: string): Promise<string> {
     return uri;
   }
 }
+
+/** Foto reduzida e embrulhada no campo "file" de um multipart (upload de post, story e avatar). */
+export async function imageFormData(originalUri: string): Promise<FormData> {
+  const uri = await compressImage(originalUri);
+  const name = uri.split('/').pop() ?? `${Date.now()}.jpg`;
+  const ext = (/\.(\w+)$/.exec(name)?.[1] ?? 'jpg').toLowerCase();
+  const type = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
+  const form = new FormData();
+  form.append('file', { uri, name, type } as any);
+  return form;
+}

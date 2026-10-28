@@ -40,6 +40,7 @@ class TrainerEngagementPauseTest {
         when(users.getByEmailOrThrow(trainer.getEmail())).thenReturn(trainer);
         when(links.findByTrainerIdAndStudentIdAndStatus(trainer.getId(), studentId, TrainerLinkStatus.ATIVO))
                 .thenReturn(Optional.of(link));
+        when(links.getActiveLink(trainer.getId(), studentId)).thenCallRealMethod();
 
         AlertPauseRequestDTO request = new AlertPauseRequestDTO();
         request.setReason(AlertPauseReason.LESAO);

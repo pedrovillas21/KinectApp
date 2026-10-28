@@ -105,13 +105,17 @@ export default function AiPlanPreview({
   const setCount = plans.reduce((sum, p) => sum + totalSets(p.input), 0);
   const fichas = plans.length === 1 ? 'a ficha' : `as ${plans.length} fichas`;
 
-  const progressText = allReviewed
-    ? agreed
-      ? `Tudo pronto. ${plans.length === 1 ? 'A ficha vai' : 'As fichas vão'} para o app assim que você aprovar.`
-      : `${plans.length === 1 ? 'A ficha foi revisada' : `As ${plans.length} fichas foram revisadas`}. Confirme a declaração para liberar.`
-    : `${reviewedCount} de ${plans.length} ${plans.length === 1 ? 'ficha revisada' : 'fichas revisadas'}. Revise ${
-        plans.length === 1 ? 'a ficha' : 'todas'
-      } para liberar a aprovação.`;
+  const single = plans.length === 1;
+  let progressText: string;
+  if (!allReviewed) {
+    progressText = `${reviewedCount} de ${plans.length} ${single ? 'ficha revisada' : 'fichas revisadas'}. Revise ${
+      single ? 'a ficha' : 'todas'
+    } para liberar a aprovação.`;
+  } else if (!agreed) {
+    progressText = `${single ? 'A ficha foi revisada' : `As ${plans.length} fichas foram revisadas`}. Confirme a declaração para liberar.`;
+  } else {
+    progressText = `Tudo pronto. ${single ? 'A ficha vai' : 'As fichas vão'} para o app assim que você aprovar.`;
+  }
 
   const approveButton = () => (
     <motion.button

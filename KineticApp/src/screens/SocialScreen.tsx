@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -15,12 +15,12 @@ import { Text, UnderlineTabs } from '../components/ui';
 import { AuthContext } from '../contexts/AuthContext';
 import useSquadStatus from '../hooks/useSquadStatus';
 import useFocusResource from '../hooks/useFocusResource';
+import usePaged from '../hooks/usePaged';
 import { getPublicProfile } from '../services/profileService';
 import api from '../services/api';
 import {
   getFeed,
   getPendingRequests,
-  getSquad,
   getStories,
   getUserPosts,
   likePost,
@@ -28,7 +28,7 @@ import {
 } from '../services/socialService';
 import { KINETIC, RADIUS } from '../theme/kinetic';
 import type { MainTabScreenProps } from '../navigation/types';
-import type { FeedPostData, HomeDashboardResponseDTO, RankingEntryDTO, SquadMember, StoryGroup } from '../types';
+import type { FeedPostData, HomeDashboardResponseDTO, RankingEntryDTO, StoryGroup } from '../types';
 
 type SocialTab = 'following' | 'arena' | 'mine';
 
@@ -37,6 +37,8 @@ const TABS: { key: SocialTab; label: string }[] = [
   { key: 'arena', label: 'Arena' },
   { key: 'mine', label: 'Você' },
 ];
+
+const fetchFeedPage = (page: number) => getFeed(page, 10);
 
 function HeaderButton({ icon, label, onPress, badge }: { icon: IconName; label: string; onPress: () => void; badge?: boolean }) {
   return (
@@ -55,13 +57,10 @@ export default function SocialScreen({ navigation, route }: MainTabScreenProps<'
 
   const [tab, setTab] = useState<SocialTab>('following');
 
-  // Seguindo
-  const [feed, setFeed] = useState<FeedPostData[]>([]);
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [loadingFeed, setLoadingFeed] = useState(false);
+  // Seguindo: falha ao recarregar mantém o feed que já está na tela.
+  const feed = usePaged(fetchFeedPage, undefined, { keepOnError: true });
+  const squad = useSquadStatus();
   const [refreshing, setRefreshing] = useState(false);
-  const [squadMembers, setSquadMembers] = useState<SquadMember[]>([]);
   const [storyGroups, setStoryGroups] = useState<StoryGroup[]>([]);
   const [pendingCount, setPendingCount] = useState(0);
 
@@ -76,32 +75,6 @@ export default function SocialScreen({ navigation, route }: MainTabScreenProps<'
   const [showNewStory, setShowNewStory] = useState(false);
   const [storyViewerIndex, setStoryViewerIndex] = useState<number | null>(null);
 
-  const liveSquad = useSquadStatus();
-  const loadingFeedRef = useRef(false);
-
-  // Prefer live polling data once available, seed from initial REST load
-  useEffect(() => {
-    if (liveSquad.length > 0) setSquadMembers(liveSquad);
-  }, [liveSquad]);
-
-  const loadFeedPage = useCallback(async (pageNum: number, reset = false) => {
-    if (loadingFeedRef.current && !reset) return;
-    loadingFeedRef.current = true;
-    setLoadingFeed(true);
-    try {
-      const data = await getFeed(pageNum, 10);
-      setFeed((prev) => (reset ? data.content : [...prev, ...data.content]));
-      setPage(pageNum);
-      setHasMore(!data.last);
-    } catch {
-      // mantém o que já estava na tela
-    } finally {
-      loadingFeedRef.current = false;
-      setLoadingFeed(false);
-    }
-  }, []);
-
-  const loadSquad = useCallback(() => getSquad().then(setSquadMembers).catch(() => {}), []);
   const loadStories = useCallback(() => getStories().then(setStoryGroups).catch(() => {}), []);
   const loadPending = useCallback(
     () => getPendingRequests().then((r) => setPendingCount(r.length)).catch(() => {}),
@@ -122,51 +95,47 @@ export default function SocialScreen({ navigation, route }: MainTabScreenProps<'
       .catch(() => setMyPosts([]));
   }, [myId]);
 
+  const reloadFeed = feed.reload;
   useEffect(() => {
-    loadFeedPage(0, true);
-    loadSquad();
+    reloadFeed();
     loadStories();
     loadPending();
-  }, [loadFeedPage, loadSquad, loadStories, loadPending]);
+  }, [reloadFeed, loadStories, loadPending]);
 
   // Volta de "Nova publicação" com um post novo: a aba já montada recarrega o feed.
   const refreshAt = route.params?.refreshAt;
   useEffect(() => {
-    if (refreshAt) loadFeedPage(0, true);
-  }, [refreshAt, loadFeedPage]);
+    if (refreshAt) reloadFeed();
+  }, [refreshAt, reloadFeed]);
 
   useEffect(() => {
     if (tab === 'arena' && ranking === null) loadRanking();
     if (tab === 'mine' && myPosts === null) loadMyPosts();
   }, [tab, ranking, myPosts, loadRanking, loadMyPosts]);
 
-  const handleRefresh = useCallback(async () => {
+  const handleRefresh = async () => {
     setRefreshing(true);
     if (tab === 'following') {
-      await Promise.all([loadFeedPage(0, true), loadSquad(), loadStories(), loadPending()]);
+      await Promise.all([reloadFeed(), squad.refresh(), loadStories(), loadPending()]);
     } else if (tab === 'arena') {
       await loadRanking();
     } else {
       await loadMyPosts();
     }
     setRefreshing(false);
-  }, [tab, loadFeedPage, loadSquad, loadStories, loadPending, loadRanking, loadMyPosts]);
-
-  const handleEndReached = useCallback(() => {
-    if (!loadingFeedRef.current && hasMore) loadFeedPage(page + 1);
-  }, [hasMore, page, loadFeedPage]);
+  };
 
   const handleToggleLike = (postId: string, liked: boolean): Promise<number> =>
     liked ? likePost(postId) : unlikePost(postId);
 
   const handleCommentsCountChange = (postId: string, count: number) => {
     const update = (list: FeedPostData[]) => list.map((p) => (p.id === postId ? { ...p, commentsCount: count } : p));
-    setFeed(update);
+    feed.update(update);
     setMyPosts((prev) => (prev ? update(prev) : prev));
   };
 
   const handleNewPost = (post: FeedPostData) => {
-    setFeed((prev) => [post, ...prev]);
+    feed.update((prev) => [post, ...prev]);
     setMyPosts((prev) => (prev ? [post, ...prev] : prev));
   };
 
@@ -187,9 +156,9 @@ export default function SocialScreen({ navigation, route }: MainTabScreenProps<'
   };
 
   const handleInviteChanged = () => {
-    loadSquad();
+    squad.refresh();
     loadPending();
-    loadFeedPage(0, true);
+    reloadFeed();
     setRanking(null);
   };
 
@@ -205,6 +174,82 @@ export default function SocialScreen({ navigation, route }: MainTabScreenProps<'
       onPressAuthor={openProfile}
     />
   );
+
+  const renderTab = () => {
+    switch (tab) {
+      case 'following':
+        return (
+          <FlatList
+            data={feed.items}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.listContent}
+            ListHeaderComponent={
+              <SquadBar
+                items={squad.members}
+                me={myId ? { id: myId, nome: currentUser?.nome ?? '', avatarUrl: myProfile.data?.avatarUrl } : null}
+                storyUserIds={storyGroups.map((g) => g.userId)}
+                onAddStory={() => setShowNewStory(true)}
+                onOpenStory={openStory}
+                onMemberPress={(m) => openProfile(m.id)}
+              />
+            }
+            renderItem={renderPost}
+            onEndReached={feed.loadMore}
+            onEndReachedThreshold={0.4}
+            refreshControl={refreshControl}
+            ListEmptyComponent={
+              !feed.loading ? (
+                <View style={styles.empty}>
+                  <Text variant="bodyStrong">Sem posts ainda</Text>
+                  <Text variant="body" color={KINETIC.textSecondary} style={styles.center}>
+                    Adicione amigos e veja os treinos deles aqui.
+                  </Text>
+                </View>
+              ) : undefined
+            }
+            ListFooterComponent={
+              feed.loading && feed.items.length > 0 ? (
+                <ActivityIndicator color={KINETIC.primary} style={styles.loader} />
+              ) : undefined
+            }
+          />
+        );
+      case 'arena':
+        return (
+          <ScrollView contentContainerStyle={styles.listContent} refreshControl={refreshControl}>
+            {ranking === null ? (
+              <ActivityIndicator color={KINETIC.primary} style={styles.loader} />
+            ) : (
+              <ArenaRanking entries={ranking} onPressUser={openProfile} />
+            )}
+          </ScrollView>
+        );
+      case 'mine':
+        return (
+          <FlatList
+            data={myPosts ?? []}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.listContent}
+            renderItem={renderPost}
+            refreshControl={refreshControl}
+            ListEmptyComponent={
+              myPosts === null ? (
+                <ActivityIndicator color={KINETIC.primary} style={styles.loader} />
+              ) : (
+                <View style={styles.empty}>
+                  <Text variant="bodyStrong">Você ainda não publicou</Text>
+                  <Text variant="body" color={KINETIC.textSecondary} style={styles.center}>
+                    Compartilhe um treino com seus amigos.
+                  </Text>
+                </View>
+              )
+            }
+          />
+        );
+    }
+  };
 
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={styles.container}>
@@ -229,70 +274,7 @@ export default function SocialScreen({ navigation, route }: MainTabScreenProps<'
 
       <UnderlineTabs tabs={TABS} value={tab} onChange={setTab} />
 
-      {tab === 'following' ? (
-        <FlatList
-          data={feed}
-          keyExtractor={(item) => item.id}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContent}
-          ListHeaderComponent={
-            <SquadBar
-              items={squadMembers}
-              me={myId ? { id: myId, nome: currentUser?.nome ?? '', avatarUrl: myProfile.data?.avatarUrl } : null}
-              storyUserIds={storyGroups.map((g) => g.userId)}
-              onAddStory={() => setShowNewStory(true)}
-              onOpenStory={openStory}
-              onMemberPress={(m) => openProfile(m.id)}
-            />
-          }
-          renderItem={renderPost}
-          onEndReached={handleEndReached}
-          onEndReachedThreshold={0.4}
-          refreshControl={refreshControl}
-          ListEmptyComponent={
-            !loadingFeed ? (
-              <View style={styles.empty}>
-                <Text variant="bodyStrong">Sem posts ainda</Text>
-                <Text variant="body" color={KINETIC.textSecondary} style={styles.center}>
-                  Adicione amigos e veja os treinos deles aqui.
-                </Text>
-              </View>
-            ) : null
-          }
-          ListFooterComponent={
-            loadingFeed && feed.length > 0 ? <ActivityIndicator color={KINETIC.primary} style={styles.loader} /> : null
-          }
-        />
-      ) : tab === 'arena' ? (
-        <ScrollView contentContainerStyle={styles.listContent} refreshControl={refreshControl}>
-          {ranking === null ? (
-            <ActivityIndicator color={KINETIC.primary} style={styles.loader} />
-          ) : (
-            <ArenaRanking entries={ranking} onPressUser={openProfile} />
-          )}
-        </ScrollView>
-      ) : (
-        <FlatList
-          data={myPosts ?? []}
-          keyExtractor={(item) => item.id}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContent}
-          renderItem={renderPost}
-          refreshControl={refreshControl}
-          ListEmptyComponent={
-            myPosts === null ? (
-              <ActivityIndicator color={KINETIC.primary} style={styles.loader} />
-            ) : (
-              <View style={styles.empty}>
-                <Text variant="bodyStrong">Você ainda não publicou</Text>
-                <Text variant="body" color={KINETIC.textSecondary} style={styles.center}>
-                  Compartilhe um treino com seus amigos.
-                </Text>
-              </View>
-            )
-          }
-        />
-      )}
+      {renderTab()}
 
       {tab !== 'arena' ? (
         <Pressable

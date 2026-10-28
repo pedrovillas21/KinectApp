@@ -18,6 +18,8 @@ export const queryClient = new QueryClient({
 
 /** Tudo do personal fica sob ['trainer']: uma invalidação recarrega só o que está na tela. */
 export const qk = {
+  /** Celular da própria conta: fora de ['trainer'], muda só pelo PhoneDialog. */
+  myPhone: ['me', 'phone'] as const,
   trainer: ['trainer'] as const,
   students: ['trainer', 'students'] as const,
   monthlyStats: ['trainer', 'monthly-stats'] as const,

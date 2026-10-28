@@ -34,3 +34,15 @@ export function todayIso(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
+
+/** Data/hora do backend ("2026-10-10T14:30:00") → "10/10/2026". */
+export const dateLabel = (iso: string): string =>
+  new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+/** Instante do backend → "10 de outubro"; null → "". */
+export const dayMonthLong = (iso: string | null): string =>
+  iso ? new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' }) : '';
+
+/** Dias inteiros até `iso` (0 = hoje ou já passou). */
+export const daysUntil = (iso: string | null): number =>
+  iso ? Math.max(0, Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000)) : 0;

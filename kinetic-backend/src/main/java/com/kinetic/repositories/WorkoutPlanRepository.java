@@ -18,12 +18,6 @@ import java.util.UUID;
 public interface WorkoutPlanRepository extends JpaRepository<WorkoutPlan, UUID> {
 
     @EntityGraph(attributePaths = "exercises")
-    List<WorkoutPlan> findByUserId(UUID userId);
-
-    @EntityGraph(attributePaths = "exercises")
-    List<WorkoutPlan> findByUserIdOrderByCreatedAtAsc(UUID userId);
-
-    @EntityGraph(attributePaths = "exercises")
     List<WorkoutPlan> findByUserIdAndStatus(UUID userId, String status);
 
     @EntityGraph(attributePaths = "exercises")

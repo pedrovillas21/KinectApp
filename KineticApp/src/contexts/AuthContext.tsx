@@ -19,7 +19,6 @@ import {
   setTokens,
   migrateLegacyTokens,
 } from '../services/tokenStorage';
-import { isJwtExpired } from '../utils/jwt';
 
 const USER_KEY = '@kinetic_user';
 const REMEMBERED_USER_KEY = '@kinetic_remembered_user';
@@ -36,6 +35,8 @@ export interface KineticUser {
   // Aceitou a versão vigente dos Termos/Política? false: o roteamento barra o app até o
   // aceite (TermsRequiredScreen). Ausente em cache antigo: conferido no backend ao destravar.
   termsAccepted?: boolean;
+  // "Já possuo treino" no onboarding: libera o app sem objetivo/nível (só neste aparelho).
+  onboardingSkipped?: boolean;
   level: string | null;
   birthDate: string | null;
   weight: number | null;
@@ -48,26 +49,9 @@ export interface RememberedUser {
   id: string | number;
   nome: string;
   email: string;
-  streak?: number;
-}
-
-export interface WorkoutPlanItem {
-  id: string;
-  title: string;
-  subtitle?: string | null;
-  tag?: string | null;
-  level?: string | null;
-  estimatedDurationMinutes?: number | null;
-  estimatedTotalVolumeKg?: number | null;
-  lastCompletedAt?: string | null;
-  createdAt?: string | null;
-  // Nome do personal que montou a ficha; null/ausente = gerada por IA.
-  prescribedByName?: string | null;
-  data: unknown[];
 }
 
 interface CompleteOnboardingData {
-  workoutPlans?: WorkoutPlanItem[];
   level?: string;
   birthDate?: string;
   weight?: number;
@@ -89,8 +73,6 @@ interface AuthContextValue {
   // True logo após um logout explícito — leva o roteamento direto ao Login (em vez do
   // card de usuário persistente ou da tela de boas-vindas). Resetado ao logar de novo.
   justLoggedOut: boolean;
-  workoutPlans: WorkoutPlanItem[];
-  setWorkoutPlans: (plans: WorkoutPlanItem[]) => void;
   signIn: (args: { email: string; password: string }) => Promise<AuthResult>;
   signOut: () => Promise<void>;
   unlockSession: () => Promise<void>;
@@ -102,6 +84,7 @@ interface AuthContextValue {
     phone: string;
   }) => Promise<AuthResult>;
   completeOnboarding: (data: CompleteOnboardingData) => Promise<void>;
+  skipOnboarding: () => Promise<void>;
   confirmEmail: (email: string, code: string) => Promise<AuthResult>;
   resendConfirmation: (email: string) => Promise<AuthResult>;
   requestPasswordReset: (email: string) => Promise<AuthResult>;
@@ -118,6 +101,12 @@ interface AuthContextValue {
   acceptTerms: () => Promise<AuthResult>;
 }
 
+/** Texto de erro devolvido pela API (o backend responde a mensagem no corpo) ou o fallback. */
+function apiErrorMessage(e: unknown, fallback: string): string {
+  const message = (e as { response?: { data?: unknown } }).response?.data || fallback;
+  return typeof message === 'string' ? message : JSON.stringify(message);
+}
+
 // ─── Context ──────────────────────────────────────────────────────────────────
 
 export const AuthContext = createContext<AuthContextValue>(
@@ -129,24 +118,23 @@ export const AuthContext = createContext<AuthContextValue>(
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<KineticUser | null>(null);
   const [rememberedUser, setRememberedUser] = useState<RememberedUser | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hasOnboarded, setHasOnboarded] = useState(false);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
-  const [workoutPlans, setWorkoutPlans] = useState<WorkoutPlanItem[]>([]);
   const [justLoggedOut, setJustLoggedOut] = useState(false);
+  const isLoggedIn = currentUser !== null;
 
   const isOnboardedFromUser = (user: KineticUser | null): boolean => {
     if (!user) return false;
-    return Boolean(user.goal) && Boolean(user.level);
+    return Boolean(user.onboardingSkipped) || (Boolean(user.goal) && Boolean(user.level));
   };
 
-  const fetchExistingPlans = async (): Promise<WorkoutPlanItem[]> => {
+  // Sem objetivo/nível salvos, mas com ficha (ex.: montada pelo personal): o onboarding já não se aplica.
+  const markOnboardedIfHasPlans = async (): Promise<void> => {
     try {
-      const res = await api.get<WorkoutPlanItem[]>('/workouts/my-plans');
-      return Array.isArray(res.data) ? res.data : [];
+      const res = await api.get<unknown[]>('/workouts/my-plans');
+      if (Array.isArray(res.data) && res.data.length > 0) setHasOnboarded(true);
     } catch (e) {
       console.warn('Falha ao verificar treinos existentes:', e);
-      return [];
     }
   };
 
@@ -206,18 +194,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await AsyncStorage.setItem(USER_KEY, JSON.stringify(user));
       setCurrentUser(user);
       setJustLoggedOut(false);
-      setIsLoggedIn(true);
 
       const localOnboarded = isOnboardedFromUser(user);
       setHasOnboarded(localOnboarded);
-
-      if (!localOnboarded) {
-        const plans = await fetchExistingPlans();
-        if (plans.length > 0) {
-          setWorkoutPlans(plans);
-          setHasOnboarded(true);
-        }
-      }
+      if (!localOnboarded) await markOnboardedIfHasPlans();
     } catch (e) {
       console.error('Erro ao desbloquear sessão:', e);
       await forgetRememberedUser();
@@ -236,9 +216,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setRememberedUser(null);
       setCurrentUser(null);
-      setIsLoggedIn(false);
       setHasOnboarded(false);
-      setWorkoutPlans([]);
     }
   };
 
@@ -268,12 +246,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       return { success: true };
     } catch (e: unknown) {
-      const err = e as { response?: { data?: unknown } };
-      const message = err.response?.data || 'Erro ao cadastrar. Tente novamente.';
-      return {
-        success: false,
-        error: typeof message === 'string' ? message : JSON.stringify(message),
-      };
+      return { success: false, error: apiErrorMessage(e, 'Erro ao cadastrar. Tente novamente.') };
     }
   };
 
@@ -349,18 +322,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setCurrentUser(userPayload);
       setRememberedUser(remembered);
       setJustLoggedOut(false);
-      setIsLoggedIn(true);
 
       const localOnboarded = isOnboardedFromUser(userPayload);
       setHasOnboarded(localOnboarded);
-
-      if (!localOnboarded) {
-        const plans = await fetchExistingPlans();
-        if (plans.length > 0) {
-          setWorkoutPlans(plans);
-          setHasOnboarded(true);
-        }
-      }
+      if (!localOnboarded) await markOnboardedIfHasPlans();
 
       return { success: true };
     } catch (e: unknown) {
@@ -394,12 +359,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await api.post('/auth/confirm-email', { email: email.trim(), code });
       return { success: true };
     } catch (e: unknown) {
-      const err = e as { response?: { data?: unknown } };
-      const message = err.response?.data || 'Não foi possível confirmar o e-mail.';
-      return {
-        success: false,
-        error: typeof message === 'string' ? message : JSON.stringify(message),
-      };
+      return { success: false, error: apiErrorMessage(e, 'Não foi possível confirmar o e-mail.') };
     }
   };
 
@@ -409,12 +369,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await api.post('/auth/resend-confirmation', { email: email.trim() });
       return { success: true };
     } catch (e: unknown) {
-      const err = e as { response?: { data?: unknown } };
-      const message = err.response?.data || 'Não foi possível reenviar o código. Tente novamente.';
-      return {
-        success: false,
-        error: typeof message === 'string' ? message : JSON.stringify(message),
-      };
+      return { success: false, error: apiErrorMessage(e, 'Não foi possível reenviar o código. Tente novamente.') };
     }
   };
 
@@ -432,14 +387,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (e) {
       console.error('Erro ao limpar sessão do storage:', e);
     } finally {
-      setCurrentUser(null);
-      setRememberedUser(null);
-      // Marca antes de derrubar isLoggedIn para que o roteamento já monte a auth stack
+      // Junto com o currentUser nulo (isLoggedIn false): o roteamento já monta a auth stack
       // direto no Login (e não no card de usuário persistente / Welcome).
       setJustLoggedOut(true);
-      setIsLoggedIn(false);
+      setCurrentUser(null);
+      setRememberedUser(null);
       setHasOnboarded(false);
-      setWorkoutPlans([]);
     }
   }, []);
 
@@ -462,10 +415,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   ): Promise<void> => {
     if (!currentUser) return;
 
-    if (Array.isArray(data?.workoutPlans)) {
-      setWorkoutPlans(data.workoutPlans);
-    }
-
     const profileFields: (keyof CompleteOnboardingData)[] = [
       'level',
       'birthDate',
@@ -487,18 +436,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setHasOnboarded(isOnboardedFromUser(updatedUser));
   };
 
+  // "Já possuo treino": sai do onboarding sem gerar ficha (o card da Home continua oferecendo).
+  const skipOnboarding = async (): Promise<void> => {
+    if (!currentUser) return;
+    const updatedUser: KineticUser = { ...currentUser, onboardingSkipped: true };
+    setCurrentUser(updatedUser);
+    await AsyncStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
+    setHasOnboarded(true);
+  };
+
   // O backend responde igual exista a conta ou não; só falha por rede ou e-mail malformado.
   const requestPasswordReset = async (email: string): Promise<AuthResult> => {
     try {
       await api.post('/auth/forgot-password', { email: email.trim() });
       return { success: true };
     } catch (e: unknown) {
-      const err = e as { response?: { data?: unknown } };
-      const message = err.response?.data || 'Não foi possível enviar o código. Tente novamente.';
-      return {
-        success: false,
-        error: typeof message === 'string' ? message : JSON.stringify(message),
-      };
+      return { success: false, error: apiErrorMessage(e, 'Não foi possível enviar o código. Tente novamente.') };
     }
   };
 
@@ -515,12 +468,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       return { success: true };
     } catch (e: unknown) {
-      const err = e as { response?: { data?: unknown } };
-      const message = err.response?.data || 'Erro ao redefinir a senha.';
-      return {
-        success: false,
-        error: typeof message === 'string' ? message : JSON.stringify(message),
-      };
+      return { success: false, error: apiErrorMessage(e, 'Erro ao redefinir a senha.') };
     }
   };
 
@@ -532,12 +480,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await api.post('/users/change-password', { currentPassword, newPassword });
       return { success: true };
     } catch (e: unknown) {
-      const err = e as { response?: { data?: unknown } };
-      const message = err.response?.data || 'Erro ao alterar a senha.';
-      return {
-        success: false,
-        error: typeof message === 'string' ? message : JSON.stringify(message),
-      };
+      return { success: false, error: apiErrorMessage(e, 'Erro ao alterar a senha.') };
     }
   };
 
@@ -551,13 +494,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Sem celular o backend barra /workouts/my-plans (PHONE_REQUIRED), então a checagem
       // de fichas existentes feita no login falhou; refaz antes de liberar o roteamento
       // para não cair no onboarding à toa.
-      if (!hasOnboarded) {
-        const plans = await fetchExistingPlans();
-        if (plans.length > 0) {
-          setWorkoutPlans(plans);
-          setHasOnboarded(true);
-        }
-      }
+      if (!hasOnboarded) await markOnboardedIfHasPlans();
 
       await AsyncStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
       setCurrentUser(updatedUser);
@@ -578,13 +515,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await api.post('/users/me/terms-acceptance');
       const updatedUser: KineticUser = { ...currentUser, termsAccepted: true };
       // Como no celular: sem o aceite o backend barrou /workouts/my-plans no login.
-      if (!hasOnboarded) {
-        const plans = await fetchExistingPlans();
-        if (plans.length > 0) {
-          setWorkoutPlans(plans);
-          setHasOnboarded(true);
-        }
-      }
+      if (!hasOnboarded) await markOnboardedIfHasPlans();
       await AsyncStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
       setCurrentUser(updatedUser);
       return { success: true };
@@ -602,14 +533,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         rememberedUser,
         isLoadingAuth,
         justLoggedOut,
-        workoutPlans,
-        setWorkoutPlans,
         signIn,
         signOut,
         unlockSession,
         forgetRememberedUser,
         register,
         completeOnboarding,
+        skipOnboarding,
         confirmEmail,
         resendConfirmation,
         requestPasswordReset,

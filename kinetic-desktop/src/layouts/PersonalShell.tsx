@@ -1,19 +1,20 @@
 import { useEffect } from 'react';
-import { Link, NavLink, Outlet, useOutletContext } from 'react-router-dom';
+import { Link, NavLink, Outlet } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { CreditCard, IdCard, LayoutDashboard, LogOut, Wallet, type LucideIcon } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import KineticLogo from '../components/KineticLogo';
 import Avatar from '../components/Avatar';
-import { aiTotalLimit, daysUntil, getBilling } from '../services/billingService';
+import { aiTotalLimit, getBilling } from '../services/billingService';
+import { daysUntil } from '../utils/dates';
 import { getMyTrainerProfile } from '../services/trainerProfileService';
 import { qk } from '../services/queryClient';
 import { useAiDrafts, type AiDraft } from '../components/personal/ai/aiDraftStore';
 import type { BillingOverview } from '../types';
 import MobileNav, { InstallAppButton } from './MobileNav';
 
-const NAV: { label: string; to: string; icon: LucideIcon }[] = [
-  { label: 'Visão geral', to: '/students', icon: LayoutDashboard },
+const NAV: { label: string; shortLabel?: string; to: string; icon: LucideIcon }[] = [
+  { label: 'Visão geral', shortLabel: 'Início', to: '/students', icon: LayoutDashboard },
   { label: 'Financeiro', to: '/financeiro', icon: Wallet },
   { label: 'Meu plano', to: '/assinatura', icon: CreditCard },
   { label: 'Meu perfil', to: '/perfil', icon: IdCard },
@@ -25,9 +26,6 @@ const NAV: { label: string; to: string; icon: LucideIcon }[] = [
  * No celular a barra lateral vira barra inferior + gaveta (MobileNav).
  */
 export default function PersonalShell() {
-  // Repassa o contexto do PhoneGate (celular do personal) para as telas.
-  const outlet = useOutletContext();
-
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-k-bg text-k-text md:flex-row">
       <aside className="hidden w-[232px] shrink-0 flex-col gap-6 border-r border-white/[0.07] bg-[#161616] px-3 py-5 md:flex">
@@ -35,7 +33,7 @@ export default function PersonalShell() {
       </aside>
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <Outlet context={outlet} />
+        <Outlet />
       </div>
 
       <MobileNav tabs={TABS} drawer={<SidebarContent />} />
@@ -43,7 +41,7 @@ export default function PersonalShell() {
   );
 }
 
-const TABS = NAV.map(({ label, to, icon }) => ({ label: label === 'Visão geral' ? 'Início' : label, to, icon }));
+const TABS = NAV.map(({ label, shortLabel, to, icon }) => ({ label: shortLabel ?? label, to, icon }));
 
 /** Marca, navegação, fichas com IA em andamento, uso do plano e conta: barra lateral e gaveta do celular. */
 function SidebarContent() {

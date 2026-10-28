@@ -1,5 +1,6 @@
 package com.kinetic.services;
 
+import lombok.RequiredArgsConstructor;
 import com.kinetic.dtos.AccountExportDTO;
 import com.kinetic.dtos.AccountExportDTO.*;
 import com.kinetic.enums.TrainerLinkStatus;
@@ -25,18 +26,16 @@ import java.util.stream.Collectors;
  * relacionamentos necessários em JOIN FETCH para não cair em N+1.
  */
 @Service
+@RequiredArgsConstructor
 public class DataExportService {
 
-    static final int FORMAT_VERSION = 1;
+    /** 2: a ficha e a hora vão na própria sessão; saiu a lista workoutExecutionLogs. */
+    static final int FORMAT_VERSION = 2;
 
     @PersistenceContext
     private EntityManager em;
 
     private final UserRepository userRepository;
-
-    public DataExportService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     @Transactional(readOnly = true)
     public AccountExportDTO export(String userEmail) {
@@ -52,11 +51,6 @@ public class DataExportService {
                 list("SELECT s.loginDate FROM UserLoginStreak s WHERE s.user.id = :id ORDER BY s.loginDate", LocalDate.class, id),
                 plans(id),
                 sessions(id),
-                list("SELECT l FROM WorkoutExecutionLog l JOIN FETCH l.workoutPlan WHERE l.user.id = :id ORDER BY l.completionDate",
-                        WorkoutExecutionLog.class, id).stream()
-                        .map(l -> new ExecutionLog(l.getWorkoutPlan().getId(), l.getWorkoutPlan().getTitle(),
-                                l.getCompletionDate(), l.getDurationMinutes()))
-                        .toList(),
                 list("SELECT c FROM PlanCycleSnapshot c WHERE c.user.id = :id ORDER BY c.cycleStartDate",
                         PlanCycleSnapshot.class, id).stream()
                         .map(c -> new CycleSnapshot(c.getCycleStartDate(), c.getCycleEndDate(), c.getGoal(),
@@ -117,9 +111,12 @@ public class DataExportService {
                                 l.getRepsPerformed(), l.getWeightUsed(), l.getLoggedAt()),
                         Collectors.toList())));
 
-        return list("SELECT s FROM WorkoutSession s WHERE s.user.id = :id ORDER BY s.sessionDate",
+        return list("SELECT s FROM WorkoutSession s LEFT JOIN FETCH s.workoutPlan WHERE s.user.id = :id "
+                        + "ORDER BY s.sessionDate, s.createdAt",
                 WorkoutSession.class, id).stream()
-                .map(s -> new Session(s.getId(), s.getSessionDate(), s.getDurationInSeconds(),
+                .map(s -> new Session(s.getId(), s.getSessionDate(), s.getCreatedAt(), s.getDurationInSeconds(),
+                        s.getWorkoutPlan() != null ? s.getWorkoutPlan().getId() : null,
+                        s.getWorkoutPlan() != null ? s.getWorkoutPlan().getTitle() : null,
                         setsBySession.getOrDefault(s.getId(), List.of())))
                 .toList();
     }

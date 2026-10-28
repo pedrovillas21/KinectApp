@@ -13,29 +13,10 @@ import {
 import { EmptyCard } from './stat-primitives';
 import { useIsMobile } from '../utils/useIsMobile';
 import type { EmpresaAnalytics } from '../types';
-
-const CHART = {
-  mark: '#00a5b8', // série validada (dataviz) para dark
-  grid: 'rgba(255,255,255,0.06)',
-  tick: 'rgba(245, 246, 247, 0.36)',
-} as const;
-
-const tooltipStyle = {
-  background: '#1c1b1b',
-  border: '1px solid rgba(255,255,255,0.08)',
-  borderRadius: '12px',
-  fontSize: '12px',
-  color: '#f5f6f7',
-  padding: '8px 12px',
-} as const;
+import { dayMonth } from '../utils/dates';
+import { CHART, chartTooltipStyle } from './chart-theme';
 
 const nf = new Intl.NumberFormat('pt-BR');
-
-const shortDate = (iso: string): string => {
-  const d = new Date(`${iso}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return iso;
-  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
-};
 
 /** Volume de treinos da unidade (sessões por dia). Série única. */
 export function VolumeLineChart({ series }: { series: EmpresaAnalytics['volumeSeries'] }) {
@@ -43,7 +24,7 @@ export function VolumeLineChart({ series }: { series: EmpresaAnalytics['volumeSe
   if (series.length === 0) {
     return <EmptyCard>Nenhuma sessão de treino registrada pelos alunos no período.</EmptyCard>;
   }
-  const data = series.map((p) => ({ date: shortDate(p.date), sessoes: p.sessions }));
+  const data = series.map((p) => ({ date: dayMonth(p.date), sessoes: p.sessions }));
   return (
     <ResponsiveContainer width="100%" height={mobile ? 200 : 240}>
       <LineChart
@@ -64,7 +45,7 @@ export function VolumeLineChart({ series }: { series: EmpresaAnalytics['volumeSe
           axisLine={false}
           tickLine={false}
         />
-        <Tooltip contentStyle={tooltipStyle} formatter={(v) => [nf.format(Number(v)), 'Sessões']} />
+        <Tooltip contentStyle={chartTooltipStyle} formatter={(v) => [nf.format(Number(v)), 'Sessões']} />
         <Line
           type="monotone"
           dataKey="sessoes"
@@ -107,7 +88,7 @@ export function InstructorBarChart({ data }: { data: EmpresaAnalytics['desempenh
         />
         <Tooltip
           cursor={{ fill: 'rgba(255,255,255,0.02)' }}
-          contentStyle={tooltipStyle}
+          contentStyle={chartTooltipStyle}
           formatter={(v) => [nf.format(Number(v)), 'Alunos ativos']}
         />
         <Bar dataKey="alunos" fill={CHART.mark} barSize={16} radius={[0, 4, 4, 0]}>

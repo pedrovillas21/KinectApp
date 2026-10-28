@@ -10,39 +10,20 @@ import {
 import { Text, TextInput } from '../../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as LocalAuthentication from 'expo-local-authentication';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { AuthContext } from '../../contexts/AuthContext';
-import Icon from '../../components/Icon';
 import { showAlert } from '../../components/ui/AlertHost';
 import KeyboardAvoider from '../../components/ui/KeyboardAvoider';
 import { KINETIC } from '../../theme/kinetic';
-
-// ─── Design tokens ───────────────────────────────────────────────────────────
-const A = {
-  bg: '#131313',
-  s1: '#1c1b1b',
-  s2: '#2a2a2a',
-  primary: '#00E5FF',
-  primarySoft: 'rgba(0,229,255,0.22)',
-  primaryDim: 'rgba(0,229,255,0.08)',
-  gold: '#ffeac0',
-  goldDim: 'rgba(255,234,192,0.08)',
-  goldBorder: 'rgba(255,234,192,0.15)',
-  text: '#f5f6f7',
-  text2: 'rgba(245,246,247,0.60)',
-  text3: 'rgba(245,246,247,0.34)',
-  ghostHi: 'rgba(255,255,255,0.13)',
-};
+import { LockIcon, EyeIcon } from '../../components/auth/AuthIcons';
+import type { AuthScreenProps } from '../../navigation/types';
 
 type SecurityState = 'loading' | 'none' | 'pin' | 'biometric';
 type BiometricState = 'idle' | 'scanning' | 'success' | 'error';
 
-type Props = {
-  navigation: NativeStackNavigationProp<any>;
-};
+type Props = AuthScreenProps<'RecurringUser'>;
 
-function FaceIcon({ color = A.primary, size = 40 }: { color?: string; size?: number }) {
+function FaceIcon({ color = KINETIC.primary, size = 40 }: { color?: string; size?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -79,61 +60,27 @@ function CheckIcon({ size = 36 }: { size?: number }) {
   );
 }
 
-function LockIcon({ size = 16, color = A.text3 }: { size?: number; color?: string }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2z"
-        stroke={color}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M7 11V7a5 5 0 0110 0v4"
-        stroke={color}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
+/** Iniciais das duas primeiras palavras do nome; sem nome, a 1ª letra do e-mail. */
+function initialsFor(user: { nome?: string; email?: string } | null): string {
+  if (user?.nome) {
+    return user.nome
+      .split(' ')
+      .map((w) => w[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+  }
+  if (user?.email) return user.email[0].toUpperCase();
+  return '?';
 }
 
-function EyeIcon({ size = 18, color = A.text3, closed = false }: { size?: number; color?: string; closed?: boolean }) {
-  if (closed) {
-    return (
-      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-        <Path
-          d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"
-          stroke={color}
-          strokeWidth={1.5}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <Path
-          d="M1 1l22 22"
-          stroke={color}
-          strokeWidth={1.5}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </Svg>
-    );
-  }
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-        stroke={color}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Circle cx="12" cy="12" r="3" stroke={color} strokeWidth={1.5} />
-    </Svg>
-  );
-}
+/** Título e subtítulo de cada estado da biometria (o título de "idle" depende do tipo). */
+const BIO_COPY: Record<BiometricState, { title?: string; subtitle: string }> = {
+  idle: { subtitle: 'Toque no ícone para autenticar' },
+  scanning: { title: 'Verificando…', subtitle: 'Olhe para o dispositivo' },
+  success: { title: 'Identidade confirmada', subtitle: 'Abrindo seu protocolo…' },
+  error: { title: 'Não reconhecido', subtitle: 'Tente novamente ou use sua senha' },
+};
 
 export default function RecurringUserScreen({ navigation }: Props) {
   const { rememberedUser, unlockSession, signIn } = useContext(AuthContext);
@@ -161,20 +108,6 @@ export default function RecurringUserScreen({ navigation }: Props) {
   useEffect(() => {
     (async () => {
       const level = await LocalAuthentication.getEnrolledLevelAsync();
-
-      // ─── DIAGNÓSTICO Face ID (remover depois) ──────────────────────────────
-      const hasHardware = await LocalAuthentication.hasHardwareAsync();
-      const isEnrolled = await LocalAuthentication.isEnrolledAsync();
-      const supportedTypes = await LocalAuthentication.supportedAuthenticationTypesAsync();
-      console.log('[FaceID diag]', {
-        level, // 0 = NONE, 1 = SECRET (PIN/senha), 2 = BIOMETRIC
-        hasHardware, // false = device/OS sem sensor detectado
-        isEnrolled, // false = nada cadastrado no sistema
-        supportedTypes, // [1]=digital, [2]=Face, [3]=íris
-        SecurityLevel: LocalAuthentication.SecurityLevel,
-      });
-      // ───────────────────────────────────────────────────────────────────────
-
       if (level === LocalAuthentication.SecurityLevel.NONE) {
         setSecurity('none');
       } else if (level === LocalAuthentication.SecurityLevel.SECRET) {
@@ -239,25 +172,9 @@ export default function RecurringUserScreen({ navigation }: Props) {
     }
   };
 
-  const initials = rememberedUser?.nome
-    ? rememberedUser.nome
-        .split(' ')
-        .map((w) => w[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase()
-    : rememberedUser?.email
-    ? rememberedUser.email[0].toUpperCase()
-    : '?';
+  const initials = initialsFor(rememberedUser);
 
   const displayName = rememberedUser?.nome || rememberedUser?.email?.split('@')[0] || '—';
-
-  const ringColor =
-    bioState === 'success'
-      ? A.primary
-      : bioState === 'error'
-      ? '#FF4444'
-      : A.primary;
 
   const rotateStyle = {
     transform: [
@@ -302,18 +219,12 @@ export default function RecurringUserScreen({ navigation }: Props) {
               <Text style={styles.cardName}>{displayName}</Text>
               <Text style={styles.cardEmail}>{rememberedUser?.email}</Text>
             </View>
-            {rememberedUser?.streak != null && (
-              <View style={styles.streakBadge}>
-                <Icon name="flame" size={14} color={A.gold} />
-                <Text style={styles.streakCount}>{rememberedUser.streak}</Text>
-              </View>
-            )}
           </View>
 
           {/* Biometric area */}
           <View style={styles.biometricArea}>
             {security === 'loading' ? (
-              <ActivityIndicator color={A.primary} size="large" />
+              <ActivityIndicator color={KINETIC.primary} size="large" />
             ) : security === 'none' ? (
               <Text style={styles.noSecurityMsg}>
                 Nenhuma biometria ou PIN configurado.{'\n'}Use e-mail e senha.
@@ -352,7 +263,7 @@ export default function RecurringUserScreen({ navigation }: Props) {
                   ) : (
                     <FaceIcon
                       size={40}
-                      color={bioState === 'error' ? '#FF4444' : A.primary}
+                      color={bioState === 'error' ? '#FF4444' : KINETIC.primary}
                     />
                   )}
                 </View>
@@ -365,22 +276,14 @@ export default function RecurringUserScreen({ navigation }: Props) {
                 <Text
                   style={[
                     styles.bioTitle,
-                    bioState === 'success' && { color: A.primary },
+                    bioState === 'success' && { color: KINETIC.primary },
                     bioState === 'error' && { color: '#FF4444' },
                   ]}
                 >
-                  {bioState === 'idle' &&
+                  {BIO_COPY[bioState].title ??
                     (security === 'biometric' ? 'Entrar com Face ID' : 'Entrar com PIN')}
-                  {bioState === 'scanning' && 'Verificando…'}
-                  {bioState === 'success' && 'Identidade confirmada'}
-                  {bioState === 'error' && 'Não reconhecido'}
                 </Text>
-                <Text style={styles.bioSubtitle}>
-                  {bioState === 'idle' && 'Toque no ícone para autenticar'}
-                  {bioState === 'scanning' && 'Olhe para o dispositivo'}
-                  {bioState === 'success' && 'Abrindo seu protocolo…'}
-                  {bioState === 'error' && 'Tente novamente ou use sua senha'}
-                </Text>
+                <Text style={styles.bioSubtitle}>{BIO_COPY[bioState].subtitle}</Text>
               </>
             )}
           </View>
@@ -444,7 +347,7 @@ const CENTER_SIZE = RING_SIZE - 28;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: A.bg,
+    backgroundColor: KINETIC.bg,
   },
   safe: {
     flex: 1,
@@ -482,13 +385,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
-    color: A.text3,
+    color: KINETIC.textMuted,
   },
   switchBtn: {
     fontFamily: 'System',
     fontSize: 12,
     fontWeight: '600',
-    color: A.text2,
+    color: KINETIC.textDim,
   },
   card: {
     flexDirection: 'row',
@@ -497,16 +400,16 @@ const styles = StyleSheet.create({
     marginHorizontal: 24,
     marginTop: 4,
     padding: 14,
-    backgroundColor: A.s1,
+    backgroundColor: KINETIC.surface1,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: A.ghostHi,
+    borderColor: KINETIC.ghostHi,
   },
   avatar: {
     width: 48,
     height: 48,
     borderRadius: 16,
-    backgroundColor: A.primary,
+    backgroundColor: KINETIC.primary,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
@@ -524,32 +427,14 @@ const styles = StyleSheet.create({
     fontFamily: 'System',
     fontWeight: '700',
     fontSize: 16,
-    color: A.text,
+    color: KINETIC.text,
     letterSpacing: -0.3,
   },
   cardEmail: {
     fontFamily: 'System',
     fontSize: 12,
-    color: A.text2,
+    color: KINETIC.textDim,
     marginTop: 2,
-  },
-  streakBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 10,
-    backgroundColor: A.goldDim,
-    borderWidth: 1,
-    borderColor: A.goldBorder,
-    alignItems: 'center',
-  },
-  streakEmoji: {
-    fontSize: 14,
-  },
-  streakCount: {
-    fontFamily: 'System',
-    fontSize: 11,
-    fontWeight: '700',
-    color: A.gold,
   },
   biometricArea: {
     flex: 1,
@@ -583,13 +468,13 @@ const styles = StyleSheet.create({
   },
   ringIndicatorFull: {
     borderWidth: 4,
-    borderColor: A.primary,
+    borderColor: KINETIC.primary,
   },
   ringDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: A.primary,
+    backgroundColor: KINETIC.primary,
     marginLeft: -4,
     marginTop: -4,
     alignSelf: 'center',
@@ -598,13 +483,13 @@ const styles = StyleSheet.create({
     width: CENTER_SIZE,
     height: CENTER_SIZE,
     borderRadius: CENTER_SIZE / 2,
-    backgroundColor: A.s1,
+    backgroundColor: KINETIC.surface1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   ringCenterSuccess: {
-    backgroundColor: A.primary,
-    shadowColor: A.primary,
+    backgroundColor: KINETIC.primary,
+    shadowColor: KINETIC.primary,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.6,
     shadowRadius: 20,
@@ -614,20 +499,20 @@ const styles = StyleSheet.create({
     fontFamily: 'System',
     fontWeight: '700',
     fontSize: 18,
-    color: A.text,
+    color: KINETIC.text,
     letterSpacing: -0.4,
     textAlign: 'center',
   },
   bioSubtitle: {
     fontFamily: 'System',
     fontSize: 13,
-    color: A.text2,
+    color: KINETIC.textDim,
     textAlign: 'center',
   },
   noSecurityMsg: {
     fontFamily: 'System',
     fontSize: 14,
-    color: A.text2,
+    color: KINETIC.textDim,
     textAlign: 'center',
     lineHeight: 22,
   },
@@ -641,16 +526,16 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 20,
-    backgroundColor: A.s2,
+    backgroundColor: KINETIC.surface2,
     borderWidth: 1,
-    borderColor: A.ghostHi,
+    borderColor: KINETIC.ghostHi,
     marginBottom: 0,
   },
   fallbackText: {
     fontFamily: 'System',
     fontSize: 13,
     fontWeight: '600',
-    color: A.text2,
+    color: KINETIC.textDim,
   },
   passwordSection: {
     marginTop: 12,
@@ -661,17 +546,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: A.s1,
+    backgroundColor: KINETIC.surface1,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: A.ghostHi,
+    borderColor: KINETIC.ghostHi,
     paddingHorizontal: 14,
     height: 52,
   },
   inlineInput: {
     flex: 1,
     fontSize: 15,
-    color: A.text,
+    color: KINETIC.text,
     padding: 0,
   },
   eyeBtn: {
@@ -680,7 +565,7 @@ const styles = StyleSheet.create({
   inlineLoginBtn: {
     paddingVertical: 16,
     borderRadius: 16,
-    backgroundColor: A.s1,
+    backgroundColor: KINETIC.surface1,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
@@ -688,12 +573,12 @@ const styles = StyleSheet.create({
   },
   inlineLoginBtnDisabled: {
     opacity: 0.45,
-    borderColor: A.ghostHi,
+    borderColor: KINETIC.ghostHi,
   },
   inlineLoginBtnText: {
     fontFamily: 'System',
     fontSize: 16,
     fontWeight: '700',
-    color: A.text,
+    color: KINETIC.text,
   },
 });

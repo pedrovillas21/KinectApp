@@ -3,20 +3,39 @@ import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { FlaskConical } from 'lucide-react';
-import {
-  billingErrorMessage,
-  confirmDemoAiPack,
-  confirmDemoPayment,
-  formatBRL,
-  getBilling,
-} from '../services/billingService';
+import { confirmDemoAiPack, confirmDemoPayment, getBilling } from '../services/billingService';
 import { qk, queryClient } from '../services/queryClient';
+import { errorMessage } from '../utils/errors';
+import { formatBRL } from '../utils/money';
+import type { BillingOverview } from '../types';
 
 /**
  * Checkout de mentira do modo demo (billing.gateway=demo): no lugar da página
  * de pagamento do Asaas, simula a confirmação para testar o fluxo inteiro.
  * Com ?item=ai-pack paga o pacote extra de IA em vez da assinatura.
  */
+/** O que esta tela cobra: o pacote de IA ou o plano pendente. Fora do gateway demo, nada. */
+function checkoutItem(billing: BillingOverview | null, isPack: boolean) {
+  if (!billing || billing.gatewayMode !== 'DEMO') return null;
+  if (isPack) {
+    if (!billing.aiPackCheckoutUrl) return null;
+    return {
+      title: 'Pacote extra de IA',
+      detail: `${formatBRL(billing.aiPack.priceCents)} · ${billing.aiPack.credits} fichas com IA, pagamento único`,
+      success: `${billing.aiPack.credits} fichas extras liberadas`,
+    };
+  }
+  const plan = billing.plans.find((p) => p.code === billing.plan);
+  if (billing.status !== 'PENDENTE' || plan?.priceCents == null) return null;
+  return {
+    title: `Plano ${plan.name}`,
+    detail: `${formatBRL(plan.priceCents)}/mês · ${
+      plan.maxStudents === null ? 'alunos ilimitados' : `até ${plan.maxStudents} alunos`
+    }`,
+    success: `Plano ${plan.name} ativo`,
+  };
+}
+
 export default function DemoCheckoutPage() {
   const navigate = useNavigate();
   const isPack = useSearchParams()[0].get('item') === 'ai-pack';
@@ -28,27 +47,7 @@ export default function DemoCheckoutPage() {
     if (billingQ.isError) toast.error('Não foi possível carregar a cobrança.');
   }, [billingQ.isError]);
 
-  const plan = billing?.plans.find((p) => p.code === billing.plan);
-  const demo = billing?.gatewayMode === 'DEMO';
-  const item = !billing
-    ? null
-    : isPack
-      ? demo && billing.aiPackCheckoutUrl
-        ? {
-            title: 'Pacote extra de IA',
-            detail: `${formatBRL(billing.aiPack.priceCents)} · ${billing.aiPack.credits} fichas com IA, pagamento único`,
-            success: `${billing.aiPack.credits} fichas extras liberadas`,
-          }
-        : null
-      : demo && billing.status === 'PENDENTE' && plan?.priceCents != null
-        ? {
-            title: `Plano ${plan.name}`,
-            detail: `${formatBRL(plan.priceCents)}/mês · ${
-              plan.maxStudents === null ? 'alunos ilimitados' : `até ${plan.maxStudents} alunos`
-            }`,
-            success: `Plano ${plan.name} ativo`,
-          }
-        : null;
+  const item = checkoutItem(billing, isPack);
 
   const handlePay = async () => {
     if (!item) return;
@@ -59,7 +58,7 @@ export default function DemoCheckoutPage() {
       toast.success(item.success, { description: 'Pagamento simulado com sucesso.' });
       navigate('/assinatura', { replace: true });
     } catch (err) {
-      toast.error(billingErrorMessage(err, 'Não foi possível simular o pagamento.'));
+      toast.error(errorMessage(err, 'Não foi possível simular o pagamento.'));
       setPaying(false);
     }
   };

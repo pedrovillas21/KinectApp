@@ -3,10 +3,12 @@ import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Check, Snowflake } from 'lucide-react';
 import Avatar from '../Avatar';
-import { billingErrorMessage, chooseActiveStudents, formatDate } from '../../services/billingService';
+import { chooseActiveStudents } from '../../services/billingService';
 import { listStudents } from '../../services/trainerService';
 import { qk, queryClient } from '../../services/queryClient';
 import type { BillingOverview } from '../../types';
+import { errorMessage } from '../../utils/errors';
+import { dayMonthLong } from '../../utils/dates';
 
 /**
  * Carteira acima do limite do plano Grátis: o personal escolhe quem continua
@@ -45,7 +47,7 @@ export default function ActiveStudentsPicker({ billing }: { billing: BillingOver
       ]);
       toast.success('Alunos ativos salvos');
     } catch (err) {
-      toast.error(billingErrorMessage(err, 'Não foi possível salvar. Tente novamente.'));
+      toast.error(errorMessage(err, 'Não foi possível salvar. Tente novamente.'));
     } finally {
       setSaving(false);
     }
@@ -63,7 +65,7 @@ export default function ActiveStudentsPicker({ billing }: { billing: BillingOver
         <p className="text-[13px] leading-relaxed text-k-text-dim">
           Você tem {billing.activeStudents} alunos e o Grátis permite {limit}.{' '}
           {inWindow
-            ? `Escolha até ${formatDate(billing.chooseActiveUntil)} quais continuam ativos. Depois disso, os outros ficam congelados.`
+            ? `Escolha até ${dayMonthLong(billing.chooseActiveUntil)} quais continuam ativos. Depois disso, os outros ficam congelados.`
             : `${billing.frozenStudents} ${billing.frozenStudents === 1 ? 'aluno está congelado' : 'alunos estão congelados'}.`}{' '}
           Congelado, você vê o histórico mas não edita ficha, avaliação, protocolo nem mensalidade; o aluno continua
           treinando normalmente no app. Assine um plano para liberar todos.

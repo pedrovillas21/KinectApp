@@ -1,5 +1,6 @@
 package com.kinetic.repositories;
 
+import jakarta.persistence.EntityNotFoundException;
 import com.kinetic.enums.TrainerLinkSource;
 import com.kinetic.enums.TrainerLinkStatus;
 import com.kinetic.models.TrainerClient;
@@ -36,6 +37,18 @@ public interface TrainerClientRepository extends JpaRepository<TrainerClient, UU
     long countByTrainerIdAndStatusAndSourceNot(UUID trainerId, TrainerLinkStatus status, TrainerLinkSource source);
 
     Optional<TrainerClient> findByTrainerIdAndStudentIdAndStatus(UUID trainerId, UUID studentId, TrainerLinkStatus status);
+
+    /** Vínculo ATIVO do aluno; sem personal ativo → 404. */
+    default TrainerClient getActiveOfStudent(UUID studentId) {
+        return findByStudentIdAndStatus(studentId, TrainerLinkStatus.ATIVO)
+                .orElseThrow(() -> new EntityNotFoundException("Você não possui personal ativo."));
+    }
+
+    /** Vínculo ATIVO entre o personal e o aluno; sem ele → 404 (e não 403, para não revelar o aluno). */
+    default TrainerClient getActiveLink(UUID trainerId, UUID studentId) {
+        return findByTrainerIdAndStudentIdAndStatus(trainerId, studentId, TrainerLinkStatus.ATIVO)
+                .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado."));
+    }
 
     /** Convites/vínculos do aluno com o personal já carregado (evita N+1). */
     @Query("SELECT tc FROM TrainerClient tc JOIN FETCH tc.trainer WHERE tc.student.id = :studentId AND tc.status = :status ORDER BY tc.createdAt DESC")

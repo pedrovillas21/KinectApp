@@ -26,7 +26,7 @@ export const initialsOf = (name?: string | null, max = 2): string => {
   return letters.slice(0, max).join('').toUpperCase();
 };
 
-export const avatarTone = (seed: string | number | null | undefined) =>
+const avatarTone = (seed: string | number | null | undefined) =>
   AVATAR_TONES[hash(String(seed ?? '')) % AVATAR_TONES.length];
 
 /** Foto de perfil ou iniciais coloridas. */

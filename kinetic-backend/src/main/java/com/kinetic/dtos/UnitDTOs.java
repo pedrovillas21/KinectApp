@@ -35,7 +35,7 @@ public final class UnitDTOs {
             @Email(message = "E-mail do responsável inválido.")
             String responsibleEmail,
             // Só na criação; ignorado na edição.
-            @Pattern(regexp = "^[a-z0-9]([a-z0-9-]{0,38}[a-z0-9])?$",
+            @Pattern(regexp = ValidationRules.HANDLE_REGEX,
                     message = "Usuário: letras minúsculas, números e hífen, até 40 caracteres.")
             String usuario
     ) {}

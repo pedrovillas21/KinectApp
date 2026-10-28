@@ -51,7 +51,7 @@ class PasswordResetServiceTest {
     @Test
     void rejectsWithoutComparingWhenNoAttemptIsLeft() {
         // Outra requisição paralela já consumiu a última tentativa.
-        when(codes.reserveAttempt(eq(code.getId()), eq(PasswordResetService.MAX_ATTEMPTS), any())).thenReturn(0);
+        when(codes.reserveAttempt(eq(code.getId()), eq(OneTimeCodes.MAX_ATTEMPTS), any())).thenReturn(0);
 
         assertThrows(InvalidCodeException.class, () -> service.resetPassword(EMAIL, "123456", "nova-senha"));
 
@@ -61,7 +61,7 @@ class PasswordResetServiceTest {
 
     @Test
     void wrongCodeBeforeTheLimitKeepsTheCode() {
-        when(codes.reserveAttempt(any(), eq(PasswordResetService.MAX_ATTEMPTS), any())).thenReturn(1);
+        when(codes.reserveAttempt(any(), eq(OneTimeCodes.MAX_ATTEMPTS), any())).thenReturn(1);
         when(encoder.matches("000000", "hash")).thenReturn(false);
 
         assertThrows(InvalidCodeException.class, () -> service.resetPassword(EMAIL, "000000", "nova-senha"));
@@ -71,8 +71,8 @@ class PasswordResetServiceTest {
 
     @Test
     void wrongCodeOnTheLastAttemptDeletesTheCode() {
-        code.setAttempts(PasswordResetService.MAX_ATTEMPTS - 1);
-        when(codes.reserveAttempt(any(), eq(PasswordResetService.MAX_ATTEMPTS), any())).thenReturn(1);
+        code.setAttempts(OneTimeCodes.MAX_ATTEMPTS - 1);
+        when(codes.reserveAttempt(any(), eq(OneTimeCodes.MAX_ATTEMPTS), any())).thenReturn(1);
         when(encoder.matches("000000", "hash")).thenReturn(false);
 
         assertThrows(InvalidCodeException.class, () -> service.resetPassword(EMAIL, "000000", "nova-senha"));
@@ -82,7 +82,7 @@ class PasswordResetServiceTest {
 
     @Test
     void rightCodeChangesPasswordAndConsumesTheCode() {
-        when(codes.reserveAttempt(any(), eq(PasswordResetService.MAX_ATTEMPTS), any())).thenReturn(1);
+        when(codes.reserveAttempt(any(), eq(OneTimeCodes.MAX_ATTEMPTS), any())).thenReturn(1);
         when(encoder.matches("123456", "hash")).thenReturn(true);
         when(encoder.encode("nova-senha")).thenReturn("nova-hash");
 
@@ -98,9 +98,9 @@ class PasswordResetServiceTest {
     @Test
     void newCodesDoNotResetTheAccountGuessLimit() {
         // Cada código novo chega com as 5 tentativas dele, mas o limite da conta segue contando.
-        when(codes.reserveAttempt(any(), eq(PasswordResetService.MAX_ATTEMPTS), any())).thenReturn(1);
+        when(codes.reserveAttempt(any(), eq(OneTimeCodes.MAX_ATTEMPTS), any())).thenReturn(1);
         when(encoder.matches(anyString(), eq("hash"))).thenReturn(false);
-        for (int i = 0; i < PasswordResetService.MAX_GUESSES_PER_HOUR; i++) {
+        for (int i = 0; i < OneTimeCodes.MAX_GUESSES_PER_HOUR; i++) {
             assertThrows(InvalidCodeException.class, () -> service.resetPassword(EMAIL, "000000", "nova-senha"));
         }
 

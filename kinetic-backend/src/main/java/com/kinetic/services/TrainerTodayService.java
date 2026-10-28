@@ -16,7 +16,6 @@ import com.kinetic.repositories.TrainerClientRepository;
 import com.kinetic.repositories.TrainerInviteCodeRepository;
 import com.kinetic.repositories.UserRepository;
 import com.kinetic.repositories.WorkoutPlanRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
@@ -114,10 +113,10 @@ public class TrainerTodayService {
             String value = brl.format(c.amountCents() / 100.0);
             long days = ChronoUnit.DAYS.between(today, c.dueDate());
             if (days < 0) {
-                items.add(new TodayItemDTO("PAGAMENTO", "ALTO", c.studentId(), c.studentName(),
+                items.add(new TodayItemDTO("PAGAMENTO", StudentRiskRules.ALTO, c.studentId(), c.studentName(),
                         "Mensalidade atrasada", value + " · venceu em " + DAY_MONTH.format(c.dueDate()), "/financeiro"));
             } else {
-                items.add(new TodayItemDTO("PAGAMENTO", "MEDIO", c.studentId(), c.studentName(),
+                items.add(new TodayItemDTO("PAGAMENTO", StudentRiskRules.MEDIO, c.studentId(), c.studentName(),
                         days == 0 ? "Mensalidade vence hoje" : "Mensalidade vence em " + days + (days == 1 ? " dia" : " dias"),
                         value + " · vencimento " + DAY_MONTH.format(c.dueDate()), "/financeiro"));
             }
@@ -129,7 +128,7 @@ public class TrainerTodayService {
         for (StudentEngagementDTO e : engagementService.engagement(trainerEmail)) {
             User s = students.get(e.studentId());
             if (s == null || dismissedToday.contains(e.studentId()) || !expectedToday(e)) continue;
-            items.add(new TodayItemDTO("TREINO_HOJE", "MEDIO", e.studentId(), s.getNome(),
+            items.add(new TodayItemDTO("TREINO_HOJE", StudentRiskRules.MEDIO, e.studentId(), s.getNome(),
                     "Ainda não treinou hoje",
                     "Último treino há " + e.daysSinceLastSession() + (e.daysSinceLastSession() == 1 ? " dia" : " dias")
                             + " · meta de " + e.weeklyTarget() + "x por semana",
@@ -155,9 +154,7 @@ public class TrainerTodayService {
     @Transactional
     public void dismissMissedToday(String trainerEmail, @NonNull UUID studentId) {
         User trainer = userRepository.getByEmailOrThrow(trainerEmail);
-        TrainerClient link = trainerClientRepository
-                .findByTrainerIdAndStudentIdAndStatus(trainer.getId(), studentId, TrainerLinkStatus.ATIVO)
-                .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado."));
+        TrainerClient link = trainerClientRepository.getActiveLink(trainer.getId(), studentId);
         link.setDailyNudgeDismissedOn(AppTime.today());
     }
 
@@ -170,7 +167,7 @@ public class TrainerTodayService {
             if (!activeStudents.contains(studentId) || !seen.add(studentId)) continue;
             long hoursLeft = Math.max(0, Duration.between(LocalDateTime.now(),
                     g.getCreatedAt().plus(TrainerAiPlanService.PREVIEW_TTL)).toHours());
-            items.add(new TodayItemDTO("PREVIA_IA", "MEDIO", studentId, g.getStudent().getNome(),
+            items.add(new TodayItemDTO("PREVIA_IA", StudentRiskRules.MEDIO, studentId, g.getStudent().getNome(),
                     "Prévia de ficha por IA esperando sua revisão",
                     "Vale por mais " + hoursLeft + "h", "/students/" + studentId + "?aba=treinos"));
         }
@@ -232,8 +229,8 @@ public class TrainerTodayService {
 
     private static int severityRank(String severity) {
         return switch (severity) {
-            case "ALTO" -> 0;
-            case "MEDIO" -> 1;
+            case StudentRiskRules.ALTO -> 0;
+            case StudentRiskRules.MEDIO -> 1;
             default -> 2;
         };
     }

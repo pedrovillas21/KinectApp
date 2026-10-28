@@ -39,7 +39,8 @@ export default function SettingsScreen({ navigation }: MainStackScreenProps<'Set
     api.get<UserProfileResponse>('/users/profile').then((r) => r.data),
   );
   const profileRes = useFocusResource(myId ? `profile/${myId}` : null, () => getPublicProfile(myId));
-  const trainerRes = useFocusResource('me/trainer', () =>
+  // Só o par do vínculo ATIVO; o vínculo inteiro fica em 'me/trainer' (Protocolo/Anamnese).
+  const trainerRes = useFocusResource('me/trainer-peer', () =>
     getMyTrainer().then((link) => (link?.status === 'ATIVO' ? link.peer : null)),
   );
   const invitesRes = useFocusResource('me/trainer-invites', () => getPendingInvites());

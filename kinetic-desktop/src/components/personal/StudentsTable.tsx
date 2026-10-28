@@ -1,9 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { BellOff, ChevronRight } from 'lucide-react';
 import Avatar from '../Avatar';
-import { formatPauseDate, pauseReasonLabel, resumeStudentAlerts } from './PauseAlertDialog';
+import { pauseReasonLabel, resumeStudentAlerts } from './PauseAlertDialog';
 import { TONE_META, type AdherenceTone } from './adherence';
 import type { MonthlyStatsResponseDTO, StudentEngagement, TrainerLink } from '../../types';
+import { dayMonth } from '../../utils/dates';
 
 export interface StudentRow {
   link: TrainerLink;
@@ -103,7 +104,7 @@ export default function StudentsTable({
                       title={`${pauseReasonLabel(e.pause.reason)}${e.pause.note ? ` — ${e.pause.note}` : ''}`}
                     >
                       <BellOff className="h-3 w-3" aria-hidden="true" />
-                      Alertas pausados até {formatPauseDate(e.pause.until)}
+                      Alertas pausados até {dayMonth(e.pause.until)}
                       <button
                         type="button"
                         onClick={(ev) => {
@@ -209,7 +210,7 @@ function StudentsCards({
                   {e?.pause && (
                     <span className="inline-flex items-center gap-1 text-k-text-muted">
                       <BellOff className="h-3 w-3" aria-hidden="true" />
-                      até {formatPauseDate(e.pause.until)}
+                      até {dayMonth(e.pause.until)}
                     </span>
                   )}
                 </span>

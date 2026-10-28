@@ -16,13 +16,13 @@ import { qk, queryClient, refreshTrainerData } from '../services/queryClient';
 import InviteStudentModal from '../components/InviteStudentModal';
 import KineticLogo from '../components/KineticLogo';
 import PhoneDialog from '../components/PhoneDialog';
-import { usePersonalPhone } from '../layouts/PhoneGate';
+import { useMyPhone } from '../layouts/PhoneGate';
 import { maskCellPhone } from '../utils/whatsapp';
 import StudentsTable, { type StudentRow } from '../components/personal/StudentsTable';
 import PendingInvites from '../components/personal/PendingInvites';
 import RiskAlerts from '../components/personal/RiskAlerts';
 import TodayInbox from '../components/personal/TodayInbox';
-import { formatDate, getBilling } from '../services/billingService';
+import { getBilling } from '../services/billingService';
 import { StudentsEmpty, StudentsError, StudentsSkeleton } from '../components/personal/ListStates';
 import { SPRING_PILL } from '../components/motion/primitives';
 import { adherenceTone, toneRank } from '../components/personal/adherence';
@@ -32,6 +32,8 @@ import type {
   TrainerInviteCode,
   TrainerLink,
 } from '../types';
+import { dayMonthLong } from '../utils/dates';
+import { firstNameOf } from '../utils/names';
 
 type Filter = 'all' | 'low' | 'mid' | 'ok';
 
@@ -65,7 +67,7 @@ const todayLabel = (now: Date) => {
 
 export default function StudentsListPage() {
   const { currentUser } = useAuth();
-  const { phone, setPhone } = usePersonalPhone();
+  const { phone, setPhone } = useMyPhone();
   const [phoneOpen, setPhoneOpen] = useState(false);
 
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -86,7 +88,7 @@ export default function StudentsListPage() {
   const engagement = engagementQ.data ?? (engagementQ.isError ? {} : null);
   /** Caixa "Hoje"; null = carregando ou falhou (a seção some). */
   const today = todayQ.data ?? null;
-  // undefined = carregando; null = falhou (o anel mostra "sem dado").
+  // undefined = carregando; null = falhou (a aderência mostra "sem dado").
   const stats: StatsMap = useMemo(
     () =>
       statsQ.data ?? (statsQ.isError ? Object.fromEntries(students.map((l) => [l.peer.id, null])) : {}),
@@ -161,7 +163,7 @@ export default function StudentsListPage() {
     });
   };
 
-  const firstName = currentUser?.nome.trim().split(/\s+/)[0] ?? '';
+  const firstName = (currentUser ? firstNameOf(currentUser.nome) : '');
 
   const totalDone = withPlan.reduce((sum, r) => sum + (r.stats?.completedSessions ?? 0), 0);
   const totalTarget = withPlan.reduce((sum, r) => sum + (r.stats?.targetSessions ?? 0), 0);
@@ -262,7 +264,7 @@ export default function StudentsListPage() {
               <Snowflake className="h-4 w-4 shrink-0 text-k-warn" />
               <span className="flex-1">
                 {billing.chooseActiveUntil
-                  ? `Sua carteira passou do limite do plano Grátis. Escolha até ${formatDate(billing.chooseActiveUntil)} quais alunos continuam ativos.`
+                  ? `Sua carteira passou do limite do plano Grátis. Escolha até ${dayMonthLong(billing.chooseActiveUntil)} quais alunos continuam ativos.`
                   : `${billing.frozenStudents} ${billing.frozenStudents === 1 ? 'aluno congelado' : 'alunos congelados'}: você vê, mas não edita. Assine para liberar.`}
               </span>
               <ChevronRight className="h-4 w-4 shrink-0 text-k-text-muted" />

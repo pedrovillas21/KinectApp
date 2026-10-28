@@ -117,9 +117,7 @@ public class TrainerLinkService {
     @Transactional(readOnly = true)
     public TrainerLinkDTO getMyTrainer(String studentEmail) {
         User student = userRepository.getByEmailOrThrow(studentEmail);
-        TrainerClient link = trainerClientRepository
-                .findByStudentIdAndStatus(student.getId(), TrainerLinkStatus.ATIVO)
-                .orElseThrow(() -> new EntityNotFoundException("Você não possui personal ativo."));
+        TrainerClient link = trainerClientRepository.getActiveOfStudent(student.getId());
         return toDto(link, link.getTrainer());
     }
 
@@ -218,10 +216,7 @@ public class TrainerLinkService {
     @Transactional
     public void endLinkByTrainer(String trainerEmail, @NonNull UUID studentId) {
         User trainer = userRepository.getByEmailOrThrow(trainerEmail);
-        TrainerClient link = trainerClientRepository
-                .findByTrainerIdAndStudentIdAndStatus(trainer.getId(), studentId, TrainerLinkStatus.ATIVO)
-                // 404 (e não 403) para não revelar a existência do aluno.
-                .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado."));
+        TrainerClient link = trainerClientRepository.getActiveLink(trainer.getId(), studentId);
         if (link.getSource() == TrainerLinkSource.COMPANY) {
             throw new IllegalArgumentException(
                     "Este aluno foi atribuído pela sua empresa. Peça à empresa para desvinculá-lo.");
@@ -240,9 +235,7 @@ public class TrainerLinkService {
     @Transactional
     public void endLinkByStudent(String studentEmail) {
         User student = userRepository.getByEmailOrThrow(studentEmail);
-        TrainerClient link = trainerClientRepository
-                .findByStudentIdAndStatus(student.getId(), TrainerLinkStatus.ATIVO)
-                .orElseThrow(() -> new EntityNotFoundException("Você não possui personal ativo."));
+        TrainerClient link = trainerClientRepository.getActiveOfStudent(student.getId());
         link.setStatus(TrainerLinkStatus.ENCERRADO);
         link.setEndedAt(LocalDateTime.now());
         trainerClientRepository.save(link);

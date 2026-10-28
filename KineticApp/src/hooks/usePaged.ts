@@ -18,12 +18,14 @@ export interface PagedList<T> {
 }
 
 /**
- * Lista paginada de um endpoint Spring `Page<T>`. Falha encerra a lista (last = true).
+ * Lista paginada de um endpoint Spring `Page<T>`. Falha encerra a lista (last = true), ou,
+ * com `keepOnError`, mantém o que já está na tela e deixa tentar de novo.
  * `initial` continua uma lista já carregada em outra tela (ex.: grade do perfil → publicações).
  */
 export default function usePaged<T>(
   fetchPage: (page: number) => Promise<Page<T>>,
   initial?: { items: T[]; page: number; last: boolean },
+  { keepOnError = false }: { keepOnError?: boolean } = {},
 ): PagedList<T> {
   const [items, setItems] = useState<T[]>(initial?.items ?? []);
   const [page, setPage] = useState(initial?.page ?? -1);
@@ -42,6 +44,7 @@ export default function usePaged<T>(
         setPage(target);
         setLast(data.last);
       } catch {
+        if (keepOnError) return;
         if (target === 0) setItems([]);
         setPage(Math.max(target, 0));
         setLast(true);
@@ -50,7 +53,7 @@ export default function usePaged<T>(
         setLoading(false);
       }
     },
-    [fetchPage],
+    [fetchPage, keepOnError],
   );
 
   const reload = useCallback(() => load(0), [load]);

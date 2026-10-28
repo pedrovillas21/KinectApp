@@ -3,7 +3,7 @@ import { LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import KineticLogo from '../components/KineticLogo';
 import Avatar from '../components/Avatar';
-import { NAV_BY_ROLE, ROLE_HOME, isPanelRole } from '../config/nav';
+import { NAV_BY_ROLE, ROLE_HOME, isPanelRole, type NavItem } from '../config/nav';
 import MobileNav, { InstallAppButton } from './MobileNav';
 
 /**
@@ -14,7 +14,7 @@ import MobileNav, { InstallAppButton } from './MobileNav';
 export default function AppShell() {
   const { currentUser } = useAuth();
   const role = currentUser?.role;
-  const items = isPanelRole(role) ? NAV_BY_ROLE[role] : [];
+  const items = isPanelRole(role) && role !== 'PERSONAL' ? NAV_BY_ROLE[role] : [];
   const home = isPanelRole(role) ? ROLE_HOME[role] : '/';
   const tabs = items
     .filter((i) => !i.comingSoon)
@@ -24,23 +24,20 @@ export default function AppShell() {
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-k-bg text-k-text md:flex-row">
       <aside className="hidden w-[232px] shrink-0 flex-col gap-6 border-r border-white/[0.07] bg-[#161616] px-3 py-5 md:flex">
-        <SidebarContent />
+        <SidebarContent items={items} home={home} />
       </aside>
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
         <Outlet />
       </div>
 
-      <MobileNav tabs={tabs} drawer={<SidebarContent />} />
+      <MobileNav tabs={tabs} drawer={<SidebarContent items={items} home={home} />} />
     </div>
   );
 }
 
-function SidebarContent() {
+function SidebarContent({ items, home }: { items: NavItem[]; home: string }) {
   const { currentUser, signOut } = useAuth();
-  const role = currentUser?.role;
-  const items = isPanelRole(role) ? NAV_BY_ROLE[role] : [];
-  const home = isPanelRole(role) ? ROLE_HOME[role] : '/';
 
   return (
     <>

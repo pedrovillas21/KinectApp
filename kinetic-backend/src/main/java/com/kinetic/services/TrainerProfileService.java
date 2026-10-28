@@ -1,7 +1,7 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.Strings;
 import com.kinetic.dtos.TrainerProfileDTOs;
-import com.kinetic.enums.TrainerLinkStatus;
 import com.kinetic.models.TrainerClient;
 import com.kinetic.models.TrainerProfile;
 import com.kinetic.models.User;
@@ -10,7 +10,6 @@ import com.kinetic.repositories.TrainerClientRepository;
 import com.kinetic.repositories.TrainerProfileRepository;
 import com.kinetic.repositories.UserRepository;
 import com.kinetic.repositories.WorkoutPlanRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,12 +71,12 @@ public class TrainerProfileService {
             profile.setCrefVerified(false);
         }
         profile.setCref(cref);
-        profile.setBio(clean(dto.bio()));
+        profile.setBio(Strings.trimOrNull(dto.bio()));
         profile.setSpecialties(normalizeSpecialties(dto.specialties()));
         profile.setEducation(encodeEducation(dto.education()));
-        profile.setModality(clean(dto.modality()));
-        profile.setSchedule(clean(dto.schedule()));
-        profile.setLocation(clean(dto.location()));
+        profile.setModality(Strings.trimOrNull(dto.modality()));
+        profile.setSchedule(Strings.trimOrNull(dto.schedule()));
+        profile.setLocation(Strings.trimOrNull(dto.location()));
         profile.setUpdatedAt(Instant.now());
 
         return toResponse(trainer, trainerProfileRepository.save(profile));
@@ -87,9 +86,7 @@ public class TrainerProfileService {
     @Transactional(readOnly = true)
     public TrainerProfileDTOs.StudentView getMyTrainerProfile(String studentEmail) {
         User student = userRepository.getByEmailOrThrow(studentEmail);
-        TrainerClient link = trainerClientRepository
-                .findByStudentIdAndStatus(student.getId(), TrainerLinkStatus.ATIVO)
-                .orElseThrow(() -> new EntityNotFoundException("Você não possui personal ativo."));
+        TrainerClient link = trainerClientRepository.getActiveOfStudent(student.getId());
         User trainer = link.getTrainer();
 
         List<TrainerProfileDTOs.PlanItem> plans = workoutPlanRepository
@@ -117,7 +114,7 @@ public class TrainerProfileService {
      * como "012345-G/SP". Vazio = sem CREF.
      */
     static String normalizeCref(String raw) {
-        String value = clean(raw);
+        String value = Strings.trimOrNull(raw);
         if (value == null) return null;
         value = value.toUpperCase(Locale.ROOT).replaceAll("\\s+", "");
         if (value.startsWith("CREF")) value = value.substring(4);
@@ -133,7 +130,7 @@ public class TrainerProfileService {
         if (raw == null) return new ArrayList<>();
         Map<String, String> unique = new LinkedHashMap<>();
         for (String item : raw) {
-            String value = clean(item);
+            String value = Strings.trimOrNull(item);
             if (value != null) unique.putIfAbsent(value.toLowerCase(Locale.ROOT), value);
         }
         return new ArrayList<>(unique.values());
@@ -199,14 +196,8 @@ public class TrainerProfileService {
         );
     }
 
-    private static String clean(String value) {
-        if (value == null) return null;
-        String trimmed = value.trim();
-        return trimmed.isEmpty() ? null : trimmed;
-    }
-
     /** Quebra de linha é o separador do text[] de formação: não pode aparecer dentro do texto. */
     private static String singleLine(String value) {
-        return clean(value == null ? null : value.replaceAll("[\\r\\n]+", " "));
+        return Strings.trimOrNull(value == null ? null : value.replaceAll("[\\r\\n]+", " "));
     }
 }

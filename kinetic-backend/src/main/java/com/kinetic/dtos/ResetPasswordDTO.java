@@ -17,6 +17,6 @@ public class ResetPasswordDTO {
     private String code;
 
     @NotBlank(message = "A nova senha é obrigatória.")
-    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*_=+-]).{8,20}$", message = "A senha deve ter entre 8 e 15 caracteres, contendo pelo menos uma letra maiúscula, uma minúscula e um caractere especial.")
+    @Pattern(regexp = ValidationRules.PASSWORD_REGEX, message = ValidationRules.PASSWORD_MESSAGE)
     private String newPassword;
 }

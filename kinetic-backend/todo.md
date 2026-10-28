@@ -1,7 +1,3 @@
-Verificação de senha com pelo menos 8 caracteres, letras maiúsculas, minúsculas, números e caracteres especiais.
-Configurar o banco de dados com as tabelas necessárias para o funcionamento do sistema.
-Configurar o front-end para que ele possa se comunicar com o back-end.
-
 ## IA: migrar do Gemini para o Claude Haiku 5.5 (decidido em 16/10/2026, ainda não feito)
 - Modelo: claude-haiku-5-5 (US$ 0,10 / US$ 0,50 por milhão de tokens de entrada/saída em prompts até 100K).
 - Pagamento: créditos mensais de API da assinatura Claude Max (US$ 100/mês no Max 5x; vencem no ciclo, não acumulam).

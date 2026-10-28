@@ -17,7 +17,6 @@
     { "key": "refreshToken", "value": "" },
     { "key": "userId", "value": "" },
     { "key": "postId", "value": "" },
-    { "key": "workoutPlanId", "value": "" },
     { "key": "exerciseId", "value": "" }
   ],
   "item": [
@@ -217,7 +216,7 @@
             "method": "GET",
             "header": [],
             "url": { "raw": "{{baseUrl}}/api/workouts/my-plans", "host": ["{{baseUrl}}"], "path": ["api", "workouts", "my-plans"] },
-            "description": "Lista as fichas do usuário. Use os exerciseId/workoutPlanId daqui para o Log Session."
+            "description": "Lista as fichas do usuário. Use os exerciseId daqui para o Log Session."
           }
         }
       ]
@@ -250,26 +249,10 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"durationInSeconds\": 3600,\n  \"date\": \"2026-06-10\",\n  \"workoutPlanId\": \"{{workoutPlanId}}\",\n  \"exercisesLog\": [\n    {\n      \"exerciseId\": \"{{exerciseId}}\",\n      \"setNumber\": 1,\n      \"repsPerformed\": 12,\n      \"weightUsed\": 40.0\n    },\n    {\n      \"exerciseId\": \"{{exerciseId}}\",\n      \"setNumber\": 2,\n      \"repsPerformed\": 10,\n      \"weightUsed\": 42.5\n    }\n  ]\n}"
+              "raw": "{\n  \"durationInSeconds\": 3600,\n  \"date\": \"2026-06-10\",\n  \"exercisesLog\": [\n    {\n      \"exerciseId\": \"{{exerciseId}}\",\n      \"setNumber\": 1,\n      \"repsPerformed\": 12,\n      \"weightUsed\": 40.0\n    },\n    {\n      \"exerciseId\": \"{{exerciseId}}\",\n      \"setNumber\": 2,\n      \"repsPerformed\": 10,\n      \"weightUsed\": 42.5\n    }\n  ]\n}"
             },
             "url": { "raw": "{{baseUrl}}/api/sessions/log", "host": ["{{baseUrl}}"], "path": ["api", "sessions", "log"] },
-            "description": "Registra um treino concluído. Preencha exerciseId/workoutPlanId com IDs reais de 'My Plans'. weightUsed aceita 0 (peso corporal)."
-          }
-        },
-        {
-          "name": "Monthly Stats",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": { "raw": "{{baseUrl}}/api/sessions/monthly-stats", "host": ["{{baseUrl}}"], "path": ["api", "sessions", "monthly-stats"] }
-          }
-        },
-        {
-          "name": "Weekly Activity",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": { "raw": "{{baseUrl}}/api/sessions/weekly-activity", "host": ["{{baseUrl}}"], "path": ["api", "sessions", "weekly-activity"] }
+            "description": "Registra um treino concluído. Preencha exerciseId com IDs reais de 'My Plans' (a ficha do treino sai dos exercícios). weightUsed aceita 0 (peso corporal)."
           }
         }
       ]
@@ -369,14 +352,6 @@
             "method": "POST",
             "header": [],
             "url": { "raw": "{{baseUrl}}/api/social/squad/{{userId}}/toggle", "host": ["{{baseUrl}}"], "path": ["api", "social", "squad", "{{userId}}", "toggle"] }
-          }
-        },
-        {
-          "name": "Squad Status",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": { "raw": "{{baseUrl}}/api/social/squad/status", "host": ["{{baseUrl}}"], "path": ["api", "social", "squad", "status"] }
           }
         },
         {

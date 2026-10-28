@@ -54,7 +54,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
               AND u.created_at < :cutoff
               AND NOT EXISTS (SELECT 1 FROM workout_plans p WHERE p.user_id = u.id)
               AND NOT EXISTS (SELECT 1 FROM workout_sessions s WHERE s.user_id = u.id)
-              AND NOT EXISTS (SELECT 1 FROM workout_execution_logs l WHERE l.user_id = u.id)
               AND NOT EXISTS (SELECT 1 FROM weight_history w WHERE w.user_id = u.id)
             """)
     int deleteStaleUnverified(@Param("cutoff") LocalDateTime cutoff);
@@ -117,8 +116,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     List<User> findByCompanyIdAndRole(UUID companyId, Role role);
 
     long countByCompanyIdInAndRole(Collection<UUID> companyIds, Role role);
-
-    List<User> findByNomeContainingIgnoreCaseAndIdNot(String nome, UUID id);
 
     /**
      * Busca limitada e ordenada por nome — usada na tela de "Encontrar pessoas".

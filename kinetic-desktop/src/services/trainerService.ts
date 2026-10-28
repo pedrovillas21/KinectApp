@@ -170,7 +170,6 @@ export const archiveStudentPlan = async (studentId: string, planId: string): Pro
 // Erros esperados: 502 = a IA respondeu fora do formato; 503 = IA indisponível;
 // 409 = prévia já aprovada ou expirada. O corpo é a mensagem pronta para exibir.
 
-/** O que a IA vai considerar do aluno (anamnese do app). */
 /** Protocolo (objetivo, nível, frequência) e anamnese do aluno. */
 export const getStudentProtocol = async (studentId: string): Promise<StudentProtocol> => {
   const res = await api.get<StudentProtocol>(`/trainer/students/${studentId}/protocol`);
@@ -186,6 +185,7 @@ export const updateStudentProtocol = async (
   return res.data;
 };
 
+/** O que a IA vai considerar do aluno (anamnese do app). */
 export const getAiPlanContext = async (studentId: string): Promise<AiPlanContext> => {
   const res = await api.get<AiPlanContext>(`/trainer/students/${studentId}/ai-plans/context`);
   return res.data;

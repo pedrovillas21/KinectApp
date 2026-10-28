@@ -4,6 +4,7 @@ import { Download, Trash2 } from 'lucide-react';
 import FormDialog, { formInputClass, formLabelClass } from './FormDialog';
 import { useAuth } from '../../contexts/AuthContext';
 import { deleteMyAccount, downloadMyData } from '../../services/userService';
+import { errorMessage } from '../../utils/errors';
 
 /** Direitos do titular no painel (LGPD art. 18): baixar uma cópia dos dados e excluir a conta. */
 export default function AccountPrivacySection() {
@@ -31,8 +32,7 @@ export default function AccountPrivacySection() {
       toast.success('Sua conta foi excluída.');
       await signOut();
     } catch (err: unknown) {
-      const data = (err as { response?: { data?: unknown } }).response?.data;
-      toast.error(typeof data === 'string' && data ? data : 'Não foi possível excluir a conta. Tente novamente.');
+      toast.error(errorMessage(err, 'Não foi possível excluir a conta. Tente novamente.'));
       setBusy(false);
     }
   };

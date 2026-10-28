@@ -1,11 +1,10 @@
 import React from 'react';
-import { Linking, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { KINETIC, RADIUS } from '../../theme/kinetic';
 import type { TrainerPeer } from '../../types';
-import { whatsappUrl } from '../../utils/whatsapp';
+import { openWhatsApp } from '../../utils/whatsapp';
 import Icon from '../Icon';
 import { Avatar, Text } from '../ui';
-import { showAlert } from '../ui/AlertHost';
 
 interface TrainerRowProps {
   trainer: TrainerPeer;
@@ -14,12 +13,10 @@ interface TrainerRowProps {
 
 /** Atalho para o personal do aluno: perfil profissional + WhatsApp. */
 export default function TrainerRow({ trainer, onOpenProfile }: TrainerRowProps) {
-  const openWhatsApp = () => {
+  const handleWhatsApp = () => {
     if (!trainer.phone) return;
     const firstName = trainer.nome.trim().split(/\s+/)[0];
-    Linking.openURL(whatsappUrl(trainer.phone, `Oi, ${firstName}!`)).catch(() =>
-      showAlert('WhatsApp', 'Não foi possível abrir o WhatsApp neste aparelho.'),
-    );
+    openWhatsApp(trainer.phone, `Oi, ${firstName}!`);
   };
 
   return (
@@ -44,7 +41,7 @@ export default function TrainerRow({ trainer, onOpenProfile }: TrainerRowProps) 
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Conversar no WhatsApp"
-          onPress={openWhatsApp}
+          onPress={handleWhatsApp}
           style={({ pressed }) => [styles.whatsapp, pressed && styles.pressed]}
         >
           <Icon name="comment" size={18} color={KINETIC.success} />

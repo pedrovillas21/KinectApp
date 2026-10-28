@@ -31,7 +31,7 @@ Base: `http://<host>:8080/api`
 | Usuário | `GET` / `POST` | `/users/profile`, `/users/weight` |
 | Home (dashboard) | `GET` | `/home/dashboard` |
 | Treinos | `POST` / `GET` | `/workouts/generate`, `/workouts/my-plans` |
-| Sessões | `POST` / `GET` | `/sessions/log`, `/sessions/monthly-stats`, `/sessions/weekly-activity` |
+| Sessões | `POST` / `DELETE` | `/sessions/start`, `/sessions/log`, `/sessions/active` |
 | Estatísticas | `GET` | `/stats/summary` |
 
 ---

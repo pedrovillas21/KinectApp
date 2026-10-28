@@ -1,5 +1,6 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.Hashing;
 import com.kinetic.models.RefreshToken;
 import com.kinetic.models.User;
 import com.kinetic.repositories.RefreshTokenRepository;
@@ -13,12 +14,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.Base64;
-import java.util.HexFormat;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +40,7 @@ public class RefreshTokenService {
 
         RefreshToken entity = new RefreshToken();
         entity.setUser(user);
-        entity.setTokenHash(sha256Hex(rawToken));
+        entity.setTokenHash(Hashing.sha256Hex(rawToken));
         entity.setExpiryDate(Instant.now().plusMillis(refreshExpiration));
         refreshTokenRepository.save(entity);
 
@@ -53,7 +51,7 @@ public class RefreshTokenService {
 
     @Transactional
     public RotationResult rotate(String rawToken) {
-        String hash = sha256Hex(rawToken);
+        String hash = Hashing.sha256Hex(rawToken);
         RefreshToken existing = refreshTokenRepository.findByTokenHash(hash)
                 .orElseThrow(() -> new InvalidRefreshTokenException("Refresh token inválido."));
 
@@ -74,7 +72,7 @@ public class RefreshTokenService {
 
     @Transactional
     public void revoke(String rawToken) {
-        refreshTokenRepository.deleteByTokenHash(sha256Hex(rawToken));
+        refreshTokenRepository.deleteByTokenHash(Hashing.sha256Hex(rawToken));
     }
 
     @Transactional
@@ -94,16 +92,6 @@ public class RefreshTokenService {
         int deleted = refreshTokenRepository.deleteAllExpired(Instant.now());
         if (deleted > 0) {
             log.info("RefreshTokenService: {} refresh token(s) expirado(s) removido(s).", deleted);
-        }
-    }
-
-    private String sha256Hex(String input) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(input.getBytes());
-            return HexFormat.of().formatHex(hash);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("SHA-256 not available", e);
         }
     }
 }

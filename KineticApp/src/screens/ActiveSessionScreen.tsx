@@ -1,11 +1,10 @@
-import React, { useContext, useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Text } from '../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import KeyboardAvoider from '../components/ui/KeyboardAvoider';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Polyline } from 'react-native-svg';
-import { ThemeContext } from '../contexts/ThemeContext';
 import { KINETIC } from '../theme/kinetic';
 import Icon from '../components/Icon';
 import SerieCard, { SerieStatus } from '../components/SerieCard';
@@ -57,6 +56,18 @@ function withSuffix(value: unknown, suffix: string): string {
   return `${value} ${suffix}`;
 }
 
+// Séries confirmadas da tela no formato do backend: vírgula vale como decimal e campo vazio vale 0.
+function confirmedLogs(sets: SetData[], exerciseId: string): SetLogDto[] {
+  return sets
+    .filter((s) => s.completed)
+    .map((s, idx) => ({
+      exerciseId,
+      setNumber: idx + 1,
+      repsPerformed: parseInt(s.reps, 10) || 0,
+      weightUsed: parseFloat(s.weight.replace(',', '.')) || 0,
+    }));
+}
+
 // Pequeno relógio de referência para o cabeçalho (discreto, não compete com o fluxo).
 function ClockIcon() {
   return (
@@ -75,11 +86,9 @@ function ClockIcon() {
 }
 
 export default function ActiveSessionScreen({ navigation, route }: any) {
-  useContext(ThemeContext);
   const { markSaved } = useWorkoutPresence();
 
   const workoutData = route?.params?.workoutData;
-  const workoutPlanId: string | undefined = route?.params?.workoutPlanId;
   const exercises = workoutData?.data ?? [];
 
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -188,21 +197,17 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
   };
 
   const accumulateCurrentExerciseSets = () => {
-    const completedSets = setsData.filter(s => s.completed);
-    const mappedLogs: SetLogDto[] = completedSets.map((s, idx) => {
-      // Trata vírgula e converte para float
-      const parsedWeight = parseFloat(s.weight.replace(',', '.'));
-      const parsedReps = parseInt(s.reps, 10);
-      return {
-        exerciseId: currentExercise.id,
-        setNumber: idx + 1,
-        repsPerformed: isNaN(parsedReps) ? 0 : parsedReps,
-        weightUsed: isNaN(parsedWeight) ? 0 : parsedWeight
-      };
-    });
-
+    const mappedLogs = confirmedLogs(setsData, currentExercise.id);
     setGlobalSetsLog(prev => [...prev, ...mappedLogs]);
   };
+
+  // Mesmo corpo de POST /sessions/log ao sair salvando e ao finalizar.
+  const sessionPayload = (exercisesLog: SetLogDto[]): LogSessionRequestDTO => ({
+    durationInSeconds: Math.min(elapsedTime, MAX_SESSION_SECONDS),
+    date: localDateString(),
+    exercisesLog,
+    clientSessionId: clientSessionIdRef.current,
+  });
 
   const isLastExercise = currentIndex === exercises.length - 1;
 
@@ -236,15 +241,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
   const handleExitSession = (pendingAction?: any) => {
     if (savingRef.current) return;
 
-    const currentMapped: SetLogDto[] = setsData
-      .filter(s => s.completed)
-      .map((s, idx) => ({
-        exerciseId: currentExercise.id,
-        setNumber: idx + 1,
-        repsPerformed: parseInt(s.reps, 10) || 0,
-        weightUsed: parseFloat(s.weight.replace(',', '.')) || 0
-      }));
-    const allLogs = [...globalSetsLog, ...currentMapped];
+    const allLogs = [...globalSetsLog, ...confirmedLogs(setsData, currentExercise.id)];
 
     const discardAndLeave = () => {
       if (timerRef.current) clearInterval(timerRef.current);
@@ -262,16 +259,9 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
 
     const saveAndLeave = () => {
       if (!startSaving()) return;
-      const payload: LogSessionRequestDTO = {
-        durationInSeconds: Math.min(elapsedTime, MAX_SESSION_SECONDS),
-        date: localDateString(),
-        exercisesLog: allLogs,
-        workoutPlanId,
-        clientSessionId: clientSessionIdRef.current,
-      };
       if (timerRef.current) clearInterval(timerRef.current);
 
-      api.post('/sessions/log', payload)
+      api.post('/sessions/log', sessionPayload(allLogs))
         .then(() => {
           markSaved();
           showAlert('Treino salvo', 'As séries concluídas entraram no seu histórico.');
@@ -322,15 +312,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
     // O globalSetsLog já contém os exercícios anteriores.
     // Como accumulateCurrentExerciseSets pode não ter refletido no state imediato devido ao batching,
     // vamos pegar os dados da tela atual também para garantir:
-    const completedSets = setsData.filter(s => s.completed);
-    const mappedLogs: SetLogDto[] = completedSets.map((s, idx) => ({
-      exerciseId: currentExercise.id,
-      setNumber: idx + 1,
-      repsPerformed: parseInt(s.reps, 10) || 0,
-      weightUsed: parseFloat(s.weight.replace(',', '.')) || 0
-    }));
-
-    const finalLogs = [...globalSetsLog, ...mappedLogs];
+    const finalLogs = [...globalSetsLog, ...confirmedLogs(setsData, currentExercise.id)];
 
     if (finalLogs.length === 0) {
       stopSaving();
@@ -338,16 +320,8 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
       return;
     }
 
-    const payload: LogSessionRequestDTO = {
-      durationInSeconds: Math.min(elapsedTime, MAX_SESSION_SECONDS),
-      date: localDateString(),
-      exercisesLog: finalLogs,
-      workoutPlanId,
-      clientSessionId: clientSessionIdRef.current,
-    };
-
     try {
-      await api.post('/sessions/log', payload);
+      await api.post('/sessions/log', sessionPayload(finalLogs));
       markSaved();
       // Mesmo cálculo de volume do backend (TrainingSummaryService): Σ carga × reps.
       setFinished({

@@ -64,7 +64,6 @@ const rowS = StyleSheet.create({
   prev: { fontSize: 13, color: T.text3 },
   arrow: { fontSize: 12, color: T.text3 },
   current: { fontSize: 13, fontWeight: '600', color: T.text },
-  delta: { fontSize: 12, fontWeight: '600' },
 });
 
 // ─── Insight embutido ─────────────────────────────────────────────────────────
@@ -97,7 +96,6 @@ const insightS = StyleSheet.create({
     width: 24, height: 24, borderRadius: 6,
     backgroundColor: T.accent, alignItems: 'center', justifyContent: 'center',
   },
-  iconText: { color: '#06181b', fontSize: 13, fontWeight: '900' },
   tag: { fontSize: 10, fontWeight: '700', color: T.accent, letterSpacing: 0.4 },
   body: { fontSize: 12, color: T.text, marginTop: 3, lineHeight: 18 },
 });

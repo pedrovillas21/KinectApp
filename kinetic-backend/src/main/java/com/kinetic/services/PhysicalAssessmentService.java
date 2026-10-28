@@ -1,5 +1,6 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.Numbers;
 import com.kinetic.dtos.PhysicalAssessmentDTOs.Request;
 import com.kinetic.dtos.PhysicalAssessmentDTOs.Response;
 import com.kinetic.models.PhysicalAssessment;
@@ -168,18 +169,14 @@ public class PhysicalAssessmentService {
 
     static Response toResponse(PhysicalAssessment a) {
         Double bmi = a.getWeightKg() != null && a.getHeightCm() != null
-                ? round1(a.getWeightKg() / Math.pow(a.getHeightCm() / 100.0, 2)) : null;
+                ? Numbers.round1(a.getWeightKg() / Math.pow(a.getHeightCm() / 100.0, 2)) : null;
         Double fatMass = a.getWeightKg() != null && a.getBodyFatPct() != null
-                ? round1(a.getWeightKg() * a.getBodyFatPct() / 100.0) : null;
-        Double leanMass = fatMass != null ? round1(a.getWeightKg() - fatMass) : null;
+                ? Numbers.round1(a.getWeightKg() * a.getBodyFatPct() / 100.0) : null;
+        Double leanMass = fatMass != null ? Numbers.round1(a.getWeightKg() - fatMass) : null;
         return new Response(a.getId(), a.getAssessedOn(), a.getWeightKg(), a.getHeightCm(), a.getBodyFatPct(),
                 a.getMuscleMassKg(), a.getRestingHr(), a.getChestCm(), a.getWaistCm(), a.getAbdomenCm(),
                 a.getHipCm(), a.getArmRightCm(), a.getArmLeftCm(), a.getThighRightCm(), a.getThighLeftCm(),
                 a.getCalfRightCm(), a.getCalfLeftCm(), a.getNotes(), bmi, fatMass, leanMass,
                 a.getTrainer() != null ? a.getTrainer().getNome() : null);
-    }
-
-    private static Double round1(double v) {
-        return Math.round(v * 10.0) / 10.0;
     }
 }

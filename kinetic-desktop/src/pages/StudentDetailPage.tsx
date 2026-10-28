@@ -26,6 +26,7 @@ import { ProtocolSummary, goalLabel, useStudentProtocol } from '../components/pe
 import { EASE_OUT } from '../components/motion/primitives';
 import { whatsappUrl } from '../utils/whatsapp';
 import type { StudentEngagement } from '../types';
+import { firstNameOf } from '../utils/names';
 
 type TabId = 'dashboard' | 'plans' | 'assessments';
 
@@ -120,8 +121,8 @@ export default function StudentDetailPage() {
   }
 
   const peer = link.peer;
-  const firstName = peer.nome.trim().split(/\s+/)[0] ?? peer.nome;
-  const trainerFirstName = currentUser?.nome.trim().split(/\s+/)[0];
+  const firstName = firstNameOf(peer.nome);
+  const trainerFirstName = (currentUser ? firstNameOf(currentUser.nome) : undefined);
   const whatsappHref = peer.phone
     ? whatsappUrl(peer.phone, `Oi, ${firstName}!${trainerFirstName ? ` Aqui é ${trainerFirstName}, seu personal.` : ''}`)
     : null;

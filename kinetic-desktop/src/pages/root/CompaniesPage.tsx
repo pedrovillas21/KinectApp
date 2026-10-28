@@ -29,16 +29,10 @@ import {
 import { createCompany, listCompanies, regeneratePassword, resetSecondFactor } from '../../services/rootService';
 import { formatCnpj, slugify } from '../../utils/company';
 import type { Company } from '../../types';
-
-const formatDate = (iso: string): string =>
-  new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+import { errorMessage } from '../../utils/errors';
+import { dateLabel } from '../../utils/dates';
 
 const EMPTY_FORM = { companyName: '', companyCnpj: '', slug: '', ownerName: '', ownerEmail: '' };
-
-const errorText = (err: unknown, fallback: string): string => {
-  const data = (err as { response?: { data?: unknown } }).response?.data;
-  return typeof data === 'string' && data ? data : fallback;
-};
 
 /** Redes de empresas: o ROOT cria a rede e o acesso do dono; as filiais são do dono. */
 export default function CompaniesPage() {
@@ -81,7 +75,7 @@ export default function CompaniesPage() {
       setSlugTouched(false);
       await load();
     } catch (err: unknown) {
-      toast.error(errorText(err, 'Não foi possível criar a empresa.'));
+      toast.error(errorMessage(err, 'Não foi possível criar a empresa.'));
     } finally {
       setSubmitting(false);
     }
@@ -99,7 +93,7 @@ export default function CompaniesPage() {
         toast.success('App autenticador redefinido. No próximo login o dono cadastra o app de novo.');
       }
     } catch (err: unknown) {
-      toast.error(errorText(err, 'Não foi possível concluir.'));
+      toast.error(errorMessage(err, 'Não foi possível concluir.'));
     } finally {
       setBusyId(null);
     }
@@ -230,7 +224,7 @@ export default function CompaniesPage() {
                       <span>
                         {c.units} {c.units === 1 ? 'filial' : 'filiais'}
                       </span>
-                      <span>desde {formatDate(c.createdAt)}</span>
+                      <span>desde {dateLabel(c.createdAt)}</span>
                     </>
                   }
                   actionsLabel={`Acesso do dono de ${c.nome}`}
@@ -286,7 +280,7 @@ export default function CompaniesPage() {
                       </TableCell>
                       <TableCell className="text-k-text-dim">{c.units}</TableCell>
                       <TableCell>{c.ownerStatus ? <StatusBadge status={c.ownerStatus} /> : '—'}</TableCell>
-                      <TableCell className="text-k-text-dim">{formatDate(c.createdAt)}</TableCell>
+                      <TableCell className="text-k-text-dim">{dateLabel(c.createdAt)}</TableCell>
                       <TableCell className="text-right">
                         {c.ownerId && (
                           <div className="flex justify-end gap-1">

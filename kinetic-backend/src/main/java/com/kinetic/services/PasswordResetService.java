@@ -2,7 +2,6 @@ package com.kinetic.services;
 
 import com.kinetic.enums.UserStatus;
 import com.kinetic.exceptions.InvalidCodeException;
-import com.kinetic.exceptions.TooManyAttemptsException;
 import com.kinetic.models.PasswordResetCode;
 import com.kinetic.models.User;
 import com.kinetic.repositories.PasswordResetCodeRepository;
@@ -12,14 +11,12 @@ import com.kinetic.utils.EmailTemplates;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataIntegrityViolationException;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
@@ -29,7 +26,8 @@ import java.util.Optional;
  *
  * <p>O pedido responde sempre igual, exista o e-mail ou não, para não revelar quem
  * tem conta. O código vale 15 minutos, aceita no máximo 5 tentativas erradas e um
- * novo pedido para a mesma conta só é atendido depois de 60 segundos.
+ * novo pedido para a mesma conta só é atendido depois de 60 segundos (regras comuns
+ * em {@link OneTimeCodes}).
  */
 @Service
 @RequiredArgsConstructor
@@ -38,14 +36,6 @@ public class PasswordResetService {
     private static final Logger log = LoggerFactory.getLogger(PasswordResetService.class);
 
     static final Duration CODE_TTL = Duration.ofMinutes(15);
-    static final Duration RESEND_COOLDOWN = Duration.ofSeconds(60);
-    static final int MAX_ATTEMPTS = 5;
-    /** Palpites por conta somando todos os códigos da janela (o reenvio não zera). */
-    static final int MAX_GUESSES_PER_HOUR = 10;
-    static final long GUESS_WINDOW_MS = Duration.ofHours(1).toMillis();
-
-    private static final String INVALID_CODE = "Código inválido ou expirado. Solicite um novo código.";
-    static final String TOO_MANY_GUESSES = "Muitas tentativas com código errado. Aguarde uma hora e tente de novo.";
 
     private final UserRepository userRepository;
     private final PasswordResetCodeRepository codeRepository;
@@ -53,8 +43,6 @@ public class PasswordResetService {
     private final RefreshTokenService refreshTokenService;
     private final EmailService emailService;
     private final RateLimiter rateLimiter;
-
-    private final SecureRandom secureRandom = new SecureRandom();
 
     /**
      * Gera e envia um código para o e-mail, se ele pertencer a uma conta ativa.
@@ -70,24 +58,8 @@ public class PasswordResetService {
         }
         User user = found.get();
 
-        Optional<PasswordResetCode> existing = codeRepository.findByUser(user);
-        if (existing.isPresent()
-                && existing.get().getCreatedAt().isAfter(Instant.now().minus(RESEND_COOLDOWN))) {
-            return;
-        }
-
-        String code = String.format("%06d", secureRandom.nextInt(1_000_000));
-        try {
-            codeRepository.deleteByUser(user);
-            PasswordResetCode entity = new PasswordResetCode();
-            entity.setUser(user);
-            entity.setCodeHash(passwordEncoder.encode(code));
-            entity.setCreatedAt(Instant.now());
-            entity.setExpiresAt(Instant.now().plus(CODE_TTL));
-            entity.setAttempts(0);
-            codeRepository.save(entity);
-        } catch (DataIntegrityViolationException e) {
-            // Dois pedidos simultâneos para a mesma conta: o outro já gerou o código.
+        String code = OneTimeCodes.issue(codeRepository, passwordEncoder, user, PasswordResetCode::new, CODE_TTL);
+        if (code == null) {
             return;
         }
 
@@ -108,31 +80,10 @@ public class PasswordResetService {
     @Transactional(noRollbackFor = InvalidCodeException.class)
     public void resetPassword(String email, String code, String newPassword) {
         User user = userRepository.findByEmail(email.trim())
-                .orElseThrow(() -> new InvalidCodeException(INVALID_CODE));
-        PasswordResetCode resetCode = codeRepository.findByUser(user)
-                .orElseThrow(() -> new InvalidCodeException(INVALID_CODE));
+                .orElseThrow(() -> new InvalidCodeException(OneTimeCodes.INVALID_CODE));
 
-        // Limite por conta que sobrevive ao reenvio: cada código novo zera as 5 tentativas
-        // dele, mas não este contador (senão daria para adivinhar pedindo códigos sem fim).
-        if (rateLimiter.acquire("reset-guess:" + user.getId(), MAX_GUESSES_PER_HOUR, GUESS_WINDOW_MS) > 0) {
-            throw new TooManyAttemptsException(TOO_MANY_GUESSES);
-        }
+        OneTimeCodes.consume(codeRepository, passwordEncoder, rateLimiter, "reset-guess:", user, code);
 
-        // A tentativa é contada antes do bcrypt: em rajada paralela, cada requisição
-        // espera a anterior e o limite de MAX_ATTEMPTS vale de verdade.
-        if (codeRepository.reserveAttempt(resetCode.getId(), MAX_ATTEMPTS, Instant.now()) == 0) {
-            codeRepository.deleteByUser(user);
-            throw new InvalidCodeException(INVALID_CODE);
-        }
-
-        if (!passwordEncoder.matches(code, resetCode.getCodeHash())) {
-            if (resetCode.getAttempts() + 1 >= MAX_ATTEMPTS) {
-                codeRepository.deleteByUser(user);
-            }
-            throw new InvalidCodeException(INVALID_CODE);
-        }
-
-        codeRepository.deleteByUser(user);
         refreshTokenService.revokeAllForUser(user);
         user.setSenha(passwordEncoder.encode(newPassword));
         user.setCredentialsChangedAt(Instant.now());

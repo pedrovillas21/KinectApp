@@ -18,6 +18,7 @@ import {
 } from '../services/trainerProfileService';
 import { qk, queryClient } from '../services/queryClient';
 import type { TrainerEducation, TrainerProfile, TrainerProfileInput } from '../types';
+import { errorMessage } from '../utils/errors';
 
 const BIO_MAX = 1500;
 const SPECIALTIES_MAX = 12;
@@ -39,11 +40,6 @@ const SUGGESTED_SPECIALTIES = [
 /** Mesma regra do backend (TrainerProfileService): 000000-G/UF, com ou sem hífen/barra. */
 const CREF_RE = /^(CREF)?\d{6}-?[GP]\/?[A-Z]{2}$/;
 const crefLooksValid = (value: string) => CREF_RE.test(value.toUpperCase().replace(/\s+/g, ''));
-
-const errorText = (err: unknown, fallback: string) => {
-  const data = (err as { response?: { data?: unknown } }).response?.data;
-  return typeof data === 'string' && data ? data : fallback;
-};
 
 interface Draft {
   cref: string;
@@ -137,7 +133,7 @@ export default function MyProfilePage() {
       setDraft(toDraft(saved));
       toast.success('Perfil salvo', { description: 'Seus alunos já veem a versão nova no app.' });
     } catch (err) {
-      toast.error(errorText(err, 'Não foi possível salvar o perfil.'));
+      toast.error(errorMessage(err, 'Não foi possível salvar o perfil.'));
     } finally {
       setSaving(false);
     }
@@ -450,7 +446,7 @@ function AvatarPicker({ name, avatarUrl }: { name: string; avatarUrl: string | n
       setAvatar(await updateMyAvatar(compressed));
       toast.success('Foto atualizada');
     } catch (err) {
-      toast.error(errorText(err, 'Não foi possível enviar a foto.'));
+      toast.error(errorMessage(err, 'Não foi possível enviar a foto.'));
     } finally {
       setBusy(null);
     }
@@ -463,7 +459,7 @@ function AvatarPicker({ name, avatarUrl }: { name: string; avatarUrl: string | n
       setAvatar(null);
       toast.success('Foto removida');
     } catch (err) {
-      toast.error(errorText(err, 'Não foi possível remover a foto.'));
+      toast.error(errorMessage(err, 'Não foi possível remover a foto.'));
     } finally {
       setBusy(null);
     }

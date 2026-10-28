@@ -10,9 +10,7 @@ import { KINETIC } from './kinetic';
 export const STATS_T = {
   bg: KINETIC.bg,
   card: KINETIC.surface1,
-  cardSoft: KINETIC.surface2,
   border: 'rgba(255,255,255,0.06)',
-  borderSoft: 'rgba(255,255,255,0.04)',
   text: KINETIC.text,
   text2: KINETIC.textDim,
   text3: KINETIC.textMuted,

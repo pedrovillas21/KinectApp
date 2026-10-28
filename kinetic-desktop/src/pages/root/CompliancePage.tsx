@@ -15,14 +15,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -39,6 +31,7 @@ import {
 } from '@/components/ui/table';
 import { deleteUser, listUsers, setUserStatus } from '../../services/rootService';
 import type { UserAdmin, UserStatus } from '../../types';
+import ConfirmDialog from '../../components/personal/ConfirmDialog';
 
 const ROLE_FILTER = 'all';
 type RoleFilter = typeof ROLE_FILTER | UserAdmin['role'];
@@ -237,30 +230,22 @@ export default function CompliancePage() {
         )}
       </div>
 
-      <Dialog open={toDelete !== null} onOpenChange={(o) => !o && setToDelete(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Excluir conta definitivamente</DialogTitle>
-            <DialogDescription>
-              Use só a pedido do titular (LGPD). A conta de <strong>{toDelete?.nome}</strong> e os dados
-              dela são apagados agora, sem volta; fica apenas o que a lei exige guardar. Se a conta estiver
-              bloqueada, o mesmo e-mail e CPF não podem criar conta nova. Para só tirar o acesso, use Bloquear.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setToDelete(null)}>
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              disabled={busyId === toDelete?.id}
-              onClick={() => void confirmDelete()}
-            >
-              {busyId === toDelete?.id ? 'Excluindo…' : 'Excluir definitivamente'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={toDelete !== null}
+        title="Excluir conta definitivamente"
+        description={
+          <>
+            Use só a pedido do titular (LGPD). A conta de <strong>{toDelete?.nome}</strong> e os dados
+            dela são apagados agora, sem volta; fica apenas o que a lei exige guardar. Se a conta estiver
+            bloqueada, o mesmo e-mail e CPF não podem criar conta nova. Para só tirar o acesso, use Bloquear.
+          </>
+        }
+        confirmLabel="Excluir definitivamente"
+        destructive
+        busy={busyId === toDelete?.id}
+        onConfirm={() => void confirmDelete()}
+        onCancel={() => setToDelete(null)}
+      />
     </div>
   );
 }

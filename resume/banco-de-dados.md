@@ -38,7 +38,7 @@ erDiagram
     users ||--o{ feedbacks : "avalia personal"
     users ||--o{ workout_plans : "possui"
     workout_plans ||--o{ exercises : "contém"
-    workout_plans ||--o{ workout_execution_logs : "concluído em"
+    workout_plans ||--o{ workout_sessions : "treino de"
     users ||--o{ workout_sessions : "treinou"
     workout_sessions ||--o{ exercise_set_logs : "séries"
     exercises ||--o{ exercise_set_logs : "de"
@@ -154,18 +154,20 @@ devolve coisas como `"8-12"` ou `"até a falha"`, que não cabem em `int`.
 
 ## Execução e métricas
 
-Existem **três granularidades de registro**, e a diferença entre elas confunde à
-primeira vista:
+Existem **duas granularidades de registro**:
 
 | Tabela | Granularidade | Responde |
 |---|---|---|
-| `workout_execution_logs` | Ficha concluída | "quais fichas ele já fez, e quando?" |
-| `workout_sessions` | Sessão cronometrada | "quanto tempo treinou naquele dia?" |
+| `workout_sessions` | Treino concluído | "quanto tempo treinou, quando e qual ficha?" |
 | `exercise_set_logs` | Série individual | "quanto peso levantou naquele exercício?" |
 
 `exercise_set_logs` é a mais fina: `set_number`, `reps_performed`, `weight_used`,
 amarrada a um `exercise_id` e a um `session_id`. É dela que sai o volume total
 (carga × reps) e a progressão por músculo.
+
+A ficha da sessão (`workout_plan_id`) é a dos exercícios registrados; treino que
+mistura fichas fica sem ficha. A V53 trouxe isso e o `created_at` para a sessão e
+apagou `workout_execution_logs`, que só repetia a sessão com a ficha.
 
 ### `plan_cycle_snapshots`
 
@@ -261,8 +263,9 @@ manualmente. Foi a única tabela deixada de fora do `ENABLE ROW LEVEL SECURITY` 
 `V21`, porque o Flyway mantém lock nela durante a execução e um `ALTER TABLE` ali
 travaria a própria migration.
 
-`baseline-version=6` em `application.properties`: o Flyway assume que tudo até V6
-já existia quando foi adotado.
+Produção já tem o histórico do Flyway, então o `application.properties` não configura
+baseline: um banco sem `flyway_schema_history` é recusado na hora. Só os testes usam
+`baseline-on-migrate` (na V49, a versão do snapshot), em `application-test.properties`.
 
 ## Convenções e inconsistências
 
