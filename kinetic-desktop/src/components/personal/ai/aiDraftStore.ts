@@ -33,6 +33,11 @@ export interface AiDraft {
   approveError: string | null;
   /** Início da geração em andamento (a tela de espera continua do ponto certo). */
   generatingSince: number | null;
+  /**
+   * O personal voltou para a lista de fichas sem cancelar: o fluxo fica escondido e a
+   * geração segue. Reabre pela barra lateral, pelo aviso na aba Treinos ou por "Criar com IA".
+   */
+  minimized: boolean;
 }
 
 type Patch = Partial<AiDraft> | ((draft: AiDraft) => Partial<AiDraft>);
@@ -81,6 +86,7 @@ export function newAiDraft(studentId: string, studentName: string, currentPlans:
     approving: false,
     approveError: null,
     generatingSince: null,
+    minimized: false,
   };
 }
 

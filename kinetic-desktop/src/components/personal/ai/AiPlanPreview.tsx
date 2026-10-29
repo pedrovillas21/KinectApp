@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
   AlertCircle,
@@ -10,15 +11,17 @@ import {
   Pencil,
   RefreshCw,
   ShieldCheck,
+  Trash2,
   UserRound,
 } from 'lucide-react';
 import AiFlowHeader, { AiFlowFooter } from './AiFlowHeader';
+import { SegmentButton } from './AiPlanComposer';
+import MuscleMap from '../MuscleMap';
 import { LEVELS, SECTIONS, muscleLabel } from '../workoutVocab';
 import {
   attentionFor,
   autoSubtitle,
   dayLabel,
-  setsByMuscle,
   totalSets,
   type AiRequestForm,
   type PreviewPlan,
@@ -26,6 +29,7 @@ import {
 import type { AiPlanNote, WorkoutExerciseInput } from '../../../types';
 
 interface Props {
+  studentId: string;
   studentFirstName: string;
   studentName: string;
   plans: PreviewPlan[];
@@ -76,6 +80,7 @@ const planMeta = (plan: PreviewPlan) => {
 };
 
 export default function AiPlanPreview({
+  studentId,
   studentFirstName,
   studentName,
   plans,
@@ -124,7 +129,7 @@ export default function AiPlanPreview({
       disabled={!ready || approving}
       whileTap={ready && !approving ? { scale: 0.97 } : undefined}
       title={ready ? undefined : `Revise ${fichas} e confirme a declaração no fim da página`}
-      className={`flex items-center gap-2 rounded-[10px] font-bold transition-[box-shadow,background-color,color] disabled:cursor-not-allowed ${
+      className={`flex items-center justify-center gap-2 rounded-[10px] font-bold max-sm:flex-1 transition-[box-shadow,background-color,color] disabled:cursor-not-allowed ${
         approving ? 'disabled:cursor-wait' : ''
       } ${
         'h-11 px-5 text-sm'
@@ -141,7 +146,13 @@ export default function AiPlanPreview({
       ) : (
         <Lock className="h-4 w-4" />
       )}
-      {approving ? 'Enviando…' : `Aprovar e enviar para ${studentFirstName}`}
+      {approving ? (
+        'Enviando…'
+      ) : (
+        <span className="whitespace-nowrap">
+          Aprovar e enviar<span className="max-sm:hidden"> para {studentFirstName}</span>
+        </span>
+      )}
     </motion.button>
   );
 
@@ -159,24 +170,25 @@ export default function AiPlanPreview({
         }
       />
 
-      <div className="mx-auto flex w-full max-w-[1120px] flex-1 flex-wrap items-start gap-5 px-4 md:px-8 py-6">
+      <div className="mx-auto flex w-full max-w-[1120px] flex-1 flex-wrap items-start gap-5 px-4 py-6 max-md:gap-4 max-md:py-4 md:px-8">
         <div className="flex min-w-0 flex-[999_1_560px] flex-col gap-4">
           {attentionPoints.length > 0 && (
-            <section aria-labelledby="ai-attention-title" className={`flex flex-col gap-3 px-4 py-4 md:px-5 ${CARD}`}>
-              <div className="flex flex-wrap items-center gap-2">
+            <section
+              aria-labelledby="ai-attention-title"
+              className="rounded-2xl border border-k-warn/20 bg-k-warn/[0.04] px-4 py-3.5 md:px-5"
+            >
+              <h3 id="ai-attention-title" className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm font-bold">
                 <AlertTriangle className="h-4 w-4 text-k-warn" />
-                <h3 id="ai-attention-title" className="text-sm font-bold">
-                  {attentionPoints.length === 1 ? '1 ponto para conferir' : `${attentionPoints.length} pontos para conferir`}
-                </h3>
-                <span className="text-[12.5px] text-k-text-muted">· levantados pela IA a partir da anamnese</span>
-              </div>
-              <ul className="grid gap-2.5 [grid-template-columns:repeat(auto-fit,minmax(min(210px,100%),1fr))]">
+                {attentionPoints.length === 1 ? '1 ponto para conferir' : `${attentionPoints.length} pontos para conferir`}
+                <span className="text-[12.5px] font-normal text-k-text-muted max-sm:hidden">
+                  · levantados pela IA a partir da anamnese
+                </span>
+              </h3>
+              <ul className="mt-2.5 grid gap-x-6 gap-y-2.5 md:grid-cols-2">
                 {attentionPoints.map((point) => (
-                  <li key={point.title} className="flex flex-col gap-1 rounded-[10px] bg-k-bg p-3">
-                    <span className="text-[13px] font-semibold">{point.title}</span>
-                    {point.detail && (
-                      <span className="text-[12.5px] leading-normal text-k-text-dim">{point.detail}</span>
-                    )}
+                  <li key={point.title} className="min-w-0">
+                    <p className="text-[13px] font-semibold">{point.title}</p>
+                    {point.detail && <p className="mt-0.5 text-[12.5px] leading-normal text-k-text-dim">{point.detail}</p>}
                   </li>
                 ))}
               </ul>
@@ -187,7 +199,8 @@ export default function AiPlanPreview({
             <div
               role="tablist"
               aria-label="Fichas da prévia"
-              className="grid gap-2 [grid-template-columns:repeat(auto-fit,minmax(min(190px,100%),1fr))]"
+              // Celular: fileira que rola na horizontal em vez de um cartão por linha.
+              className="flex gap-2 overflow-x-auto [scrollbar-width:none] max-md:-mx-4 max-md:snap-x max-md:px-4 md:grid md:[grid-template-columns:repeat(auto-fit,minmax(190px,1fr))]"
             >
               {plans.map((p, i) => {
                 const accent = ACCENTS[i % ACCENTS.length];
@@ -201,7 +214,7 @@ export default function AiPlanPreview({
                     aria-selected={selected}
                     aria-controls="ai-plan-panel"
                     onClick={() => onSelect(i)}
-                    className={`flex flex-col items-start gap-1.5 rounded-xl border bg-k-surface1 px-3.5 py-3 text-left transition-colors ${
+                    className={`flex shrink-0 flex-col items-start gap-1.5 rounded-xl border bg-k-surface1 px-3.5 py-3 text-left transition-colors max-md:w-[168px] max-md:snap-start max-md:py-2.5 ${
                       selected ? 'border-k-primary/45' : 'border-k-ghost hover:border-white/[0.16]'
                     }`}
                   >
@@ -220,8 +233,8 @@ export default function AiPlanPreview({
                         </span>
                       )}
                     </span>
-                    <span className="line-clamp-1 text-[13.5px] font-semibold">{p.input.title}</span>
-                    <span className="font-mono text-[11.5px] tabular-nums text-k-text-muted">{planMeta(p)}</span>
+                    <span className="line-clamp-1 w-full text-[13.5px] font-semibold">{p.input.title}</span>
+                    <span className="font-mono text-[11.5px] tabular-nums text-k-text-muted max-md:hidden">{planMeta(p)}</span>
                   </button>
                 );
               })}
@@ -278,139 +291,95 @@ export default function AiPlanPreview({
             </motion.section>
           </AnimatePresence>
 
-          <section
-            aria-labelledby="ai-approval-title"
-            className={`flex flex-col gap-4 rounded-2xl border bg-k-surface1 p-5 transition-colors ${
-              allReviewed && agreed ? 'border-k-primary/40' : 'border-k-ghost'
-            }`}
-          >
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <ShieldCheck className="h-[18px] w-[18px] text-k-primary" />
-                <h3 id="ai-approval-title" className={SECTION_TITLE}>
-                  Aprovação profissional
-                </h3>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <span className="font-mono text-[12.5px] tabular-nums text-k-text-dim">
-                  {reviewedCount} de {plans.length} {plans.length === 1 ? 'revisada' : 'revisadas'}
-                </span>
-                <span aria-hidden="true" className="flex gap-1">
-                  {reviewed.map((done, i) => (
-                    <span
-                      key={i}
-                      className={`h-1 w-7 rounded-full transition-colors duration-300 ${done ? 'bg-k-primary' : 'bg-k-surface3'}`}
-                    />
-                  ))}
-                </span>
-              </div>
-            </div>
-
-            <label
-              className={`flex items-start gap-3 rounded-xl border border-k-ghost bg-k-bg px-4 py-3.5 transition-opacity ${
-                allReviewed ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'
-              }`}
-            >
-              <input
-                type="checkbox"
-                checked={agreed}
-                onChange={onToggleAgreed}
-                disabled={!allReviewed || approving}
-                className="mt-0.5 h-[18px] w-[18px] shrink-0 cursor-pointer accent-k-primary disabled:cursor-not-allowed"
-              />
-              <span className="text-[13px] leading-relaxed text-k-text-soft">{declarationText(studentName)}</span>
-            </label>
-
-            <ul className="flex flex-wrap gap-x-5 gap-y-2 text-[12.5px] leading-normal text-k-text-muted">
-              <li className="flex items-center gap-1.5">
-                <UserRound className="h-3.5 w-3.5 shrink-0" />
-                {plans.length === 1 ? 'Aparece' : 'Aparecem'} no app como {plans.length === 1 ? 'prescrita' : 'prescritas'} por você
-              </li>
-              <li className="flex items-center gap-1.5">
-                <Clock className="h-3.5 w-3.5 shrink-0" />
-                Aceite registrado com data, hora, pedido e versão aprovada
-              </li>
-              {currentPlanCount > 0 && (
-                <li className="flex items-center gap-1.5">
-                  <RefreshCw className="h-3.5 w-3.5 shrink-0" />
-                  {form.replace
-                    ? `${currentPlanCount === 1 ? 'A ficha atual sai' : `As ${currentPlanCount} fichas atuais saem`} do app`
-                    : `${currentPlanCount === 1 ? 'A ficha atual continua' : `As ${currentPlanCount} fichas atuais continuam`} no app`}
-                </li>
-              )}
-            </ul>
-
-            <AnimatePresence>
-              {approveError && (
-                <motion.div
-                  key="approve-error"
-                  role="alert"
-                  initial={{ opacity: 0, y: -6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="flex items-start gap-2.5 rounded-xl border border-k-alert/25 bg-k-alert/[0.08] px-4 py-3 text-[13px] leading-snug text-k-alert"
-                >
-                  <AlertCircle className="mt-px h-4 w-4 shrink-0" />
-                  <span>{approveError}</span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </section>
         </div>
 
         <aside className="flex min-w-0 flex-[1_1_320px] flex-col gap-4">
-          <section aria-labelledby="ai-request-title" className={`flex flex-col gap-3 p-5 ${CARD}`}>
-            <div className="flex items-center justify-between gap-2.5">
-              <h3 id="ai-request-title" className={SECTION_TITLE}>
-                Seu pedido
-              </h3>
-              <button
-                type="button"
-                onClick={onAdjust}
-                className="flex items-center gap-1.5 text-[13px] font-semibold text-k-primary hover:underline"
-              >
-                Ajustar
-              </button>
-            </div>
-            <p className="whitespace-pre-line text-[13px] leading-relaxed text-k-text-soft">{form.prompt.trim()}</p>
-            <p className="font-mono text-[11.5px] leading-normal text-k-text-muted">
-              {form.scope === 'full' ? `Divisão completa · ${form.count} fichas` : '1 ficha'}
-              {form.duration.trim() ? ` · até ${form.duration.trim()} min` : ''} ·{' '}
-              {LEVELS.find((l) => l.value === form.level)?.label ?? form.level}
-              {currentPlanCount > 0 ? (form.replace ? ' · substitui as fichas atuais' : ' · mantém as fichas atuais') : ''}
-            </p>
-          </section>
-
-          {understood.length > 0 && (
-            <section aria-labelledby="ai-understood-title" className={`flex flex-col gap-3 p-5 ${CARD}`}>
-              <div>
-                <h3
-                  id="ai-understood-title"
-                  className={SECTION_TITLE}
-                >
-                  Como a IA entendeu
-                </h3>
-                <p className="mt-0.5 text-[12.5px] text-k-text-muted">Confira se bate com o que você pediu.</p>
-              </div>
-              <ul className="flex flex-col gap-3">
-                {understood.map((item) => (
-                  <li key={item.title} className="flex gap-2.5">
-                    <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-k-success" strokeWidth={2.6} />
-                    <div className="min-w-0">
-                      <p className="text-[13px] font-semibold">{item.title}</p>
-                      {item.detail && <p className="mt-px text-xs text-k-text-muted">{item.detail}</p>}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-
-          <VolumeCard plans={plans} />
+          <FocusCard studentId={studentId} plans={plans} active={active} />
+          <RequestCard form={form} understood={understood} currentPlanCount={currentPlanCount} onAdjust={onAdjust} />
         </aside>
+
+        <section
+          aria-labelledby="ai-approval-title"
+          className={`flex w-full flex-col gap-4 rounded-2xl border bg-k-surface1 p-5 transition-colors max-md:p-4 ${
+            allReviewed && agreed ? 'border-k-primary/40' : 'border-k-ghost'
+          }`}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <ShieldCheck className="h-[18px] w-[18px] text-k-primary" />
+              <h3 id="ai-approval-title" className={SECTION_TITLE}>
+                Aprovação profissional
+              </h3>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <span className="font-mono text-[12.5px] tabular-nums text-k-text-dim">
+                {reviewedCount} de {plans.length} {plans.length === 1 ? 'revisada' : 'revisadas'}
+              </span>
+              <span aria-hidden="true" className="flex gap-1">
+                {reviewed.map((done, i) => (
+                  <span
+                    key={i}
+                    className={`h-1 w-7 rounded-full transition-colors duration-300 ${done ? 'bg-k-primary' : 'bg-k-surface3'}`}
+                  />
+                ))}
+              </span>
+            </div>
+          </div>
+
+          <label
+            className={`flex items-start gap-3 rounded-xl border border-k-ghost bg-k-bg px-4 py-3.5 transition-opacity ${
+              allReviewed ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'
+            }`}
+          >
+            <input
+              type="checkbox"
+              checked={agreed}
+              onChange={onToggleAgreed}
+              disabled={!allReviewed || approving}
+              className="mt-0.5 h-[18px] w-[18px] shrink-0 cursor-pointer accent-k-primary disabled:cursor-not-allowed"
+            />
+            <span className="text-[13px] leading-relaxed text-k-text-soft">{declarationText(studentName)}</span>
+          </label>
+
+          <ul className="flex flex-wrap gap-x-5 gap-y-2 text-[12.5px] leading-normal text-k-text-muted">
+            <li className="flex items-center gap-1.5">
+              <UserRound className="h-3.5 w-3.5 shrink-0" />
+              {plans.length === 1 ? 'Aparece' : 'Aparecem'} no app como {plans.length === 1 ? 'prescrita' : 'prescritas'} por você
+            </li>
+            <li className="flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5 shrink-0" />
+              Aceite registrado com data, hora, pedido e versão aprovada
+            </li>
+            {currentPlanCount > 0 && (
+              <li className="flex items-center gap-1.5">
+                <RefreshCw className="h-3.5 w-3.5 shrink-0" />
+                {form.replace
+                  ? `${currentPlanCount === 1 ? 'A ficha atual sai' : `As ${currentPlanCount} fichas atuais saem`} do app`
+                  : `${currentPlanCount === 1 ? 'A ficha atual continua' : `As ${currentPlanCount} fichas atuais continuam`} no app`}
+              </li>
+            )}
+          </ul>
+
+          <AnimatePresence>
+            {approveError && (
+              <motion.div
+                key="approve-error"
+                role="alert"
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="flex items-start gap-2.5 rounded-xl border border-k-alert/25 bg-k-alert/[0.08] px-4 py-3 text-[13px] leading-snug text-k-alert"
+              >
+                <AlertCircle className="mt-px h-4 w-4 shrink-0" />
+                <span>{approveError}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </section>
       </div>
 
       <AiFlowFooter
+        hideSummaryOnMobile
         summary={
           <span className={`text-[13px] ${allReviewed ? 'text-k-success' : 'text-k-text-dim'}`}>{progressText}</span>
         }
@@ -419,18 +388,19 @@ export default function AiPlanPreview({
           type="button"
           onClick={onDiscard}
           disabled={approving}
-          className="h-11 rounded-[10px] px-4 text-sm font-semibold text-k-alert transition-colors hover:bg-k-alert/[0.08] disabled:opacity-50"
+          className="flex h-11 shrink-0 items-center justify-center gap-2 rounded-[10px] px-4 text-sm font-semibold text-k-alert transition-colors hover:bg-k-alert/[0.08] disabled:opacity-50 max-sm:w-11 max-sm:border max-sm:border-k-alert/25 max-sm:px-0"
         >
-          Descartar prévia
+          <Trash2 className="h-4 w-4 sm:hidden" />
+          <span className="max-sm:sr-only">Descartar prévia</span>
         </button>
         <button
           type="button"
           onClick={onRegenerate}
           disabled={approving}
-          className="group flex h-11 items-center gap-2 rounded-[10px] border border-white/10 px-4 text-sm font-semibold text-k-text-soft transition-colors hover:bg-k-surface2 hover:text-k-text disabled:opacity-50"
+          className="group flex h-11 shrink-0 items-center justify-center gap-2 rounded-[10px] border border-white/10 px-4 text-sm font-semibold text-k-text-soft transition-colors hover:bg-k-surface2 hover:text-k-text disabled:opacity-50 max-sm:w-11 max-sm:px-0"
         >
           <RefreshCw className="h-[15px] w-[15px] transition-transform duration-500 group-hover:rotate-180" />
-          Gerar de novo
+          <span className="max-sm:sr-only">Gerar de novo</span>
         </button>
         {approveButton()}
       </AiFlowFooter>
@@ -462,8 +432,8 @@ function PlanTable({
 
   return (
     <>
-      <div className="flex flex-wrap items-start justify-between gap-3 px-4 pb-4 pt-5 md:px-5">
-        <div className="min-w-0">
+      <div className="flex items-start justify-between gap-3 px-4 pb-4 pt-5 md:px-5">
+        <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className={`rounded-md px-2 py-[3px] font-mono text-[11.5px] font-semibold ${accent.text} ${accent.bg}`}>
               {dayLabel(plan.input.tag, index)}
@@ -475,7 +445,7 @@ function PlanTable({
               </span>
             )}
           </div>
-          <h3 className="mt-2 font-display text-xl font-extrabold tracking-tight font-stretch-semi-expanded">
+          <h3 className="mt-2 font-display text-xl font-extrabold tracking-tight font-stretch-semi-expanded max-sm:text-lg">
             {plan.input.title}
           </h3>
           {subtitle && <p className="mt-1 text-[12.5px] text-k-text-muted">{subtitle}</p>}
@@ -486,15 +456,16 @@ function PlanTable({
         <button
           type="button"
           onClick={onEdit}
-          className="flex h-10 items-center gap-1.5 rounded-[10px] border border-white/10 px-3.5 text-[13px] font-semibold text-k-text-soft transition-colors hover:bg-k-surface2 hover:text-k-text"
+          aria-label="Editar ficha"
+          className="flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-[10px] border border-white/10 px-3.5 text-[13px] font-semibold text-k-text-soft transition-colors hover:bg-k-surface2 hover:text-k-text max-sm:h-11 max-sm:w-11 max-sm:px-0"
         >
           <Pencil className="h-3.5 w-3.5" />
-          Editar ficha
+          <span className="max-sm:sr-only">Editar ficha</span>
         </button>
       </div>
 
-      <div className="overflow-x-auto">
-        <div role="table" aria-label="Exercícios da ficha" className="md:min-w-[760px]">
+      <div>
+        <div role="table" aria-label="Exercícios da ficha">
           <div
             role="row"
             className={`${ROW_GRID} border-t border-k-ghost bg-[#181818] px-4 py-2.5 text-[11px] md:px-5 font-semibold uppercase tracking-[0.07em] text-k-text-muted`}
@@ -558,37 +529,114 @@ function ExerciseRow({ n, ex, attention }: { n: string; ex: WorkoutExerciseInput
   );
 }
 
-// ─── Séries por grupo muscular ───────────────────────────────────────────────
+// ─── Coluna lateral ──────────────────────────────────────────────────────────
 
-function VolumeCard({ plans }: { plans: PreviewPlan[] }) {
-  const rows = setsByMuscle(plans);
-  if (rows.length === 0) return null;
-  const max = rows[0].value;
-
+/** Mapa muscular da prévia: a divisão inteira ou só a ficha aberta. */
+function FocusCard({ studentId, plans, active }: { studentId: string; plans: PreviewPlan[]; active: number }) {
+  const [scope, setScope] = useState<'all' | 'plan'>('all');
+  const sources = plans.map((p) => ({ data: p.input.exercises }));
+  const single = plans.length === 1;
   return (
-    <section aria-labelledby="ai-volume-title" className={`flex flex-col gap-3.5 p-5 ${CARD}`}>
-      <div>
-        <h3 id="ai-volume-title" className={SECTION_TITLE}>
-          Séries por grupo muscular
+    <section aria-labelledby="ai-focus-title" className={`flex flex-col gap-3 p-5 max-md:p-4 ${CARD}`}>
+      <div className="flex flex-wrap items-center justify-between gap-2.5">
+        <h3 id="ai-focus-title" className={SECTION_TITLE}>
+          Foco muscular
         </h3>
-        <p className="mt-0.5 text-[12.5px] text-k-text-muted">
-          {plans.length === 1 ? 'Da ficha' : `Soma das ${plans.length} fichas`}, sem mobilidade, core e cardio.
-        </p>
+        {!single && (
+          <div
+            role="group"
+            aria-label="Mostrar no mapa"
+            className="flex h-10 rounded-[10px] border border-white/10 bg-k-bg p-[3px] max-md:h-12"
+          >
+            <SegmentButton active={scope === 'all'} onClick={() => setScope('all')}>
+              <span className="px-1">Divisão</span>
+            </SegmentButton>
+            <SegmentButton active={scope === 'plan'} onClick={() => setScope('plan')}>
+              <span className="whitespace-nowrap px-1">{dayLabel(plans[active].input.tag, active)}</span>
+            </SegmentButton>
+          </div>
+        )}
       </div>
-      <ul className="flex flex-col gap-[9px]">
-        {rows.map((row) => (
-          <li key={row.label} className="grid grid-cols-[84px_minmax(0,1fr)_24px] items-center gap-2.5 text-[12.5px]">
-            <span className="text-k-text-dim">{row.label}</span>
-            <span aria-hidden="true" className="h-1.5 overflow-hidden rounded bg-k-surface2">
-              <span
-                className="block h-full rounded bg-k-chart-2 transition-[width] duration-500"
-                style={{ width: `${Math.round((row.value / max) * 100)}%` }}
-              />
-            </span>
-            <span className="text-right font-mono tabular-nums">{row.value}</span>
-          </li>
-        ))}
-      </ul>
+      <MuscleMap
+        studentId={studentId}
+        plans={sources}
+        plan={single || scope === 'plan' ? sources[active] : undefined}
+        bare
+      />
+    </section>
+  );
+}
+
+/** Pedido e leitura da IA num cartão só; no celular a leitura fica recolhida. */
+function RequestCard({
+  form,
+  understood,
+  currentPlanCount,
+  onAdjust,
+}: {
+  form: AiRequestForm;
+  understood: AiPlanNote[];
+  currentPlanCount: number;
+  onAdjust: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const collapsible = understood.length > 0;
+  return (
+    <section aria-labelledby="ai-request-title" className={`flex flex-col gap-3 p-5 max-md:p-4 ${CARD}`}>
+      <div className="flex items-center justify-between gap-2.5">
+        <h3 id="ai-request-title" className={SECTION_TITLE}>
+          Seu pedido
+        </h3>
+        <button
+          type="button"
+          onClick={onAdjust}
+          className="flex h-9 items-center gap-1.5 text-[13px] font-semibold text-k-primary hover:underline max-md:h-11"
+        >
+          Ajustar
+        </button>
+      </div>
+      <p
+        className={`whitespace-pre-line text-[13px] leading-relaxed text-k-text-soft ${
+          collapsible && !open ? 'max-md:line-clamp-3' : ''
+        }`}
+      >
+        {form.prompt.trim()}
+      </p>
+      <p className="font-mono text-[11.5px] leading-normal text-k-text-muted">
+        {form.scope === 'full' ? `Divisão completa · ${form.count} fichas` : '1 ficha'}
+        {form.duration.trim() ? ` · até ${form.duration.trim()} min` : ''} ·{' '}
+        {LEVELS.find((l) => l.value === form.level)?.label ?? form.level}
+        {currentPlanCount > 0 ? (form.replace ? ' · substitui as fichas atuais' : ' · mantém as fichas atuais') : ''}
+      </p>
+
+      {collapsible && (
+        <div id="ai-understood" className={`border-t border-k-ghost pt-3 ${open ? '' : 'max-md:hidden'}`}>
+          <h4 className="text-[13px] font-semibold">Como a IA entendeu</h4>
+          <p className="mt-0.5 text-[12.5px] text-k-text-muted">Confira se bate com o que você pediu.</p>
+          <ul className="mt-3 flex flex-col gap-3">
+            {understood.map((item) => (
+              <li key={item.title} className="flex gap-2.5">
+                <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-k-success" strokeWidth={2.6} />
+                <div className="min-w-0">
+                  <p className="text-[13px] font-semibold">{item.title}</p>
+                  {item.detail && <p className="mt-px text-xs text-k-text-muted">{item.detail}</p>}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {collapsible && (
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          aria-controls="ai-understood"
+          className="flex h-11 items-center justify-center rounded-[10px] border border-white/10 text-[13px] font-semibold text-k-text-soft md:hidden"
+        >
+          {open ? 'Mostrar menos' : `Como a IA entendeu (${understood.length})`}
+        </button>
+      )}
     </section>
   );
 }

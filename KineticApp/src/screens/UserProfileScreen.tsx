@@ -180,7 +180,7 @@ export default function UserProfileScreen({ navigation, route }: MainStackScreen
             posts={posts}
             workouts={workouts}
             postsCount={profile.postsCount}
-            workoutsCount={profile.workoutsCount}
+            workoutsCount={profile.monthWorkoutsCount}
             onPressPost={(post) =>
               navigation.navigate('ProfilePosts', {
                 userId,
@@ -191,7 +191,7 @@ export default function UserProfileScreen({ navigation, route }: MainStackScreen
               })
             }
             emptyPosts={`${firstName} ainda não publicou.`}
-            emptyWorkouts={`${firstName} ainda não registrou treinos.`}
+            emptyWorkouts={`${firstName} ainda não registrou treinos este mês.`}
           />
         </View>
       )}

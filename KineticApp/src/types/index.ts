@@ -483,6 +483,8 @@ export interface PublicProfile {
   postsCount: number;
   friendsCount: number;
   workoutsCount: number;
+  /** Sessões do mês vigente (aba "Treinos"). */
+  monthWorkoutsCount: number;
   streakDays: number;
   /** Início (domingo) de cada uma das 12 semanas, mais antiga primeiro. */
   weekStarts: string[];

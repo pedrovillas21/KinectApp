@@ -10,6 +10,8 @@ interface Props {
   /** Início da geração (Date.now()): voltar à tela não reinicia as etapas. */
   startedAt: number;
   onCancel: () => void;
+  /** Volta para a lista de fichas sem cancelar a geração. */
+  onBack: () => void;
 }
 
 /**
@@ -25,7 +27,7 @@ const STEPS = [
 
 const SKELETON_ACCENTS = ['bg-k-primary/[0.12]', 'bg-k-warn/[0.12]', 'bg-k-success/[0.12]'];
 
-export default function AiPlanGenerating({ studentFirstName, planCount, startedAt, onCancel }: Props) {
+export default function AiPlanGenerating({ studentFirstName, planCount, startedAt, onCancel, onBack }: Props) {
   const [elapsed, setElapsed] = useState(() => Date.now() - startedAt);
 
   useEffect(() => {
@@ -41,8 +43,8 @@ export default function AiPlanGenerating({ studentFirstName, planCount, startedA
       <AiFlowHeader
         step={1}
         studentFirstName={studentFirstName}
-        onBack={onCancel}
-        backLabel="Cancelar e voltar para o pedido"
+        onBack={onBack}
+        backLabel="Voltar para as fichas (a geração continua)"
         note="gerando a prévia · pode sair desta tela, avisamos quando ficar pronta"
       />
 

@@ -238,7 +238,7 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
           posts={posts}
           workouts={workouts}
           postsCount={profile?.postsCount ?? posts.items.length}
-          workoutsCount={profile?.workoutsCount ?? 0}
+          workoutsCount={profile?.monthWorkoutsCount ?? 0}
           onPressPost={(post) =>
             navigation.navigate('ProfilePosts', {
               userId: myId,
@@ -251,7 +251,7 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
           onCreatePost={() => setNewPostOpen(true)}
           achievements={profile?.achievements ?? []}
           emptyPosts="Você ainda não publicou."
-          emptyWorkouts="Você ainda não registrou treinos."
+          emptyWorkouts="Você ainda não registrou treinos este mês."
         />
       </View>
 

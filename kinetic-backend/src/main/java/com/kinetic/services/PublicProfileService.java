@@ -64,6 +64,7 @@ public class PublicProfileService {
                 postRepository.countByAuthorIdAndKind(id, "POST"),
                 connectionRepository.countAcceptedFor(id),
                 trainingSummaryService.totalSessions(id),
+                locked ? 0 : trainingSummaryService.sessionsThisMonth(id),
                 locked ? 0 : trainingSummaryService.streakDays(id),
                 weekStarts,
                 locked ? List.of() : trainingSummaryService.weeklyMinutes(id, weekStarts),
@@ -72,14 +73,15 @@ public class PublicProfileService {
         );
     }
 
-    /** Aba "Treinos" do perfil: sessões registradas, mais recentes primeiro (amigo ou eu; senão 403). */
+    /** Aba "Treinos" do perfil: sessões do mês vigente, mais recentes primeiro (amigo ou eu; senão 403). */
     public Page<WorkoutSummaryDTO> getUserWorkouts(String email, UUID userId, Pageable pageable) {
         User me = socialService.findByEmail(email);
         User target = socialService.findById(userId);
         socialService.ensureCanSeeActivity(me, target);
 
         Page<WorkoutSession> page = workoutSessionRepository
-                .findByUserIdOrderBySessionDateDescIdDesc(target.getId(), pageable);
+                .findByUserIdAndSessionDateGreaterThanEqualOrderBySessionDateDescIdDesc(
+                        target.getId(), AppTime.today().withDayOfMonth(1), pageable);
         Map<UUID, WorkoutSummaryDTO> summaries = trainingSummaryService.summarize(page.getContent());
         return page.map(s -> summaries.get(s.getId()));
     }

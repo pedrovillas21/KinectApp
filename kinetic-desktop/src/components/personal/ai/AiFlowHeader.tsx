@@ -77,12 +77,23 @@ export default function AiFlowHeader({ step, studentFirstName, onBack, backLabel
 }
 
 /** Barra de ações fixa no rodapé do fluxo. */
-export function AiFlowFooter({ children, summary }: { children: ReactNode; summary: ReactNode }) {
+export function AiFlowFooter({
+  children,
+  summary,
+  hideSummaryOnMobile = false,
+}: {
+  children: ReactNode;
+  summary: ReactNode;
+  /** Celular: só as ações, numa linha (o resumo já aparece na própria tela). */
+  hideSummaryOnMobile?: boolean;
+}) {
   return (
     <div className="sticky bottom-0 z-20 mt-2 border-t border-k-ghost bg-[#161616]/95 backdrop-blur-[14px]">
       <div className="mx-auto flex w-full max-w-[1120px] flex-wrap items-center justify-between gap-4 px-4 md:px-8 py-4">
-        <div className="min-w-0 flex-[1_1_320px] max-sm:text-[13px]">{summary}</div>
-        <div className="flex flex-wrap items-center gap-2.5">{children}</div>
+        <div className={`min-w-0 flex-[1_1_320px] max-sm:text-[13px] ${hideSummaryOnMobile ? 'max-sm:hidden' : ''}`}>
+          {summary}
+        </div>
+        <div className="flex flex-wrap items-center gap-2.5 max-sm:w-full max-sm:flex-nowrap">{children}</div>
       </div>
     </div>
   );

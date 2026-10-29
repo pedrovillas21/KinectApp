@@ -265,8 +265,15 @@ export default function StudentDetailPage() {
           <StudentStatus engagement={engagement} loading={engagementQ.isPending} />
 
           <ProtocolSummary studentId={id} studentFirstName={firstName} />
+        </div>
 
-          <div role="tablist" aria-label="Seções do aluno" className="flex gap-6 border-b border-white/[0.08]">
+        {/* Fixa no topo ao rolar e rola na horizontal se os rótulos não couberem. */}
+        <div className="sticky top-0 z-10 mt-5 bg-k-bg md:mt-6">
+          <div
+            role="tablist"
+            aria-label="Seções do aluno"
+            className="mx-auto flex w-full max-w-[1120px] gap-6 overflow-x-auto border-b border-white/[0.08] px-4 [scrollbar-width:none] md:px-8"
+          >
             {TABS.map((t) => {
               const active = t.id === tab;
               return (
@@ -278,7 +285,7 @@ export default function StudentDetailPage() {
                   aria-selected={active}
                   aria-controls={`student-panel-${t.id}`}
                   onClick={() => selectTab(t.id)}
-                  className={`-mb-px h-11 border-b-2 px-0.5 text-sm transition-colors ${
+                  className={`h-11 shrink-0 whitespace-nowrap border-b-2 px-0.5 text-sm transition-colors ${
                     active ? 'border-k-primary text-k-text' : 'border-transparent text-k-text-dim hover:text-k-text'
                   }`}
                 >

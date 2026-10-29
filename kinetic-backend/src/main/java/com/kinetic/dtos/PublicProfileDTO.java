@@ -22,6 +22,8 @@ public record PublicProfileDTO(
         long postsCount,
         long friendsCount,
         long workoutsCount,
+        /** Sessões do mês vigente: o que a aba "Treinos" lista. */
+        long monthWorkoutsCount,
         int streakDays,
         List<LocalDate> weekStarts,
         List<Integer> weeklyMinutes,

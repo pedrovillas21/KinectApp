@@ -122,6 +122,9 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
     /** Histórico de treinos do usuário, mais recentes primeiro — aba "Treinos" do perfil. */
     Page<WorkoutSession> findByUserIdOrderBySessionDateDescIdDesc(UUID userId, Pageable pageable);
 
+    Page<WorkoutSession> findByUserIdAndSessionDateGreaterThanEqualOrderBySessionDateDescIdDesc(
+            UUID userId, LocalDate from, Pageable pageable);
+
     /** Todas as datas de treino do usuário (uma por sessão), em ordem — conquistas e sequências. */
     @Query("SELECT ws.sessionDate FROM WorkoutSession ws WHERE ws.user.id = :userId ORDER BY ws.sessionDate")
     List<LocalDate> findAllSessionDatesByUserId(@Param("userId") UUID userId);

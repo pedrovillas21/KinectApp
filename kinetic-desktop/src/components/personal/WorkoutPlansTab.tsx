@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import {
   AlertCircle,
   CheckCircle2,
+  ChevronDown,
   Clock,
   Copy,
   Dumbbell,
@@ -22,8 +23,9 @@ import { EASE_OUT, riseItem, staggerContainer } from '../motion/primitives';
 import ConfirmDialog from './ConfirmDialog';
 import PlanEditor, { type EditorMode } from './PlanEditor';
 import AiPlanFlow from './ai/AiPlanFlow';
-import { draftKey, newAiDraft, removeAiDraft, startAiDraft, useAiDraft } from './ai/aiDraftStore';
+import { draftKey, newAiDraft, removeAiDraft, startAiDraft, updateAiDraft, useAiDraft, type AiDraft } from './ai/aiDraftStore';
 import { heuristicDurationMinutes, muscleLabel } from './workoutVocab';
+import MuscleMap from './MuscleMap';
 import type { WorkoutPlan } from '../../types';
 
 interface Props {
@@ -82,8 +84,13 @@ export default function WorkoutPlansTab({ studentId, studentFirstName, studentNa
   const [editor, setEditor] = useState<EditorMode | null>(null);
   // O fluxo da IA fica aberto enquanto houver rascunho: sobrevive a sair e voltar para o aluno.
   const aiKey = draftKey(currentUser?.id ?? '', studentId);
-  const aiFlow = !!useAiDraft(aiKey);
-  const openAiFlow = () => startAiDraft(aiKey, newAiDraft(studentId, studentName, plans ?? []));
+  const aiDraft = useAiDraft(aiKey);
+  // Minimizado = o personal voltou para a lista durante a geração, que continua rodando.
+  const aiFlow = !!aiDraft && !aiDraft.minimized;
+  const openAiFlow = () =>
+    aiDraft
+      ? updateAiDraft(aiKey, { minimized: false })
+      : startAiDraft(aiKey, newAiDraft(studentId, studentName, plans ?? []));
   const closeAiFlow = () => removeAiDraft(aiKey);
   // A ficha alvo continua definida enquanto o diálogo anima o fechamento (o texto não some).
   const [toRemove, setToRemove] = useState<WorkoutPlan | null>(null);
@@ -173,7 +180,7 @@ export default function WorkoutPlansTab({ studentId, studentFirstName, studentNa
     setEditor({ kind: 'create', suggestedTag: nextTag(plans ?? []), source });
 
   return (
-    <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-5 px-4 md:px-8 py-7">
+    <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-5 px-4 py-5 md:px-8 md:py-7">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="font-display text-[22px] font-extrabold tracking-tight font-stretch-semi-expanded">
@@ -184,12 +191,16 @@ export default function WorkoutPlansTab({ studentId, studentFirstName, studentNa
           </p>
         </div>
         {plans && plans.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2.5 max-md:grid max-md:w-full max-md:grid-cols-2">
             <AiPlanButton onClick={openAiFlow} />
             <NewPlanButton onClick={() => startCreate()} />
           </div>
         )}
       </div>
+
+      {aiDraft?.minimized && <AiDraftBanner draft={aiDraft} onOpen={openAiFlow} />}
+
+      {plans && plans.length > 0 && <MuscleMap studentId={studentId} plans={plans} />}
 
       {error && !plans ? (
         <div
@@ -216,12 +227,13 @@ export default function WorkoutPlansTab({ studentId, studentFirstName, studentNa
           variants={staggerContainer}
           initial="hidden"
           animate="show"
-          className="grid gap-4 md:grid-cols-2"
+          className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4"
         >
           <AnimatePresence initial={false}>
             {plans.map((plan, i) => (
               <PlanCard
                 key={plan.id}
+                studentId={studentId}
                 plan={plan}
                 index={i}
                 mine={plan.prescribedByName !== null && plan.prescribedByName === currentUser?.nome}
@@ -259,6 +271,7 @@ export default function WorkoutPlansTab({ studentId, studentFirstName, studentNa
 // ─── Card de ficha ───────────────────────────────────────────────────────────
 
 function PlanCard({
+  studentId,
   plan,
   index,
   mine,
@@ -266,6 +279,7 @@ function PlanCard({
   onDuplicate,
   onRemove,
 }: {
+  studentId: string;
   plan: WorkoutPlan;
   index: number;
   mine: boolean;
@@ -278,30 +292,35 @@ function PlanCard({
   const duration = plan.estimatedDurationMinutes ?? heuristicDurationMinutes(totalSets);
   const muscles = Array.from(new Set(plan.data.map((e) => (e.muscles ?? '').trim()).filter(Boolean)));
   const isAi = plan.prescribedByName === null;
+  const [mapOpen, setMapOpen] = useState(false);
 
   return (
     <motion.li
       layout
       variants={riseItem}
       exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.2 } }}
-      className="group flex flex-col gap-4 rounded-[20px] border border-k-ghost bg-k-surface1 p-5 transition-[translate,border-color] duration-300 hover:-translate-y-[3px] hover:border-white/[0.16]"
+      // Clicar na ficha abre o mapa; botões e o próprio mapa não alternam. Teclado usa o botão do mapa.
+      onClick={(e) => {
+        if (!(e.target as HTMLElement).closest('button, a, [data-no-toggle]')) setMapOpen((o) => !o);
+      }}
+      className={`group flex min-w-0 cursor-pointer flex-col ${mapOpen ? 'md:col-span-2' : ''} gap-4 rounded-[20px] border border-k-ghost bg-k-surface1 p-5 max-md:gap-3 max-md:rounded-2xl max-md:p-4 transition-[translate,border-color] duration-300 hover:-translate-y-[3px] hover:border-white/[0.16]`}
     >
       <div className="flex items-start justify-between gap-3">
         <span
-          className={`inline-flex h-7 items-center rounded-full border px-3 font-display text-[12px] font-extrabold tracking-wide font-stretch-semi-expanded ${accent.text} ${accent.bg} ${accent.ring}`}
+          className={`inline-flex h-7 shrink-0 items-center rounded-full border px-3 max-md:h-6 max-md:px-2.5 font-display text-[12px] font-extrabold tracking-wide font-stretch-semi-expanded ${accent.text} ${accent.bg} ${accent.ring}`}
         >
           {dayLabel(plan, index)}
         </span>
         {isAi ? (
           <span
-            className="inline-flex h-7 items-center gap-1.5 rounded-full bg-k-warn/[0.1] px-3 text-[12px] font-semibold text-k-warn"
+            className="inline-flex h-7 items-center gap-1.5 rounded-full bg-k-warn/[0.1] px-3 max-md:h-6 max-md:px-2.5 text-[12px] font-semibold text-k-warn"
             title="Gerada pela IA do app. Revise e salve para assumir a ficha."
           >
             <Sparkles className="h-3.5 w-3.5" />
             Gerada por IA
           </span>
         ) : (
-          <span className="inline-flex h-7 max-w-[60%] items-center gap-1.5 rounded-full bg-k-success/[0.1] px-3 text-[12px] font-semibold text-k-success">
+          <span className="inline-flex h-7 min-w-0 max-w-[60%] items-center gap-1.5 rounded-full bg-k-success/[0.1] px-3 max-md:h-6 max-md:px-2.5 text-[12px] font-semibold text-k-success">
             {mine ? <CheckCircle2 className="h-3.5 w-3.5 shrink-0" /> : <UserRound className="h-3.5 w-3.5 shrink-0" />}
             <span className="truncate">{mine ? 'Prescrita por você' : `Prescrita por ${plan.prescribedByName}`}</span>
           </span>
@@ -309,19 +328,24 @@ function PlanCard({
       </div>
 
       <div className="min-w-0">
-        <h3 className="truncate font-display text-xl font-extrabold uppercase tracking-tight font-stretch-semi-expanded">
+        <h3 className="break-words font-display text-xl font-extrabold uppercase max-md:line-clamp-2 max-md:text-base max-md:leading-snug md:truncate tracking-tight font-stretch-semi-expanded">
           {plan.title}
         </h3>
         {plan.subtitle && <p className="mt-1 line-clamp-1 text-[13px] text-k-text-dim">{plan.subtitle}</p>}
         <p className="mt-2 text-[12.5px] tabular-nums text-k-text-muted">
           {plan.data.length} {plan.data.length === 1 ? 'exercício' : 'exercícios'} · {totalSets} séries · ~{duration}{' '}
           min
-          {plan.estimatedTotalVolumeKg != null && <> · ≈ {nf0.format(plan.estimatedTotalVolumeKg)} kg de volume</>}
+          {plan.estimatedTotalVolumeKg != null && (
+            <>
+              {' '}
+              · ≈ {nf0.format(plan.estimatedTotalVolumeKg)} kg<span className="max-md:hidden"> de volume</span>
+            </>
+          )}
         </p>
       </div>
 
       {muscles.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
+        <div className={`flex flex-wrap gap-1.5 ${plan.subtitle ? 'max-md:hidden' : ''}`}>
           {muscles.map((m) => (
             <span key={m} className="rounded-full bg-white/[0.06] px-2.5 py-1 text-[11.5px] font-semibold text-k-text-soft">
               {muscleLabel(m)}
@@ -331,7 +355,7 @@ function PlanCard({
       )}
 
       {plan.aiAssisted && (
-        <p className="flex items-center gap-1.5 text-xs text-k-text-muted">
+        <p className="flex items-center gap-1.5 text-xs text-k-text-muted max-md:hidden">
           <Sparkles className="h-[13px] w-[13px] shrink-0" />
           <span className="truncate">
             Criada com IA · aprovada por {mine ? 'você' : plan.prescribedByName} em {approvedLabel(plan.createdAt)}
@@ -339,18 +363,28 @@ function PlanCard({
         </p>
       )}
 
-      <div className="mt-auto flex items-center justify-between gap-3 border-t border-white/[0.05] pt-4">
-        <span className="flex min-w-0 items-center gap-1.5 text-[12.5px] text-k-text-muted">
+      {mapOpen && (
+        <div id={`plan-map-${plan.id}`} data-no-toggle className="cursor-auto border-t border-white/[0.05] pt-4 max-md:pt-3">
+          <MuscleMap studentId={studentId} plans={[plan]} plan={plan} />
+        </div>
+      )}
+
+      <div className="mt-auto flex items-center justify-between gap-3 border-t border-white/[0.05] pt-4 max-md:flex-wrap max-md:gap-y-2.5 max-md:pt-3">
+        <span className="flex min-w-0 items-center gap-1.5 text-[12.5px] text-k-text-muted max-md:w-full max-md:text-xs">
           <Clock className="h-3.5 w-3.5 shrink-0" />
-          <span className="truncate">{lastDoneLabel(plan.lastCompletedAt)}</span>
+          <span className="truncate">
+            {/* Celular: a origem vem nesta linha, no lugar da linha "Criada com IA" do desktop. */}
+            {plan.aiAssisted && <span className="md:hidden">Criada com IA · </span>}
+            {lastDoneLabel(plan.lastCompletedAt)}
+          </span>
         </span>
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1 max-md:w-full">
           <button
             type="button"
             onClick={onDuplicate}
             aria-label={`Duplicar ${plan.title}`}
             title="Duplicar"
-            className="flex h-9 w-9 items-center justify-center rounded-[10px] text-k-text-muted transition-colors hover:bg-white/[0.06] hover:text-k-text"
+            className="flex h-9 w-9 items-center justify-center rounded-[10px] text-k-text-muted transition-colors max-md:h-11 max-md:w-11 hover:bg-white/[0.06] hover:text-k-text"
           >
             <Copy className="h-4 w-4" />
           </button>
@@ -359,17 +393,28 @@ function PlanCard({
             onClick={onRemove}
             aria-label={`Remover ${plan.title} do app`}
             title="Remover do app"
-            className="flex h-9 w-9 items-center justify-center rounded-[10px] text-k-text-muted transition-colors hover:bg-k-alert/10 hover:text-k-alert"
+            className="flex h-9 w-9 items-center justify-center rounded-[10px] text-k-text-muted transition-colors max-md:h-11 max-md:w-11 hover:bg-k-alert/10 hover:text-k-alert"
           >
             <Trash2 className="h-4 w-4" />
           </button>
           <button
             type="button"
             onClick={onEdit}
-            className="ml-1 flex h-9 items-center gap-1.5 rounded-[10px] border border-k-primary/30 bg-k-primary/[0.08] px-3.5 text-[13px] font-semibold text-k-primary transition-colors hover:bg-k-primary/[0.16]"
+            className="ml-1 flex h-9 items-center gap-1.5 rounded-[10px] max-md:order-first max-md:ml-0 max-md:mr-1 max-md:h-11 max-md:flex-1 max-md:justify-center border border-k-primary/30 bg-k-primary/[0.08] px-3.5 text-[13px] font-semibold text-k-primary transition-colors hover:bg-k-primary/[0.16]"
           >
             <Pencil className="h-3.5 w-3.5" />
             {isAi ? 'Revisar' : 'Editar'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setMapOpen((o) => !o)}
+            aria-expanded={mapOpen}
+            aria-controls={`plan-map-${plan.id}`}
+            aria-label={`${mapOpen ? 'Ocultar' : 'Ver'} mapa muscular de ${plan.title}`}
+            title={mapOpen ? 'Ocultar mapa muscular' : 'Ver mapa muscular'}
+            className="flex h-9 w-9 items-center justify-center rounded-[10px] text-k-text-muted transition-colors max-md:h-11 max-md:w-11 hover:bg-white/[0.06] hover:text-k-text"
+          >
+            <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${mapOpen ? 'rotate-180' : ''}`} />
           </button>
         </div>
       </div>
@@ -385,11 +430,48 @@ function NewPlanButton({ onClick }: { onClick: () => void }) {
       type="button"
       onClick={onClick}
       whileTap={{ scale: 0.97 }}
-      className="flex h-11 items-center gap-2 rounded-xl bg-k-primary px-5 text-sm font-bold text-k-on-primary transition-shadow hover:shadow-[0_0_0_4px_rgba(0,229,255,0.14),0_10px_26px_-10px_rgba(0,229,255,0.8)]"
+      className="flex h-11 items-center justify-center gap-2 rounded-xl bg-k-primary px-5 text-sm font-bold text-k-on-primary transition-shadow hover:shadow-[0_0_0_4px_rgba(0,229,255,0.14),0_10px_26px_-10px_rgba(0,229,255,0.8)]"
     >
       <Plus className="h-4 w-4" />
       Nova ficha
     </motion.button>
+  );
+}
+
+/** Fluxo da IA minimizado: mostra que a geração segue e reabre o fluxo. */
+function AiDraftBanner({ draft, onOpen }: { draft: AiDraft; onOpen: () => void }) {
+  const generating = draft.step === 'generating';
+  const ready = !!draft.preview && (draft.step === 'preview' || draft.step === 'edit');
+  const [title, detail, action] = generating
+    ? ['A IA está montando as fichas', 'Pode seguir usando o painel. Avisamos quando a prévia ficar pronta.', 'Ver progresso']
+    : ready
+      ? ['Prévia da IA pronta', 'Revise as fichas antes de enviar para o app.', 'Revisar']
+      : ['A geração com IA não terminou', draft.error ?? 'Ajuste o pedido e tente de novo.', 'Ver pedido'];
+  return (
+    <div
+      role="status"
+      className="flex flex-wrap items-center gap-x-3 gap-y-2.5 rounded-2xl border border-k-warn/25 bg-k-warn/[0.06] px-4 py-3"
+    >
+      {generating ? (
+        <span
+          aria-hidden="true"
+          className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-k-warn/25 border-t-k-warn motion-reduce:animate-none"
+        />
+      ) : (
+        <Sparkles className={`h-4 w-4 shrink-0 ${draft.error && !ready ? 'text-k-alert' : 'text-k-warn'}`} />
+      )}
+      <div className="min-w-0 flex-1">
+        <p className="text-[13.5px] font-semibold">{title}</p>
+        <p className="text-[12.5px] text-k-text-muted">{detail}</p>
+      </div>
+      <button
+        type="button"
+        onClick={onOpen}
+        className="flex h-9 shrink-0 items-center rounded-[10px] border border-k-warn/35 bg-k-warn/10 px-3.5 text-[13px] font-semibold text-k-warn transition-colors hover:bg-k-warn/[0.16] max-md:h-11 max-md:w-full max-md:justify-center"
+      >
+        {action}
+      </button>
+    </div>
   );
 }
 

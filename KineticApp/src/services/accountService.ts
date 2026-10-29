@@ -14,7 +14,7 @@ export const exportMyData = async (): Promise<void> => {
   const date = new Date().toISOString().slice(0, 10);
   const file = new File(Paths.cache, `kinetic-dados-${date}.json`);
   if (file.exists) file.delete();
-  file.write(JSON.stringify(res.data, null, 2));
+  await file.write(JSON.stringify(res.data, null, 2));
   if (!(await Sharing.isAvailableAsync())) {
     throw new Error('Compartilhamento indisponível neste aparelho.');
   }

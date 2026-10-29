@@ -9,7 +9,7 @@ import { aiTotalLimit, getBilling } from '../services/billingService';
 import { daysUntil } from '../utils/dates';
 import { getMyTrainerProfile } from '../services/trainerProfileService';
 import { qk } from '../services/queryClient';
-import { useAiDrafts, type AiDraft } from '../components/personal/ai/aiDraftStore';
+import { draftKey, updateAiDraft, useAiDrafts, type AiDraft } from '../components/personal/ai/aiDraftStore';
 import type { BillingOverview } from '../types';
 import MobileNav, { InstallAppButton } from './MobileNav';
 
@@ -190,6 +190,8 @@ function AiDraftsNav({ ownerId }: { ownerId: string | undefined }) {
           <NavLink
             key={d.studentId}
             to={`/students/${d.studentId}?aba=treinos`}
+            // Reabre o fluxo se o personal tinha voltado para a lista durante a geração.
+            onClick={() => updateAiDraft(draftKey(ownerId ?? '', d.studentId), { minimized: false })}
             className="flex items-center gap-2.5 rounded-lg border border-k-primary/20 bg-k-primary/[0.05] px-2.5 py-2 transition-colors hover:bg-k-primary/[0.09]"
           >
             {generating ? (

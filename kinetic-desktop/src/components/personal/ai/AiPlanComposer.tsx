@@ -325,7 +325,7 @@ export default function AiPlanComposer({
   );
 }
 
-function SegmentButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
+export function SegmentButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
   return (
     <button
       type="button"

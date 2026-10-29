@@ -128,7 +128,8 @@ public class StudentFinanceService {
     public void setPlan(String trainerEmail, @NonNull UUID studentId, int amountCents, int dueDay) {
         User trainer = userRepository.getByEmailOrThrow(trainerEmail);
         User student = trainerLinkService.resolveOwnedStudentForWrite(trainerEmail, studentId);
-        LocalDate currentMonth = YearMonth.now().atDay(1);
+        LocalDate today = AppTime.today();
+        LocalDate currentMonth = YearMonth.from(today).atDay(1);
 
         StudentBillingPlan plan = planRepository.findByTrainerIdAndStudentId(trainer.getId(), studentId)
                 .orElse(null);
@@ -139,9 +140,9 @@ public class StudentFinanceService {
             plan.setStudent(student);
         }
         if (!wasActive) {
-            // Nova ou reativada: começa neste mês, sem cobrar o intervalo em que ficou parada.
+            // Nova ou reativada: começa no próximo vencimento, sem cobrar o intervalo em que ficou parada.
             plan.setActive(true);
-            plan.setStartsOn(currentMonth);
+            plan.setStartsOn(firstBillingMonth(today, dueDay));
         }
         plan.setAmountCents(amountCents);
         plan.setDueDay(dueDay);
@@ -151,7 +152,16 @@ public class StudentFinanceService {
         if (wasActive) {
             chargeRepository.repricePendingFrom(plan.getId(), currentMonth, amountCents, dueDay);
         }
-        createChargesFor(plan, AppTime.today());
+        createChargesFor(plan, today);
+    }
+
+    /**
+     * Mês da primeira cobrança: o corrente se o vencimento ainda não passou (hoje inclusive), senão o seguinte.
+     * O dia vai só até 28 (validado no DTO e no banco), então cabe em qualquer mês.
+     */
+    static LocalDate firstBillingMonth(LocalDate today, int dueDay) {
+        YearMonth month = YearMonth.from(today);
+        return (today.getDayOfMonth() > dueDay ? month.plusMonths(1) : month).atDay(1);
     }
 
     /** Desativa a mensalidade: o que ainda não venceu é cancelado; o atrasado continua devido. */

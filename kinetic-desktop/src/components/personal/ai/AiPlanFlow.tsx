@@ -126,6 +126,12 @@ export default function AiPlanFlow({
       return next;
     });
 
+  // O fluxo pode estar minimizado (o personal voltou para a lista durante a geração).
+  const reopen = () => {
+    set({ minimized: false });
+    navigate(reviewPath);
+  };
+
   // Tudo abaixo escreve no rascunho, não no componente: continua valendo se o personal sair da tela.
   const generate = async () => {
     const current = getAiDraft(key);
@@ -162,7 +168,7 @@ export default function AiPlanFlow({
       if (!isAiDraftOnScreen(key)) {
         toast.success(`Prévia de ${studentFirstName} pronta`, {
           description: `${result.plans.length} ${result.plans.length === 1 ? 'ficha aguardando' : 'fichas aguardando'} sua revisão.`,
-          action: { label: 'Revisar', onClick: () => navigate(reviewPath) },
+          action: { label: 'Revisar', onClick: () => reopen() },
         });
       }
     } catch (err: unknown) {
@@ -178,7 +184,7 @@ export default function AiPlanFlow({
       if (!isAiDraftOnScreen(key)) {
         toast.error(`A prévia de ${studentFirstName} não foi gerada`, {
           description: message,
-          action: { label: 'Ver pedido', onClick: () => navigate(reviewPath) },
+          action: { label: 'Ver pedido', onClick: () => reopen() },
         });
       }
     }
@@ -265,11 +271,13 @@ export default function AiPlanFlow({
           planCount={form.scope === 'full' ? form.count : 1}
           startedAt={draft.generatingSince ?? Date.now()}
           onCancel={cancelGeneration}
+          onBack={() => set({ minimized: true })}
         />
       )}
 
       {draft.step === 'preview' && preview && draft.generatedWith && plans.length > 0 && (
         <AiPlanPreview
+          studentId={studentId}
           studentFirstName={studentFirstName}
           studentName={studentName}
           plans={plans}

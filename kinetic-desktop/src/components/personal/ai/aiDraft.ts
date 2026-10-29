@@ -1,4 +1,4 @@
-import { SECTIONS, muscleLabel } from '../workoutVocab';
+import { SECTIONS } from '../workoutVocab';
 import type { AiDraftPlan, ExerciseSection, WorkoutPlan, WorkoutPlanInput } from '../../../types';
 
 /** Ficha da prévia como o personal a vê e aprova (com as edições dele). */
@@ -81,21 +81,6 @@ export const autoSubtitle = (input: WorkoutPlanInput) =>
   Array.from(new Set(input.exercises.map((ex) => (ex.muscles ?? '').trim().toUpperCase()).filter(Boolean))).join(
     ' / ',
   );
-
-/** Séries por grupo muscular somando as fichas (mobilidade, core e cardio ficam de fora). */
-export function setsByMuscle(plans: PreviewPlan[]): { label: string; value: number }[] {
-  const totals = new Map<string, number>();
-  for (const plan of plans) {
-    for (const ex of plan.input.exercises) {
-      const muscle = (ex.muscles ?? '').trim().toUpperCase();
-      if (!muscle) continue;
-      totals.set(muscle, (totals.get(muscle) ?? 0) + ex.sets);
-    }
-  }
-  return [...totals.entries()]
-    .map(([muscle, value]) => ({ label: muscleLabel(muscle), value }))
-    .sort((a, b) => b.value - a.value);
-}
 
 /** Lista com vírgulas e "e" no fim: "DIA A, DIA B e DIA C". */
 export const joinPt = (items: string[]) =>
