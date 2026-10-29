@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 import { TextInput } from './ui/scaled';
-import { FONT, KINETIC, RADIUS } from '../theme/kinetic';
+import { FONT, RADIUS } from '../theme/kinetic';
 import type { ConnectionState, PendingRequest, TrainerLink, UserCard } from '../types';
 import {
   acceptConnection,
@@ -19,6 +19,7 @@ import {
 } from '../services/trainerService';
 import Icon from './Icon';
 import { Avatar, Button, Dialog, SegmentedControl, Text } from './ui';
+import { createStyles, useColors } from '../theme/ThemeContext';
 
 export type InviteTab = 'friend' | 'trainer';
 
@@ -94,6 +95,8 @@ const ACTION: Record<ConnectionState, { label: string; variant: 'primary' | 'sec
 };
 
 function FriendTab({ onChanged, onOpenProfile }: { onChanged: () => void; onOpenProfile?: (id: string) => void }) {
+  const styles = useStyles();
+  const c = useColors();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<UserCard[]>([]);
   const [requests, setRequests] = useState<PendingRequest[]>([]);
@@ -158,7 +161,7 @@ function FriendTab({ onChanged, onOpenProfile }: { onChanged: () => void; onOpen
     <View style={styles.tabBody}>
       {requests.length > 0 ? (
         <View style={styles.block}>
-          <Text variant="captionStrong" color={KINETIC.textSecondary}>
+          <Text variant="captionStrong" color={c.textSecondary}>
             Pedidos recebidos
           </Text>
           {requests.map((req) => (
@@ -175,12 +178,12 @@ function FriendTab({ onChanged, onOpenProfile }: { onChanged: () => void; onOpen
       ) : null}
 
       <View style={[styles.input, focused && styles.inputFocused]}>
-        <Icon name="search" size={16} color={KINETIC.textSecondary} strokeWidth={2} />
+        <Icon name="search" size={16} color={c.textSecondary} strokeWidth={2} />
         <TextInput
           value={query}
           onChangeText={setQuery}
           placeholder="Nome ou @usuário"
-          placeholderTextColor={KINETIC.placeholder}
+          placeholderTextColor={c.placeholder}
           accessibilityLabel="Buscar por nome ou usuário"
           autoCapitalize="none"
           autoCorrect={false}
@@ -189,11 +192,11 @@ function FriendTab({ onChanged, onOpenProfile }: { onChanged: () => void; onOpen
           onBlur={() => setFocused(false)}
           style={styles.inputText}
         />
-        {loading ? <ActivityIndicator size="small" color={KINETIC.textSecondary} /> : null}
+        {loading ? <ActivityIndicator size="small" color={c.textSecondary} /> : null}
       </View>
 
       {results.length === 0 && !loading ? (
-        <Text variant="body" color={KINETIC.textSecondary} style={styles.empty}>
+        <Text variant="body" color={c.textSecondary} style={styles.empty}>
           {query.trim() ? 'Ninguém encontrado com esse nome.' : 'Digite um nome para buscar.'}
         </Text>
       ) : (
@@ -233,6 +236,8 @@ function FriendTab({ onChanged, onOpenProfile }: { onChanged: () => void; onOpen
 // ─── Personal ────────────────────────────────────────────────────────────────
 
 function TrainerTab({ onChanged }: { onChanged: () => void }) {
+  const styles = useStyles();
+  const c = useColors();
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -284,11 +289,11 @@ function TrainerTab({ onChanged }: { onChanged: () => void }) {
 
   return (
     <View style={styles.tabBody}>
-      <Text variant="body" color={KINETIC.textDim}>
+      <Text variant="body" color={c.textDim}>
         Digite o código que seu personal enviou para entrar na carteira dele.
       </Text>
       <View style={styles.block}>
-        <Text variant="captionStrong" color={KINETIC.textSecondary}>
+        <Text variant="captionStrong" color={c.textSecondary}>
           Código de convite
         </Text>
         <View style={styles.codeRow}>
@@ -299,7 +304,7 @@ function TrainerTab({ onChanged }: { onChanged: () => void }) {
               setError(null);
             }}
             placeholder="ABCDE-23456"
-            placeholderTextColor={KINETIC.placeholder}
+            placeholderTextColor={c.placeholder}
             accessibilityLabel="Código de convite"
             autoCapitalize="characters"
             autoCorrect={false}
@@ -312,25 +317,25 @@ function TrainerTab({ onChanged }: { onChanged: () => void }) {
           <Button label="Usar" size="md" block={false} loading={redeeming} disabled={!code.trim()} onPress={redeem} />
         </View>
         {error ? (
-          <Text variant="caption" color={KINETIC.danger} accessibilityLiveRegion="polite">
+          <Text variant="caption" color={c.danger} accessibilityLiveRegion="polite">
             {error}
           </Text>
         ) : null}
         {success ? (
-          <Text variant="caption" color={KINETIC.success} accessibilityLiveRegion="polite">
+          <Text variant="caption" color={c.success} accessibilityLiveRegion="polite">
             {success}
           </Text>
         ) : null}
       </View>
 
       <View style={[styles.block, styles.divided]}>
-        <Text variant="captionStrong" color={KINETIC.textSecondary}>
+        <Text variant="captionStrong" color={c.textSecondary}>
           Convites recebidos
         </Text>
         {invites === null ? (
-          <ActivityIndicator size="small" color={KINETIC.textSecondary} style={styles.loader} />
+          <ActivityIndicator size="small" color={c.textSecondary} style={styles.loader} />
         ) : invites.length === 0 ? (
-          <Text variant="body" color={KINETIC.textDim}>
+          <Text variant="body" color={c.textDim}>
             Nenhum convite pendente.
           </Text>
         ) : (
@@ -356,35 +361,35 @@ function TrainerTab({ onChanged }: { onChanged: () => void }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((c) => ({
   tabBody: { paddingTop: 14, gap: 12 },
   block: { gap: 8 },
-  divided: { paddingTop: 12, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)' },
+  divided: { paddingTop: 12, borderTopWidth: 1, borderTopColor: c.divider },
   person: {
     minHeight: 54,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.06)',
+    borderBottomColor: c.divider,
   },
   personMain: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 10 },
   flex: { flex: 1 },
   input: {
     height: 44,
     borderRadius: RADIUS.md,
-    backgroundColor: KINETIC.bg,
+    backgroundColor: c.bg,
     borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: c.border,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     paddingHorizontal: 12,
   },
-  inputFocused: { borderColor: KINETIC.primary },
-  inputText: { flex: 1, color: KINETIC.text, fontFamily: FONT.regular, fontSize: 15, padding: 0 },
+  inputFocused: { borderColor: c.primary },
+  inputText: { flex: 1, color: c.text, fontFamily: FONT.regular, fontSize: 15, padding: 0 },
   codeRow: { flexDirection: 'row', gap: 8 },
-  codeInput: { flex: 1, color: KINETIC.text, fontFamily: FONT.mono, fontSize: 15, letterSpacing: 1 },
+  codeInput: { flex: 1, color: c.text, fontFamily: FONT.mono, fontSize: 15, letterSpacing: 1 },
   empty: { paddingVertical: 8 },
   loader: { alignSelf: 'flex-start' },
-});
+}));

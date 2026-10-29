@@ -1,12 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-  Animated,
-  Easing,
-} from 'react-native';
+import { View, TouchableOpacity, ActivityIndicator, Animated, Easing } from 'react-native';
 import { Text, TextInput } from '../../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as LocalAuthentication from 'expo-local-authentication';
@@ -14,16 +7,19 @@ import Svg, { Path, Circle } from 'react-native-svg';
 import { AuthContext } from '../../contexts/AuthContext';
 import { showAlert } from '../../components/ui/AlertHost';
 import KeyboardAvoider from '../../components/ui/KeyboardAvoider';
-import { KINETIC } from '../../theme/kinetic';
+
 import { LockIcon, EyeIcon } from '../../components/auth/AuthIcons';
 import type { AuthScreenProps } from '../../navigation/types';
+import { createStyles, useColors } from '../../theme/ThemeContext';
 
 type SecurityState = 'loading' | 'none' | 'pin' | 'biometric';
 type BiometricState = 'idle' | 'scanning' | 'success' | 'error';
 
 type Props = AuthScreenProps<'RecurringUser'>;
 
-function FaceIcon({ color = KINETIC.primary, size = 40 }: { color?: string; size?: number }) {
+function FaceIcon({ color, size = 40 }: { color?: string; size?: number }) {
+  const c = useColors();
+  color ??= c.primary;
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -47,11 +43,12 @@ function FaceIcon({ color = KINETIC.primary, size = 40 }: { color?: string; size
 }
 
 function CheckIcon({ size = 36 }: { size?: number }) {
+  const c = useColors();
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
         d="M5 12l5 5L20 7"
-        stroke="#001a1f"
+        stroke={c.onPrimary}
         strokeWidth={2.5}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -83,6 +80,8 @@ const BIO_COPY: Record<BiometricState, { title?: string; subtitle: string }> = {
 };
 
 export default function RecurringUserScreen({ navigation }: Props) {
+  const styles = useStyles();
+  const c = useColors();
   const { rememberedUser, unlockSession, signIn } = useContext(AuthContext);
 
   const [security, setSecurity] = useState<SecurityState>('loading');
@@ -224,7 +223,7 @@ export default function RecurringUserScreen({ navigation }: Props) {
           {/* Biometric area */}
           <View style={styles.biometricArea}>
             {security === 'loading' ? (
-              <ActivityIndicator color={KINETIC.primary} size="large" />
+              <ActivityIndicator color={c.primary} size="large" />
             ) : security === 'none' ? (
               <Text style={styles.noSecurityMsg}>
                 Nenhuma biometria ou PIN configurado.{'\n'}Use e-mail e senha.
@@ -263,7 +262,7 @@ export default function RecurringUserScreen({ navigation }: Props) {
                   ) : (
                     <FaceIcon
                       size={40}
-                      color={bioState === 'error' ? '#FF4444' : KINETIC.primary}
+                      color={bioState === 'error' ? c.danger : c.primary}
                     />
                   )}
                 </View>
@@ -276,8 +275,8 @@ export default function RecurringUserScreen({ navigation }: Props) {
                 <Text
                   style={[
                     styles.bioTitle,
-                    bioState === 'success' && { color: KINETIC.primary },
-                    bioState === 'error' && { color: '#FF4444' },
+                    bioState === 'success' && { color: c.primary },
+                    bioState === 'error' && { color: c.danger },
                   ]}
                 >
                   {BIO_COPY[bioState].title ??
@@ -311,7 +310,7 @@ export default function RecurringUserScreen({ navigation }: Props) {
                   <TextInput
                     style={styles.inlineInput}
                     placeholder="Senha"
-                    placeholderTextColor={KINETIC.placeholder}
+                    placeholderTextColor={c.placeholder}
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry={!showPwd}
@@ -344,10 +343,10 @@ export default function RecurringUserScreen({ navigation }: Props) {
 const RING_SIZE = 130;
 const CENTER_SIZE = RING_SIZE - 28;
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((c, s) => ({
   container: {
     flex: 1,
-    backgroundColor: KINETIC.bg,
+    backgroundColor: c.bg,
   },
   safe: {
     flex: 1,
@@ -363,13 +362,13 @@ const styles = StyleSheet.create({
     width: 320,
     height: 320,
     borderRadius: 160,
-    backgroundColor: 'rgba(0,229,255,0.05)',
+    backgroundColor: c.primaryDim,
   },
   glowOrbActive: {
-    backgroundColor: 'rgba(0,229,255,0.15)',
+    backgroundColor: c.primarySoft,
   },
   glowOrbScan: {
-    backgroundColor: 'rgba(0,229,255,0.08)',
+    backgroundColor: c.primaryDim,
   },
   header: {
     flexDirection: 'row',
@@ -385,31 +384,32 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
-    color: KINETIC.textMuted,
+    color: c.textMuted,
   },
   switchBtn: {
     fontFamily: 'System',
     fontSize: 12,
     fontWeight: '600',
-    color: KINETIC.textDim,
+    color: c.textDim,
   },
   card: {
+    ...s.card,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
     marginHorizontal: 24,
     marginTop: 4,
     padding: 14,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: KINETIC.ghostHi,
+    borderColor: c.ghostHi,
   },
   avatar: {
     width: 48,
     height: 48,
     borderRadius: 16,
-    backgroundColor: KINETIC.primary,
+    backgroundColor: c.primaryFill,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
     fontFamily: 'System',
     fontWeight: '800',
     fontSize: 16,
-    color: '#001a1f',
+    color: c.onPrimary,
   },
   cardInfo: {
     flex: 1,
@@ -427,13 +427,13 @@ const styles = StyleSheet.create({
     fontFamily: 'System',
     fontWeight: '700',
     fontSize: 16,
-    color: KINETIC.text,
+    color: c.text,
     letterSpacing: -0.3,
   },
   cardEmail: {
     fontFamily: 'System',
     fontSize: 12,
-    color: KINETIC.textDim,
+    color: c.textDim,
     marginTop: 2,
   },
   biometricArea: {
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
     height: RING_SIZE,
     borderRadius: RING_SIZE / 2,
     borderWidth: 4,
-    borderColor: 'rgba(255,255,255,0.07)',
+    borderColor: c.hairline,
   },
   ringIndicator: {
     position: 'absolute',
@@ -468,28 +468,28 @@ const styles = StyleSheet.create({
   },
   ringIndicatorFull: {
     borderWidth: 4,
-    borderColor: KINETIC.primary,
+    borderColor: c.primary,
   },
   ringDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: KINETIC.primary,
+    backgroundColor: c.primaryFill,
     marginLeft: -4,
     marginTop: -4,
     alignSelf: 'center',
   },
-  ringCenter: {
+  ringCenter: { 
     width: CENTER_SIZE,
     height: CENTER_SIZE,
     borderRadius: CENTER_SIZE / 2,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   ringCenterSuccess: {
-    backgroundColor: KINETIC.primary,
-    shadowColor: KINETIC.primary,
+    backgroundColor: c.primaryFill,
+    shadowColor: c.primaryFill,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.6,
     shadowRadius: 20,
@@ -499,20 +499,20 @@ const styles = StyleSheet.create({
     fontFamily: 'System',
     fontWeight: '700',
     fontSize: 18,
-    color: KINETIC.text,
+    color: c.text,
     letterSpacing: -0.4,
     textAlign: 'center',
   },
   bioSubtitle: {
     fontFamily: 'System',
     fontSize: 13,
-    color: KINETIC.textDim,
+    color: c.textDim,
     textAlign: 'center',
   },
   noSecurityMsg: {
     fontFamily: 'System',
     fontSize: 14,
-    color: KINETIC.textDim,
+    color: c.textDim,
     textAlign: 'center',
     lineHeight: 22,
   },
@@ -526,59 +526,60 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 20,
-    backgroundColor: KINETIC.surface2,
+    backgroundColor: c.surface2,
     borderWidth: 1,
-    borderColor: KINETIC.ghostHi,
+    borderColor: c.ghostHi,
     marginBottom: 0,
   },
   fallbackText: {
     fontFamily: 'System',
     fontSize: 13,
     fontWeight: '600',
-    color: KINETIC.textDim,
+    color: c.textDim,
   },
   passwordSection: {
     marginTop: 12,
     width: '100%',
     gap: 10,
   },
-  inlineInputWrap: {
+  inlineInputWrap: { 
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: KINETIC.ghostHi,
+    borderColor: c.ghostHi,
     paddingHorizontal: 14,
     height: 52,
   },
   inlineInput: {
     flex: 1,
     fontSize: 15,
-    color: KINETIC.text,
+    color: c.text,
     padding: 0,
   },
   eyeBtn: {
     padding: 4,
   },
   inlineLoginBtn: {
+    ...s.card,
     paddingVertical: 16,
     borderRadius: 16,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: c.borderStrong,
     alignItems: 'center',
     justifyContent: 'center',
   },
   inlineLoginBtnDisabled: {
     opacity: 0.45,
-    borderColor: KINETIC.ghostHi,
+    borderColor: c.ghostHi,
   },
   inlineLoginBtnText: {
     fontFamily: 'System',
     fontSize: 16,
     fontWeight: '700',
-    color: KINETIC.text,
+    color: c.text,
   },
-});
+}));

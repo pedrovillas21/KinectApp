@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import type { PagedList } from '../../hooks/usePaged';
-import { KINETIC } from '../../theme/kinetic';
+
 import type { Achievement, FeedPostData, WorkoutSummary } from '../../types';
 import { Button, Text, UnderlineTabs } from '../ui';
 import AchievementBadges from './AchievementBadges';
 import PostsGrid from './PostsGrid';
 import WorkoutSummaryCard from './WorkoutSummaryCard';
+import { useColors } from '../../theme/ThemeContext';
 
 type ActivityTab = 'posts' | 'workouts' | 'achievements';
 
@@ -37,6 +38,7 @@ export default function ProfileActivity({
   onCreatePost,
   achievements,
 }: ProfileActivityProps) {
+  const c = useColors();
   const [tab, setTab] = useState<ActivityTab>('posts');
 
   // Posts carregam com a tela; treinos só quando a aba abre.
@@ -74,9 +76,9 @@ export default function ProfileActivity({
           ) : null}
 
           {list.loading ? (
-            <ActivityIndicator color={KINETIC.primary} style={styles.loader} />
+            <ActivityIndicator color={c.primary} style={styles.loader} />
           ) : list.items.length === 0 && list.page >= 0 ? (
-            <Text variant="body" color={KINETIC.textSecondary} style={styles.empty}>
+            <Text variant="body" color={c.textSecondary} style={styles.empty}>
               {tab === 'posts' ? emptyPosts : emptyWorkouts}
             </Text>
           ) : !list.last && list.page >= 0 ? (

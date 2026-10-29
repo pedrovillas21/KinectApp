@@ -7,7 +7,8 @@ import Icon from '../Icon';
 import { Avatar, Button, Text } from '../ui';
 import { showAlert } from '../ui/AlertHost';
 import { removeMyAvatar, updateMyAvatar } from '../../services/profileService';
-import { KINETIC } from '../../theme/kinetic';
+import { createStyles, useColors } from '../../theme/ThemeContext';
+
 
 interface Props {
   visible: boolean;
@@ -28,6 +29,8 @@ const PENCIL = 52;
  * o pincel no canto da moldura abre a câmera (com galeria) para trocar a foto.
  */
 export default function AvatarViewer({ visible, onClose, name, seed, uri, editable, onChanged }: Props) {
+  const styles = useStyles();
+  const c = useColors();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const [camera, setCamera] = useState(false);
@@ -114,7 +117,7 @@ export default function AvatarViewer({ visible, onClose, name, seed, uri, editab
                     pressed && styles.pressed,
                   ]}
                 >
-                  <Icon name="pencil" size={22} color={KINETIC.onPrimary} strokeWidth={2.2} />
+                  <Icon name="pencil" size={22} color={c.onPrimary} strokeWidth={2.2} />
                 </Pressable>
               ) : null}
             </View>
@@ -132,7 +135,7 @@ export default function AvatarViewer({ visible, onClose, name, seed, uri, editab
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((c) => ({
   root: { flex: 1, backgroundColor: 'rgba(0,0,0,0.94)', paddingHorizontal: 24 },
   close: { position: 'absolute', left: 14, zIndex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 20 },
@@ -145,9 +148,9 @@ const styles = StyleSheet.create({
     borderRadius: PENCIL / 2,
     borderWidth: 4,
     borderColor: '#000',
-    backgroundColor: KINETIC.primary,
+    backgroundColor: c.primaryFill,
     alignItems: 'center',
     justifyContent: 'center',
   },
   pressed: { opacity: 0.85 },
-});
+}));

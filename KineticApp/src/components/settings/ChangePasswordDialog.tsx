@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { KINETIC } from '../../theme/kinetic';
+
 import { Button, Dialog, Text, TextField } from '../ui';
 import { PASSWORD_REGEX, PASSWORD_RULE_MESSAGE } from '../../constants/password';
+import { useColors } from '../../theme/ThemeContext';
 
 
 interface ChangePasswordDialogProps {
@@ -13,6 +14,7 @@ interface ChangePasswordDialogProps {
 }
 
 export default function ChangePasswordDialog({ visible, onClose, onSubmit, onSuccess }: ChangePasswordDialogProps) {
+  const c = useColors();
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -62,13 +64,13 @@ export default function ChangePasswordDialog({ visible, onClose, onSubmit, onSuc
         <TextField label="Confirmar nova senha" value={confirm} onChangeText={setConfirm} placeholder="••••••••" secureTextEntry={secure} autoCapitalize="none" autoComplete="new-password" />
 
         <Pressable accessibilityRole="button" onPress={() => setShow((v) => !v)} hitSlop={8} style={styles.toggle}>
-          <Text variant="captionStrong" color={KINETIC.primary}>
+          <Text variant="captionStrong" color={c.primary}>
             {show ? 'Ocultar senhas' : 'Mostrar senhas'}
           </Text>
         </Pressable>
 
         {error ? (
-          <Text variant="caption" color={KINETIC.danger} accessibilityLiveRegion="polite">
+          <Text variant="caption" color={c.danger} accessibilityLiveRegion="polite">
             {error}
           </Text>
         ) : null}

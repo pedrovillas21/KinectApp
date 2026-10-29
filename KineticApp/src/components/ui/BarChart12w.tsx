@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Svg, { Line, Path } from 'react-native-svg';
-import { KINETIC } from '../../theme/kinetic';
+
 import Text from './Text';
+import { useColors } from '../../theme/ThemeContext';
 
 export interface BarSeries {
   values: number[];
@@ -34,6 +35,7 @@ const barPath = (x: number, y: number, w: number, h: number) => {
 
 /** Barras semanais (12 semanas) em SVG. */
 export default function BarChart12w({ series, labels, height = 110, accessibilityLabel }: BarChart12wProps) {
+  const c = useColors();
   const [width, setWidth] = useState(0);
   const count = Math.max(0, ...series.map((s) => s.values.length));
   const max = Math.max(1, ...series.flatMap((s) => s.values));
@@ -61,14 +63,14 @@ export default function BarChart12w({ series, labels, height = 110, accessibilit
                 );
               }),
             )}
-            <Line x1={0} y1={height - 0.5} x2={width} y2={height - 0.5} stroke="rgba(255,255,255,0.1)" strokeWidth={1} />
+            <Line x1={0} y1={height - 0.5} x2={width} y2={height - 0.5} stroke={c.border} strokeWidth={1} />
           </Svg>
         ) : null}
       </View>
       {labels && labels.length > 0 ? (
         <View style={styles.labels}>
           {labels.map((l, i) => (
-            <Text key={`${l}-${i}`} variant="mono" color={KINETIC.textMuted} style={styles.label}>
+            <Text key={`${l}-${i}`} variant="mono" color={c.textMuted} style={styles.label}>
               {l}
             </Text>
           ))}

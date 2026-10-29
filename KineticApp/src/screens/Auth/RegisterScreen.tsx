@@ -1,10 +1,5 @@
 import React, { useContext, useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-} from 'react-native';
+import { View, TouchableOpacity, ScrollView } from 'react-native';
 import { Text, TextInput } from '../../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../contexts/AuthContext';
@@ -13,14 +8,17 @@ import { isValidCellPhone, maskCellPhone } from '../../utils/whatsapp';
 import { savePendingInviteCode } from '../../services/trainerService';
 import { showAlert } from '../../components/ui/AlertHost';
 import KeyboardAvoider from '../../components/ui/KeyboardAvoider';
-import { KINETIC } from '../../theme/kinetic';
+
 import { PRIVACY_URL, TERMS_URL, openLegal } from '../../config/legal';
 import { BackArrowIcon, EmailIcon, LockIcon, EyeIcon, PhoneIcon, CheckIcon } from '../../components/auth/AuthIcons';
 import RequirementItem from '../../components/auth/RequirementItem';
 import { PASSWORD_REGEX, passwordChecks } from '../../constants/password';
 import type { AuthScreenProps } from '../../navigation/types';
+import { createStyles, useColors } from '../../theme/ThemeContext';
 
-function PersonIcon({ size = 16, color = KINETIC.textMuted }: { size?: number; color?: string }) {
+function PersonIcon({ size = 16, color }: { size?: number; color?: string }) {
+  const c = useColors();
+  color ??= c.textMuted;
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -38,6 +36,8 @@ function PersonIcon({ size = 16, color = KINETIC.textMuted }: { size?: number; c
 type Props = AuthScreenProps<'Register'>;
 
 export default function RegisterScreen({ navigation }: Props) {
+  const styles = useStyles();
+  const c = useColors();
   const { register } = useContext(AuthContext);
 
   const [name, setName] = useState('');
@@ -111,7 +111,7 @@ export default function RegisterScreen({ navigation }: Props) {
               <TextInput
                 style={styles.textInput}
                 placeholder="Seu nome completo"
-                placeholderTextColor={KINETIC.placeholder}
+                placeholderTextColor={c.placeholder}
                 value={name}
                 onChangeText={setName}
                 autoCapitalize="words"
@@ -126,7 +126,7 @@ export default function RegisterScreen({ navigation }: Props) {
               <TextInput
                 style={styles.textInput}
                 placeholder="seu-email@exemplo.com"
-                placeholderTextColor={KINETIC.placeholder}
+                placeholderTextColor={c.placeholder}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -142,7 +142,7 @@ export default function RegisterScreen({ navigation }: Props) {
               <TextInput
                 style={styles.textInput}
                 placeholder="(11) 98765-4321"
-                placeholderTextColor={KINETIC.placeholder}
+                placeholderTextColor={c.placeholder}
                 value={phone}
                 onChangeText={(v) => setPhone(maskCellPhone(v))}
                 keyboardType="phone-pad"
@@ -163,7 +163,7 @@ export default function RegisterScreen({ navigation }: Props) {
               <TextInput
                 style={styles.textInput}
                 placeholder="Ex.: ABCDE-23456"
-                placeholderTextColor={KINETIC.placeholder}
+                placeholderTextColor={c.placeholder}
                 value={inviteCode}
                 onChangeText={(v) => setInviteCode(v.toUpperCase())}
                 autoCapitalize="characters"
@@ -182,7 +182,7 @@ export default function RegisterScreen({ navigation }: Props) {
               <TextInput
                 style={styles.textInput}
                 placeholder="8 a 20 caracteres"
-                placeholderTextColor={KINETIC.placeholder}
+                placeholderTextColor={c.placeholder}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
@@ -262,8 +262,8 @@ export default function RegisterScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: KINETIC.bg },
+const useStyles = createStyles((c, s) => ({
+  container: { flex: 1, backgroundColor: c.bg },
   safe: { flex: 1 },
   kav: { flex: 1 },
   header: {
@@ -274,17 +274,17 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     gap: 12,
   },
-  backBtn: {
+  backBtn: { 
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerText: {
     fontSize: 13,
-    color: KINETIC.textDim,
+    color: c.textDim,
     fontWeight: '500',
   },
   content: {
@@ -294,43 +294,43 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 36,
     fontWeight: '800',
-    color: KINETIC.text,
+    color: c.text,
     letterSpacing: -1,
     lineHeight: 44,
     marginTop: 12,
     marginBottom: 32,
   },
   titleAccent: {
-    color: KINETIC.primary,
+    color: c.primary,
   },
   fieldLabel: {
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.6,
-    color: KINETIC.textMuted,
+    color: c.textMuted,
     marginBottom: 8,
     textTransform: 'uppercase',
   },
-  inputWrap: {
+  inputWrap: { 
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: KINETIC.ghostHi,
+    borderColor: c.ghostHi,
     paddingHorizontal: 14,
     height: 52,
   },
   fieldHint: {
     fontSize: 12,
-    color: KINETIC.textMuted,
+    color: c.textMuted,
     marginTop: 6,
   },
   textInput: {
     flex: 1,
     fontSize: 15,
-    color: KINETIC.text,
+    color: c.text,
     padding: 0,
   },
   eyeBtn: {
@@ -343,13 +343,13 @@ const styles = StyleSheet.create({
     marginTop: 14,
     marginBottom: 20,
   },
-  checkbox: {
+  checkbox: { 
     width: 20,
     height: 20,
     borderRadius: 6,
     borderWidth: 1.5,
-    borderColor: KINETIC.ghostHi,
-    backgroundColor: KINETIC.surface1,
+    borderColor: c.ghostHi,
+    backgroundColor: c.surface1,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -365,25 +365,26 @@ const styles = StyleSheet.create({
     lineHeight: 19,
   },
   checkboxChecked: {
-    backgroundColor: KINETIC.primary,
-    borderColor: KINETIC.primary,
+    backgroundColor: c.primaryFill,
+    borderColor: c.primary,
   },
   checkLabel: {
     fontSize: 13,
-    color: KINETIC.textDim,
+    color: c.textDim,
   },
   requirementsBox: {
-    backgroundColor: KINETIC.surface1,
+    ...s.card,
+    backgroundColor: c.surface1,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: KINETIC.ghostHi,
+    borderColor: c.ghostHi,
     padding: 16,
   },
   requirementsTitle: {
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.6,
-    color: KINETIC.textMuted,
+    color: c.textMuted,
     marginBottom: 14,
   },
   requirementsGrid: {
@@ -396,26 +397,27 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   registerBtn: {
+    ...s.card,
     paddingVertical: 16,
     borderRadius: 16,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     borderWidth: 1,
-    borderColor: KINETIC.ghostHi,
+    borderColor: c.ghostHi,
     alignItems: 'center',
     justifyContent: 'center',
     opacity: 0.5,
   },
   registerBtnActive: {
     opacity: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: c.borderStrong,
   },
   registerBtnText: {
     fontSize: 16,
     fontWeight: '700',
-    color: KINETIC.textDim,
+    color: c.textDim,
   },
   registerBtnTextActive: {
-    color: KINETIC.text,
+    color: c.text,
   },
   loginRow: {
     alignItems: 'center',
@@ -423,10 +425,10 @@ const styles = StyleSheet.create({
   },
   loginText: {
     fontSize: 13,
-    color: KINETIC.textDim,
+    color: c.textDim,
   },
   loginLink: {
-    color: KINETIC.primary,
+    color: c.primary,
     fontWeight: '600',
   },
-});
+}));

@@ -1,21 +1,24 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 
 import { Button, Screen, StackHeader, Text } from '../components/ui';
 import { showAlert } from '../components/ui/AlertHost';
 import useFocusResource from '../hooks/useFocusResource';
 import { confirmMyAnamnesis, getMyProtocol, getMyTrainer } from '../services/trainerService';
-import { KINETIC, RADIUS } from '../theme/kinetic';
+import { RADIUS } from '../theme/kinetic';
 import { formatDayMonthYear } from '../utils/formatters';
 import { openWhatsApp } from '../utils/whatsapp';
 import type { MainStackScreenProps } from '../navigation/types';
 import type { StudentProtocol } from '../types';
+import { createStyles, useColors } from '../theme/ThemeContext';
 
 /**
  * Anamnese registrada (na consulta com o personal ou pelo próprio aluno), para o aluno
  * conferir se bate com o que contou. "Está tudo certo" registra a conferência.
  */
 export default function AnamnesisScreen({ navigation }: MainStackScreenProps<'Anamnesis'>) {
+  const styles = useStyles();
+  const c = useColors();
   const protocolRes = useFocusResource('me/protocol', getMyProtocol);
   const trainerRes = useFocusResource('me/trainer', getMyTrainer);
   const [confirmed, setConfirmed] = useState<StudentProtocol | null>(null);
@@ -28,11 +31,11 @@ export default function AnamnesisScreen({ navigation }: MainStackScreenProps<'An
     return (
       <Screen scroll={false} edges={['top', 'bottom', 'left', 'right']} header={header} contentStyle={styles.center}>
         {protocolRes.error ? (
-          <Text variant="body" color={KINETIC.textSecondary}>
+          <Text variant="body" color={c.textSecondary}>
             Não foi possível carregar sua anamnese.
           </Text>
         ) : (
-          <ActivityIndicator color={KINETIC.primary} />
+          <ActivityIndicator color={c.primary} />
         )}
       </Screen>
     );
@@ -65,28 +68,28 @@ export default function AnamnesisScreen({ navigation }: MainStackScreenProps<'An
   return (
     <Screen edges={['top', 'bottom', 'left', 'right']} header={header} contentStyle={styles.content}>
       <View style={styles.meta}>
-        <View style={[styles.badge, { backgroundColor: text ? KINETIC.successBg : 'rgba(255,255,255,0.06)' }]}>
-          <Text variant="micro" color={text ? KINETIC.success : KINETIC.textSecondary}>
+        <View style={[styles.badge, { backgroundColor: text ? c.successBg : c.divider }]}>
+          <Text variant="micro" color={text ? c.success : c.textSecondary}>
             {text ? 'Completa' : 'Pendente'}
           </Text>
         </View>
         {origin ? (
-          <Text variant="caption" color={KINETIC.textSecondary}>
+          <Text variant="caption" color={c.textSecondary}>
             {origin}
           </Text>
         ) : null}
       </View>
 
       <View style={styles.section}>
-        <Text variant="captionStrong" color={KINETIC.textSecondary} style={styles.sectionTitle}>
+        <Text variant="captionStrong" color={c.textSecondary} style={styles.sectionTitle}>
           Lesões e restrições
         </Text>
         <View style={styles.card}>
-          <Text variant="body" color={text ? KINETIC.text : KINETIC.textSecondary}>
+          <Text variant="body" color={text ? c.text : c.textSecondary}>
             {text ?? (trainerName ? `${trainerName} ainda não registrou sua anamnese.` : 'Nenhuma anamnese informada.')}
           </Text>
         </View>
-        <Text variant="caption" color={KINETIC.textSecondary} style={styles.sectionTitle}>
+        <Text variant="caption" color={c.textSecondary} style={styles.sectionTitle}>
           {trainerName
             ? `É isso que ${trainerName} e a IA usam para montar seu treino. Confira se bate com o que você contou na consulta.`
             : 'É isso que a IA usa para montar seu treino.'}
@@ -95,7 +98,7 @@ export default function AnamnesisScreen({ navigation }: MainStackScreenProps<'An
 
       <View style={styles.actions}>
         {text && p.anamnesisConfirmedAt ? (
-          <Text variant="caption" color={KINETIC.success} style={styles.center}>
+          <Text variant="caption" color={c.success} style={styles.center}>
             Você conferiu em {confirmedOn}.
           </Text>
         ) : text ? (
@@ -109,13 +112,13 @@ export default function AnamnesisScreen({ navigation }: MainStackScreenProps<'An
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((c, s) => ({
   center: { alignItems: 'center', justifyContent: 'center', textAlign: 'center' },
   content: { paddingTop: 12, paddingBottom: 32, gap: 20 },
   meta: { marginHorizontal: 20, flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' },
   badge: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: RADIUS.xs },
   section: { marginHorizontal: 16, gap: 8 },
   sectionTitle: { paddingHorizontal: 4 },
-  card: { backgroundColor: KINETIC.surface1, borderRadius: RADIUS.xl, padding: 16 },
+  card: { ...s.card, backgroundColor: c.surface1, borderRadius: RADIUS.xl, padding: 16 },
   actions: { marginHorizontal: 16, gap: 10 },
-});
+}));

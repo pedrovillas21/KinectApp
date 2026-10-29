@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { accountErrorMessage, deleteMyAccount } from '../../services/accountService';
-import { KINETIC } from '../../theme/kinetic';
+
 import { Button, Dialog, Text, TextField } from '../ui';
 import { showAlert } from '../ui/AlertHost';
+import { useColors } from '../../theme/ThemeContext';
 
 interface DeleteAccountDialogProps {
   visible: boolean;
@@ -19,6 +20,7 @@ interface DeleteAccountDialogProps {
  * um segundo alerta antes de chamar o backend.
  */
 export default function DeleteAccountDialog({ visible, onClose, onDeleted, onExport }: DeleteAccountDialogProps) {
+  const c = useColors();
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -58,7 +60,7 @@ export default function DeleteAccountDialog({ visible, onClose, onDeleted, onExp
   return (
     <Dialog visible={visible} onClose={onClose} title="Excluir minha conta" dismissable={!deleting}>
       <View style={styles.body}>
-        <Text variant="body" color={KINETIC.textDim}>
+        <Text variant="body" color={c.textDim}>
           A exclusão apaga seu perfil, treinos, fotos, medidas e amizades de forma imediata e definitiva. Se você tem
           um personal, o vínculo é encerrado. Por obrigação legal ficam guardados, sem acesso pelo app: os registros
           de acesso (6 meses), os pagamentos que seu personal já registrou (só seu nome, valor e data) e as fichas

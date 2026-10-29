@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, ListRenderItem, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, FlatList, ListRenderItem, Pressable, View } from 'react-native';
 import { TextInput } from './ui/scaled';
-import { FONT, KINETIC, RADIUS } from '../theme/kinetic';
+import { FONT, RADIUS } from '../theme/kinetic';
 import Icon from './Icon';
 import { Avatar, BottomSheet, Button, Text } from './ui';
 import { showAlert } from './ui/AlertHost';
@@ -9,6 +9,7 @@ import { AuthContext } from '../contexts/AuthContext';
 import { getComments, addComment } from '../services/socialService';
 import { formatPostTime } from '../utils/dateRelative';
 import type { Comment } from '../types';
+import { createStyles, useColors } from '../theme/ThemeContext';
 
 interface Props {
   postId: string | null;
@@ -18,6 +19,8 @@ interface Props {
 }
 
 export default function CommentsSheet({ postId, visible, onClose, onCommentsCountChange }: Props) {
+  const styles = useStyles();
+  const c = useColors();
   const { currentUser } = useContext(AuthContext);
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(false);
@@ -66,11 +69,11 @@ export default function CommentsSheet({ postId, visible, onClose, onCommentsCoun
           <Text variant="captionStrong" numberOfLines={1} style={styles.author}>
             {item.authorName}
           </Text>
-          <Text variant="caption" color={KINETIC.textSecondary}>
+          <Text variant="caption" color={c.textSecondary}>
             {formatPostTime(item.createdAt)}
           </Text>
         </View>
-        <Text variant="body" color={KINETIC.textDim}>
+        <Text variant="body" color={c.textDim}>
           {item.body}
         </Text>
       </View>
@@ -78,7 +81,7 @@ export default function CommentsSheet({ postId, visible, onClose, onCommentsCoun
   );
 
   const content = loading ? (
-    <ActivityIndicator color={KINETIC.primary} style={styles.state} />
+    <ActivityIndicator color={c.primary} style={styles.state} />
   ) : loadError ? (
     <View style={styles.state}>
       <Text variant="bodyStrong">Não foi possível carregar os comentários</Text>
@@ -94,10 +97,10 @@ export default function CommentsSheet({ postId, visible, onClose, onCommentsCoun
       ListEmptyComponent={
         <View style={styles.state}>
           <View style={styles.emptyIcon}>
-            <Icon name="comment" size={20} color={KINETIC.primary} />
+            <Icon name="comment" size={20} color={c.primary} />
           </View>
           <Text variant="bodyStrong">Nenhum comentário ainda</Text>
-          <Text variant="caption" color={KINETIC.textSecondary}>
+          <Text variant="caption" color={c.textSecondary}>
             Seja o primeiro a comentar.
           </Text>
         </View>
@@ -114,7 +117,7 @@ export default function CommentsSheet({ postId, visible, onClose, onCommentsCoun
         <TextInput
           style={styles.input}
           placeholder="Escreva um comentário..."
-          placeholderTextColor={KINETIC.placeholder}
+          placeholderTextColor={c.placeholder}
           accessibilityLabel="Comentário"
           value={body}
           onChangeText={setBody}
@@ -130,9 +133,9 @@ export default function CommentsSheet({ postId, visible, onClose, onCommentsCoun
           style={({ pressed }) => [styles.send, canSend && styles.sendOn, pressed && styles.pressed]}
         >
           {sending ? (
-            <ActivityIndicator color={KINETIC.onPrimary} size="small" />
+            <ActivityIndicator color={c.onPrimary} size="small" />
           ) : (
-            <Icon name="send" size={18} color={canSend ? KINETIC.onPrimary : KINETIC.textMuted} />
+            <Icon name="send" size={18} color={canSend ? c.onPrimary : c.textMuted} />
           )}
         </Pressable>
       </View>
@@ -140,7 +143,7 @@ export default function CommentsSheet({ postId, visible, onClose, onCommentsCoun
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((c) => ({
   flex: { flex: 1 },
   list: { flexGrow: 1, paddingHorizontal: 16, paddingTop: 4, paddingBottom: 16, gap: 18 },
   comment: { flexDirection: 'row', gap: 12 },
@@ -153,7 +156,7 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     marginBottom: 6,
-    backgroundColor: KINETIC.primaryDim,
+    backgroundColor: c.primaryDim,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -165,9 +168,9 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 10,
     borderTopWidth: 1,
-    borderTopColor: KINETIC.hairline,
+    borderTopColor: c.hairline,
   },
-  input: {
+  input: { 
     flex: 1,
     minHeight: 44,
     maxHeight: 120,
@@ -175,20 +178,20 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 12,
     borderRadius: RADIUS.dialog,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     fontFamily: FONT.regular,
     fontSize: 15,
     lineHeight: 20,
-    color: KINETIC.text,
+    color: c.text,
   },
-  send: {
+  send: { 
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  sendOn: { backgroundColor: KINETIC.primary },
+  sendOn: { backgroundColor: c.primaryFill },
   pressed: { opacity: 0.85 },
-});
+}));

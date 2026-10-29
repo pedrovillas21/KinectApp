@@ -9,6 +9,7 @@ import {
   TextStyle,
 } from 'react-native';
 import { useTextScale } from '../../contexts/TextScaleContext';
+import { useTheme } from '../../theme/ThemeContext';
 
 /**
  * Multiplica fontSize/lineHeight pelo tamanho de texto escolhido pelo usuário.
@@ -27,10 +28,11 @@ export const Text = forwardRef<Text, TextProps>(function ScaledText(props, ref) 
   return <RNText ref={ref} {...props} style={scaleStyle(props.style, factor)} />;
 });
 
-/** Drop-in do TextInput do react-native que respeita o tamanho de texto do app. */
+/** Drop-in do TextInput do react-native que respeita o tamanho de texto e o tema (teclado no iOS) do app. */
 export const TextInput = forwardRef<TextInput, TextInputProps>(function ScaledTextInput(props, ref) {
   const { factor } = useTextScale();
-  return <RNTextInput ref={ref} {...props} style={scaleStyle(props.style, factor)} />;
+  const { scheme } = useTheme();
+  return <RNTextInput ref={ref} keyboardAppearance={scheme} {...props} style={scaleStyle(props.style, factor)} />;
 });
 
 // Mesmo nome como tipo: `useRef<TextInput>(null)` continua valendo como no react-native.

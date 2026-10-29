@@ -1,26 +1,29 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import { FONT, KINETIC, RADIUS } from '../../theme/kinetic';
+import { View } from 'react-native';
+import { FONT, RADIUS } from '../../theme/kinetic';
 import type { HomeWeekDayDTO } from '../../types';
 import { parseLocalDate, weekdayLetter } from '../../utils/formatters';
 import { Text } from '../ui';
+import { createStyles, useColors } from '../../theme/ThemeContext';
 
 const WEEKDAY_NAMES = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
 
 /** Faixa dos 7 dias da semana: hoje com anel ciano, ponto nos dias treinados. */
 export default function WeekStrip({ days }: { days: HomeWeekDayDTO[] }) {
+  const styles = useStyles();
+  const c = useColors();
   return (
     <View style={styles.card} accessibilityLabel="Semana">
       {days.map((day) => {
         const date = parseLocalDate(day.date);
         const past = !day.today && date.getTime() < Date.now();
-        const numberColor = day.today ? KINETIC.primary : past ? KINETIC.textMuted : KINETIC.text;
+        const numberColor = day.today ? c.primary : past ? c.textMuted : c.text;
         const label = `${WEEKDAY_NAMES[date.getDay()]} ${date.getDate()}${day.today ? ', hoje' : ''}${
           day.trained ? ', treinou' : ''
         }`;
         return (
           <View key={day.date} style={styles.day} accessible accessibilityLabel={label}>
-            <Text variant="micro" color={KINETIC.textMuted}>
+            <Text variant="micro" color={c.textMuted}>
               {weekdayLetter(date)}
             </Text>
             <View style={[styles.circle, day.today && styles.circleToday]}>
@@ -36,13 +39,14 @@ export default function WeekStrip({ days }: { days: HomeWeekDayDTO[] }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((c, s) => ({
   card: {
+    ...s.card,
     marginHorizontal: 16,
     paddingVertical: 12,
     paddingHorizontal: 8,
     borderRadius: RADIUS.xl,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     flexDirection: 'row',
   },
   day: { flex: 1, alignItems: 'center', gap: 6 },
@@ -55,8 +59,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  circleToday: { borderColor: KINETIC.primary },
+  circleToday: { borderColor: c.primary },
   number: { fontFamily: FONT.monoMedium, fontSize: 13, lineHeight: 16 },
   dot: { width: 4, height: 4, borderRadius: 2 },
-  dotOn: { backgroundColor: KINETIC.primary },
-});
+  dotOn: { backgroundColor: c.primaryFill },
+}));

@@ -10,11 +10,13 @@ import { FlipCameraButton, GalleryButton, RoundButton, ShutterButton } from '../
 import WorkoutPhotoStrip from '../components/WorkoutPhotoStrip';
 import { Button, Text } from '../components/ui';
 import { showAlert } from '../components/ui/AlertHost';
-import { KINETIC } from '../theme/kinetic';
+
 import type { MainStackScreenProps } from '../navigation/types';
+import { useColors } from '../theme/ThemeContext';
 
 /** Câmera em tela cheia (estilo stories): botão de foto no centro, controles soltos sobre a imagem. */
 export default function WorkoutCameraScreen({ navigation, route }: MainStackScreenProps<'WorkoutCamera'>) {
+  const c = useColors();
   const { workout } = route.params;
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
@@ -74,11 +76,11 @@ export default function WorkoutCameraScreen({ navigation, route }: MainStackScre
         <RoundButton label="Fechar câmera" onPress={close} style={[styles.closeAbs, { top: insets.top + 12 }]}>
           <Icon name="close" size={20} color="#fff" strokeWidth={2.2} />
         </RoundButton>
-        <Icon name="camera" size={32} color={KINETIC.textDim} />
+        <Icon name="camera" size={32} color={c.textDim} />
         <Text variant="headline" style={styles.center}>
           Libere a câmera para a foto do treino
         </Text>
-        <Text variant="body" color={KINETIC.textDim} style={styles.center}>
+        <Text variant="body" color={c.textDim} style={styles.center}>
           A foto sai com a tonelagem, o tempo e o treino de hoje.
         </Text>
         <View style={styles.permissionActions}>
@@ -126,7 +128,7 @@ export default function WorkoutCameraScreen({ navigation, route }: MainStackScre
           label={flash === 'on' ? 'Flash ligado' : 'Flash desligado'}
           onPress={() => setFlash((f) => (f === 'on' ? 'off' : 'on'))}
         >
-          <Icon name="bolt" size={20} color={flash === 'on' ? KINETIC.primary : '#fff'} />
+          <Icon name="bolt" size={20} color={flash === 'on' ? c.primary : '#fff'} />
         </RoundButton>
       </View>
 

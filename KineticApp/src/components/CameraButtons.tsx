@@ -1,8 +1,9 @@
 import React from 'react';
-import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { Pressable, StyleProp, View, ViewStyle } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import Icon from './Icon';
-import { KINETIC, RADIUS } from '../theme/kinetic';
+import { RADIUS } from '../theme/kinetic';
+import { createStyles, useColors } from '../theme/ThemeContext';
 
 /** Controles soltos sobre a imagem da câmera (estilo stories), usados pela câmera do treino e a do story. */
 
@@ -17,6 +18,7 @@ export function RoundButton({
   style?: StyleProp<ViewStyle>;
   children: React.ReactNode;
 }) {
+  const styles = useStyles();
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={4} style={[styles.round, style]}>
       {children}
@@ -38,6 +40,7 @@ export function FlipCameraButton({ onPress }: { onPress: () => void }) {
 }
 
 export function ShutterButton({ onPress, ready }: { onPress: () => void; ready: boolean }) {
+  const styles = useStyles();
   return (
     <Pressable
       accessibilityRole="button"
@@ -52,6 +55,7 @@ export function ShutterButton({ onPress, ready }: { onPress: () => void; ready: 
 }
 
 export function GalleryButton({ onPress }: { onPress: () => void }) {
+  const styles = useStyles();
   return (
     <Pressable accessibilityRole="button" accessibilityLabel="Escolher da galeria" onPress={onPress} style={styles.gallery}>
       <Icon name="image" size={18} color="rgba(255,255,255,0.8)" />
@@ -59,7 +63,7 @@ export function GalleryButton({ onPress }: { onPress: () => void }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((c) => ({
   round: {
     width: 44,
     height: 44,
@@ -74,7 +78,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     borderWidth: 2,
     borderColor: '#fff',
-    backgroundColor: KINETIC.surfaceRaised,
+    backgroundColor: c.surfaceRaised,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -89,4 +93,4 @@ const styles = StyleSheet.create({
   },
   shutterPressed: { transform: [{ scale: 0.94 }] },
   shutterInner: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#fff' },
-});
+}));

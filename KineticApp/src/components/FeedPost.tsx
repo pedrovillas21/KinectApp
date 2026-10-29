@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Image, Pressable, Share, StyleSheet, View } from 'react-native';
-import { KINETIC, RADIUS } from '../theme/kinetic';
+import { RADIUS } from '../theme/kinetic';
 import type { FeedPostData } from '../types';
 import { formatBestSet, formatDurationSeconds, formatThousands } from '../utils/formatters';
 import { formatPostTime } from '../utils/dateRelative';
 import Icon from './Icon';
 import WorkoutPhotoStrip from './WorkoutPhotoStrip';
 import { Avatar, StatRow, StatTile, Text } from './ui';
+import { createStyles, useColors } from '../theme/ThemeContext';
 
 interface Props {
   post: FeedPostData;
@@ -19,6 +20,8 @@ interface Props {
 
 /** Post do feed no estilo do redesign: autor, treino resumido, foto, exercícios e ações. */
 export default function FeedPost({ post, onToggleLike, onOpenComments, onPressAuthor }: Props) {
+  const styles = useStyles();
+  const c = useColors();
   const [isLiked, setIsLiked] = useState(post.isLikedByMe);
   const [likesCount, setLikesCount] = useState(post.likesCount);
 
@@ -69,7 +72,7 @@ export default function FeedPost({ post, onToggleLike, onOpenComments, onPressAu
             <Text variant="bodyStrong" numberOfLines={1}>
               {post.author.nome}
             </Text>
-            <Text variant="caption" color={KINETIC.textSecondary} numberOfLines={1}>
+            <Text variant="caption" color={c.textSecondary} numberOfLines={1}>
               {formatPostTime(post.createdAt) ?? post.timestamp}
             </Text>
           </View>
@@ -82,7 +85,7 @@ export default function FeedPost({ post, onToggleLike, onOpenComments, onPressAu
         </Text>
       ) : null}
       {post.caption ? (
-        <Text variant="body" color={KINETIC.textDim} style={styles.caption}>
+        <Text variant="body" color={c.textDim} style={styles.caption}>
           {post.caption}
         </Text>
       ) : null}
@@ -91,7 +94,7 @@ export default function FeedPost({ post, onToggleLike, onOpenComments, onPressAu
         <StatRow card={false} style={styles.stats}>
           <StatTile size="sm" label="Duração" value={duration ?? '—'} />
           <StatTile size="sm" label="Volume" value={hasVolume ? `${formatThousands(post.volumeKg!)} kg` : '—'} />
-          <StatTile size="sm" label="Recordes" value={records} color={records > 0 ? KINETIC.record : KINETIC.text} />
+          <StatTile size="sm" label="Recordes" value={records} color={records > 0 ? c.record : c.text} />
         </StatRow>
       ) : null}
 
@@ -113,21 +116,21 @@ export default function FeedPost({ post, onToggleLike, onOpenComments, onPressAu
           {exercises.map((ex, i) => (
             <View key={`${ex.name}-${i}`} style={styles.exercise}>
               <View style={styles.exerciseIcon}>
-                <Icon name="dumbbell" size={16} color={KINETIC.textSecondary} />
+                <Icon name="dumbbell" size={16} color={c.textSecondary} />
               </View>
               <Text variant="body" numberOfLines={1} style={styles.exerciseName}>
-                <Text variant="monoBody" color={KINETIC.textDim}>
+                <Text variant="monoBody" color={c.textDim}>
                   {ex.setsCount}×{' '}
                 </Text>
                 {ex.name}
               </Text>
-              <Text variant="mono" color={KINETIC.textDim}>
+              <Text variant="mono" color={c.textDim}>
                 {formatBestSet(ex.bestSet)}
               </Text>
             </View>
           ))}
           {more > 0 ? (
-            <Text variant="body" color={KINETIC.textSecondary} style={styles.more}>
+            <Text variant="body" color={c.textSecondary} style={styles.more}>
               + {more} {more === 1 ? 'exercício' : 'exercícios'}
             </Text>
           ) : null}
@@ -142,7 +145,7 @@ export default function FeedPost({ post, onToggleLike, onOpenComments, onPressAu
           onPress={handleLike}
           style={styles.action}
         >
-          <Icon name={isLiked ? 'heart-filled' : 'heart'} size={19} color={isLiked ? KINETIC.primary : KINETIC.text} />
+          <Icon name={isLiked ? 'heart-filled' : 'heart'} size={19} color={isLiked ? c.primary : c.text} />
           <Text variant="body">{likesCount}</Text>
         </Pressable>
         <Pressable
@@ -151,23 +154,23 @@ export default function FeedPost({ post, onToggleLike, onOpenComments, onPressAu
           onPress={() => onOpenComments?.(post.id)}
           style={styles.action}
         >
-          <Icon name="comment" size={19} color={KINETIC.text} />
+          <Icon name="comment" size={19} color={c.text} />
           <Text variant="body">{post.commentsCount}</Text>
         </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel="Compartilhar" onPress={handleShare} style={styles.share}>
-          <Icon name="share" size={18} color={KINETIC.text} />
+          <Icon name="share" size={18} color={c.text} />
         </Pressable>
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((c) => ({
   post: {
     paddingHorizontal: 20,
     paddingTop: 16,
     borderBottomWidth: 1,
-    borderBottomColor: KINETIC.hairline,
+    borderBottomColor: c.hairline,
   },
   header: { flexDirection: 'row', alignItems: 'center' },
   author: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 10 },
@@ -181,15 +184,15 @@ const styles = StyleSheet.create({
     aspectRatio: 4 / 5,
     borderRadius: RADIUS.lg,
     overflow: 'hidden',
-    backgroundColor: KINETIC.media,
+    backgroundColor: c.media,
   },
   exercises: { marginTop: 8 },
   exercise: { flexDirection: 'row', alignItems: 'center', gap: 12, height: 44 },
-  exerciseIcon: {
+  exerciseIcon: { 
     width: 32,
     height: 32,
     borderRadius: RADIUS.sm,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -198,4 +201,4 @@ const styles = StyleSheet.create({
   actions: { flexDirection: 'row', alignItems: 'center', marginTop: 6, marginHorizontal: -8, paddingBottom: 6 },
   action: { minHeight: 44, paddingHorizontal: 8, flexDirection: 'row', alignItems: 'center', gap: 6 },
   share: { marginLeft: 'auto', width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-});
+}));

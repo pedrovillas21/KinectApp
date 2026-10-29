@@ -1,7 +1,8 @@
 import React from 'react';
-import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import { FONT, KINETIC, RADIUS } from '../../theme/kinetic';
+import { Pressable, StyleProp, View, ViewStyle } from 'react-native';
+import { FONT, RADIUS } from '../../theme/kinetic';
 import Text from './Text';
+import { createStyles, useColors } from '../../theme/ThemeContext';
 
 export interface SegmentOption<K extends string> {
   key: K;
@@ -17,6 +18,8 @@ export interface SegmentedControlProps<K extends string> {
 
 /** Alternador em pílula (ex.: Amigo | Personal no convite). */
 export default function SegmentedControl<K extends string>({ options, value, onChange, style }: SegmentedControlProps<K>) {
+  const styles = useStyles();
+  const c = useColors();
   return (
     <View accessibilityRole="tablist" style={[styles.track, style]}>
       {options.map((opt) => {
@@ -31,7 +34,7 @@ export default function SegmentedControl<K extends string>({ options, value, onC
           >
             <Text
               style={{ fontFamily: FONT.medium, fontSize: 13, lineHeight: 18 }}
-              color={selected ? KINETIC.text : KINETIC.textSecondary}
+              color={selected ? c.text : c.textSecondary}
             >
               {opt.label}
             </Text>
@@ -42,8 +45,8 @@ export default function SegmentedControl<K extends string>({ options, value, onC
   );
 }
 
-const styles = StyleSheet.create({
-  track: { flexDirection: 'row', gap: 2, padding: 3, borderRadius: RADIUS.md, backgroundColor: KINETIC.bg },
+const useStyles = createStyles((c, s) => ({
+  track: { flexDirection: 'row', gap: 2, padding: 3, borderRadius: RADIUS.md, backgroundColor: c.bg },
   segment: { flex: 1, height: 32, borderRadius: RADIUS.sm, alignItems: 'center', justifyContent: 'center' },
-  segmentOn: { backgroundColor: KINETIC.surfaceRaised },
-});
+  segmentOn: { backgroundColor: c.surfaceRaised, ...s.raised },
+}));

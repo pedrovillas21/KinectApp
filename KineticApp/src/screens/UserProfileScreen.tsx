@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, RefreshControl, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, View } from 'react-native';
 
 import Icon from '../components/Icon';
 import ProfileHeader from '../components/profile/ProfileHeader';
@@ -17,13 +17,16 @@ import {
   removeConnection,
   sendConnection,
 } from '../services/socialService';
-import { KINETIC, RADIUS } from '../theme/kinetic';
+import { RADIUS } from '../theme/kinetic';
 import { formatMonthYear } from '../utils/formatters';
 import type { MainStackScreenProps } from '../navigation/types';
 import type { FeedPostData, PublicProfile, WorkoutSummary } from '../types';
 import { showAlert } from '../components/ui/AlertHost';
+import { createStyles, useColors } from '../theme/ThemeContext';
 
 export default function UserProfileScreen({ navigation, route }: MainStackScreenProps<'UserProfile'>) {
+  const styles = useStyles();
+  const c = useColors();
   const { userId } = route.params;
 
   const [profile, setProfile] = useState<PublicProfile | null>(null);
@@ -100,7 +103,7 @@ export default function UserProfileScreen({ navigation, route }: MainStackScreen
             {error === 'failed' ? <Button label="Tentar de novo" size="md" block={false} onPress={reloadAll} /> : null}
           </View>
         ) : (
-          <ActivityIndicator color={KINETIC.primary} />
+          <ActivityIndicator color={c.primary} />
         )}
       </Screen>
     );
@@ -129,7 +132,7 @@ export default function UserProfileScreen({ navigation, route }: MainStackScreen
     <Screen
       edges={['top', 'bottom', 'left', 'right']}
       header={header}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={KINETIC.primary} />}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={c.primary} />}
     >
       <ProfileHeader
         name={profile.name}
@@ -162,9 +165,9 @@ export default function UserProfileScreen({ navigation, route }: MainStackScreen
 
       {profile.locked ? (
         <View style={styles.locked}>
-          <Icon name="lock" size={22} color={KINETIC.textSecondary} />
+          <Icon name="lock" size={22} color={c.textSecondary} />
           <Text variant="bodyStrong">Perfil fechado</Text>
-          <Text variant="body" color={KINETIC.textSecondary} style={styles.centerText}>
+          <Text variant="body" color={c.textSecondary} style={styles.centerText}>
             Vocês precisam ser amigos para ver treinos, recordes e publicações de {firstName}.
           </Text>
         </View>
@@ -207,20 +210,21 @@ export default function UserProfileScreen({ navigation, route }: MainStackScreen
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((c, s) => ({
   center: { alignItems: 'center', justifyContent: 'center' },
   message: { alignItems: 'center', gap: 12 },
   actions: { flexDirection: 'row', gap: 8, paddingHorizontal: 20, paddingTop: 14 },
   action: { flex: 1 },
   locked: {
+    ...s.card,
     marginTop: 20,
     marginHorizontal: 16,
     padding: 20,
     borderRadius: RADIUS.xl,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     alignItems: 'center',
     gap: 8,
   },
   centerText: { textAlign: 'center' },
   sections: { marginTop: 20, gap: 22 },
-});
+}));

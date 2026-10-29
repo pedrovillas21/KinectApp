@@ -3,11 +3,12 @@ import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions, type CameraType, type FlashMode } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
-import { KINETIC } from '../theme/kinetic';
+
 import Icon from './Icon';
 import { FlipCameraButton, GalleryButton, RoundButton, ShutterButton } from './CameraButtons';
 import { Button, Text } from './ui';
 import { showAlert } from './ui/AlertHost';
+import { useColors } from '../theme/ThemeContext';
 
 interface Props {
   /** Foto tirada ou escolhida na galeria. */
@@ -25,6 +26,7 @@ interface Props {
  * Renderizar dentro de um Modal/tela de fundo preto.
  */
 export default function CameraCapture({ onCapture, onClose, galleryAspect, permissionTitle }: Props) {
+  const c = useColors();
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
@@ -77,11 +79,11 @@ export default function CameraCapture({ onCapture, onClose, galleryAspect, permi
     return (
       <View style={[styles.root, styles.permission, { paddingTop: insets.top, paddingBottom: insets.bottom + 24 }]}>
         {closeButton}
-        <Icon name="camera" size={32} color={KINETIC.textDim} />
+        <Icon name="camera" size={32} color={c.textDim} />
         <Text variant="headline" style={styles.center}>
           {permissionTitle}
         </Text>
-        <Text variant="body" color={KINETIC.textDim} style={styles.center}>
+        <Text variant="body" color={c.textDim} style={styles.center}>
           Ou escolha uma foto que já está na galeria.
         </Text>
         <View style={styles.permissionActions}>
@@ -109,7 +111,7 @@ export default function CameraCapture({ onCapture, onClose, galleryAspect, permi
           label={flash === 'on' ? 'Flash ligado' : 'Flash desligado'}
           onPress={() => setFlash((f) => (f === 'on' ? 'off' : 'on'))}
         >
-          <Icon name="bolt" size={20} color={flash === 'on' ? KINETIC.primary : '#fff'} />
+          <Icon name="bolt" size={20} color={flash === 'on' ? c.primary : '#fff'} />
         </RoundButton>
       </View>
       <View style={[styles.controls, { bottom: insets.bottom + 28 }]}>

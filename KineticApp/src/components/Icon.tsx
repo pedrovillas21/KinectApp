@@ -4,11 +4,12 @@
  * viewBox 24×24 e acento ciano neon (#00E5FF).
  *
  * Substitui os emojis espalhados pela UI por um conjunto coeso e tematizável.
- * Uso: <Icon name="close" size={20} color={KINETIC.textDim} />
+ * Uso: <Icon name="close" size={20} color={c.textDim} />
  */
 import React from 'react';
 import Svg, { Circle, Line, Path, Polyline, Rect } from 'react-native-svg';
 import { useTextScale } from '../contexts/TextScaleContext';
+import { useColors } from '../theme/ThemeContext';
 
 export type IconName =
   | 'close'
@@ -28,6 +29,7 @@ export type IconName =
   | 'mail'
   | 'flame'
   | 'moon'
+  | 'clock'
   | 'sun'
   | 'bolt'
   | 'arrow-up'
@@ -71,7 +73,9 @@ export interface IconProps {
   strokeWidth?: number;
 }
 
-export default function Icon({ name, size: baseSize = 22, color = '#00E5FF', strokeWidth = 1.8 }: IconProps) {
+export default function Icon({ name, size: baseSize = 22, color, strokeWidth = 1.8 }: IconProps) {
+  const c = useColors();
+  color ??= c.primary;
   const size = baseSize * useTextScale().factor;
   const stroke = {
     fill: 'none' as const,
@@ -192,6 +196,14 @@ export default function Icon({ name, size: baseSize = 22, color = '#00E5FF', str
             d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 002.5 2.5z"
             {...solid}
           />
+        );
+
+      case 'clock':
+        return (
+          <>
+            <Circle cx={12} cy={12} r={10} {...stroke} />
+            <Polyline points="12 6 12 12 16 14" {...stroke} />
+          </>
         );
 
       case 'moon':

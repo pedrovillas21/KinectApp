@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { KINETIC } from '../../theme/kinetic';
+
 import Button, { ButtonVariant } from './Button';
 import Dialog from './Dialog';
 import Text from './Text';
+import { useColors } from '../../theme/ThemeContext';
 
 export interface AlertButton {
   text: string;
@@ -38,6 +39,7 @@ const VARIANT: Record<NonNullable<AlertButton['style']>, ButtonVariant> = {
 
 /** Montado uma vez na raiz do app (App.tsx). */
 export default function AlertHost() {
+  const c = useColors();
   const [queue, setQueue] = useState<AlertRequest[]>([]);
 
   useEffect(() => {
@@ -70,7 +72,7 @@ export default function AlertHost() {
     >
       <View style={styles.body}>
         {current.message ? (
-          <Text variant="body" color={KINETIC.textDim}>
+          <Text variant="body" color={c.textDim}>
             {current.message}
           </Text>
         ) : null}

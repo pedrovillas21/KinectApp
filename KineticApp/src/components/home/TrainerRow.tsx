@@ -1,10 +1,11 @@
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
-import { KINETIC, RADIUS } from '../../theme/kinetic';
+import { Pressable, View } from 'react-native';
+import { RADIUS } from '../../theme/kinetic';
 import type { TrainerPeer } from '../../types';
 import { openWhatsApp } from '../../utils/whatsapp';
 import Icon from '../Icon';
 import { Avatar, Text } from '../ui';
+import { createStyles, useColors } from '../../theme/ThemeContext';
 
 interface TrainerRowProps {
   trainer: TrainerPeer;
@@ -13,6 +14,8 @@ interface TrainerRowProps {
 
 /** Atalho para o personal do aluno: perfil profissional + WhatsApp. */
 export default function TrainerRow({ trainer, onOpenProfile }: TrainerRowProps) {
+  const styles = useStyles();
+  const c = useColors();
   const handleWhatsApp = () => {
     if (!trainer.phone) return;
     const firstName = trainer.nome.trim().split(/\s+/)[0];
@@ -32,7 +35,7 @@ export default function TrainerRow({ trainer, onOpenProfile }: TrainerRowProps) 
           <Text variant="bodyStrong" numberOfLines={1}>
             {trainer.nome}
           </Text>
-          <Text variant="caption" color={KINETIC.textSecondary} numberOfLines={1}>
+          <Text variant="caption" color={c.textSecondary} numberOfLines={1}>
             Seu personal · ver perfil profissional
           </Text>
         </View>
@@ -44,21 +47,22 @@ export default function TrainerRow({ trainer, onOpenProfile }: TrainerRowProps) 
           onPress={handleWhatsApp}
           style={({ pressed }) => [styles.whatsapp, pressed && styles.pressed]}
         >
-          <Icon name="comment" size={18} color={KINETIC.success} />
+          <Icon name="comment" size={18} color={c.success} />
         </Pressable>
       ) : null}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((c, s) => ({
   card: {
+    ...s.card,
     marginHorizontal: 16,
     paddingVertical: 12,
     paddingLeft: 14,
     paddingRight: 12,
     borderRadius: RADIUS.xl,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
@@ -69,9 +73,9 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: 'rgba(74,222,128,0.12)',
+    backgroundColor: c.successDim,
     alignItems: 'center',
     justifyContent: 'center',
   },
   pressed: { opacity: 0.8 },
-});
+}));

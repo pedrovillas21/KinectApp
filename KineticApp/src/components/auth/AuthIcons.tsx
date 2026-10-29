@@ -1,12 +1,14 @@
 import React from 'react';
 import Svg, { Path, Circle } from 'react-native-svg';
-import { KINETIC } from '../../theme/kinetic';
+import { useColors } from '../../theme/ThemeContext';
 
 /** Ícones das telas de entrada/cadastro (traço 1.5, sem escala de texto). */
 
 type IconProps = { size?: number; color?: string };
 
-export function BackArrowIcon({ size = 20, color = KINETIC.text }: IconProps) {
+export function BackArrowIcon({ size = 20, color }: IconProps) {
+  const c = useColors();
+  color ??= c.text;
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -20,7 +22,9 @@ export function BackArrowIcon({ size = 20, color = KINETIC.text }: IconProps) {
   );
 }
 
-export function EmailIcon({ size = 16, color = KINETIC.textMuted }: IconProps) {
+export function EmailIcon({ size = 16, color }: IconProps) {
+  const c = useColors();
+  color ??= c.textMuted;
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -41,7 +45,9 @@ export function EmailIcon({ size = 16, color = KINETIC.textMuted }: IconProps) {
   );
 }
 
-export function LockIcon({ size = 16, color = KINETIC.textMuted }: IconProps) {
+export function LockIcon({ size = 16, color }: IconProps) {
+  const c = useColors();
+  color ??= c.textMuted;
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -62,7 +68,9 @@ export function LockIcon({ size = 16, color = KINETIC.textMuted }: IconProps) {
   );
 }
 
-export function EyeIcon({ size = 18, color = KINETIC.textMuted, closed = false }: IconProps & { closed?: boolean }) {
+export function EyeIcon({ size = 18, color, closed = false }: IconProps & { closed?: boolean }) {
+  const c = useColors();
+  color ??= c.textMuted;
   if (closed) {
     return (
       <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -97,7 +105,9 @@ export function EyeIcon({ size = 18, color = KINETIC.textMuted, closed = false }
   );
 }
 
-export function PhoneIcon({ size = 16, color = KINETIC.textMuted }: IconProps) {
+export function PhoneIcon({ size = 16, color }: IconProps) {
+  const c = useColors();
+  color ??= c.textMuted;
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -111,7 +121,9 @@ export function PhoneIcon({ size = 16, color = KINETIC.textMuted }: IconProps) {
   );
 }
 
-export function CheckIcon({ size = 10, color = '#001a1f' }: IconProps) {
+export function CheckIcon({ size = 10, color }: IconProps) {
+  const c = useColors();
+  color ??= c.onPrimary;
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
       <Path

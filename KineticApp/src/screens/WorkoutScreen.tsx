@@ -1,24 +1,18 @@
 import React, { useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, TouchableOpacity, View } from 'react-native';
 import { Text } from '../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Path, Polyline } from 'react-native-svg';
 import type { PlanExercise as Exercise, WorkoutPlanItem } from '../types';
-import { FONT, KINETIC, RADIUS } from '../theme/kinetic';
+import { FONT, Palette, RADIUS } from '../theme/kinetic';
 import { formatRelativeDays } from '../utils/dateRelative';
 import { formatThousands } from '../utils/formatters';
 import { Avatar, Button, StaleBanner } from '../components/ui';
 import useFocusResource from '../hooks/useFocusResource';
 import api from '../services/api';
+import { createStyles, useColors } from '../theme/ThemeContext';
 
 interface Props {
   navigation: NativeStackNavigationProp<any>;
@@ -33,12 +27,16 @@ interface Accent {
 }
 
 // Paleta de acento por dia (A/B/C ciclando), espelhando os ACCENTS do mock e
-// reaproveitando os tokens KINETIC (ciano primary, dourado warn, verde success).
-const ACCENTS: Accent[] = [
-  { color: KINETIC.primary, grad: [KINETIC.primary, '#00bcd4'], dim: KINETIC.primaryDim, soft: KINETIC.primarySoft, fg: '#001f24' },
-  { color: KINETIC.warn, grad: ['#f5b945', '#e09820'], dim: 'rgba(245,185,69,0.10)', soft: 'rgba(245,185,69,0.22)', fg: '#241700' },
-  { color: KINETIC.success, grad: ['#4ade80', '#22c55e'], dim: 'rgba(74,222,128,0.10)', soft: 'rgba(74,222,128,0.22)', fg: '#001f0c' },
-];
+// reaproveitando os tokens da paleta (ciano primary, dourado warn, verde success).
+// Os gradientes são preenchimento (iguais nos dois temas), com texto escuro por cima.
+const accentAt = (c: Palette, index: number): Accent =>
+  (
+    [
+      { color: c.primary, grad: [c.primaryFill, c.primaryFillEnd], dim: c.primaryDim, soft: c.primarySoft, fg: c.onPrimary },
+      { color: c.warn, grad: ['#f5b945', '#e09820'], dim: c.warnDim, soft: c.warnSoft, fg: '#241700' },
+      { color: c.success, grad: ['#4ade80', '#22c55e'], dim: c.successDim, soft: c.successSoft, fg: '#001f0c' },
+    ] as Accent[]
+  )[index % 3];
 
 // A, B, C, D… pela posição na grade (a cor é que cicla de 3 em 3).
 const letterOf = (index: number) => String.fromCharCode(65 + (index % 26));
@@ -163,6 +161,7 @@ function groupSections(exercises: Exercise[]): RenderSection[] {
 
 // ─── Card de exercício (DETAIL) ────────────────────────────────────
 function DetailExerciseCard({ ex, accent, prescribed }: { ex: Exercise; accent: Accent; prescribed: boolean }) {
+  const styles = useStyles();
   return (
     <View style={styles.exCard}>
       <LinearGradient colors={accent.grad} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.exStripe} />
@@ -209,6 +208,8 @@ function DetailExerciseCard({ ex, accent, prescribed }: { ex: Exercise; accent: 
 }
 
 export default function WorkoutScreen({ navigation }: Props) {
+  const styles = useStyles();
+  const c = useColors();
   // Ficha aberta no detalhe; null = lista.
   const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(null);
 
@@ -251,7 +252,7 @@ export default function WorkoutScreen({ navigation }: Props) {
 
   const renderFichaRow = (item: WorkoutPlanItem, index: number, last: boolean) => {
     const exercises = item.data ?? [];
-    const accent = ACCENTS[index % ACCENTS.length];
+    const accent = accentAt(c, index);
     const letter = letterOf(index);
     const muscles = musclesOf(exercises);
     return (
@@ -290,7 +291,7 @@ export default function WorkoutScreen({ navigation }: Props) {
     return (
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <View style={styles.centerState}>
-          <ActivityIndicator color={KINETIC.primary} size="large" />
+          <ActivityIndicator color={c.primary} size="large" />
           <Text style={styles.loadingText}>Carregando seus treinos...</Text>
         </View>
       </SafeAreaView>
@@ -320,7 +321,7 @@ export default function WorkoutScreen({ navigation }: Props) {
                   <Avatar name={trainerName} seed={trainerName} size={40} />
                 ) : (
                   <View style={styles.aiAvatar}>
-                    <IcSparkle color={KINETIC.primary} />
+                    <IcSparkle color={c.primary} />
                   </View>
                 )}
                 <View style={styles.rowBody}>
@@ -334,7 +335,7 @@ export default function WorkoutScreen({ navigation }: Props) {
               <Text style={styles.sectionLabel}>Próximo treino</Text>
               {(() => {
                 const exercises = next.data ?? [];
-                const accent = ACCENTS[nextIndex % ACCENTS.length];
+                const accent = accentAt(c, nextIndex);
                 const letter = letterOf(nextIndex);
                 const muscles = musclesOf(exercises);
                 return (
@@ -374,7 +375,7 @@ export default function WorkoutScreen({ navigation }: Props) {
                           <Path
                             d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"
                             fill="none"
-                            stroke={KINETIC.text}
+                            stroke={c.text}
                             strokeWidth={1.8}
                             strokeLinecap="round"
                           />
@@ -395,7 +396,7 @@ export default function WorkoutScreen({ navigation }: Props) {
 
               {hasAiPlans && (
                 <View style={styles.disclaimer}>
-                  <IcSparkle color={KINETIC.textMuted} />
+                  <IcSparkle color={c.textMuted} />
                   <Text style={styles.disclaimerText}>
                     Fichas geradas por IA com base no seu perfil. Consulte um profissional de educação física antes
                     de iniciar qualquer programa de treinos.
@@ -416,7 +417,7 @@ export default function WorkoutScreen({ navigation }: Props) {
 
   const exercises = workout.data ?? [];
   const selectedIndex = Math.max(0, workoutPlans.findIndex((p) => p.id === workout.id));
-  const accent = ACCENTS[selectedIndex % ACCENTS.length];
+  const accent = accentAt(c, selectedIndex);
   const letter = letterOf(selectedIndex);
 
   const muscleGroups = musclesOf(exercises);
@@ -433,7 +434,7 @@ export default function WorkoutScreen({ navigation }: Props) {
           style={styles.backBtn}
         >
           <View style={styles.backChip}>
-            <IcChevronLeft color={KINETIC.text} />
+            <IcChevronLeft color={c.text} />
           </View>
           <Text style={styles.backLabel}>Fichas</Text>
         </TouchableOpacity>
@@ -460,17 +461,17 @@ export default function WorkoutScreen({ navigation }: Props) {
           <View style={styles.infoBox}>
             {workout.prescribedByName ? (
               <View style={styles.infoLine}>
-                <IcUserCheck color={KINETIC.success} />
+                <IcUserCheck color={c.success} />
                 <Text style={styles.infoText}>Ficha prescrita por {workout.prescribedByName}, seu personal.</Text>
               </View>
             ) : (
               <View style={styles.infoLine}>
-                <IcSparkle color={KINETIC.textMuted} />
+                <IcSparkle color={c.textMuted} />
                 <Text style={styles.infoText}>Sugestão por IA — consulte um profissional de educação física.</Text>
               </View>
             )}
             <View style={styles.infoLine}>
-              <IcInfo color={KINETIC.textMuted} />
+              <IcInfo color={c.textMuted} />
               <Text style={styles.infoText}>RPE = esforço percebido, de 1 (muito leve) a 10 (esforço máximo).</Text>
             </View>
           </View>
@@ -521,8 +522,8 @@ export default function WorkoutScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: KINETIC.bg },
+const useStyles = createStyles((c, s) => ({
+  container: { flex: 1, backgroundColor: c.bg },
   listContent: {
     paddingHorizontal: 16,
     paddingBottom: 32,
@@ -538,30 +539,30 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 13,
     fontWeight: 'bold',
-    color: KINETIC.textDim,
+    color: c.textDim,
   },
   emptyTitle: {
     fontSize: 20,
     fontWeight: '900',
     marginBottom: 8,
     textAlign: 'center',
-    color: KINETIC.text,
+    color: c.text,
   },
   emptyText: {
     fontSize: 13,
     lineHeight: 20,
     textAlign: 'center',
     marginBottom: 20,
-    color: KINETIC.textDim,
+    color: c.textDim,
   },
   retryButton: {
-    backgroundColor: KINETIC.primary,
+    backgroundColor: c.primaryFill,
     borderRadius: 10,
     paddingHorizontal: 18,
     paddingVertical: 12,
   },
   retryButtonText: {
-    color: '#001a1f',
+    color: c.onPrimary,
     fontSize: 12,
     fontWeight: '900',
   },
@@ -572,7 +573,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     lineHeight: 30,
     letterSpacing: -0.5,
-    color: KINETIC.text,
+    color: c.text,
     paddingHorizontal: 4,
     paddingTop: 18,
     paddingBottom: 12,
@@ -580,24 +581,25 @@ const styles = StyleSheet.create({
 
   // ─── Plano (quem prescreveu) ───
   planCard: {
+    ...s.card,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     padding: 16,
     borderRadius: RADIUS.xl,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     borderWidth: 1,
-    borderColor: KINETIC.hairline,
+    borderColor: c.hairline,
   },
   aiAvatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: KINETIC.primaryDim,
+    backgroundColor: c.primaryDim,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  planTitle: { fontFamily: FONT.semibold, fontSize: 15, lineHeight: 20, color: KINETIC.text },
+  planTitle: { fontFamily: FONT.semibold, fontSize: 15, lineHeight: 20, color: c.text },
 
   // ─── Rótulos de seção ───
   sectionLabel: {
@@ -605,7 +607,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     letterSpacing: 0.6,
     textTransform: 'uppercase',
-    color: KINETIC.textSecondary,
+    color: c.textSecondary,
     paddingHorizontal: 4,
     paddingTop: 22,
     paddingBottom: 10,
@@ -623,20 +625,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     letterSpacing: 0.6,
     textTransform: 'uppercase',
-    color: KINETIC.textSecondary,
+    color: c.textSecondary,
   },
 
   // ─── Próximo treino ───
-  nextCard: { borderRadius: RADIUS.xl, backgroundColor: KINETIC.surface1, borderWidth: 1, padding: 16, gap: 16 },
+  nextCard: { ...s.card, borderRadius: RADIUS.xl, backgroundColor: c.surface1, borderWidth: 1, padding: 16, gap: 16 },
   nextTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 14 },
-  nextTitle: { fontFamily: FONT.semibold, fontSize: 19, lineHeight: 24, letterSpacing: -0.3, color: KINETIC.text },
+  nextTitle: { fontFamily: FONT.semibold, fontSize: 19, lineHeight: 24, letterSpacing: -0.3, color: c.text },
   nextActions: { flexDirection: 'row', gap: 8 },
   listBtn: {
     width: 48,
     height: 48,
     borderRadius: RADIUS.lg,
     borderWidth: 1,
-    borderColor: KINETIC.ghost,
+    borderColor: c.ghost,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -648,14 +650,14 @@ const styles = StyleSheet.create({
   letterTextLg: { fontSize: 26, lineHeight: 32 },
 
   // ─── Lista de fichas ───
-  listCard: { borderRadius: RADIUS.xl, backgroundColor: KINETIC.surface1, overflow: 'hidden' },
+  listCard: { ...s.card, borderRadius: RADIUS.xl, backgroundColor: c.surface1, overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 14, paddingLeft: 14, paddingRight: 6 },
-  rowDivider: { borderBottomWidth: 1, borderBottomColor: KINETIC.hairline },
-  rowPressed: { backgroundColor: KINETIC.surfaceRaised },
+  rowDivider: { borderBottomWidth: 1, borderBottomColor: c.hairline },
+  rowPressed: { backgroundColor: c.surfaceRaised },
   rowBody: { flex: 1, minWidth: 0, gap: 4 },
-  rowTitle: { fontFamily: FONT.semibold, fontSize: 15, lineHeight: 20, color: KINETIC.text },
-  rowMuscles: { fontFamily: FONT.regular, fontSize: 12, lineHeight: 16, color: KINETIC.textSecondary },
-  rowMeta: { fontFamily: FONT.mono, fontSize: 11.5, lineHeight: 16, color: KINETIC.textSecondary },
+  rowTitle: { fontFamily: FONT.semibold, fontSize: 15, lineHeight: 20, color: c.text },
+  rowMuscles: { fontFamily: FONT.regular, fontSize: 12, lineHeight: 16, color: c.textSecondary },
+  rowMeta: { fontFamily: FONT.mono, fontSize: 11.5, lineHeight: 16, color: c.textSecondary },
   playBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
 
   dayBadge: {
@@ -670,15 +672,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 9,
     paddingVertical: 4,
     borderRadius: RADIUS.xs,
-    backgroundColor: KINETIC.ghost,
+    backgroundColor: c.ghost,
   },
-  muscleChipText: { fontFamily: FONT.medium, fontSize: 11, color: KINETIC.textDim },
+  muscleChipText: { fontFamily: FONT.medium, fontSize: 11, color: c.textDim },
 
   // ─── CTA gradiente ───
   ctaWrap: {
     borderRadius: 13,
     overflow: 'hidden',
-    shadowColor: KINETIC.primary,
+    shadowColor: c.primaryFill,
     shadowOpacity: 0.25,
     shadowRadius: 20,
     shadowOffset: { width: 0, height: 4 },
@@ -703,9 +705,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 14,
-    backgroundColor: KINETIC.ghost,
+    backgroundColor: c.ghost,
   },
-  disclaimerText: { flex: 1, fontSize: 11, color: KINETIC.textMuted, lineHeight: 17 },
+  disclaimerText: { flex: 1, fontSize: 11, color: c.textMuted, lineHeight: 17 },
 
   // ─── DETAIL: header compacto ───
   detailHeader: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 8 },
@@ -714,11 +716,11 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 9,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  backLabel: { color: KINETIC.textDim, fontSize: 13, fontWeight: '600' },
+  backLabel: { color: c.textDim, fontSize: 13, fontWeight: '600' },
 
   // ─── DETAIL: bloco de título ───
   detailScrollView: { flex: 1 },
@@ -732,7 +734,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: -1,
     lineHeight: 34,
-    color: KINETIC.text,
+    color: c.text,
     marginBottom: 12,
   },
   infoBox: {
@@ -740,12 +742,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 12,
-    backgroundColor: KINETIC.ghost,
+    backgroundColor: c.ghost,
     marginBottom: 12,
   },
   infoLine: { flexDirection: 'row', alignItems: 'flex-start', gap: 7 },
-  infoText: { flex: 1, fontSize: 11.5, color: KINETIC.textMuted, lineHeight: 16 },
-  metaText: { fontSize: 12.5, color: KINETIC.textDim, fontWeight: '500' },
+  infoText: { flex: 1, fontSize: 11.5, color: c.textMuted, lineHeight: 16 },
+  metaText: { fontSize: 12.5, color: c.textDim, fontWeight: '500' },
   metaStrong: { fontWeight: '700' },
 
   // ─── DETAIL: seções ───
@@ -757,20 +759,21 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 1.4,
     textTransform: 'uppercase',
-    color: KINETIC.textMuted,
+    color: c.textMuted,
   },
   sectionBody: { gap: 10, paddingHorizontal: 16 },
 
   // ─── DETAIL: card de exercício ───
   exCard: {
+    ...s.card,
     flexDirection: 'row',
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     borderRadius: 18,
     overflow: 'hidden',
   },
   exStripe: { width: 3 },
   exBody: { flex: 1, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 15 },
-  exName: { fontSize: 16.5, fontWeight: '700', color: KINETIC.text, lineHeight: 21, marginBottom: 10 },
+  exName: { fontSize: 16.5, fontWeight: '700', color: c.text, lineHeight: 21, marginBottom: 10 },
   exChipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 14 },
   exMuscleChip: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999, borderWidth: 1 },
   exMuscleChipText: { fontSize: 10, fontWeight: '700', letterSpacing: 0.3 },
@@ -779,30 +782,30 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: KINETIC.ghostHi,
+    borderColor: c.ghostHi,
   },
-  exTypeChipText: { fontSize: 10, fontWeight: '600', color: KINETIC.textMuted },
+  exTypeChipText: { fontSize: 10, fontWeight: '600', color: c.textMuted },
   exGrid: { flexDirection: 'row', gap: 10 },
   exGridCol: { flex: 1 },
-  exGridLabel: { fontSize: 9.5, fontWeight: '700', letterSpacing: 0.6, color: KINETIC.textMuted, marginBottom: 4 },
-  exGridValue: { fontSize: 13.5, fontWeight: '700', color: KINETIC.text, lineHeight: 18 },
+  exGridLabel: { fontSize: 9.5, fontWeight: '700', letterSpacing: 0.6, color: c.textMuted, marginBottom: 4 },
+  exGridValue: { fontSize: 13.5, fontWeight: '700', color: c.text, lineHeight: 18 },
   exNotes: {
     marginTop: 14,
     paddingVertical: 9,
     paddingHorizontal: 11,
     borderRadius: 10,
     borderLeftWidth: 2,
-    backgroundColor: KINETIC.ghost,
+    backgroundColor: c.ghost,
   },
-  exNotesText: { fontSize: 13, color: KINETIC.text, lineHeight: 18 },
+  exNotesText: { fontSize: 13, color: c.text, lineHeight: 18 },
 
   // ─── DETAIL: CTA fixo (barra em fluxo, ancorada abaixo do ScrollView) ───
   ctaBar: {
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 12,
-    backgroundColor: KINETIC.bg,
+    backgroundColor: c.bg,
     borderTopWidth: 1,
-    borderTopColor: KINETIC.ghost,
+    borderTopColor: c.ghost,
   },
-});
+}));

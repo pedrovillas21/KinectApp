@@ -1,10 +1,11 @@
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { FONT, KINETIC } from '../theme/kinetic';
+import { FONT } from '../theme/kinetic';
 import Icon, { IconName } from './Icon';
 import Text from './ui/Text';
+import { createStyles, useColors } from '../theme/ThemeContext';
 
 const ROUTE_META: Record<string, { label: string; icon: IconName }> = {
   Home: { label: 'Início', icon: 'home' },
@@ -19,6 +20,8 @@ const ROUTE_META: Record<string, { label: string; icon: IconName }> = {
  * fluxo do layout (não é absoluta), então as telas não precisam de espaçador.
  */
 export default function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const styles = useStyles();
+  const c = useColors();
   const insets = useSafeAreaInsets();
 
   return (
@@ -26,7 +29,7 @@ export default function BottomTabBar({ state, descriptors, navigation }: BottomT
       {state.routes.map((route, index) => {
         const meta = ROUTE_META[route.name] ?? { label: route.name, icon: 'home' as IconName };
         const isFocused = state.index === index;
-        const color = isFocused ? KINETIC.primary : KINETIC.textMuted;
+        const color = isFocused ? c.primary : c.textMuted;
 
         const onPress = () => {
           const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
@@ -43,7 +46,7 @@ export default function BottomTabBar({ state, descriptors, navigation }: BottomT
             accessibilityLabel={options.tabBarAccessibilityLabel ?? meta.label}
             onPress={onPress}
             onLongPress={onLongPress}
-            android_ripple={{ color: 'rgba(255,255,255,0.06)', borderless: true }}
+            android_ripple={{ color: c.divider, borderless: true }}
             style={styles.tab}
           >
             <Icon name={meta.icon} size={22} color={color} strokeWidth={1.7} />
@@ -57,12 +60,12 @@ export default function BottomTabBar({ state, descriptors, navigation }: BottomT
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((c) => ({
   bar: {
     flexDirection: 'row',
-    backgroundColor: KINETIC.bg,
+    backgroundColor: c.bg,
     borderTopWidth: 1,
-    borderTopColor: KINETIC.hairline,
+    borderTopColor: c.hairline,
     paddingTop: 8,
     paddingHorizontal: 4,
   },
@@ -78,4 +81,4 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     lineHeight: 13,
   },
-});
+}));

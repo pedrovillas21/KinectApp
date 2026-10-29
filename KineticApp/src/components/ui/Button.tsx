@@ -1,8 +1,9 @@
 import React from 'react';
 import { ActivityIndicator, Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import { FONT, KINETIC, RADIUS } from '../../theme/kinetic';
+import { FONT, Palette, RADIUS } from '../../theme/kinetic';
 import Icon, { IconName } from '../Icon';
 import Text from './Text';
+import { useColors } from '../../theme/ThemeContext';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'whatsapp';
 export type ButtonSize = 'lg' | 'md' | 'sm';
@@ -24,13 +25,13 @@ export interface ButtonProps {
 const HEIGHT: Record<ButtonSize, number> = { lg: 48, md: 44, sm: 32 };
 const FONT_SIZE: Record<ButtonSize, number> = { lg: 15, md: 14, sm: 13 };
 
-const PALETTE: Record<ButtonVariant, { bg: string; fg: string; border?: string }> = {
-  primary: { bg: KINETIC.primary, fg: KINETIC.onPrimary },
-  secondary: { bg: 'rgba(255,255,255,0.05)', fg: KINETIC.text },
-  ghost: { bg: 'transparent', fg: KINETIC.text, border: KINETIC.ghost },
-  danger: { bg: KINETIC.dangerDim, fg: KINETIC.danger },
-  whatsapp: { bg: KINETIC.success, fg: '#062012' },
-};
+const paletteOf = (c: Palette): Record<ButtonVariant, { bg: string; fg: string; border?: string }> => ({
+  primary: { bg: c.primaryFill, fg: c.onPrimary },
+  secondary: { bg: c.subtle, fg: c.text },
+  ghost: { bg: 'transparent', fg: c.text, border: c.ghost },
+  danger: { bg: c.dangerDim, fg: c.danger },
+  whatsapp: { bg: c.success, fg: c.onSuccess },
+});
 
 export default function Button({
   label,
@@ -44,7 +45,7 @@ export default function Button({
   accessibilityLabel,
   style,
 }: ButtonProps) {
-  const p = PALETTE[variant];
+  const p = paletteOf(useColors())[variant];
   const isBlock = block ?? size === 'lg';
   const inactive = disabled || loading;
 

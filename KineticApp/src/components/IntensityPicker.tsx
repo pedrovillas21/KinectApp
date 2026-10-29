@@ -1,9 +1,10 @@
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
-import { KINETIC, RADIUS } from '../theme/kinetic';
+import { Pressable, View } from 'react-native';
+import { RADIUS } from '../theme/kinetic';
 import Icon from './Icon';
 import { Text } from './ui';
 import type { PostIntensity } from '../types';
+import { createStyles, useColors } from '../theme/ThemeContext';
 
 const OPTIONS: { value: PostIntensity; label: string }[] = [
   { value: 'LEVE', label: 'Leve' },
@@ -21,11 +22,13 @@ interface Props {
  * dividindo a largura embaixo: cabe também com o texto em tamanho Grande.
  */
 export default function IntensityPicker({ value, onChange }: Props) {
+  const styles = useStyles();
+  const c = useColors();
   return (
     <View style={styles.root}>
       <View style={styles.titleRow}>
         <View style={styles.iconBox}>
-          <Icon name="flame" size={16} color={KINETIC.textDim} />
+          <Icon name="flame" size={16} color={c.textDim} />
         </View>
         <Text variant="bodyMedium">Intensidade</Text>
       </View>
@@ -40,7 +43,7 @@ export default function IntensityPicker({ value, onChange }: Props) {
               onPress={() => onChange(opt.value)}
               style={({ pressed }) => [styles.option, on && styles.optionOn, pressed && !on && styles.pressed]}
             >
-              <Text variant="captionStrong" color={on ? KINETIC.onPrimary : KINETIC.textDim} numberOfLines={1}>
+              <Text variant="captionStrong" color={on ? c.onPrimary : c.textDim} numberOfLines={1}>
                 {opt.label}
               </Text>
             </Pressable>
@@ -51,7 +54,7 @@ export default function IntensityPicker({ value, onChange }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((c) => ({
   root: { paddingHorizontal: 14, paddingVertical: 12, gap: 10 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   // Mesma caixa de ícone do ListRow, para alinhar com as linhas vizinhas.
@@ -59,7 +62,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: RADIUS.sm,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: c.subtle,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -70,10 +73,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: RADIUS.pill,
     borderWidth: 1,
-    borderColor: KINETIC.ghostHi,
+    borderColor: c.ghostHi,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  optionOn: { backgroundColor: KINETIC.primary, borderColor: KINETIC.primary },
-  pressed: { backgroundColor: 'rgba(255,255,255,0.05)' },
-});
+  optionOn: { backgroundColor: c.primaryFill, borderColor: c.primary },
+  pressed: { backgroundColor: c.subtle },
+}));

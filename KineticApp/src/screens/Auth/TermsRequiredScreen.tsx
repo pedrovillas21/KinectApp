@@ -1,16 +1,19 @@
 import React, { useContext, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { Text } from '../../components/ui/scaled';
 import { AuthContext } from '../../contexts/AuthContext';
 import { showAlert } from '../../components/ui/AlertHost';
 import { PRIVACY_URL, TERMS_URL, openLegal } from '../../config/legal';
-import { KINETIC } from '../../theme/kinetic';
+import { createStyles, useColors } from '../../theme/ThemeContext';
+
 
 // Conta criada pelo personal/empresa, ou termos atualizados: o app só libera depois do
 // aceite da versão vigente (o backend também barra a API até lá). Sem "voltar".
 export default function TermsRequiredScreen() {
+  const styles = useStyles();
+  const c = useColors();
   const { acceptTerms, signOut } = useContext(AuthContext);
   const [checked, setChecked] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -60,7 +63,7 @@ export default function TermsRequiredScreen() {
             <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
               {checked && (
                 <Svg width={12} height={12} viewBox="0 0 24 24" fill="none">
-                  <Path d="M20 6L9 17l-5-5" stroke={KINETIC.bg} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+                  <Path d="M20 6L9 17l-5-5" stroke={c.bg} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
                 </Svg>
               )}
             </View>
@@ -93,8 +96,8 @@ export default function TermsRequiredScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: KINETIC.bg },
+const useStyles = createStyles((c, s) => ({
+  container: { flex: 1, backgroundColor: c.bg },
   safe: { flex: 1 },
   header: {
     flexDirection: 'row',
@@ -104,50 +107,51 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     minHeight: 60,
   },
-  headerText: { fontSize: 13, color: KINETIC.textDim, fontWeight: '500' },
+  headerText: { fontSize: 13, color: c.textDim, fontWeight: '500' },
   content: { paddingHorizontal: 24, paddingBottom: 8 },
   title: {
     fontSize: 36,
     fontWeight: '800',
-    color: KINETIC.text,
+    color: c.text,
     letterSpacing: -1,
     lineHeight: 44,
     marginTop: 12,
     marginBottom: 12,
   },
-  titleAccent: { color: KINETIC.primary },
-  subtitle: { fontSize: 14, lineHeight: 21, color: KINETIC.textDim, marginBottom: 20 },
+  titleAccent: { color: c.primary },
+  subtitle: { fontSize: 14, lineHeight: 21, color: c.textDim, marginBottom: 20 },
   linkRow: { paddingVertical: 10 },
-  link: { fontSize: 15, fontWeight: '600', color: KINETIC.primary },
+  link: { fontSize: 15, fontWeight: '600', color: c.primary },
   checkRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginTop: 20 },
-  checkbox: {
+  checkbox: { 
     width: 20,
     height: 20,
     marginTop: 2,
     borderRadius: 6,
     borderWidth: 1.5,
-    borderColor: KINETIC.ghostHi,
-    backgroundColor: KINETIC.surface1,
+    borderColor: c.ghostHi,
+    backgroundColor: c.surface1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  checkboxChecked: { backgroundColor: KINETIC.primary, borderColor: KINETIC.primary },
-  checkLabel: { flex: 1, fontSize: 13, lineHeight: 19, color: KINETIC.textDim },
+  checkboxChecked: { backgroundColor: c.primaryFill, borderColor: c.primary },
+  checkLabel: { flex: 1, fontSize: 13, lineHeight: 19, color: c.textDim },
   footer: { paddingHorizontal: 24, paddingBottom: 16, gap: 12 },
   saveBtn: {
+    ...s.card,
     paddingVertical: 16,
     borderRadius: 16,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     borderWidth: 1,
-    borderColor: KINETIC.ghostHi,
+    borderColor: c.ghostHi,
     alignItems: 'center',
     justifyContent: 'center',
     opacity: 0.5,
   },
-  saveBtnActive: { opacity: 1, borderColor: 'rgba(255,255,255,0.2)' },
-  saveBtnText: { fontSize: 16, fontWeight: '700', color: KINETIC.textDim },
-  saveBtnTextActive: { color: KINETIC.text },
+  saveBtnActive: { opacity: 1, borderColor: c.borderStrong },
+  saveBtnText: { fontSize: 16, fontWeight: '700', color: c.textDim },
+  saveBtnTextActive: { color: c.text },
   signOutRow: { alignItems: 'center', paddingVertical: 4 },
-  signOutText: { fontSize: 13, color: KINETIC.textDim },
-  signOutLink: { color: KINETIC.primary, fontWeight: '600' },
-});
+  signOutText: { fontSize: 13, color: c.textDim },
+  signOutLink: { color: c.primary, fontWeight: '600' },
+}));

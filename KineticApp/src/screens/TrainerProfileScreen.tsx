@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, View } from 'react-native';
 
 import InviteDialog from '../components/InviteDialog';
 import Icon from '../components/Icon';
@@ -7,25 +7,28 @@ import ProfileHeader from '../components/profile/ProfileHeader';
 import { Button, Screen, SectionHeader, StackHeader, Text } from '../components/ui';
 import { endMyTrainerLink, getMyTrainerProfile } from '../services/trainerService';
 import useFocusResource from '../hooks/useFocusResource';
-import { KINETIC, RADIUS } from '../theme/kinetic';
+import { RADIUS } from '../theme/kinetic';
 import { formatRelativeDays } from '../utils/dateRelative';
 import { formatMonthShortYear } from '../utils/formatters';
 import { openWhatsApp } from '../utils/whatsapp';
 import type { MainStackScreenProps } from '../navigation/types';
 import type { MyTrainerProfile } from '../types';
 import { showAlert } from '../components/ui/AlertHost';
+import { createStyles, useColors } from '../theme/ThemeContext';
 
 /** Cores das fichas (A, B, C…) na mesma ordem das abas de treino. */
 const PLAN_TONES = [
-  { bg: 'rgba(0,229,255,0.12)', fg: KINETIC.primary },
-  { bg: 'rgba(245,177,61,0.14)', fg: KINETIC.record },
-  { bg: 'rgba(74,222,128,0.12)', fg: KINETIC.success },
-];
+  { bg: 'primaryDim', fg: 'primary' },
+  { bg: 'warnDim', fg: 'record' },
+  { bg: 'successDim', fg: 'success' },
+] as const;
 
 function InfoRow({ label, value, last }: { label: string; value: string; last?: boolean }) {
+  const styles = useStyles();
+  const c = useColors();
   return (
     <View style={[styles.infoRow, !last && styles.divider]}>
-      <Text variant="body" color={KINETIC.textDim}>
+      <Text variant="body" color={c.textDim}>
         {label}
       </Text>
       <Text variant="body" style={styles.infoValue}>
@@ -37,6 +40,8 @@ function InfoRow({ label, value, last }: { label: string; value: string; last?: 
 
 /** "Seu personal": perfil profissional, fichas que ele montou, WhatsApp e encerrar vínculo. */
 export default function TrainerProfileScreen({ navigation }: MainStackScreenProps<'TrainerProfile'>) {
+  const styles = useStyles();
+  const c = useColors();
   const [refreshing, setRefreshing] = useState(false);
   const [ending, setEnding] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -58,12 +63,12 @@ export default function TrainerProfileScreen({ navigation }: MainStackScreenProp
     return (
       <Screen scroll={false} edges={['top', 'bottom', 'left', 'right']} header={header} contentStyle={styles.center}>
         {state === 'loading' ? (
-          <ActivityIndicator color={KINETIC.primary} />
+          <ActivityIndicator color={c.primary} />
         ) : (
           <View style={styles.message}>
             <Text variant="bodyStrong">{state === 'none' ? 'Você não tem um personal ativo' : 'Não foi possível carregar'}</Text>
             {state === 'none' ? (
-              <Text variant="body" color={KINETIC.textSecondary} style={styles.centerText}>
+              <Text variant="body" color={c.textSecondary} style={styles.centerText}>
                 Use o código que seu personal enviou ou aceite um convite.
               </Text>
             ) : null}
@@ -140,7 +145,7 @@ export default function TrainerProfileScreen({ navigation }: MainStackScreenProp
             await load();
             setRefreshing(false);
           }}
-          tintColor={KINETIC.primary}
+          tintColor={c.primary}
         />
       }
       footer={
@@ -164,8 +169,8 @@ export default function TrainerProfileScreen({ navigation }: MainStackScreenProp
       />
       {t.cref ? (
         <View style={styles.cref} accessible accessibilityLabel={`CREF ${t.cref}${t.crefVerified ? ', verificado' : ''}`}>
-          <Icon name="shield" size={14} color={t.crefVerified ? KINETIC.success : KINETIC.textSecondary} strokeWidth={2} />
-          <Text variant="captionStrong" color={t.crefVerified ? KINETIC.success : KINETIC.textSecondary}>
+          <Icon name="shield" size={14} color={t.crefVerified ? c.success : c.textSecondary} strokeWidth={2} />
+          <Text variant="captionStrong" color={t.crefVerified ? c.success : c.textSecondary}>
             CREF {t.cref}
             {t.crefVerified ? ' verificado' : ''}
           </Text>
@@ -173,7 +178,7 @@ export default function TrainerProfileScreen({ navigation }: MainStackScreenProp
       ) : null}
 
       {!filledAnything ? (
-        <Text variant="body" color={KINETIC.textSecondary} style={styles.pending}>
+        <Text variant="body" color={c.textSecondary} style={styles.pending}>
           {firstName} ainda não preencheu o perfil profissional.
         </Text>
       ) : null}
@@ -181,7 +186,7 @@ export default function TrainerProfileScreen({ navigation }: MainStackScreenProp
       {t.bio ? (
         <View style={styles.section}>
           <Text variant="headline">Sobre</Text>
-          <Text variant="body" color={KINETIC.textDim} style={styles.bio}>
+          <Text variant="body" color={c.textDim} style={styles.bio}>
             {t.bio}
           </Text>
         </View>
@@ -208,7 +213,7 @@ export default function TrainerProfileScreen({ navigation }: MainStackScreenProp
               <View key={`${e.title}-${i}`} style={[styles.eduRow, i < t.education.length - 1 && styles.divider]}>
                 <Text variant="body">{e.title}</Text>
                 {e.detail ? (
-                  <Text variant="caption" color={KINETIC.textSecondary}>
+                  <Text variant="caption" color={c.textSecondary}>
                     {e.detail}
                   </Text>
                 ) : null}
@@ -244,15 +249,15 @@ export default function TrainerProfileScreen({ navigation }: MainStackScreenProp
                   onPress={() => navigation.navigate('MainTabs', { screen: 'Train' })}
                   style={[styles.planRow, i < data.plans.length - 1 && styles.divider]}
                 >
-                  <View style={[styles.planBadge, { backgroundColor: tone.bg }]}>
-                    <Text variant="captionStrong" color={tone.fg}>
+                  <View style={[styles.planBadge, { backgroundColor: c[tone.bg] }]}>
+                    <Text variant="captionStrong" color={c[tone.fg]}>
                       {letter}
                     </Text>
                   </View>
                   <Text variant="body" numberOfLines={1} style={styles.flex}>
                     {p.title}
                   </Text>
-                  <Text variant="mono" color={KINETIC.textSecondary}>
+                  <Text variant="mono" color={c.textSecondary}>
                     {p.exerciseCount} exerc.
                   </Text>
                 </Pressable>
@@ -270,7 +275,7 @@ export default function TrainerProfileScreen({ navigation }: MainStackScreenProp
           hitSlop={6}
           style={styles.endLink}
         >
-          <Text variant="body" color={KINETIC.textSecondary} style={styles.underline}>
+          <Text variant="body" color={c.textSecondary} style={styles.underline}>
             {ending ? 'Encerrando…' : 'Encerrar vínculo com este personal'}
           </Text>
         </Pressable>
@@ -279,7 +284,7 @@ export default function TrainerProfileScreen({ navigation }: MainStackScreenProp
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((c) => ({
   center: { alignItems: 'center', justifyContent: 'center' },
   message: { alignItems: 'center', gap: 10, paddingHorizontal: 32 },
   centerText: { textAlign: 'center' },
@@ -290,9 +295,9 @@ const styles = StyleSheet.create({
   section: { marginTop: 22, marginHorizontal: 20, gap: 8 },
   bio: { lineHeight: 21 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  chip: { paddingHorizontal: 11, paddingVertical: 6, borderRadius: RADIUS.sm, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' },
+  chip: { paddingHorizontal: 11, paddingVertical: 6, borderRadius: RADIUS.sm, borderWidth: 1, borderColor: c.ghostHi },
   eduRow: { paddingVertical: 10, gap: 2 },
-  divider: { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' },
+  divider: { borderBottomWidth: 1, borderBottomColor: c.divider },
   infoRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 16, paddingVertical: 10 },
   infoValue: { flexShrink: 1, textAlign: 'right' },
   plans: { marginTop: 22 },
@@ -305,8 +310,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 12,
-    backgroundColor: KINETIC.bg,
+    backgroundColor: c.bg,
     borderTopWidth: 1,
-    borderTopColor: KINETIC.hairline,
+    borderTopColor: c.hairline,
   },
-});
+}));

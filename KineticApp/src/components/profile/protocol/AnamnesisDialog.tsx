@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { hasMedicalInfo } from '../../../constants/protocol';
-import { KINETIC } from '../../../theme/kinetic';
+
 import { Button, Dialog, Text, TextField } from '../../ui';
+import { useColors } from '../../../theme/ThemeContext';
 
 interface AnamnesisDialogProps {
   visible: boolean;
@@ -13,6 +14,7 @@ interface AnamnesisDialogProps {
 
 /** Lesões, dores e restrições que a IA deve considerar. Vazio = "Nenhuma". */
 export default function AnamnesisDialog({ visible, value, onSave, onClose }: AnamnesisDialogProps) {
+  const c = useColors();
   const [text, setText] = useState<string>(hasMedicalInfo(value) ? value : '');
 
   useEffect(() => {
@@ -28,7 +30,7 @@ export default function AnamnesisDialog({ visible, value, onSave, onClose }: Ana
   return (
     <Dialog visible={visible} onClose={onClose} title="Anamnese">
       <View style={styles.body}>
-        <Text variant="body" color={KINETIC.textDim}>
+        <Text variant="body" color={c.textDim}>
           Possui alguma lesão, dor articular ou restrição médica que a IA deva considerar?
         </Text>
         <TextField

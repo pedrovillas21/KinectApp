@@ -7,10 +7,11 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { KINETIC, RADIUS } from '../../theme/kinetic';
+import { RADIUS } from '../../theme/kinetic';
 import Icon from '../Icon';
 import Text from './Text';
 import useKeyboardOverlap from '../../hooks/useKeyboardOverlap';
+import { createStyles, useColors } from '../../theme/ThemeContext';
 
 export interface DialogProps {
   visible: boolean;
@@ -31,6 +32,8 @@ const GAP = 16;
  * o modal, então funciona com e sem adjustResize.
  */
 export default function Dialog({ visible, onClose, title, children, dismissable = true, scroll = true }: DialogProps) {
+  const styles = useStyles();
+  const c = useColors();
   const insets = useSafeAreaInsets();
   const { ref: rootRef, ...keyboard } = useKeyboardOverlap(visible);
   const [rootHeight, setRootHeight] = useState(0);
@@ -80,7 +83,7 @@ export default function Dialog({ visible, onClose, title, children, dismissable 
                   hitSlop={8}
                   style={styles.close}
                 >
-                  <Icon name="close" size={15} color={KINETIC.text} strokeWidth={2.2} />
+                  <Icon name="close" size={15} color={c.text} strokeWidth={2.2} />
                 </Pressable>
               ) : null}
             </View>
@@ -103,20 +106,16 @@ export default function Dialog({ visible, onClose, title, children, dismissable 
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((c, s) => ({
   root: { flex: 1, paddingHorizontal: GAP },
-  scrim: { flex: 1, backgroundColor: KINETIC.scrim },
+  scrim: { flex: 1, backgroundColor: c.scrim },
   card: {
     borderRadius: RADIUS.dialog,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     borderWidth: 1,
-    borderColor: KINETIC.ghost,
+    borderColor: c.ghost,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOpacity: 0.5,
-    shadowRadius: 30,
-    shadowOffset: { width: 0, height: 24 },
-    elevation: 24,
+    ...s.dialog,
   },
   header: {
     flexDirection: 'row',
@@ -131,9 +130,9 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.07)',
+    backgroundColor: c.hairline,
     alignItems: 'center',
     justifyContent: 'center',
   },
   body: { paddingHorizontal: 16, paddingBottom: 16 },
-});
+}));

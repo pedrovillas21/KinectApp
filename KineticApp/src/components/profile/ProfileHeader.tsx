@@ -1,7 +1,8 @@
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
-import { FONT, KINETIC } from '../../theme/kinetic';
+import { Pressable, View } from 'react-native';
+import { FONT } from '../../theme/kinetic';
 import { Avatar, Text } from '../ui';
+import { createStyles, useColors } from '../../theme/ThemeContext';
 
 export interface ProfileCounter {
   label: string;
@@ -21,6 +22,8 @@ interface ProfileHeaderProps {
 
 /** Avatar grande, nome e contadores (perfil próprio e de outros). */
 export default function ProfileHeader({ name, avatarUrl, seed, lines = [], counters, onAvatarPress }: ProfileHeaderProps) {
+  const styles = useStyles();
+  const c = useColors();
   return (
     <View>
       <View style={styles.identity}>
@@ -38,18 +41,18 @@ export default function ProfileHeader({ name, avatarUrl, seed, lines = [], count
             {name}
           </Text>
           {lines.map((line, i) => (
-            <Text key={i} variant="caption" color={i === 0 ? KINETIC.textDim : KINETIC.textSecondary} numberOfLines={1}>
+            <Text key={i} variant="caption" color={i === 0 ? c.textDim : c.textSecondary} numberOfLines={1}>
               {line}
             </Text>
           ))}
         </View>
       </View>
       <View style={styles.counters}>
-        {counters.map((c) => (
-          <View key={c.label} style={styles.counter} accessible accessibilityLabel={`${c.label}: ${c.value}`}>
-            <Text style={styles.counterValue}>{c.value}</Text>
-            <Text variant="caption" color={KINETIC.textSecondary}>
-              {c.label}
+        {counters.map((item) => (
+          <View key={item.label} style={styles.counter} accessible accessibilityLabel={`${item.label}: ${item.value}`}>
+            <Text style={styles.counterValue}>{item.value}</Text>
+            <Text variant="caption" color={c.textSecondary}>
+              {item.label}
             </Text>
           </View>
         ))}
@@ -58,7 +61,7 @@ export default function ProfileHeader({ name, avatarUrl, seed, lines = [], count
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((c) => ({
   identity: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingHorizontal: 20, paddingTop: 12 },
   texts: { flex: 1, minWidth: 0, gap: 3 },
   name: { fontFamily: FONT.semibold, fontSize: 20, lineHeight: 26, letterSpacing: -0.3 },
@@ -69,9 +72,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: KINETIC.hairline,
+    borderColor: c.hairline,
   },
   counter: { flex: 1, gap: 2 },
   pressed: { opacity: 0.85 },
   counterValue: { fontFamily: FONT.monoSemibold, fontSize: 17, lineHeight: 22 },
-});
+}));

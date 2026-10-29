@@ -1,8 +1,9 @@
 import React from 'react';
-import { RefreshControlProps, ScrollView, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { RefreshControlProps, ScrollView, StyleProp, View, ViewStyle } from 'react-native';
 import { Edge, SafeAreaView } from 'react-native-safe-area-context';
-import { KINETIC } from '../../theme/kinetic';
+
 import KeyboardAvoider from './KeyboardAvoider';
+import { createStyles, useColors } from '../../theme/ThemeContext';
 
 export interface ScreenProps {
   children: React.ReactNode;
@@ -31,6 +32,7 @@ export default function Screen({
   contentStyle,
   refreshControl,
 }: ScreenProps) {
+  const styles = useStyles();
   return (
     <SafeAreaView style={styles.root} edges={edges}>
       <KeyboardAvoider>
@@ -54,8 +56,8 @@ export default function Screen({
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: KINETIC.bg },
+const useStyles = createStyles((c) => ({
+  root: { flex: 1, backgroundColor: c.bg },
   flex: { flex: 1 },
   content: { paddingBottom: 24 },
-});
+}));

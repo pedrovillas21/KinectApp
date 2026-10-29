@@ -1,9 +1,10 @@
 import React from 'react';
-import { FlatList, ListRenderItem, Pressable, StyleSheet, View } from 'react-native';
-import { KINETIC } from '../theme/kinetic';
+import { FlatList, ListRenderItem, Pressable, View } from 'react-native';
+
 import type { SquadMember } from '../types';
 import Icon from './Icon';
 import { Avatar, Text } from './ui';
+import { createStyles, useColors } from '../theme/ThemeContext';
 
 interface Props {
   items: SquadMember[];
@@ -22,6 +23,8 @@ const BADGE = 24;
 
 /** Faixa de stories compacta: "Seu story" + amigos (ciano = story nova, verde = treinando agora). */
 export default function SquadBar({ items, me, storyUserIds, onAddStory, onOpenStory, onMemberPress }: Props) {
+  const styles = useStyles();
+  const c = useColors();
   const renderItem: ListRenderItem<SquadMember> = ({ item }) => {
     const hasStory = storyUserIds?.includes(item.id) ?? false;
     const training = item.status === 'TRAINING';
@@ -42,7 +45,7 @@ export default function SquadBar({ items, me, storyUserIds, onAddStory, onOpenSt
           size={SIZE}
           ring={hasStory ? 'unseen' : training ? 'live' : undefined}
         />
-        <Text variant="caption" color={KINETIC.textDim} numberOfLines={1} style={styles.name}>
+        <Text variant="caption" color={c.textDim} numberOfLines={1} style={styles.name}>
           {firstName}
         </Text>
       </Pressable>
@@ -69,10 +72,10 @@ export default function SquadBar({ items, me, storyUserIds, onAddStory, onOpenSt
             hitSlop={10}
             style={({ pressed }) => [styles.badge, pressed && styles.pressed]}
           >
-            <Icon name="plus" size={14} color={KINETIC.onPrimary} strokeWidth={2.6} />
+            <Icon name="plus" size={14} color={c.onPrimary} strokeWidth={2.6} />
           </Pressable>
         </View>
-        <Text variant="caption" color={KINETIC.textDim} numberOfLines={1} style={styles.name}>
+        <Text variant="caption" color={c.textDim} numberOfLines={1} style={styles.name}>
           Seu story
         </Text>
       </View>
@@ -94,8 +97,8 @@ export default function SquadBar({ items, me, storyUserIds, onAddStory, onOpenSt
   );
 }
 
-const styles = StyleSheet.create({
-  container: { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: KINETIC.hairline },
+const useStyles = createStyles((c) => ({
+  container: { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: c.hairline },
   list: { paddingHorizontal: 20, gap: 14 },
   item: { width: SIZE + 4, alignItems: 'center', gap: 6 },
   badge: {
@@ -106,11 +109,11 @@ const styles = StyleSheet.create({
     height: BADGE,
     borderRadius: BADGE / 2,
     borderWidth: 3,
-    borderColor: KINETIC.bg,
-    backgroundColor: KINETIC.primary,
+    borderColor: c.bg,
+    backgroundColor: c.primaryFill,
     alignItems: 'center',
     justifyContent: 'center',
   },
   pressed: { opacity: 0.85 },
   name: { maxWidth: SIZE + 4 },
-});
+}));

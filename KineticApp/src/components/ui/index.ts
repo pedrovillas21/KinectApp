@@ -5,6 +5,7 @@ export { default as Button } from './Button';
 export { ListGroup, ListRow } from './ListGroup';
 export { default as Dialog } from './Dialog';
 export { default as SegmentedControl } from './SegmentedControl';
+export { default as ChoiceGroup } from './ChoiceGroup';
 export { default as UnderlineTabs } from './UnderlineTabs';
 export { default as StatTile, StatRow } from './StatTile';
 export { default as SectionHeader } from './SectionHeader';

@@ -1,24 +1,22 @@
 import React, { useContext, useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-} from 'react-native';
+import { View, TouchableOpacity, ScrollView } from 'react-native';
 import { Text, TextInput } from '../../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../contexts/AuthContext';
 import { showAlert } from '../../components/ui/AlertHost';
 import KeyboardAvoider from '../../components/ui/KeyboardAvoider';
-import { KINETIC } from '../../theme/kinetic';
+
 import { BackArrowIcon, LockIcon, EyeIcon, CheckIcon } from '../../components/auth/AuthIcons';
 import RequirementItem from '../../components/auth/RequirementItem';
 import { PASSWORD_REGEX, passwordChecks } from '../../constants/password';
 import type { AuthScreenProps } from '../../navigation/types';
+import { createStyles, useColors } from '../../theme/ThemeContext';
 
 type Props = AuthScreenProps<'ResetPassword'>;
 
 export default function ResetPasswordScreen({ navigation, route }: Props) {
+  const styles = useStyles();
+  const c = useColors();
   const { resetPassword } = useContext(AuthContext);
 
   const email = route?.params?.email ?? '';
@@ -108,7 +106,7 @@ export default function ResetPasswordScreen({ navigation, route }: Props) {
               <TextInput
                 style={styles.textInput}
                 placeholder="8 a 20 caracteres"
-                placeholderTextColor={KINETIC.placeholder}
+                placeholderTextColor={c.placeholder}
                 value={newPassword}
                 onChangeText={setNewPassword}
                 secureTextEntry={!showPassword}
@@ -129,7 +127,7 @@ export default function ResetPasswordScreen({ navigation, route }: Props) {
               <TextInput
                 style={styles.textInput}
                 placeholder="Repita a nova senha"
-                placeholderTextColor={KINETIC.placeholder}
+                placeholderTextColor={c.placeholder}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry={!showPassword}
@@ -188,8 +186,8 @@ export default function ResetPasswordScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: KINETIC.bg },
+const useStyles = createStyles((c, s) => ({
+  container: { flex: 1, backgroundColor: c.bg },
   safe: { flex: 1 },
   kav: { flex: 1 },
   header: {
@@ -200,17 +198,17 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     gap: 12,
   },
-  backBtn: {
+  backBtn: { 
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerText: {
     fontSize: 13,
-    color: KINETIC.textDim,
+    color: c.textDim,
     fontWeight: '500',
   },
   content: {
@@ -220,48 +218,48 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 36,
     fontWeight: '800',
-    color: KINETIC.text,
+    color: c.text,
     letterSpacing: -1,
     lineHeight: 44,
     marginTop: 12,
     marginBottom: 12,
   },
   titleAccent: {
-    color: KINETIC.primary,
+    color: c.primary,
   },
   subtitle: {
     fontSize: 14,
     lineHeight: 21,
-    color: KINETIC.textDim,
+    color: c.textDim,
     marginBottom: 32,
   },
   subtitleEmail: {
-    color: KINETIC.text,
+    color: c.text,
     fontWeight: '600',
   },
   fieldLabel: {
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.6,
-    color: KINETIC.textMuted,
+    color: c.textMuted,
     marginBottom: 8,
     textTransform: 'uppercase',
   },
-  inputWrap: {
+  inputWrap: { 
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: KINETIC.ghostHi,
+    borderColor: c.ghostHi,
     paddingHorizontal: 14,
     height: 52,
   },
   textInput: {
     flex: 1,
     fontSize: 15,
-    color: KINETIC.text,
+    color: c.text,
     padding: 0,
   },
   eyeBtn: {
@@ -274,36 +272,37 @@ const styles = StyleSheet.create({
     marginTop: 14,
     marginBottom: 20,
   },
-  checkbox: {
+  checkbox: { 
     width: 20,
     height: 20,
     borderRadius: 6,
     borderWidth: 1.5,
-    borderColor: KINETIC.ghostHi,
-    backgroundColor: KINETIC.surface1,
+    borderColor: c.ghostHi,
+    backgroundColor: c.surface1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkboxChecked: {
-    backgroundColor: KINETIC.primary,
-    borderColor: KINETIC.primary,
+    backgroundColor: c.primaryFill,
+    borderColor: c.primary,
   },
   checkLabel: {
     fontSize: 13,
-    color: KINETIC.textDim,
+    color: c.textDim,
   },
   requirementsBox: {
-    backgroundColor: KINETIC.surface1,
+    ...s.card,
+    backgroundColor: c.surface1,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: KINETIC.ghostHi,
+    borderColor: c.ghostHi,
     padding: 16,
   },
   requirementsTitle: {
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.6,
-    color: KINETIC.textMuted,
+    color: c.textMuted,
     marginBottom: 14,
   },
   requirementsGrid: {
@@ -316,26 +315,27 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   resetBtn: {
+    ...s.card,
     paddingVertical: 16,
     borderRadius: 16,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     borderWidth: 1,
-    borderColor: KINETIC.ghostHi,
+    borderColor: c.ghostHi,
     alignItems: 'center',
     justifyContent: 'center',
     opacity: 0.5,
   },
   resetBtnActive: {
     opacity: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: c.borderStrong,
   },
   resetBtnText: {
     fontSize: 16,
     fontWeight: '700',
-    color: KINETIC.textDim,
+    color: c.textDim,
   },
   resetBtnTextActive: {
-    color: KINETIC.text,
+    color: c.text,
   },
   loginRow: {
     alignItems: 'center',
@@ -343,10 +343,10 @@ const styles = StyleSheet.create({
   },
   loginText: {
     fontSize: 13,
-    color: KINETIC.textDim,
+    color: c.textDim,
   },
   loginLink: {
-    color: KINETIC.primary,
+    color: c.primary,
     fontWeight: '600',
   },
-});
+}));

@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { ageFromBirthDate } from '../../../constants/protocol';
 import { Button, Dialog, Text, TextField } from '../../ui';
-import { KINETIC } from '../../../theme/kinetic';
+
 import type { ProtocolForm } from './types';
+import { useColors } from '../../../theme/ThemeContext';
 
 interface MetricsDialogProps {
   visible: boolean;
@@ -20,6 +21,7 @@ function isoToDisplay(iso: string): string {
 
 /** Data de nascimento, peso e altura. */
 export default function MetricsDialog({ visible, form, onSave, onClose }: MetricsDialogProps) {
+  const c = useColors();
   const [weight, setWeight] = useState<string>(form.weight ? String(form.weight) : '');
   const [height, setHeight] = useState<string>(form.height ? String(form.height) : '');
   const [birthDisplay, setBirthDisplay] = useState<string>(isoToDisplay(form.birthDate));
@@ -109,7 +111,7 @@ export default function MetricsDialog({ visible, form, onSave, onClose }: Metric
           />
         </View>
         {error ? (
-          <Text variant="caption" color={KINETIC.danger} accessibilityLiveRegion="polite">
+          <Text variant="caption" color={c.danger} accessibilityLiveRegion="polite">
             {error}
           </Text>
         ) : null}

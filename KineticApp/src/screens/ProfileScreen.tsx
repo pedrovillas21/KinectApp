@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useState } from 'react';
-import { Pressable, RefreshControl, Share, StyleSheet, View } from 'react-native';
+import { Pressable, RefreshControl, Share, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 
 import NewPostModal from '../components/NewPostModal';
@@ -18,20 +18,25 @@ import api from '../services/api';
 import { getPublicProfile, getUserWorkouts } from '../services/profileService';
 import { getUserPosts } from '../services/socialService';
 import { getMyTrainer } from '../services/trainerService';
-import { KINETIC, RADIUS } from '../theme/kinetic';
+import { RADIUS } from '../theme/kinetic';
 import { formatMonthYear } from '../utils/formatters';
 import type { MainTabScreenProps } from '../navigation/types';
 import type { FeedPostData, PublicProfile, TrainerPeer, UserProfileResponse, WorkoutSummary } from '../types';
+import { createStyles, useColors } from '../theme/ThemeContext';
 
 function HeaderButton({ icon, label, onPress }: { icon: IconName; label: string; onPress: () => void }) {
+  const styles = useStyles();
+  const c = useColors();
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={styles.headerBtn}>
-      <Icon name={icon} size={18} color={KINETIC.text} />
+      <Icon name={icon} size={18} color={c.text} />
     </Pressable>
   );
 }
 
 function Tile({ icon, label, sub, onPress }: { icon: IconName; label: string; sub: string; onPress: () => void }) {
+  const styles = useStyles();
+  const c = useColors();
   return (
     <Pressable
       accessibilityRole="button"
@@ -39,10 +44,10 @@ function Tile({ icon, label, sub, onPress }: { icon: IconName; label: string; su
       onPress={onPress}
       style={({ pressed }) => [styles.tile, pressed && styles.pressed]}
     >
-      <Icon name={icon} size={20} color={KINETIC.primary} strokeWidth={1.7} />
+      <Icon name={icon} size={20} color={c.primary} strokeWidth={1.7} />
       <View style={styles.tileTexts}>
         <Text variant="bodyStrong">{label}</Text>
-        <Text variant="caption" color={KINETIC.textSecondary} numberOfLines={1}>
+        <Text variant="caption" color={c.textSecondary} numberOfLines={1}>
           {sub}
         </Text>
       </View>
@@ -61,6 +66,8 @@ function CardRow({
   subtitle: string;
   onPress: () => void;
 }) {
+  const styles = useStyles();
+  const c = useColors();
   return (
     <Pressable
       accessibilityRole="button"
@@ -71,17 +78,19 @@ function CardRow({
       {leading}
       <View style={styles.cardTexts}>
         <Text variant="bodyStrong">{title}</Text>
-        <Text variant="caption" color={KINETIC.textSecondary} numberOfLines={1}>
+        <Text variant="caption" color={c.textSecondary} numberOfLines={1}>
           {subtitle}
         </Text>
       </View>
-      <Icon name="chevron-right" size={16} color={KINETIC.textMuted} />
+      <Icon name="chevron-right" size={16} color={c.textMuted} />
     </Pressable>
   );
 }
 
 /** Aba "Você": perfil próprio, atalhos, personal, protocolo e atividade. */
 export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profile'>) {
+  const styles = useStyles();
+  const c = useColors();
   const { currentUser } = useContext(AuthContext);
   const myId = currentUser ? String(currentUser.id) : '';
 
@@ -155,7 +164,7 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
 
   return (
     <Screen
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={KINETIC.primary} />}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={c.primary} />}
       header={
         <View style={styles.header}>
           <Text variant="display" accessibilityRole="header" style={styles.flex}>
@@ -212,7 +221,7 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
           <CardRow
             leading={
               <View style={styles.cardIcon}>
-                <Icon name="user-plus" size={18} color={KINETIC.primary} />
+                <Icon name="user-plus" size={18} color={c.primary} />
               </View>
             }
             title="Adicionar personal"
@@ -224,7 +233,7 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
         <CardRow
           leading={
             <View style={styles.cardIcon}>
-              <Icon name="target" size={18} color={KINETIC.primary} />
+              <Icon name="target" size={18} color={c.primary} />
             </View>
           }
           title="Meu protocolo"
@@ -259,7 +268,7 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
         {profile && profile.records.length > 0 ? (
           <RecordsList records={profile.records} bare />
         ) : (
-          <Text variant="body" color={KINETIC.textSecondary}>
+          <Text variant="body" color={c.textSecondary}>
             Seus recordes aparecem aqui depois dos primeiros treinos registrados.
           </Text>
         )}
@@ -287,42 +296,43 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((c, s) => ({
   flex: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: 20, paddingRight: 16, paddingTop: 16, paddingBottom: 6 },
-  headerBtn: {
+  headerBtn: { 
     width: 40,
     height: 40,
     borderRadius: RADIUS.lg,
     borderWidth: 1,
-    borderColor: KINETIC.ghost,
-    backgroundColor: KINETIC.surface1,
+    borderColor: c.ghost,
+    backgroundColor: c.surface1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   buttons: { flexDirection: 'row', gap: 8, paddingHorizontal: 20, paddingTop: 14 },
   tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 20, marginHorizontal: 16 },
   tile: {
+    ...s.card,
     width: '48.5%',
     flexGrow: 1,
     padding: 14,
     borderRadius: 14,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     gap: 10,
   },
   tileTexts: { gap: 2 },
   pressed: { opacity: 0.85 },
-  card: { marginTop: 8, marginHorizontal: 16, borderRadius: 14, backgroundColor: KINETIC.surface1, overflow: 'hidden' },
+  card: { ...s.card, marginTop: 8, marginHorizontal: 16, borderRadius: 14, backgroundColor: c.surface1, overflow: 'hidden' },
   cardRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12, minHeight: 60 },
   cardTexts: { flex: 1, minWidth: 0, gap: 2 },
   cardIcon: {
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: KINETIC.primaryDim,
+    backgroundColor: c.primaryDim,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cardDivider: { height: 1, backgroundColor: 'rgba(255,255,255,0.06)', marginLeft: 62 },
+  cardDivider: { height: 1, backgroundColor: c.divider, marginLeft: 62 },
   activity: { marginTop: 22 },
-});
+}));

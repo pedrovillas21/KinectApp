@@ -1,16 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, RefreshControl, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, View } from 'react-native';
 
 import { Avatar, BarChart12w, Button, Screen, SectionHeader, StackHeader, Text } from '../components/ui';
 import { getCompareProgress, httpStatus } from '../services/profileService';
-import { FONT, KINETIC, RADIUS } from '../theme/kinetic';
+import { FONT, RADIUS } from '../theme/kinetic';
 import { formatBestSet, formatMinutes, formatThousands, monthLabels } from '../utils/formatters';
 import type { MainStackScreenProps } from '../navigation/types';
 import type { BestSet, CompareProgress } from '../types';
-
-/** Cores dos dois lados: ciano (você) × âmbar (amigo) — diferem também em luminosidade. */
-const ME_COLOR = KINETIC.primary;
-const FRIEND_COLOR = KINETIC.record;
+import { createStyles, useColors } from '../theme/ThemeContext';
 
 type LoadError = 'forbidden' | 'self' | 'failed';
 
@@ -24,10 +21,12 @@ const ERROR_TEXT: Record<LoadError, string> = {
 const setScore = (s: BestSet) => (s.weightKg > 0 ? s.weightKg * 1000 + s.reps : s.reps);
 
 function Legend({ color, label }: { color: string; label: string }) {
+  const styles = useStyles();
+  const c = useColors();
   return (
     <View style={styles.legendItem}>
       <View style={[styles.legendDot, { backgroundColor: color }]} />
-      <Text variant="caption" color={KINETIC.textDim} numberOfLines={1}>
+      <Text variant="caption" color={c.textDim} numberOfLines={1}>
         {label}
       </Text>
     </View>
@@ -35,18 +34,21 @@ function Legend({ color, label }: { color: string; label: string }) {
 }
 
 /** Linha "métrica | você | amigo" com o maior valor em destaque. */
+// Cores dos dois lados: ciano (você, c.primary) × âmbar (amigo, c.record) — diferem também em luminosidade.
 function MetricRow({ label, me, friend, format }: { label: string; me: number; friend: number; format: (n: number) => string }) {
+  const styles = useStyles();
+  const c = useColors();
   const meWins = me > friend;
   const friendWins = friend > me;
   return (
     <View style={styles.metricRow} accessible accessibilityLabel={`${label}: você ${format(me)}, amigo ${format(friend)}`}>
-      <Text variant="body" color={KINETIC.textDim} style={styles.metricLabel}>
+      <Text variant="body" color={c.textDim} style={styles.metricLabel}>
         {label}
       </Text>
-      <Text style={[styles.metricValue, meWins && styles.metricWin]} color={meWins ? ME_COLOR : KINETIC.text}>
+      <Text style={[styles.metricValue, meWins && styles.metricWin]} color={meWins ? c.primary : c.text}>
         {format(me)}
       </Text>
-      <Text style={[styles.metricValue, friendWins && styles.metricWin]} color={friendWins ? FRIEND_COLOR : KINETIC.text}>
+      <Text style={[styles.metricValue, friendWins && styles.metricWin]} color={friendWins ? c.record : c.text}>
         {format(friend)}
       </Text>
     </View>
@@ -54,6 +56,8 @@ function MetricRow({ label, me, friend, format }: { label: string; me: number; f
 }
 
 export default function CompareProgressScreen({ navigation, route }: MainStackScreenProps<'CompareProgress'>) {
+  const styles = useStyles();
+  const c = useColors();
   const { friendId } = route.params;
   const [data, setData] = useState<CompareProgress | null>(null);
   const [error, setError] = useState<LoadError | null>(null);
@@ -80,13 +84,13 @@ export default function CompareProgressScreen({ navigation, route }: MainStackSc
       <Screen scroll={false} edges={['top', 'bottom', 'left', 'right']} header={header} contentStyle={styles.center}>
         {error ? (
           <View style={styles.message}>
-            <Text variant="body" color={KINETIC.textDim} style={styles.centerText}>
+            <Text variant="body" color={c.textDim} style={styles.centerText}>
               {ERROR_TEXT[error]}
             </Text>
             {error === 'failed' ? <Button label="Tentar de novo" size="md" block={false} onPress={load} /> : null}
           </View>
         ) : (
-          <ActivityIndicator color={KINETIC.primary} />
+          <ActivityIndicator color={c.primary} />
         )}
       </Screen>
     );
@@ -109,60 +113,60 @@ export default function CompareProgressScreen({ navigation, route }: MainStackSc
             await load();
             setRefreshing(false);
           }}
-          tintColor={KINETIC.primary}
+          tintColor={c.primary}
         />
       }
     >
       <View style={styles.versus}>
         <View style={styles.side}>
           <Avatar name={me.name} uri={me.avatarUrl} seed={me.id} size={56} />
-          <Text variant="bodyStrong" color={ME_COLOR}>
+          <Text variant="bodyStrong" color={c.primary}>
             Você
           </Text>
         </View>
-        <Text variant="caption" color={KINETIC.textMuted}>
+        <Text variant="caption" color={c.textMuted}>
           vs
         </Text>
         <View style={styles.side}>
           <Avatar name={friend.name} uri={friend.avatarUrl} seed={friend.id} size={56} />
-          <Text variant="bodyStrong" color={FRIEND_COLOR} numberOfLines={1}>
+          <Text variant="bodyStrong" color={c.record} numberOfLines={1}>
             {friendFirst}
           </Text>
         </View>
       </View>
 
       <View style={styles.card}>
-        <Text variant="captionStrong" color={KINETIC.textSecondary}>
+        <Text variant="captionStrong" color={c.textSecondary}>
           Tempo de treino por semana
         </Text>
         <View style={styles.totals}>
           <View style={styles.flex}>
-            <Text variant="stat" color={ME_COLOR}>
+            <Text variant="stat" color={c.primary}>
               {formatMinutes(sum(me.weeklyMinutes))}
             </Text>
-            <Text variant="caption" color={KINETIC.textSecondary}>
+            <Text variant="caption" color={c.textSecondary}>
               você em 12 semanas
             </Text>
           </View>
           <View style={styles.flex}>
-            <Text variant="stat" color={FRIEND_COLOR}>
+            <Text variant="stat" color={c.record}>
               {formatMinutes(sum(friend.weeklyMinutes))}
             </Text>
-            <Text variant="caption" color={KINETIC.textSecondary} numberOfLines={1}>
+            <Text variant="caption" color={c.textSecondary} numberOfLines={1}>
               {friendFirst} em 12 semanas
             </Text>
           </View>
         </View>
         {sum(me.weeklyMinutes) + sum(friend.weeklyMinutes) === 0 ? (
-          <Text variant="body" color={KINETIC.textSecondary} style={styles.chart}>
+          <Text variant="body" color={c.textSecondary} style={styles.chart}>
             Nenhum de vocês treinou nas últimas 12 semanas.
           </Text>
         ) : (
           <View style={styles.chart}>
             <BarChart12w
               series={[
-                { values: me.weeklyMinutes, color: ME_COLOR },
-                { values: friend.weeklyMinutes, color: FRIEND_COLOR },
+                { values: me.weeklyMinutes, color: c.primary },
+                { values: friend.weeklyMinutes, color: c.record },
               ]}
               labels={monthLabels(data.weekStarts)}
               accessibilityLabel={`Minutos por semana nas últimas 12 semanas: você ${formatMinutes(
@@ -172,18 +176,18 @@ export default function CompareProgressScreen({ navigation, route }: MainStackSc
           </View>
         )}
         <View style={styles.legend}>
-          <Legend color={ME_COLOR} label="Você" />
-          <Legend color={FRIEND_COLOR} label={friendFirst} />
+          <Legend color={c.primary} label="Você" />
+          <Legend color={c.record} label={friendFirst} />
         </View>
       </View>
 
       <View style={styles.card}>
         <View style={styles.metricRow}>
           <View style={styles.metricLabel} />
-          <Text variant="captionStrong" color={ME_COLOR} style={styles.metricHead}>
+          <Text variant="captionStrong" color={c.primary} style={styles.metricHead}>
             Você
           </Text>
-          <Text variant="captionStrong" color={FRIEND_COLOR} style={styles.metricHead} numberOfLines={1}>
+          <Text variant="captionStrong" color={c.record} style={styles.metricHead} numberOfLines={1}>
             {friendFirst}
           </Text>
         </View>
@@ -209,7 +213,7 @@ export default function CompareProgressScreen({ navigation, route }: MainStackSc
           caption={data.sharedPrs.length > 0 ? 'Exercícios que vocês dois já fizeram' : undefined}
         />
         {data.sharedPrs.length === 0 ? (
-          <Text variant="body" color={KINETIC.textSecondary} style={styles.prEmpty}>
+          <Text variant="body" color={c.textSecondary} style={styles.prEmpty}>
             Vocês ainda não têm exercícios em comum.
           </Text>
         ) : (
@@ -227,10 +231,10 @@ export default function CompareProgressScreen({ navigation, route }: MainStackSc
                   <Text variant="body" numberOfLines={2} style={styles.flex}>
                     {pr.exercise}
                   </Text>
-                  <Text variant="mono" color={a > b ? ME_COLOR : KINETIC.textDim} style={styles.prValue}>
+                  <Text variant="mono" color={a > b ? c.primary : c.textDim} style={styles.prValue}>
                     {formatBestSet(pr.me)}
                   </Text>
-                  <Text variant="mono" color={b > a ? FRIEND_COLOR : KINETIC.textDim} style={styles.prValue}>
+                  <Text variant="mono" color={b > a ? c.record : c.textDim} style={styles.prValue}>
                     {formatBestSet(pr.friend)}
                   </Text>
                 </View>
@@ -243,14 +247,14 @@ export default function CompareProgressScreen({ navigation, route }: MainStackSc
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((c, s) => ({
   center: { alignItems: 'center', justifyContent: 'center' },
   message: { alignItems: 'center', gap: 12, paddingHorizontal: 32 },
   centerText: { textAlign: 'center' },
   flex: { flex: 1 },
   versus: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 24, paddingVertical: 16 },
   side: { alignItems: 'center', gap: 6, width: 110 },
-  card: { marginHorizontal: 16, marginTop: 12, padding: 16, borderRadius: RADIUS.xl, backgroundColor: KINETIC.surface1 },
+  card: { ...s.card, marginHorizontal: 16, marginTop: 12, padding: 16, borderRadius: RADIUS.xl, backgroundColor: c.surface1 },
   totals: { flexDirection: 'row', gap: 12, marginTop: 10 },
   chart: { marginTop: 16 },
   legend: { flexDirection: 'row', gap: 16, marginTop: 10 },
@@ -276,7 +280,7 @@ const styles = StyleSheet.create({
     minHeight: 46,
     paddingVertical: 6,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.06)',
+    borderBottomColor: c.divider,
   },
   prValue: { width: 82, textAlign: 'right' },
-});
+}));

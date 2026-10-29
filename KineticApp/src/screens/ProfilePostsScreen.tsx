@@ -5,9 +5,10 @@ import CommentsSheet from '../components/CommentsSheet';
 import { Screen, StackHeader } from '../components/ui';
 import usePaged from '../hooks/usePaged';
 import { getUserPosts, likePost, unlikePost } from '../services/socialService';
-import { KINETIC } from '../theme/kinetic';
+
 import type { MainStackScreenProps } from '../navigation/types';
 import type { FeedPostData } from '../types';
+import { useColors } from '../theme/ThemeContext';
 
 /**
  * Publicações de um perfil em lista, estilo Instagram: abre no post tocado na grade e
@@ -15,6 +16,7 @@ import type { FeedPostData } from '../types';
  * pilha, então a seta, o voltar do Android e o deslize lateral do iOS saem dela.
  */
 export default function ProfilePostsScreen({ navigation, route }: MainStackScreenProps<'ProfilePosts'>) {
+  const c = useColors();
   const { userId, startId, items, page, last } = route.params;
   const posts = usePaged<FeedPostData>(
     useCallback((p) => getUserPosts(userId, p, 12), [userId]),
@@ -58,7 +60,7 @@ export default function ProfilePostsScreen({ navigation, route }: MainStackScree
         }}
         onEndReachedThreshold={0.6}
         ListFooterComponent={
-          posts.loading ? <ActivityIndicator color={KINETIC.primary} style={styles.loader} /> : <View style={styles.end} />
+          posts.loading ? <ActivityIndicator color={c.primary} style={styles.loader} /> : <View style={styles.end} />
         }
         showsVerticalScrollIndicator={false}
       />

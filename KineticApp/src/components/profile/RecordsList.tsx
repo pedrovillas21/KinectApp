@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { KINETIC } from '../../theme/kinetic';
+import { View } from 'react-native';
+
 import type { PersonalRecord } from '../../types';
 import { formatBestSet, formatShortDate } from '../../utils/formatters';
 import { SectionHeader, Text } from '../ui';
+import { createStyles, useColors } from '../../theme/ThemeContext';
 
 const COLLAPSED = 3;
 
@@ -16,6 +17,8 @@ export default function RecordsList({
   /** Lista completa, sem título nem margem (dentro de um balão). */
   bare?: boolean;
 }) {
+  const styles = useStyles();
+  const c = useColors();
   const [expanded, setExpanded] = useState(false);
   if (records.length === 0) return null;
   const shown = expanded || bare ? records : records.slice(0, COLLAPSED);
@@ -27,7 +30,7 @@ export default function RecordsList({
           <Text variant="body" numberOfLines={1} style={styles.name}>
             {r.exercise}
           </Text>
-          <Text variant="caption" color={KINETIC.textSecondary}>
+          <Text variant="caption" color={c.textSecondary}>
             {formatShortDate(r.date)}
           </Text>
           <Text variant="statSmall" style={styles.value}>
@@ -51,7 +54,7 @@ export default function RecordsList({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((c) => ({
   list: { marginTop: 8, paddingHorizontal: 20 },
   row: {
     flexDirection: 'row',
@@ -59,8 +62,8 @@ const styles = StyleSheet.create({
     gap: 12,
     minHeight: 46,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.06)',
+    borderBottomColor: c.divider,
   },
   name: { flex: 1 },
   value: { fontSize: 14 },
-});
+}));

@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import SquadBar from '../components/SquadBar';
@@ -26,9 +26,10 @@ import {
   likePost,
   unlikePost,
 } from '../services/socialService';
-import { KINETIC, RADIUS } from '../theme/kinetic';
+import { RADIUS } from '../theme/kinetic';
 import type { MainTabScreenProps } from '../navigation/types';
 import type { FeedPostData, HomeDashboardResponseDTO, RankingEntryDTO, StoryGroup } from '../types';
+import { createStyles, useColors } from '../theme/ThemeContext';
 
 type SocialTab = 'following' | 'arena' | 'mine';
 
@@ -41,15 +42,19 @@ const TABS: { key: SocialTab; label: string }[] = [
 const fetchFeedPage = (page: number) => getFeed(page, 10);
 
 function HeaderButton({ icon, label, onPress, badge }: { icon: IconName; label: string; onPress: () => void; badge?: boolean }) {
+  const styles = useStyles();
+  const c = useColors();
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={styles.headerBtn}>
-      <Icon name={icon} size={18} color={KINETIC.text} />
+      <Icon name={icon} size={18} color={c.text} />
       {badge ? <View style={styles.badge} /> : null}
     </Pressable>
   );
 }
 
 export default function SocialScreen({ navigation, route }: MainTabScreenProps<'Social'>) {
+  const styles = useStyles();
+  const c = useColors();
   const { currentUser } = useContext(AuthContext);
   const myId = currentUser ? String(currentUser.id) : null;
   // Mesma chave do Perfil e de Configurações: a foto vem do cache compartilhado.
@@ -163,7 +168,7 @@ export default function SocialScreen({ navigation, route }: MainTabScreenProps<'
   };
 
   const refreshControl = (
-    <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={KINETIC.primary} />
+    <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={c.primary} />
   );
 
   const renderPost = ({ item }: { item: FeedPostData }) => (
@@ -202,7 +207,7 @@ export default function SocialScreen({ navigation, route }: MainTabScreenProps<'
               !feed.loading ? (
                 <View style={styles.empty}>
                   <Text variant="bodyStrong">Sem posts ainda</Text>
-                  <Text variant="body" color={KINETIC.textSecondary} style={styles.center}>
+                  <Text variant="body" color={c.textSecondary} style={styles.center}>
                     Adicione amigos e veja os treinos deles aqui.
                   </Text>
                 </View>
@@ -210,7 +215,7 @@ export default function SocialScreen({ navigation, route }: MainTabScreenProps<'
             }
             ListFooterComponent={
               feed.loading && feed.items.length > 0 ? (
-                <ActivityIndicator color={KINETIC.primary} style={styles.loader} />
+                <ActivityIndicator color={c.primary} style={styles.loader} />
               ) : undefined
             }
           />
@@ -219,7 +224,7 @@ export default function SocialScreen({ navigation, route }: MainTabScreenProps<'
         return (
           <ScrollView contentContainerStyle={styles.listContent} refreshControl={refreshControl}>
             {ranking === null ? (
-              <ActivityIndicator color={KINETIC.primary} style={styles.loader} />
+              <ActivityIndicator color={c.primary} style={styles.loader} />
             ) : (
               <ArenaRanking entries={ranking} onPressUser={openProfile} />
             )}
@@ -236,11 +241,11 @@ export default function SocialScreen({ navigation, route }: MainTabScreenProps<'
             refreshControl={refreshControl}
             ListEmptyComponent={
               myPosts === null ? (
-                <ActivityIndicator color={KINETIC.primary} style={styles.loader} />
+                <ActivityIndicator color={c.primary} style={styles.loader} />
               ) : (
                 <View style={styles.empty}>
                   <Text variant="bodyStrong">Você ainda não publicou</Text>
-                  <Text variant="body" color={KINETIC.textSecondary} style={styles.center}>
+                  <Text variant="body" color={c.textSecondary} style={styles.center}>
                     Compartilhe um treino com seus amigos.
                   </Text>
                 </View>
@@ -283,7 +288,7 @@ export default function SocialScreen({ navigation, route }: MainTabScreenProps<'
           onPress={() => setShowNewPost(true)}
           style={({ pressed }) => [styles.publish, pressed && styles.pressed]}
         >
-          <Icon name="plus" size={24} color={KINETIC.onPrimary} strokeWidth={2.4} />
+          <Icon name="plus" size={24} color={c.onPrimary} strokeWidth={2.4} />
         </Pressable>
       ) : null}
 
@@ -315,8 +320,8 @@ export default function SocialScreen({ navigation, route }: MainTabScreenProps<'
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: KINETIC.bg },
+const useStyles = createStyles((c) => ({
+  container: { flex: 1, backgroundColor: c.bg },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -331,8 +336,8 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: RADIUS.lg,
     borderWidth: 1,
-    borderColor: KINETIC.ghost,
-    backgroundColor: KINETIC.surface1,
+    borderColor: c.ghost,
+    backgroundColor: c.surface1,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -343,7 +348,7 @@ const styles = StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: 4,
-    backgroundColor: KINETIC.primary,
+    backgroundColor: c.primaryFill,
   },
   listContent: { paddingBottom: 88 },
   empty: { alignItems: 'center', paddingTop: 48, paddingHorizontal: 32, gap: 6 },
@@ -356,7 +361,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: KINETIC.primary,
+    backgroundColor: c.primaryFill,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 6,
@@ -366,4 +371,4 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
   },
   pressed: { opacity: 0.85 },
-});
+}));

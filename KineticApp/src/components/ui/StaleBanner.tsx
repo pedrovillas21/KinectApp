@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { KINETIC, RADIUS } from '../../theme/kinetic';
+import { View } from 'react-native';
+import { RADIUS } from '../../theme/kinetic';
 import Button from './Button';
 import Text from './Text';
+import { createStyles, useColors } from '../../theme/ThemeContext';
 
 interface StaleBannerProps {
   /** Mostra o aviso só quando true. */
@@ -14,6 +15,8 @@ interface StaleBannerProps {
 
 /** Aviso de que a última atualização falhou, com "Tentar de novo". */
 export default function StaleBanner({ visible, onRetry, hasData = true }: StaleBannerProps) {
+  const styles = useStyles();
+  const c = useColors();
   const [retrying, setRetrying] = useState(false);
   if (!visible) return null;
 
@@ -28,7 +31,7 @@ export default function StaleBanner({ visible, onRetry, hasData = true }: StaleB
 
   return (
     <View style={styles.banner} accessibilityLiveRegion="polite">
-      <Text variant="caption" color={KINETIC.warn} style={styles.text}>
+      <Text variant="caption" color={c.warn} style={styles.text}>
         {hasData ? 'Não foi possível atualizar. Mostrando os últimos dados salvos.' : 'Não foi possível carregar.'}
       </Text>
       <Button label="Tentar de novo" variant="ghost" size="sm" loading={retrying} onPress={retry} />
@@ -36,7 +39,7 @@ export default function StaleBanner({ visible, onRetry, hasData = true }: StaleB
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((c) => ({
   banner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -44,7 +47,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 12,
     borderRadius: RADIUS.lg,
-    backgroundColor: 'rgba(245,185,69,0.10)',
+    backgroundColor: c.warnDim,
   },
   text: { flex: 1 },
-});
+}));

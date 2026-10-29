@@ -1,23 +1,21 @@
 import React, { useContext, useState } from 'react';
-import {
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { ScrollView, TouchableOpacity } from 'react-native';
 import { Text } from '../../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../contexts/AuthContext';
-import { KINETIC } from '../../theme/kinetic';
+
 import { Button, StackHeader, TextField } from '../../components/ui';
 import { showAlert } from '../../components/ui/AlertHost';
 import KeyboardAvoider from '../../components/ui/KeyboardAvoider';
 import type { AuthScreenProps } from '../../navigation/types';
+import { createStyles, useColors } from '../../theme/ThemeContext';
 
 type Props = AuthScreenProps<'ConfirmEmail'>;
 
 // Aberta depois do cadastro e quando o login recusa uma conta não confirmada.
 // Nos dois casos o backend já enviou o código.
 export default function ConfirmEmailScreen({ navigation, route }: Props) {
+  const styles = useStyles();
   const { confirmEmail, resendConfirmation } = useContext(AuthContext);
 
   const email = route?.params?.email ?? '';
@@ -106,22 +104,22 @@ export default function ConfirmEmailScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: KINETIC.bg },
+const useStyles = createStyles((c) => ({
+  container: { flex: 1, backgroundColor: c.bg },
   inner: { flex: 1, paddingHorizontal: 24 },
   content: { flexGrow: 1, justifyContent: 'center', paddingBottom: 40 },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: KINETIC.text,
+    color: c.text,
   },
   subtitle: {
     fontSize: 16,
     marginBottom: 40,
-    color: KINETIC.textSecondary,
+    color: c.textSecondary,
   },
   field: { marginBottom: 20 },
   resendButton: { alignItems: 'center', marginTop: 24 },
-  resendText: { fontSize: 14, fontWeight: 'bold', color: KINETIC.textSecondary },
-});
+  resendText: { fontSize: 14, fontWeight: 'bold', color: c.textSecondary },
+}));

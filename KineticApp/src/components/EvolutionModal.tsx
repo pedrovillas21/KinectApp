@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button, Dialog, Text, TextField } from './ui';
-import { KINETIC } from '../theme/kinetic';
+
 import api from '../services/api';
+import { useColors } from '../theme/ThemeContext';
 
 interface EvolutionModalProps {
   visible: boolean;
@@ -14,6 +15,7 @@ interface EvolutionModalProps {
 
 /** Check-in mensal de peso. Depois de salvar, oferece revisar o protocolo. */
 export default function EvolutionModal({ visible, onClose, onSuccess, onReviewProtocol }: EvolutionModalProps) {
+  const c = useColors();
   const [weight, setWeight] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -49,7 +51,7 @@ export default function EvolutionModal({ visible, onClose, onSuccess, onReviewPr
     return (
       <Dialog visible={visible} onClose={onSuccess} title="Peso registrado">
         <View style={styles.body}>
-          <Text variant="body" color={KINETIC.textDim}>
+          <Text variant="body" color={c.textDim}>
             Quer revisar seu protocolo? Com o peso novo, você pode gerar uma ficha ajustada.
           </Text>
           <View style={styles.row}>
@@ -73,7 +75,7 @@ export default function EvolutionModal({ visible, onClose, onSuccess, onReviewPr
   return (
     <Dialog visible={visible} onClose={onClose} title="Check-in mensal">
       <View style={styles.body}>
-        <Text variant="body" color={KINETIC.textDim}>
+        <Text variant="body" color={c.textDim}>
           Já faz 30 dias desde o seu último registro. Informe seu peso atual, de preferência em jejum.
         </Text>
         <TextField

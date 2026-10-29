@@ -1,19 +1,14 @@
 import React, { useContext, useState, useRef, useEffect } from 'react';
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-} from 'react-native';
+import { View, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { Text, TextInput } from '../../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import KeyboardAvoider from '../../components/ui/KeyboardAvoider';
 import { AuthContext } from '../../contexts/AuthContext';
-import { KINETIC } from '../../theme/kinetic';
+
 import { Button, TextField } from '../../components/ui';
 import Icon from '../../components/Icon';
 import TextSizePicker from '../../components/TextSizePicker';
+import ThemePicker from '../../components/ThemePicker';
 import { generateWorkout } from '../../services/workoutService';
 import {
   DAYS_LABELS,
@@ -25,6 +20,7 @@ import {
   type LevelType,
 } from '../../constants/protocol';
 import { showAlert } from '../../components/ui/AlertHost';
+import { createStyles, useColors } from '../../theme/ThemeContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -45,27 +41,27 @@ interface ProgressDotsProps {
 
 interface StepGoalProps {
   value: GoalType;
-  onChange: (v: GoalType) => void;
+  onChange: (v: GoalType) => void;
 }
 
 interface StepMetricsProps {
   data: OnboardingForm;
-  onChange: (data: OnboardingForm) => void;
+  onChange: (data: OnboardingForm) => void;
 }
 
 interface StepLevelProps {
   value: LevelType;
-  onChange: (v: LevelType) => void;
+  onChange: (v: LevelType) => void;
 }
 
 interface StepFreqProps {
   days: number[];
-  onChange: (days: number[]) => void;
+  onChange: (days: number[]) => void;
 }
 
 interface StepAnamnesisProps {
   value: string;
-  onChange: (v: string) => void;
+  onChange: (v: string) => void;
 }
 
 interface StepGeneratingProps {
@@ -85,6 +81,8 @@ const GEN_STEPS = [
 
 // ─── ProgressDots ─────────────────────────────────────────────────────────────
 function ProgressDots({ current, total }: ProgressDotsProps) {
+  const styles = useStyles();
+  const c = useColors();
   return (
     <View style={styles.dotsRow}>
       {Array.from({ length: total }).map((_, i) => {
@@ -96,7 +94,7 @@ function ProgressDots({ current, total }: ProgressDotsProps) {
             style={[
               styles.dot,
               { width: active ? 22 : done ? 12 : 8 },
-              (active || done) && { backgroundColor: KINETIC.primary },
+              (active || done) && { backgroundColor: c.primaryFill },
             ]}
           />
         );
@@ -105,19 +103,42 @@ function ProgressDots({ current, total }: ProgressDotsProps) {
   );
 }
 
-// ─── StepTextSize ─────────────────────────────────────────────────────────────
-// Antes de tudo: quem tem dificuldade de leitura ajusta o texto já para o resto do cadastro.
-function StepTextSize() {
+// ─── StepTheme ────────────────────────────────────────────────────────────────
+// Primeira escolha: o resto do cadastro já aparece no tema escolhido.
+function StepTheme() {
+  const styles = useStyles();
+  const c = useColors();
 
   return (
     <>
       <Text style={styles.stepTag}>Antes de começar</Text>
-      <Text style={[styles.stepTitle, { color: KINETIC.text }]}>Tamanho do texto</Text>
-      <Text style={[styles.stepSub, { color: KINETIC.textSecondary }]}>
+      <Text style={[styles.stepTitle, { color: c.text }]}>Aparência</Text>
+      <Text style={[styles.stepSub, { color: c.textSecondary }]}>
+        Escolha o tema do app. Em Sistema, ele acompanha o modo claro ou escuro do seu celular.
+      </Text>
+      <ThemePicker />
+      <Text style={[styles.stepSub, { color: c.textSecondary, marginTop: 12 }]}>
+        Você pode mudar isso depois em Configurações.
+      </Text>
+    </>
+  );
+}
+
+// ─── StepTextSize ─────────────────────────────────────────────────────────────
+// Antes de tudo: quem tem dificuldade de leitura ajusta o texto já para o resto do cadastro.
+function StepTextSize() {
+  const styles = useStyles();
+  const c = useColors();
+
+  return (
+    <>
+      <Text style={styles.stepTag}>Antes de começar</Text>
+      <Text style={[styles.stepTitle, { color: c.text }]}>Tamanho do texto</Text>
+      <Text style={[styles.stepSub, { color: c.textSecondary }]}>
         Escolha o tamanho mais confortável para ler. Textos e ícones de todo o app seguem essa escolha.
       </Text>
       <TextSizePicker />
-      <Text style={[styles.stepSub, { color: KINETIC.textSecondary, marginTop: 12 }]}>
+      <Text style={[styles.stepSub, { color: c.textSecondary, marginTop: 12 }]}>
         Você pode mudar isso depois em Configurações.
       </Text>
     </>
@@ -126,27 +147,29 @@ function StepTextSize() {
 
 // ─── StepGoal ─────────────────────────────────────────────────────────────────
 function StepGoal({ value, onChange }: StepGoalProps) {
+  const styles = useStyles();
+  const c = useColors();
 
   return (
     <>
       <Text style={styles.stepTag}>Etapa 1 de 5</Text>
-      <Text style={[styles.stepTitle, { color: KINETIC.text }]}>Qual seu objetivo?</Text>
-      <Text style={[styles.stepSub, { color: KINETIC.textSecondary }]}>
+      <Text style={[styles.stepTitle, { color: c.text }]}>Qual seu objetivo?</Text>
+      <Text style={[styles.stepSub, { color: c.textSecondary }]}>
         Escolha um foco principal. Seu protocolo será calibrado para esse resultado.
       </Text>
       {GOALS.map(g => (
         <TouchableOpacity
           key={g.id}
-          style={[styles.card, { backgroundColor: KINETIC.surface1 }, value === g.id && styles.cardSelected]}
+          style={[styles.card, { backgroundColor: c.surface1 }, value === g.id && styles.cardSelected]}
           onPress={() => onChange(g.id)}
           activeOpacity={0.75}
         >
           <View style={{ flex: 1 }}>
-            <Text style={[styles.cardTitle, { color: KINETIC.text }]}>{g.title}</Text>
-            <Text style={[styles.cardSub, { color: KINETIC.textSecondary }]}>{g.sub}</Text>
+            <Text style={[styles.cardTitle, { color: c.text }]}>{g.title}</Text>
+            <Text style={[styles.cardSub, { color: c.textSecondary }]}>{g.sub}</Text>
           </View>
           <View style={[styles.radioCircle, value === g.id && styles.radioCircleSelected]}>
-            {value === g.id && <Icon name="check" size={13} color={KINETIC.bg} strokeWidth={3} />}
+            {value === g.id && <Icon name="check" size={13} color={c.bg} strokeWidth={3} />}
           </View>
         </TouchableOpacity>
       ))}
@@ -156,6 +179,8 @@ function StepGoal({ value, onChange }: StepGoalProps) {
 
 // ─── StepMetrics ──────────────────────────────────────────────────────────────
 function StepMetrics({ data, onChange }: StepMetricsProps) {
+  const styles = useStyles();
+  const c = useColors();
 
   // Estado local para exibição em DD/MM/AAAA; form armazena ISO YYYY-MM-DD
   const [birthDisplay, setBirthDisplay] = useState<string>(
@@ -212,8 +237,8 @@ function StepMetrics({ data, onChange }: StepMetricsProps) {
   return (
     <>
       <Text style={styles.stepTag}>Etapa 2 de 5</Text>
-      <Text style={[styles.stepTitle, { color: KINETIC.text }]}>Sobre você</Text>
-      <Text style={[styles.stepSub, { color: KINETIC.textSecondary }]}>
+      <Text style={[styles.stepTitle, { color: c.text }]}>Sobre você</Text>
+      <Text style={[styles.stepSub, { color: c.textSecondary }]}>
         Usamos esses dados para calibrar cargas iniciais e estimar gasto calórico.
       </Text>
       <TextField
@@ -256,27 +281,29 @@ function StepMetrics({ data, onChange }: StepMetricsProps) {
 
 // ─── StepLevel ────────────────────────────────────────────────────────────────
 function StepLevel({ value, onChange }: StepLevelProps) {
+  const styles = useStyles();
+  const c = useColors();
 
   return (
     <>
       <Text style={styles.stepTag}>Etapa 3 de 5</Text>
-      <Text style={[styles.stepTitle, { color: KINETIC.text }]}>Seu nível</Text>
-      <Text style={[styles.stepSub, { color: KINETIC.textSecondary }]}>
+      <Text style={[styles.stepTitle, { color: c.text }]}>Seu nível</Text>
+      <Text style={[styles.stepSub, { color: c.textSecondary }]}>
         Calibra a complexidade dos exercícios e a progressão de carga.
       </Text>
       {LEVELS.map(l => (
         <TouchableOpacity
           key={l.id}
-          style={[styles.card, { backgroundColor: KINETIC.surface1 }, value === l.id && styles.cardSelected]}
+          style={[styles.card, { backgroundColor: c.surface1 }, value === l.id && styles.cardSelected]}
           onPress={() => onChange(l.id)}
           activeOpacity={0.75}
         >
           <View style={{ flex: 1 }}>
-            <Text style={[styles.cardTitle, { color: KINETIC.text }]}>{l.title}</Text>
-            <Text style={[styles.cardSub, { color: KINETIC.textSecondary }]}>{l.sub}</Text>
+            <Text style={[styles.cardTitle, { color: c.text }]}>{l.title}</Text>
+            <Text style={[styles.cardSub, { color: c.textSecondary }]}>{l.sub}</Text>
           </View>
           <View style={[styles.radioCircle, value === l.id && styles.radioCircleSelected]}>
-            {value === l.id && <Icon name="check" size={13} color={KINETIC.bg} strokeWidth={3} />}
+            {value === l.id && <Icon name="check" size={13} color={c.bg} strokeWidth={3} />}
           </View>
         </TouchableOpacity>
       ))}
@@ -286,6 +313,8 @@ function StepLevel({ value, onChange }: StepLevelProps) {
 
 // ─── StepFreq ─────────────────────────────────────────────────────────────────
 function StepFreq({ days, onChange }: StepFreqProps) {
+  const styles = useStyles();
+  const c = useColors();
 
   const toggle = (i: number) => {
     const next = days.includes(i)
@@ -308,15 +337,15 @@ function StepFreq({ days, onChange }: StepFreqProps) {
   return (
     <>
       <Text style={styles.stepTag}>Etapa 4 de 5</Text>
-      <Text style={[styles.stepTitle, { color: KINETIC.text }]}>Quando você treina?</Text>
-      <Text style={[styles.stepSub, { color: KINETIC.textSecondary }]}>
+      <Text style={[styles.stepTitle, { color: c.text }]}>Quando você treina?</Text>
+      <Text style={[styles.stepSub, { color: c.textSecondary }]}>
         Toque nos dias que você consegue treinar com consistência.
       </Text>
 
-      <View style={[styles.countCard, { backgroundColor: KINETIC.surface1 }]}>
+      <View style={[styles.countCard, { backgroundColor: c.surface1 }]}>
         <Text style={styles.countNumber}>{days.length}</Text>
         <View style={{ flex: 1 }}>
-          <Text style={[styles.countLabel, { color: KINETIC.textSecondary }]}>dias por semana</Text>
+          <Text style={[styles.countLabel, { color: c.textSecondary }]}>dias por semana</Text>
           <Text style={styles.countHint}>{hint}</Text>
         </View>
       </View>
@@ -330,11 +359,11 @@ function StepFreq({ days, onChange }: StepFreqProps) {
               onPress={() => toggle(i)}
               style={[
                 styles.dayChip,
-                { backgroundColor: selected ? KINETIC.primary : KINETIC.surface1 },
+                { backgroundColor: selected ? c.primary : c.surface1 },
               ]}
               activeOpacity={0.75}
             >
-              <Text style={[styles.dayChipText, { color: selected ? KINETIC.bg : KINETIC.textSecondary }]}>
+              <Text style={[styles.dayChipText, { color: selected ? c.bg : c.textSecondary }]}>
                 {d.slice(0, 1)}
               </Text>
             </TouchableOpacity>
@@ -356,6 +385,8 @@ function buildMedicalValue(chips: string[], text: string): string {
 }
 
 function StepAnamnesis({ value, onChange }: StepAnamnesisProps) {
+  const styles = useStyles();
+  const c = useColors();
 
   const [selectedChips, setSelectedChips] = useState<string[]>(() =>
     value === NONE_CHIP ? [NONE_CHIP] : []
@@ -375,9 +406,9 @@ function StepAnamnesis({ value, onChange }: StepAnamnesisProps) {
       setFreeText('');
       onChange(next.includes(NONE_CHIP) ? NONE_CHIP : '');
     } else {
-      const withoutNone = selectedChips.filter(c => c !== NONE_CHIP);
+      const withoutNone = selectedChips.filter(x => x !== NONE_CHIP);
       next = withoutNone.includes(chip)
-        ? withoutNone.filter(c => c !== chip)
+        ? withoutNone.filter(x => x !== chip)
         : [...withoutNone, chip];
       setSelectedChips(next);
       onChange(buildMedicalValue(next, freeText));
@@ -392,8 +423,8 @@ function StepAnamnesis({ value, onChange }: StepAnamnesisProps) {
   return (
     <>
       <Text style={styles.stepTag}>Etapa 5 de 5</Text>
-      <Text style={[styles.stepTitle, { color: KINETIC.text }]}>Segurança em primeiro lugar.</Text>
-      <Text style={[styles.stepSub, { color: KINETIC.textSecondary }]}>
+      <Text style={[styles.stepTitle, { color: c.text }]}>Segurança em primeiro lugar.</Text>
+      <Text style={[styles.stepSub, { color: c.textSecondary }]}>
         Você possui alguma lesão, dor articular ou restrição médica que devemos saber para adaptar o seu treino?
       </Text>
 
@@ -407,10 +438,10 @@ function StepAnamnesis({ value, onChange }: StepAnamnesisProps) {
               activeOpacity={0.75}
               style={[
                 styles.chip,
-                { backgroundColor: active ? KINETIC.primary : KINETIC.surface1 },
+                { backgroundColor: active ? c.primary : c.surface1 },
               ]}
             >
-              <Text style={[styles.chipText, { color: active ? KINETIC.bg : KINETIC.textSecondary }]}>
+              <Text style={[styles.chipText, { color: active ? c.bg : c.textSecondary }]}>
                 {chip}
               </Text>
             </TouchableOpacity>
@@ -421,10 +452,10 @@ function StepAnamnesis({ value, onChange }: StepAnamnesisProps) {
           activeOpacity={0.75}
           style={[
             styles.chip,
-            { backgroundColor: isNoneSelected ? KINETIC.primary : KINETIC.surface1 },
+            { backgroundColor: isNoneSelected ? c.primary : c.surface1 },
           ]}
         >
-          <Text style={[styles.chipText, { color: isNoneSelected ? KINETIC.bg : KINETIC.textSecondary }]}>
+          <Text style={[styles.chipText, { color: isNoneSelected ? c.bg : c.textSecondary }]}>
             {NONE_CHIP}
           </Text>
         </TouchableOpacity>
@@ -441,11 +472,11 @@ function StepAnamnesis({ value, onChange }: StepAnamnesisProps) {
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
             placeholder="Ex: hérnia de disco L4-L5, dor no ombro direito, asma..."
-            placeholderTextColor={KINETIC.textSecondary}
+            placeholderTextColor={c.textSecondary}
             textAlignVertical="top"
             style={[
               styles.anamnesisInput,
-              { backgroundColor: KINETIC.surface1, color: KINETIC.text },
+              { backgroundColor: c.surface1, color: c.text },
               focused && styles.anamnesisInputFocused,
             ]}
           />
@@ -458,6 +489,8 @@ function StepAnamnesis({ value, onChange }: StepAnamnesisProps) {
 
 // ─── StepGenerating ───────────────────────────────────────────────────────────
 function StepGenerating({ goalLabel, daysCount }: StepGeneratingProps) {
+  const styles = useStyles();
+  const c = useColors();
   const [tick, setTick] = useState(0);
 
   useEffect(() => {
@@ -471,11 +504,11 @@ function StepGenerating({ goalLabel, daysCount }: StepGeneratingProps) {
   return (
     <>
       <Text style={styles.stepTag}>Construindo seu protocolo</Text>
-      <Text style={[styles.stepTitle, { color: KINETIC.text }]}>Calibrando para você</Text>
+      <Text style={[styles.stepTitle, { color: c.text }]}>Calibrando para você</Text>
       <Text style={styles.stepSub}>
         Foco: {goalLabel} · {daysCount} dias/semana
       </Text>
-      <ActivityIndicator size="large" color={KINETIC.primary} style={{ marginVertical: 28 }} />
+      <ActivityIndicator size="large" color={c.primary} style={{ marginVertical: 28 }} />
       <View style={{ gap: 8 }}>
         {GEN_STEPS.map((s, i) => {
           const done   = i < tick;
@@ -485,15 +518,15 @@ function StepGenerating({ goalLabel, daysCount }: StepGeneratingProps) {
               key={s}
               style={[
                 styles.genStep,
-                active && { backgroundColor: 'rgba(0,229,255,0.10)', borderRadius: 10 },
+                active && { backgroundColor: c.primaryDim, borderRadius: 10 },
               ]}
             >
               <View style={[styles.genDot, done && styles.genDotDone, active && styles.genDotActive]} />
               <Text
                 style={[
                   styles.genText,
-                  done   && { color: KINETIC.textSecondary, opacity: 0.5 },
-                  active && { color: KINETIC.text,   fontWeight: '600' },
+                  done   && { color: c.textSecondary, opacity: 0.5 },
+                  active && { color: c.text,   fontWeight: '600' },
                 ]}
               >
                 {s}
@@ -508,10 +541,12 @@ function StepGenerating({ goalLabel, daysCount }: StepGeneratingProps) {
 
 // ─── OnboardingScreen ─────────────────────────────────────────────────────────
 export default function OnboardingScreen() {
+  const styles = useStyles();
+  const c = useColors();
   const { completeOnboarding, skipOnboarding, signOut } = useContext(AuthContext);
 
-  // -1 = tamanho do texto; 0–4 = perguntas; 5 = gerando.
-  const [step, setStep] = useState<number>(-1);
+  // -2 = tema; -1 = tamanho do texto; 0–4 = perguntas; 5 = gerando.
+  const [step, setStep] = useState<number>(-2);
   const [form, setForm] = useState<OnboardingForm>({
     goal:              '',
     birthDate:         '',
@@ -526,7 +561,7 @@ export default function OnboardingScreen() {
   const formRef = useRef<OnboardingForm>(form);
   useEffect(() => { formRef.current = form; });
 
-  const TOTAL_STEPS = 7;
+  const TOTAL_STEPS = 8;
 
   const canAdvance: boolean = (() => {
     if (step === 0) return !!form.goal;
@@ -593,7 +628,7 @@ export default function OnboardingScreen() {
           <View style={styles.topBar}>
             <TouchableOpacity
               onPress={() => {
-                if (step === -1) {
+                if (step === -2) {
                   showAlert(
                     'Sair do cadastro?',
                     'Você perderá o progresso e voltará para a tela de login.',
@@ -611,7 +646,7 @@ export default function OnboardingScreen() {
               <Text style={styles.backBtnText}>‹</Text>
             </TouchableOpacity>
 
-            <ProgressDots current={step + 1} total={TOTAL_STEPS} />
+            <ProgressDots current={step + 2} total={TOTAL_STEPS} />
 
             {step === 4 ? (
               <TouchableOpacity onPress={handleAdvance} style={styles.skipBtn}>
@@ -624,6 +659,7 @@ export default function OnboardingScreen() {
         )}
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {step === -2 && <StepTheme />}
           {step === -1 && <StepTextSize />}
           {step === 0 && (
             <StepGoal value={form.goal} onChange={v => setForm({ ...form, goal: v })} />
@@ -655,7 +691,7 @@ export default function OnboardingScreen() {
                 style={styles.footerSkip}
               >
                 <Text style={styles.footerSkipText}>NÃO, JÁ POSSUO TREINO</Text>
-                <Icon name="close" size={13} color={KINETIC.textSecondary} strokeWidth={2.4} />
+                <Icon name="close" size={13} color={c.textSecondary} strokeWidth={2.4} />
               </TouchableOpacity>
             )}
           </View>
@@ -666,10 +702,10 @@ export default function OnboardingScreen() {
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
+const useStyles = createStyles((c) => ({
   container: {
     flex: 1,
-    backgroundColor: KINETIC.bg,
+    backgroundColor: c.bg,
   },
   scrollContent: {
     paddingHorizontal: 24,
@@ -689,13 +725,13 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   backBtnText: {
     fontSize: 24,
-    color: KINETIC.textSecondary,
+    color: c.textSecondary,
     lineHeight: 28,
   },
   skipBtn: {
@@ -704,7 +740,7 @@ const styles = StyleSheet.create({
   skipBtnText: {
     fontSize: 12,
     fontWeight: '600',
-    color: KINETIC.textSecondary,
+    color: c.textSecondary,
   },
 
   // ProgressDots
@@ -716,12 +752,12 @@ const styles = StyleSheet.create({
   dot: {
     height: 3,
     borderRadius: 2,
-    backgroundColor: KINETIC.ghost,
+    backgroundColor: c.ghost,
   },
 
   // Step header
   stepTag: {
-    color: KINETIC.primary,
+    color: c.primary,
     fontWeight: '700',
     letterSpacing: 0.8,
     fontSize: 10,
@@ -740,7 +776,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 22,
     marginBottom: 24,
-    color: KINETIC.textSecondary,
+    color: c.textSecondary,
   },
 
   // Cards (Goal / Level)
@@ -754,7 +790,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   cardSelected: {
-    borderColor: KINETIC.primary,
+    borderColor: c.primary,
   },
   cardTitle: {
     fontSize: 16,
@@ -770,15 +806,15 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 11,
     borderWidth: 1.5,
-    borderColor: KINETIC.ghost,
+    borderColor: c.ghost,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 12,
     flexShrink: 0,
   },
   radioCircleSelected: {
-    backgroundColor: KINETIC.primary,
-    borderColor: KINETIC.primary,
+    backgroundColor: c.primaryFill,
+    borderColor: c.primary,
   },
 
   // StepFreq
@@ -793,7 +829,7 @@ const styles = StyleSheet.create({
   countNumber: {
     fontSize: 52,
     fontWeight: '900',
-    color: KINETIC.primary,
+    color: c.primary,
     letterSpacing: -2,
     minWidth: 56,
     textAlign: 'center',
@@ -803,7 +839,7 @@ const styles = StyleSheet.create({
   },
   countHint: {
     fontSize: 12,
-    color: KINETIC.textSecondary,
+    color: c.textSecondary,
     marginTop: 4,
     lineHeight: 17,
   },
@@ -847,15 +883,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 22,
     borderWidth: 1.5,
-    borderColor: KINETIC.ghost,
+    borderColor: c.ghost,
     minHeight: 160,
   },
   anamnesisInputFocused: {
-    borderColor: KINETIC.primary,
+    borderColor: c.primary,
   },
   anamnesisHint: {
     fontSize: 12,
-    color: KINETIC.textSecondary,
+    color: c.textSecondary,
     marginTop: 8,
   },
   field: {
@@ -874,20 +910,20 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     flexShrink: 0,
   },
   genDotDone: {
-    backgroundColor: KINETIC.primary,
+    backgroundColor: c.primaryFill,
   },
   genDotActive: {
     borderWidth: 1.5,
-    borderColor: KINETIC.primary,
+    borderColor: c.primary,
     backgroundColor: 'transparent',
   },
   genText: {
     fontSize: 13,
-    color: KINETIC.textSecondary,
+    color: c.textSecondary,
     fontWeight: '500',
   },
 
@@ -906,9 +942,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   footerSkipText: {
-    color: KINETIC.textSecondary,
+    color: c.textSecondary,
     fontSize: 12,
     fontWeight: '700',
     letterSpacing: 1,
   },
-});
+}));

@@ -21,10 +21,11 @@ import useFocusResource from '../hooks/useFocusResource';
 import { getMyProtocol, getMyTrainer } from '../services/trainerService';
 import { generateWorkout } from '../services/workoutService';
 import { openWhatsApp } from '../utils/whatsapp';
-import { KINETIC } from '../theme/kinetic';
+
 import type { MainStackScreenProps } from '../navigation/types';
 import type { GenerateWorkoutRequest, UserProfileResponse } from '../types';
 import { showAlert } from '../components/ui/AlertHost';
+import { useColors } from '../theme/ThemeContext';
 
 type ProtocolDialog = 'goal' | 'metrics' | 'level' | 'frequency' | 'anamnesis' | null;
 
@@ -34,6 +35,7 @@ type ProtocolDialog = 'goal' | 'metrics' | 'level' | 'frequency' | 'anamnesis' |
  * frequência e anamnese são dele: o aluno só vê e confere a anamnese.
  */
 export default function ProtocolScreen({ navigation }: MainStackScreenProps<'Protocol'>) {
+  const c = useColors();
   const [form, setForm] = useState<ProtocolForm | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
   const [activeDialog, setActiveDialog] = useState<ProtocolDialog>(null);
@@ -103,11 +105,11 @@ export default function ProtocolScreen({ navigation }: MainStackScreenProps<'Pro
     return (
       <Screen scroll={false} edges={['top', 'bottom', 'left', 'right']} header={header} contentStyle={styles.center}>
         {loadFailed ? (
-          <Text variant="body" color={KINETIC.textSecondary}>
+          <Text variant="body" color={c.textSecondary}>
             Não foi possível carregar seu protocolo.
           </Text>
         ) : (
-          <ActivityIndicator color={KINETIC.primary} />
+          <ActivityIndicator color={c.primary} />
         )}
       </Screen>
     );
@@ -125,7 +127,7 @@ export default function ProtocolScreen({ navigation }: MainStackScreenProps<'Pro
     const trainerName = managed.managedByName!.split(' ')[0];
     const phone = trainerRes.data?.peer.phone ?? null;
     const managedAnam = hasMedicalInfo(managed.medicalConditions);
-    const lock = <Icon name="lock" size={14} color={KINETIC.textMuted} />;
+    const lock = <Icon name="lock" size={14} color={c.textMuted} />;
     const talk = () => {
       if (!phone) return;
       openWhatsApp(phone, `Oi, ${trainerName}!`);
@@ -166,7 +168,7 @@ export default function ProtocolScreen({ navigation }: MainStackScreenProps<'Pro
 
         <View style={styles.regen}>
           {phone ? <Button label={`Falar com ${trainerName}`} variant="secondary" onPress={talk} /> : null}
-          <Text variant="caption" color={KINETIC.textSecondary} style={styles.hint}>
+          <Text variant="caption" color={c.textSecondary} style={styles.hint}>
             Seu treino é prescrito por {trainerName}. Para mudar objetivo, nível ou frequência, combine com {trainerName}.
           </Text>
         </View>
@@ -202,7 +204,7 @@ export default function ProtocolScreen({ navigation }: MainStackScreenProps<'Pro
           loading={isRegenerating}
           onPress={handleRegenerate}
         />
-        <Text variant="caption" color={KINETIC.textSecondary} style={styles.hint}>
+        <Text variant="caption" color={c.textSecondary} style={styles.hint}>
           Recria seu plano com base nos dados acima. Pode levar alguns minutos.
         </Text>
       </View>

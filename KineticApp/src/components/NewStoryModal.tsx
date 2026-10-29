@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ActivityIndicator, Image, Modal, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TextInput } from './ui/scaled';
-import { FONT, KINETIC, RADIUS } from '../theme/kinetic';
+import { FONT, RADIUS } from '../theme/kinetic';
 import Icon from './Icon';
 import { RoundButton } from './CameraButtons';
 import CameraCapture from './CameraCapture';
@@ -10,6 +10,7 @@ import { Text } from './ui';
 import { showAlert } from './ui/AlertHost';
 import useKeyboardOverlap from '../hooks/useKeyboardOverlap';
 import { createStory, uploadAndCreate } from '../services/socialService';
+import { createStyles, useColors } from '../theme/ThemeContext';
 
 interface Props {
   visible: boolean;
@@ -22,6 +23,8 @@ interface Props {
  * depois da foto, prévia em tela cheia com legenda por cima e "Seu story".
  */
 export default function NewStoryModal({ visible, onClose, onStoryCreated }: Props) {
+  const styles = useStyles();
+  const c = useColors();
   const insets = useSafeAreaInsets();
   const keyboard = useKeyboardOverlap(visible);
 
@@ -87,13 +90,13 @@ export default function NewStoryModal({ visible, onClose, onStoryCreated }: Prop
             style={({ pressed }) => [styles.send, pressed && styles.pressed]}
           >
             {posting ? (
-              <ActivityIndicator color={KINETIC.onPrimary} />
+              <ActivityIndicator color={c.onPrimary} />
             ) : (
               <>
-                <Text variant="captionStrong" color={KINETIC.onPrimary}>
+                <Text variant="captionStrong" color={c.onPrimary}>
                   Seu story
                 </Text>
-                <Icon name="arrow-right" size={16} color={KINETIC.onPrimary} strokeWidth={2.2} />
+                <Icon name="arrow-right" size={16} color={c.onPrimary} strokeWidth={2.2} />
               </>
             )}
           </Pressable>
@@ -124,7 +127,7 @@ export default function NewStoryModal({ visible, onClose, onStoryCreated }: Prop
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((c) => ({
   root: { flex: 1, backgroundColor: '#000' },
   topLeft: { position: 'absolute', left: 14 },
   composer: {
@@ -158,10 +161,10 @@ const styles = StyleSheet.create({
     height: 44,
     paddingHorizontal: 16,
     borderRadius: RADIUS.pill,
-    backgroundColor: KINETIC.primary,
+    backgroundColor: c.primaryFill,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
   pressed: { opacity: 0.85 },
-});
+}));

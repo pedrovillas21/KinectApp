@@ -1,22 +1,20 @@
 import React, { useContext, useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-} from 'react-native';
+import { View, TouchableOpacity, ScrollView } from 'react-native';
 import { Text, TextInput } from '../../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../../contexts/AuthContext';
 import { showAlert } from '../../components/ui/AlertHost';
 import KeyboardAvoider from '../../components/ui/KeyboardAvoider';
-import { KINETIC } from '../../theme/kinetic';
+
 import { BackArrowIcon } from '../../components/auth/AuthIcons';
 import type { AuthScreenProps } from '../../navigation/types';
+import { createStyles, useColors } from '../../theme/ThemeContext';
 
 type Props = AuthScreenProps<'VerifyCode'>;
 
 export default function VerifyCodeScreen({ navigation, route }: Props) {
+  const styles = useStyles();
+  const c = useColors();
   const { requestPasswordReset } = useContext(AuthContext);
 
   const email = route?.params?.email ?? '';
@@ -96,7 +94,7 @@ export default function VerifyCodeScreen({ navigation, route }: Props) {
               <TextInput
                 style={styles.codeInput}
                 placeholder="000000"
-                placeholderTextColor={KINETIC.placeholder}
+                placeholderTextColor={c.placeholder}
                 value={code}
                 onChangeText={text => setCode(text.replace(/\D/g, ''))}
                 keyboardType="number-pad"
@@ -145,8 +143,8 @@ export default function VerifyCodeScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: KINETIC.bg },
+const useStyles = createStyles((c, s) => ({
+  container: { flex: 1, backgroundColor: c.bg },
   safe: { flex: 1 },
   kav: { flex: 1 },
   header: {
@@ -157,17 +155,17 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     gap: 12,
   },
-  backBtn: {
+  backBtn: { 
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerText: {
     fontSize: 13,
-    color: KINETIC.textDim,
+    color: c.textDim,
     fontWeight: '500',
   },
   content: {
@@ -177,40 +175,40 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 36,
     fontWeight: '800',
-    color: KINETIC.text,
+    color: c.text,
     letterSpacing: -1,
     lineHeight: 44,
     marginTop: 12,
     marginBottom: 12,
   },
   titleAccent: {
-    color: KINETIC.primary,
+    color: c.primary,
   },
   subtitle: {
     fontSize: 14,
     lineHeight: 21,
-    color: KINETIC.textDim,
+    color: c.textDim,
     marginBottom: 32,
   },
   subtitleEmail: {
-    color: KINETIC.text,
+    color: c.text,
     fontWeight: '600',
   },
   fieldLabel: {
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.6,
-    color: KINETIC.textMuted,
+    color: c.textMuted,
     marginBottom: 8,
     textTransform: 'uppercase',
   },
-  inputWrap: {
+  inputWrap: { 
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: KINETIC.ghostHi,
+    borderColor: c.ghostHi,
     paddingHorizontal: 14,
     height: 64,
   },
@@ -220,7 +218,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 10,
     textAlign: 'center',
-    color: KINETIC.text,
+    color: c.text,
     padding: 0,
   },
   resendRow: {
@@ -230,10 +228,10 @@ const styles = StyleSheet.create({
   },
   resendText: {
     fontSize: 13,
-    color: KINETIC.textDim,
+    color: c.textDim,
   },
   resendLink: {
-    color: KINETIC.primary,
+    color: c.primary,
     fontWeight: '600',
   },
   footer: {
@@ -242,26 +240,27 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   verifyBtn: {
+    ...s.card,
     paddingVertical: 16,
     borderRadius: 16,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     borderWidth: 1,
-    borderColor: KINETIC.ghostHi,
+    borderColor: c.ghostHi,
     alignItems: 'center',
     justifyContent: 'center',
     opacity: 0.5,
   },
   verifyBtnActive: {
     opacity: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: c.borderStrong,
   },
   verifyBtnText: {
     fontSize: 16,
     fontWeight: '700',
-    color: KINETIC.textDim,
+    color: c.textDim,
   },
   verifyBtnTextActive: {
-    color: KINETIC.text,
+    color: c.text,
   },
   loginRow: {
     alignItems: 'center',
@@ -269,10 +268,10 @@ const styles = StyleSheet.create({
   },
   loginText: {
     fontSize: 13,
-    color: KINETIC.textDim,
+    color: c.textDim,
   },
   loginLink: {
-    color: KINETIC.primary,
+    color: c.primary,
     fontWeight: '600',
   },
-});
+}));

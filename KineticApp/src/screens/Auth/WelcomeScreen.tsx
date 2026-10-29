@@ -3,9 +3,10 @@ import { AccessibilityInfo, Animated, Easing, Pressable, StyleSheet, View } from
 import { Text } from '../../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import { FONT, KINETIC } from '../../theme/kinetic';
+import { FONT } from '../../theme/kinetic';
 import { PRIVACY_URL, TERMS_URL, openLegal } from '../../config/legal';
 import type { AuthScreenProps } from '../../navigation/types';
+import { createStyles, useColors } from '../../theme/ThemeContext';
 
 type Props = AuthScreenProps<'Welcome'>;
 
@@ -34,6 +35,8 @@ function useEntrance(delay: number, duration: number, reduceMotion: boolean | nu
 
 /** Tela de entrada: a marca e o caminho para entrar ou criar conta, sem propaganda. */
 export default function WelcomeScreen({ navigation }: Props) {
+  const styles = useStyles();
+  const c = useColors();
   const [reduceMotion, setReduceMotion] = React.useState<boolean | null>(null);
 
   useEffect(() => {
@@ -80,9 +83,9 @@ export default function WelcomeScreen({ navigation }: Props) {
         ]}
       >
         <Svg width={620} height={477} viewBox="0 0 26 20">
-          <Path d={BARS[0].d} fill={KINETIC.primary} opacity={0.05} />
-          <Path d={BARS[1].d} fill={KINETIC.primary} opacity={0.03} />
-          <Path d={BARS[2].d} fill={KINETIC.primary} opacity={0.02} />
+          <Path d={BARS[0].d} fill={c.primary} opacity={0.05} />
+          <Path d={BARS[1].d} fill={c.primary} opacity={0.03} />
+          <Path d={BARS[2].d} fill={c.primary} opacity={0.02} />
         </Svg>
       </Animated.View>
 
@@ -102,7 +105,7 @@ export default function WelcomeScreen({ navigation }: Props) {
                   ]}
                 >
                   <Svg width={40} height={31} viewBox="0 0 26 20">
-                    <Path d={bar.d} fill={KINETIC.primary} />
+                    <Path d={bar.d} fill={c.primary} />
                   </Svg>
                 </Animated.View>
               ))}
@@ -135,12 +138,12 @@ export default function WelcomeScreen({ navigation }: Props) {
               <Svg width={13} height={13} viewBox="0 0 24 24" fill="none">
                 <Path
                   d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"
-                  stroke={KINETIC.success}
+                  stroke={c.success}
                   strokeWidth={2}
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
-                <Path d="m9 12 2 2 4-4" stroke={KINETIC.success} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                <Path d="m9 12 2 2 4-4" stroke={c.success} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
               </Svg>
               <Text style={styles.trustText}>Seus dados protegidos conforme a LGPD</Text>
             </View>
@@ -162,43 +165,43 @@ export default function WelcomeScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: KINETIC.bg, overflow: 'hidden' },
+const useStyles = createStyles((c) => ({
+  container: { flex: 1, backgroundColor: c.bg, overflow: 'hidden' },
   backdrop: { position: 'absolute', top: 150, left: 40 },
   safe: { flex: 1, paddingHorizontal: 24, paddingBottom: 12 },
   hero: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14 },
   brand: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   mark: { width: 40, height: 31 },
-  wordmark: { fontFamily: FONT.bold, fontSize: 30, letterSpacing: 1.2, color: KINETIC.text },
-  tagline: { fontFamily: FONT.regular, fontSize: 14, color: KINETIC.textDim },
+  wordmark: { fontFamily: FONT.bold, fontSize: 30, letterSpacing: 1.2, color: c.text },
+  tagline: { fontFamily: FONT.regular, fontSize: 14, color: c.textDim },
   bottom: { gap: 20 },
   actions: { gap: 10 },
   primaryBtn: {
     height: 52,
     borderRadius: 12,
-    backgroundColor: KINETIC.primary,
+    backgroundColor: c.primaryFill,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: KINETIC.primary,
+    shadowColor: c.primaryFill,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.35,
     shadowRadius: 18,
     elevation: 6,
   },
-  primaryBtnText: { fontFamily: FONT.bold, fontSize: 15, color: KINETIC.onPrimary },
+  primaryBtnText: { fontFamily: FONT.bold, fontSize: 15, color: c.onPrimary },
   secondaryBtn: {
     height: 52,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.14)',
+    borderColor: c.ghostHi,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  secondaryBtnText: { fontFamily: FONT.semibold, fontSize: 15, color: KINETIC.text },
+  secondaryBtnText: { fontFamily: FONT.semibold, fontSize: 15, color: c.text },
   pressed: { opacity: 0.85 },
   footer: { alignItems: 'center', gap: 8 },
   trust: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  trustText: { fontFamily: FONT.regular, fontSize: 12, color: KINETIC.textDim },
-  terms: { fontFamily: FONT.regular, fontSize: 11.5, lineHeight: 17, color: KINETIC.textSecondary, textAlign: 'center' },
-  termsLink: { textDecorationLine: 'underline', color: KINETIC.textDim },
-});
+  trustText: { fontFamily: FONT.regular, fontSize: 12, color: c.textDim },
+  terms: { fontFamily: FONT.regular, fontSize: 11.5, lineHeight: 17, color: c.textSecondary, textAlign: 'center' },
+  termsLink: { textDecorationLine: 'underline', color: c.textDim },
+}));

@@ -1,7 +1,8 @@
 import React from 'react';
 import { Image, StyleSheet, View } from 'react-native';
-import { AVATAR_TONES, FONT, KINETIC } from '../../theme/kinetic';
+import { AVATAR_TONES, ColorScheme, FONT } from '../../theme/kinetic';
 import Text from './Text';
+import { useTheme } from '../../theme/ThemeContext';
 
 export interface AvatarProps {
   name?: string | null;
@@ -26,12 +27,15 @@ export const initialsOf = (name?: string | null, max = 2): string => {
   return letters.slice(0, max).join('').toUpperCase();
 };
 
-const avatarTone = (seed: string | number | null | undefined) =>
-  AVATAR_TONES[hash(String(seed ?? '')) % AVATAR_TONES.length];
+const avatarTone = (seed: string | number | null | undefined, scheme: ColorScheme) => {
+  const tones = AVATAR_TONES[scheme];
+  return tones[hash(String(seed ?? '')) % tones.length];
+};
 
 /** Foto de perfil ou iniciais coloridas. */
 export default function Avatar({ name, uri, seed, size = 40, ring }: AvatarProps) {
-  const tone = avatarTone(seed ?? name);
+  const { colors: c, scheme } = useTheme();
+  const tone = avatarTone(seed ?? name, scheme);
   // Anel de 2px + respiro até a foto (menor em avatar pequeno, para a foto não sumir).
   const inner = ring ? size - (size >= 48 ? 8 : 5) : size;
   const initials = initialsOf(name);
@@ -59,7 +63,7 @@ export default function Avatar({ name, uri, seed, size = 40, ring }: AvatarProps
           height: size,
           borderRadius: size / 2,
           borderWidth: 2,
-          borderColor: ring === 'unseen' ? KINETIC.primary : ring === 'live' ? KINETIC.success : 'rgba(255,255,255,0.14)',
+          borderColor: ring === 'unseen' ? c.primary : ring === 'live' ? c.success : c.ghostHi,
         },
       ]}
     >

@@ -1,15 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PlanEvolutionCard from '../components/PlanEvolutionCard';
 import Icon from '../components/Icon';
-import {
-  ActivityIndicator,
-  Dimensions,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Dimensions, Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { Text } from '../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -40,15 +32,16 @@ import {
   formatVolumeKg,
   periodDescription,
 } from '../utils/statsUtils';
-import { STATS_T as T } from '../theme/statsTokens';
-import { FONT, KINETIC, RADIUS } from '../theme/kinetic';
+import { FONT, Palette, RADIUS } from '../theme/kinetic';
 import { formatKg, formatMinutes, formatShortDate, parseLocalDate, weekdayLetter } from '../utils/formatters';
+import { createStyles, useColors } from '../theme/ThemeContext';
 
 const SCREEN_W = Dimensions.get('window').width;
 const CONTENT_PAD = 16;
 
 // ─── Atoms ────────────────────────────────────────────────────────────────
 function CardHeader({ title, subtitle, action }: { title: string; subtitle?: string; action?: React.ReactNode }) {
+  const styles = useStyles();
   return (
     <View style={styles.cardHeader}>
       <View style={styles.flex}>
@@ -69,11 +62,14 @@ interface ConsistencyCardProps {
   community: CommunityComparisonDTO;
 }
 function ConsistencyCard({ activity, completed, target, efficiencyPercentage, community }: ConsistencyCardProps) {
+  const consistencyStyles = useConsistencyStyles();
+  const styles = useStyles();
+  const c = useColors();
   const size = 84;
   const radius = 34;
   const circumference = 2 * Math.PI * radius;
   const dash = circumference * Math.max(0, Math.min(1, efficiencyPercentage / 100));
-  const cmpColor = community.isAbove ? T.success : T.warn;
+  const cmpColor = community.isAbove ? c.success : c.warn;
 
   return (
     <View style={styles.card}>
@@ -87,13 +83,13 @@ function ConsistencyCard({ activity, completed, target, efficiencyPercentage, co
           <Text style={styles.cardSubtitle}>treinos concluídos</Text>
         </View>
         <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} accessibilityLabel={`Aderência de ${efficiencyPercentage}%`}>
-          <Circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={KINETIC.ghost} strokeWidth={8} />
+          <Circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={c.ghost} strokeWidth={8} />
           <Circle
             cx={size / 2}
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke={T.accent}
+            stroke={c.primary}
             strokeWidth={8}
             strokeLinecap="round"
             strokeDasharray={`${dash} ${circumference - dash}`}
@@ -103,7 +99,7 @@ function ConsistencyCard({ activity, completed, target, efficiencyPercentage, co
             x={size / 2}
             y={size / 2 + 5}
             textAnchor="middle"
-            fill={T.text}
+            fill={c.text}
             fontFamily={FONT.monoSemibold}
             fontSize={16}
           >
@@ -131,10 +127,10 @@ function ConsistencyCard({ activity, completed, target, efficiencyPercentage, co
   );
 }
 
-const consistencyStyles = StyleSheet.create({
+const useConsistencyStyles = createStyles((c) => ({
   row: { flexDirection: 'row', alignItems: 'center', gap: 16 },
-  value: { fontFamily: FONT.monoSemibold, fontSize: 40, lineHeight: 46, letterSpacing: -1.5, color: T.text, marginTop: 4 },
-  valueDim: { fontSize: 18, letterSpacing: 0, color: KINETIC.textSecondary },
+  value: { fontFamily: FONT.monoSemibold, fontSize: 40, lineHeight: 46, letterSpacing: -1.5, color: c.text, marginTop: 4 },
+  valueDim: { fontSize: 18, letterSpacing: 0, color: c.textSecondary },
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -142,9 +138,9 @@ const consistencyStyles = StyleSheet.create({
     marginTop: 16,
     paddingTop: 14,
     borderTopWidth: 1,
-    borderTopColor: KINETIC.hairline,
+    borderTopColor: c.hairline,
   },
-});
+}));
 
 // ─── Barras de atividade (dias, semanas ou meses do período) ────────────────
 const BARS_H = 56;
@@ -162,6 +158,8 @@ function bucketLabel(activity: StatsActivityDTO, index: number): string {
 }
 
 function ActivityBars({ activity }: { activity: StatsActivityDTO }) {
+  const barStyles = useBarStyles();
+  const c = useColors();
   const { buckets, target } = activity;
   if (buckets.length === 0) return null;
   // Folga acima da meta para a linha não encostar no topo e parecer um divisor.
@@ -195,7 +193,7 @@ function ActivityBars({ activity }: { activity: StatsActivityDTO }) {
               barStyles.bar,
               {
                 height: Math.max(4, (b.sessions / max) * BARS_H),
-                backgroundColor: b.sessions === 0 ? KINETIC.ghost : i === last ? 'rgba(0,229,255,0.45)' : T.accent,
+                backgroundColor: b.sessions === 0 ? c.ghost : i === last ? c.primaryMid : c.primary,
               },
             ]}
             accessible
@@ -214,17 +212,17 @@ function ActivityBars({ activity }: { activity: StatsActivityDTO }) {
   );
 }
 
-const barStyles = StyleSheet.create({
+const useBarStyles = createStyles((c) => ({
   wrap: { marginTop: 20, gap: 4 },
   caption: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
   row: { flexDirection: 'row', gap: 6 },
   track: { height: BARS_H, alignItems: 'flex-end' },
   col: { flex: 1, textAlign: 'center' },
-  count: { fontFamily: FONT.mono, fontSize: 11, lineHeight: 14, color: KINETIC.textDim },
+  count: { fontFamily: FONT.mono, fontSize: 11, lineHeight: 14, color: c.textDim },
   bar: { borderRadius: 4 },
-  label: { fontFamily: FONT.regular, fontSize: 10, lineHeight: 14, color: KINETIC.textSecondary },
-  goal: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: KINETIC.ghostHi },
-});
+  label: { fontFamily: FONT.regular, fontSize: 10, lineHeight: 14, color: c.textSecondary },
+  goal: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: c.ghostHi },
+}));
 
 // ─── Indicadores (2 colunas) ────────────────────────────────────────────────
 interface KpiData {
@@ -234,8 +232,11 @@ interface KpiData {
   delta: string;
   tone: 'good' | 'bad' | 'neutral';
 }
-const TONE_COLOR = { good: T.success, bad: T.warn, neutral: KINETIC.textSecondary } as const;
+const TONE_COLOR = { good: 'success', bad: 'warn', neutral: 'textSecondary' } as const;
 function KpiGrid({ kpis }: { kpis: ReadonlyArray<KpiData> }) {
+  const kpiStyles = useKpiStyles();
+  const styles = useStyles();
+  const c = useColors();
   return (
     <View style={kpiStyles.row}>
       {kpis.map((k) => (
@@ -245,27 +246,30 @@ function KpiGrid({ kpis }: { kpis: ReadonlyArray<KpiData> }) {
             {k.value}
             {k.unit ? <Text style={kpiStyles.unit}> {k.unit}</Text> : null}
           </Text>
-          <Text style={[kpiStyles.delta, { color: TONE_COLOR[k.tone] }]} numberOfLines={1}>{k.delta}</Text>
+          <Text style={[kpiStyles.delta, { color: c[TONE_COLOR[k.tone]] }]} numberOfLines={1}>{k.delta}</Text>
         </View>
       ))}
     </View>
   );
 }
 
-const kpiStyles = StyleSheet.create({
+const useKpiStyles = createStyles((c, s) => ({
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  cell: { flexGrow: 1, flexBasis: '45%', backgroundColor: T.card, borderRadius: RADIUS.xl, padding: 14, gap: 6 },
-  value: { fontFamily: FONT.monoSemibold, fontSize: 22, lineHeight: 28, letterSpacing: -0.5, color: T.text },
-  unit: { fontFamily: FONT.mono, fontSize: 12, letterSpacing: 0, color: KINETIC.textSecondary },
+  cell: { ...s.card, flexGrow: 1, flexBasis: '45%', backgroundColor: c.surface1, borderRadius: RADIUS.xl, padding: 14, gap: 6 },
+  value: { fontFamily: FONT.monoSemibold, fontSize: 22, lineHeight: 28, letterSpacing: -0.5, color: c.text },
+  unit: { fontFamily: FONT.mono, fontSize: 12, letterSpacing: 0, color: c.textSecondary },
   delta: { fontFamily: FONT.mono, fontSize: 11.5, lineHeight: 16 },
-});
+}));
 
 // ─── Análise (motor de regras do back-end) ──────────────────────────────────
 function InsightBlock({ insight }: { insight: StatsInsightDTO }) {
+  const insightStyles = useInsightStyles();
+  const styles = useStyles();
+  const c = useColors();
   return (
     <View style={insightStyles.box}>
       <View style={insightStyles.tagRow}>
-        <Icon name="sparkle" size={15} color={T.accent} />
+        <Icon name="sparkle" size={15} color={c.primary} />
         <Text style={styles.eyebrow}>{insight.tag}</Text>
       </View>
       <Text style={insightStyles.text}>{insight.body}</Text>
@@ -273,21 +277,25 @@ function InsightBlock({ insight }: { insight: StatsInsightDTO }) {
   );
 }
 
-const insightStyles = StyleSheet.create({
+const useInsightStyles = createStyles((c, s) => ({
   box: {
+    ...s.card,
     padding: 16,
     gap: 8,
     borderRadius: RADIUS.xl,
-    backgroundColor: T.card,
+    backgroundColor: c.surface1,
     borderWidth: 1,
-    borderColor: 'rgba(0,229,255,0.2)',
+    borderColor: c.primarySoft,
   },
   tagRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  text: { fontFamily: FONT.regular, fontSize: 14, lineHeight: 21, color: 'rgba(245,246,247,0.85)' },
-});
+  text: { fontFamily: FONT.regular, fontSize: 14, lineHeight: 21, color: c.text },
+}));
 
 // ─── Peso corporal ──────────────────────────────────────────────────────────
 function WeightCard({ weight, period, managed, onRegister }: { weight: WeightSummaryDTO; period: StatsPeriodId; managed: boolean; onRegister: () => void }) {
+  const weightStyles = useWeightStyles();
+  const styles = useStyles();
+  const c = useColors();
   const chartWidth = SCREEN_W - CONTENT_PAD * 2 - 32 - 24; // padding do card e eixo Y
   const data = weight.history.map((p: WeightPointDTO) => ({
     value: p.weight,
@@ -315,18 +323,18 @@ function WeightCard({ weight, period, managed, onRegister }: { weight: WeightSum
           width={chartWidth}
           height={130}
           areaChart
-          color={T.accent}
+          color={c.primary}
           thickness={2}
-          startFillColor={T.accent}
-          endFillColor={T.card}
+          startFillColor={c.primary}
+          endFillColor={c.surface1}
           startOpacity={0.14}
           endOpacity={0}
           hideDataPoints
           xAxisColor="transparent"
           yAxisColor="transparent"
-          yAxisTextStyle={{ color: KINETIC.textSecondary, fontSize: 10, fontFamily: FONT.mono }}
-          xAxisLabelTextStyle={{ color: KINETIC.textSecondary, fontSize: 10, fontFamily: FONT.mono }}
-          rulesColor={KINETIC.hairline}
+          yAxisTextStyle={{ color: c.textSecondary, fontSize: 10, fontFamily: FONT.mono }}
+          xAxisLabelTextStyle={{ color: c.textSecondary, fontSize: 10, fontFamily: FONT.mono }}
+          rulesColor={c.hairline}
           isAnimated
           initialSpacing={8}
         />
@@ -349,7 +357,7 @@ function WeightCard({ weight, period, managed, onRegister }: { weight: WeightSum
         </View>
         <View style={styles.flex}>
           <Text style={styles.cardSubtitleTop}>Variação</Text>
-          <Text style={[weightStyles.stat, { color: weight.delta <= 0 ? T.success : T.warn }]}>
+          <Text style={[weightStyles.stat, { color: weight.delta <= 0 ? c.success : c.warn }]}>
             {formatSignedNumberPtBR(weight.delta, 1)} {weight.unit}
           </Text>
         </View>
@@ -369,6 +377,9 @@ const ASSESSMENT_METRICS: ReadonlyArray<{ key: keyof PhysicalAssessmentDTO; labe
 ];
 
 function AssessmentCard({ assessments }: { assessments: PhysicalAssessmentDTO[] }) {
+  const assessmentStyles = useAssessmentStyles();
+  const weightStyles = useWeightStyles();
+  const styles = useStyles();
   const latest = assessments[assessments.length - 1];
   // Variação contra a avaliação anterior mais recente que mediu o mesmo item.
   const previousOf = (key: keyof PhysicalAssessmentDTO): number | null => {
@@ -413,18 +424,18 @@ function AssessmentCard({ assessments }: { assessments: PhysicalAssessmentDTO[] 
   );
 }
 
-const assessmentStyles = StyleSheet.create({
+const useAssessmentStyles = createStyles((c) => ({
   grid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: 12, marginTop: 14 },
   cell: { width: '33.33%' },
-  delta: { fontFamily: FONT.mono, fontSize: 10, lineHeight: 14, color: KINETIC.textSecondary, marginTop: 1 },
-  notes: { marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: KINETIC.hairline },
-  notesText: { fontFamily: FONT.regular, fontSize: 14, lineHeight: 21, color: T.text, marginTop: 4 },
-});
+  delta: { fontFamily: FONT.mono, fontSize: 10, lineHeight: 14, color: c.textSecondary, marginTop: 1 },
+  notes: { marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: c.hairline },
+  notesText: { fontFamily: FONT.regular, fontSize: 14, lineHeight: 21, color: c.text, marginTop: 4 },
+}));
 
-const weightStyles = StyleSheet.create({
+const useWeightStyles = createStyles((c) => ({
   stats: { flexDirection: 'row', marginTop: 14 },
-  stat: { fontFamily: FONT.monoMedium, fontSize: 14, lineHeight: 20, color: T.text, marginTop: 2 },
-});
+  stat: { fontFamily: FONT.monoMedium, fontSize: 14, lineHeight: 20, color: c.text, marginTop: 2 },
+}));
 
 // ─── Volume por categoria: barra de proporção + lista ───────────────────────
 const CATEGORY_LABEL: Record<string, string> = {
@@ -434,14 +445,17 @@ const CATEGORY_LABEL: Record<string, string> = {
   CORE: 'Core',
 };
 // Mesmas cores das fichas A/B/C, para a leitura bater entre as abas.
-const CATEGORY_COLOR: Record<string, string> = {
-  PUSH: KINETIC.primary,
-  PULL: KINETIC.record,
-  PERNAS: KINETIC.success,
-  CORE: '#a5b4fc',
+const CATEGORY_COLOR: Record<string, keyof Palette> = {
+  PUSH: 'primary',
+  PULL: 'record',
+  PERNAS: 'success',
+  CORE: 'indigo',
 };
 
 function VolumeCard({ volume }: { volume: VolumeSummaryDTO }) {
+  const volumeStyles = useVolumeStyles();
+  const styles = useStyles();
+  const c = useColors();
   const trained = volume.byMuscleGroup.filter((g) => !g.isRest && g.volume > 0);
   const totalDeltaSign = volume.deltaPercentage > 0 ? '+' : '';
 
@@ -457,7 +471,7 @@ function VolumeCard({ volume }: { volume: VolumeSummaryDTO }) {
           {trained.map((g) => (
             <View
               key={g.muscleGroup}
-              style={{ flex: g.volume, backgroundColor: CATEGORY_COLOR[g.muscleGroup] ?? KINETIC.textSecondary }}
+              style={{ flex: g.volume, backgroundColor: c[CATEGORY_COLOR[g.muscleGroup] ?? 'textSecondary'] }}
             />
           ))}
         </View>
@@ -470,7 +484,7 @@ function VolumeCard({ volume }: { volume: VolumeSummaryDTO }) {
               volumeStyles.swatch,
               g.isRest
                 ? volumeStyles.swatchRest
-                : { backgroundColor: CATEGORY_COLOR[g.muscleGroup] ?? KINETIC.textSecondary },
+                : { backgroundColor: c[CATEGORY_COLOR[g.muscleGroup] ?? 'textSecondary'] },
             ]}
           />
           <Text style={volumeStyles.name}>{CATEGORY_LABEL[g.muscleGroup] ?? g.muscleGroup}</Text>
@@ -479,7 +493,7 @@ function VolumeCard({ volume }: { volume: VolumeSummaryDTO }) {
           ) : (
             <>
               <Text style={volumeStyles.kg}>{formatVolumeKg(g.volume)}</Text>
-              <Text style={[volumeStyles.delta, { color: g.deltaPercentage >= 0 ? T.success : T.warn }]}>
+              <Text style={[volumeStyles.delta, { color: g.deltaPercentage >= 0 ? c.success : c.warn }]}>
                 {formatSignedPercent(g.deltaPercentage)}
               </Text>
             </>
@@ -490,7 +504,7 @@ function VolumeCard({ volume }: { volume: VolumeSummaryDTO }) {
   );
 }
 
-const volumeStyles = StyleSheet.create({
+const useVolumeStyles = createStyles((c) => ({
   share: { flexDirection: 'row', height: 10, borderRadius: 5, overflow: 'hidden', gap: 2, marginBottom: 6 },
   row: {
     flexDirection: 'row',
@@ -498,18 +512,20 @@ const volumeStyles = StyleSheet.create({
     gap: 10,
     height: 40,
     borderTopWidth: 1,
-    borderTopColor: KINETIC.hairline,
+    borderTopColor: c.hairline,
   },
   swatch: { width: 8, height: 8, borderRadius: 2 },
-  swatchRest: { borderWidth: 1, borderStyle: 'dashed', borderColor: KINETIC.ghostHi },
-  name: { flex: 1, fontFamily: FONT.regular, fontSize: 14, color: T.text },
-  kg: { fontFamily: FONT.mono, fontSize: 13, color: T.text },
+  swatchRest: { borderWidth: 1, borderStyle: 'dashed', borderColor: c.ghostHi },
+  name: { flex: 1, fontFamily: FONT.regular, fontSize: 14, color: c.text },
+  kg: { fontFamily: FONT.mono, fontSize: 13, color: c.text },
   delta: { width: 52, textAlign: 'right', fontFamily: FONT.mono, fontSize: 12 },
-  rest: { fontFamily: FONT.regular, fontSize: 12, color: KINETIC.textSecondary },
-});
+  rest: { fontFamily: FONT.regular, fontSize: 12, color: c.textSecondary },
+}));
 
 // ─── Screen ───────────────────────────────────────────────────────────────
 export default function StatsScreen() {
+  const styles = useStyles();
+  const c = useColors();
   const navigation = useNavigation<any>();
   const [period, setPeriod] = useState<StatsPeriodId>('month');
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -612,7 +628,7 @@ export default function StatsScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <View style={styles.center}>
-          <ActivityIndicator size="large" color={T.accent} />
+          <ActivityIndicator size="large" color={c.primary} />
         </View>
       </SafeAreaView>
     );
@@ -629,11 +645,11 @@ export default function StatsScreen() {
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <ScrollView
           contentContainerStyle={styles.zeroContainer}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={T.accent} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} />}
         >
           <View style={styles.zeroCard}>
             <View style={styles.zeroIcon}>
-              <Icon name="bar-chart" size={44} color={T.accent} strokeWidth={1.5} />
+              <Icon name="bar-chart" size={44} color={c.primary} strokeWidth={1.5} />
             </View>
             <Text style={styles.zeroTitle}>Progresso</Text>
             <Text style={styles.zeroDesc}>
@@ -653,7 +669,7 @@ export default function StatsScreen() {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={T.accent} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} />}
       >
         <View style={styles.titleBlock}>
           <Text style={styles.screenTitle} accessibilityRole="header">Progresso</Text>
@@ -694,40 +710,40 @@ export default function StatsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: T.bg },
+const useStyles = createStyles((c, s) => ({
+  container: { flex: 1, backgroundColor: c.bg },
   flex: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   scrollContent: { paddingHorizontal: CONTENT_PAD, paddingBottom: 24 },
   titleBlock: { paddingHorizontal: 4, paddingTop: 18, gap: 2 },
-  screenTitle: { fontFamily: FONT.semibold, fontSize: 24, lineHeight: 30, letterSpacing: -0.5, color: T.text },
-  periods: { marginTop: 14, backgroundColor: T.card, borderRadius: RADIUS.lg },
+  screenTitle: { fontFamily: FONT.semibold, fontSize: 24, lineHeight: 30, letterSpacing: -0.5, color: c.text },
+  periods: { ...s.card, marginTop: 14, backgroundColor: c.surface1, borderRadius: RADIUS.lg },
   sections: { gap: 12, marginTop: 14 },
-  card: { backgroundColor: T.card, borderRadius: RADIUS.xl, padding: 16 },
+  card: { ...s.card, backgroundColor: c.surface1, borderRadius: RADIUS.xl, padding: 16 },
   cardHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 14 },
-  cardTitle: { fontFamily: FONT.semibold, fontSize: 16, lineHeight: 22, color: T.text },
-  cardSubtitle: { fontFamily: FONT.regular, fontSize: 12, lineHeight: 17, color: KINETIC.textSecondary },
-  cardSubtitleTop: { fontFamily: FONT.regular, fontSize: 12, lineHeight: 16, color: KINETIC.textSecondary },
-  eyebrow: { fontFamily: FONT.semibold, fontSize: 12, lineHeight: 16, color: T.accent },
+  cardTitle: { fontFamily: FONT.semibold, fontSize: 16, lineHeight: 22, color: c.text },
+  cardSubtitle: { fontFamily: FONT.regular, fontSize: 12, lineHeight: 17, color: c.textSecondary },
+  cardSubtitleTop: { fontFamily: FONT.regular, fontSize: 12, lineHeight: 16, color: c.textSecondary },
+  eyebrow: { fontFamily: FONT.semibold, fontSize: 12, lineHeight: 16, color: c.primary },
   smallBtn: {
     height: 32,
     paddingHorizontal: 12,
     borderRadius: RADIUS.sm,
     borderWidth: 1,
-    borderColor: KINETIC.ghost,
+    borderColor: c.ghost,
     justifyContent: 'center',
   },
-  smallBtnText: { fontFamily: FONT.semibold, fontSize: 12, color: T.text },
+  smallBtnText: { fontFamily: FONT.semibold, fontSize: 12, color: c.text },
   emptyText: {
     fontFamily: FONT.regular,
-    color: KINETIC.textSecondary,
+    color: c.textSecondary,
     fontSize: 13,
     textAlign: 'center',
     paddingVertical: 24,
   },
   zeroContainer: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
-  zeroCard: { alignItems: 'center', backgroundColor: T.card, borderRadius: RADIUS.xl, padding: 32 },
+  zeroCard: { ...s.card, alignItems: 'center', backgroundColor: c.surface1, borderRadius: RADIUS.xl, padding: 32 },
   zeroIcon: { marginBottom: 20 },
-  zeroTitle: { fontFamily: FONT.semibold, color: T.text, fontSize: 22, marginBottom: 12 },
-  zeroDesc: { fontFamily: FONT.regular, color: KINETIC.textDim, fontSize: 15, textAlign: 'center', lineHeight: 22 },
-});
+  zeroTitle: { fontFamily: FONT.semibold, color: c.text, fontSize: 22, marginBottom: 12 },
+  zeroDesc: { fontFamily: FONT.regular, color: c.textDim, fontSize: 15, textAlign: 'center', lineHeight: 22 },
+}));

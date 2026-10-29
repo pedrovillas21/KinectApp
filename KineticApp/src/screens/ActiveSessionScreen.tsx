@@ -1,21 +1,23 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { View, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Text } from '../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import KeyboardAvoider from '../components/ui/KeyboardAvoider';
 import { LinearGradient } from 'expo-linear-gradient';
-import Svg, { Circle, Polyline } from 'react-native-svg';
-import { KINETIC } from '../theme/kinetic';
+
 import Icon from '../components/Icon';
 import SerieCard, { SerieStatus } from '../components/SerieCard';
+import RestTimer from '../components/RestTimer';
 import { SetLogDto, LogSessionRequestDTO, LoadType } from '../types';
 import { validateSet } from '../utils/setLimits';
+import { parseRestSeconds } from '../utils/restTime';
 import api from '../services/api';
 import useWorkoutPresence from '../hooks/useWorkoutPresence';
 import { uuidv4 } from '../utils/uuid';
 import { showAlert } from '../components/ui/AlertHost';
 import WorkoutCompleteSheet from '../components/WorkoutCompleteSheet';
 import type { FinishedWorkout } from '../navigation/types';
+import { createStyles, useColors } from '../theme/ThemeContext';
 
 // Teto do backend (LogSessionRequestDTO @Max): cronômetro esquecido aberto não perde o treino.
 const MAX_SESSION_SECONDS = 6 * 60 * 60;
@@ -68,24 +70,9 @@ function confirmedLogs(sets: SetData[], exerciseId: string): SetLogDto[] {
     }));
 }
 
-// Pequeno relógio de referência para o cabeçalho (discreto, não compete com o fluxo).
-function ClockIcon() {
-  return (
-    <Svg width={11} height={11} viewBox="0 0 24 24">
-      <Circle cx={12} cy={12} r={10} fill="none" stroke={KINETIC.textMuted} strokeWidth={2} />
-      <Polyline
-        points="12 6 12 12 16 14"
-        fill="none"
-        stroke={KINETIC.textMuted}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
 export default function ActiveSessionScreen({ navigation, route }: any) {
+  const styles = useStyles();
+  const c = useColors();
   const { markSaved } = useWorkoutPresence();
 
   const workoutData = route?.params?.workoutData;
@@ -142,7 +129,13 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
   // Carga externa com valor prescrito pede o peso; sem prescrição, o aluno escolhe.
   const weightRequired = loadType === 'EXTERNAL' && /\d/.test(String(currentExercise?.weight ?? ''));
 
+  const isLastExercise = currentIndex === exercises.length - 1;
   const [setsData, setSetsData] = useState<SetData[]>([]);
+
+  // Descanso após confirmar uma série: a próxima (inclusive a 1ª do exercício
+  // seguinte) só libera quando zerar. Fica fora do estado do exercício de propósito.
+  const [rest, setRest] = useState<{ endsAt: number; totalSeconds: number } | null>(null);
+  const endRest = useCallback(() => setRest(null), []);
 
   useEffect(() => {
     const initialSets: SetData[] = Array.from({ length: numSets }, () => ({
@@ -161,7 +154,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
 
   const statusOf = (i: number): SerieStatus => {
     if (setsData[i].completed) return 'confirmada';
-    if (i === firstPending) return 'atual';
+    if (i === firstPending) return rest ? 'descanso' : 'atual';
     return 'locked';
   };
 
@@ -186,6 +179,11 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
     const newSets = [...setsData];
     newSets[index].completed = true;
     setSetsData(newSets);
+
+    // Última série do treino: nada a esperar.
+    const lastOfWorkout = isLastExercise && index === setsData.length - 1;
+    const restSeconds = parseRestSeconds(currentExercise.restTime);
+    if (!lastOfWorkout && restSeconds) setRest({ endsAt: Date.now() + restSeconds * 1000, totalSeconds: restSeconds });
   };
 
   // Editar uma série anterior invalida a confirmação de todas as séries seguintes:
@@ -194,6 +192,8 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
   const editSet = (index: number) => {
     const newSets = setsData.map((s, i) => (i >= index ? { ...s, completed: false } : s));
     setSetsData(newSets);
+    // A série reaberta volta a ser a atual: o descanso que vinha dela não vale mais.
+    setRest(null);
   };
 
   const accumulateCurrentExerciseSets = () => {
@@ -208,8 +208,6 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
     exercisesLog,
     clientSessionId: clientSessionIdRef.current,
   });
-
-  const isLastExercise = currentIndex === exercises.length - 1;
 
   const handleNextAction = () => {
     // O CTA só fica ativo com todas as séries confirmadas; guarda por segurança.
@@ -365,13 +363,13 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <View style={styles.exitIconBox}>
-                <Icon name="arrow-left" size={15} color={KINETIC.text} strokeWidth={2.4} />
+                <Icon name="arrow-left" size={15} color={c.text} strokeWidth={2.4} />
               </View>
               <Text style={styles.exitText}>Sair da sessão</Text>
             </TouchableOpacity>
 
             <View style={styles.timerBadge}>
-              <ClockIcon />
+              <Icon name="clock" size={11} color={c.textMuted} strokeWidth={2} />
               <Text style={styles.timerText}>{formatTime(elapsedTime)}</Text>
             </View>
           </View>
@@ -381,7 +379,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
           </Text>
           <View style={styles.progressTrack}>
             <LinearGradient
-              colors={[KINETIC.primary, '#00bcd4']}
+              colors={[c.primaryFill, c.primaryFillEnd]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={[
@@ -392,7 +390,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
           </View>
         </View>
 
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.scrollContent, rest && styles.scrollContentResting]} showsVerticalScrollIndicator={false}>
           <View style={styles.exerciseHeader}>
             <Text style={styles.exerciseTitle}>{currentExercise.name.toUpperCase()}</Text>
             {!!currentExercise.muscles && (
@@ -433,6 +431,7 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
 
         {/* CTA inferior: bloqueado até todas as séries serem confirmadas */}
         <View style={styles.footer}>
+          {rest && <RestTimer endsAt={rest.endsAt} totalSeconds={rest.totalSeconds} onDone={endRest} />}
           {!allConfirmed && (
             <Text style={styles.footerHint}>
               {confirmedCount} de {setsData.length} séries confirmadas
@@ -446,27 +445,27 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
               accessibilityState={{ disabled: saving, busy: saving }}
             >
               <LinearGradient
-                colors={[KINETIC.primary, '#00bcd4']}
+                colors={[c.primaryFill, c.primaryFillEnd]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={[styles.primaryCta, saving && styles.primaryCtaSaving]}
               >
-                <Text style={[styles.primaryCtaText, { color: '#001f24' }]}>
+                <Text style={[styles.primaryCtaText, { color: c.onPrimary }]}>
                   {saving ? 'Salvando treino...' : isLastExercise ? 'Finalizar treino' : 'Próximo exercício'}
                 </Text>
                 {saving ? (
-                  <ActivityIndicator size="small" color="#001f24" />
+                  <ActivityIndicator size="small" color={c.onPrimary} />
                 ) : (
-                  <Icon name="arrow-right" size={16} color="#001f24" strokeWidth={2.5} />
+                  <Icon name="arrow-right" size={16} color={c.onPrimary} strokeWidth={2.5} />
                 )}
               </LinearGradient>
             </TouchableOpacity>
           ) : (
             <View style={[styles.primaryCta, styles.primaryCtaDisabled]}>
-              <Text style={[styles.primaryCtaText, { color: KINETIC.textMuted }]}>
+              <Text style={[styles.primaryCtaText, { color: c.textMuted }]}>
                 {isLastExercise ? 'Finalizar treino' : 'Próximo exercício'}
               </Text>
-              <Icon name="arrow-right" size={16} color={KINETIC.textMuted} strokeWidth={2.5} />
+              <Icon name="arrow-right" size={16} color={c.textMuted} strokeWidth={2.5} />
             </View>
           )}
         </View>
@@ -485,8 +484,8 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: KINETIC.bg },
+const useStyles = createStyles((c) => ({
+  container: { flex: 1, backgroundColor: c.bg },
 
   topBar: { paddingHorizontal: 16, paddingTop: 4 },
   topRow: {
@@ -500,20 +499,20 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 8,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  exitText: { color: KINETIC.textDim, fontSize: 12.5, fontWeight: '600' },
+  exitText: { color: c.textDim, fontSize: 12.5, fontWeight: '600' },
   timerBadge: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   timerText: {
-    color: KINETIC.textMuted,
+    color: c.textMuted,
     fontSize: 11.5,
     fontWeight: '600',
     fontVariant: ['tabular-nums'],
   },
   progressLabel: {
-    color: KINETIC.textDim,
+    color: c.textDim,
     fontSize: 11.5,
     fontWeight: '700',
     marginBottom: 6,
@@ -521,16 +520,18 @@ const styles = StyleSheet.create({
   progressTrack: {
     height: 4,
     borderRadius: 999,
-    backgroundColor: KINETIC.ghost,
+    backgroundColor: c.ghost,
     overflow: 'hidden',
   },
   progressFill: { height: '100%', borderRadius: 999 },
 
   scrollContent: { paddingBottom: 150 },
+  // Rodapé mais alto com o cronômetro de descanso: a última série não some atrás dele.
+  scrollContentResting: { paddingBottom: 240 },
 
   exerciseHeader: { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 4 },
   exerciseTitle: {
-    color: KINETIC.text,
+    color: c.text,
     fontSize: 21,
     fontWeight: '800',
     letterSpacing: -0.4,
@@ -542,22 +543,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 3,
     borderRadius: 999,
-    backgroundColor: KINETIC.primaryDim,
+    backgroundColor: c.primaryDim,
     borderWidth: 1,
-    borderColor: KINETIC.primarySoft,
+    borderColor: c.primarySoft,
   },
-  focusChipText: { color: KINETIC.primary, fontSize: 11, fontWeight: '700' },
+  focusChipText: { color: c.primary, fontSize: 11, fontWeight: '700' },
   notesBox: {
     marginTop: 12,
     paddingVertical: 9,
     paddingHorizontal: 11,
     borderRadius: 10,
     borderLeftWidth: 2,
-    borderLeftColor: KINETIC.primary,
-    backgroundColor: KINETIC.ghost,
+    borderLeftColor: c.primary,
+    backgroundColor: c.ghost,
   },
-  notesLabel: { color: KINETIC.textMuted, fontSize: 9.5, fontWeight: '700', letterSpacing: 0.6, marginBottom: 4 },
-  notesText: { color: KINETIC.text, fontSize: 13, lineHeight: 18 },
+  notesLabel: { color: c.textMuted, fontSize: 9.5, fontWeight: '700', letterSpacing: 0.6, marginBottom: 4 },
+  notesText: { color: c.text, fontSize: 13, lineHeight: 18 },
 
   setsContainer: { paddingHorizontal: 16, paddingTop: 14 },
 
@@ -569,11 +570,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 22,
-    backgroundColor: KINETIC.bg,
+    backgroundColor: c.bg,
   },
   footerHint: {
     textAlign: 'center',
-    color: KINETIC.textMuted,
+    color: c.textMuted,
     fontSize: 11.5,
     fontWeight: '600',
     marginBottom: 9,
@@ -586,7 +587,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 14,
   },
-  primaryCtaDisabled: { backgroundColor: KINETIC.surface2 },
+  primaryCtaDisabled: { backgroundColor: c.surface2 },
   primaryCtaSaving: { opacity: 0.7 },
   primaryCtaText: { fontSize: 15, fontWeight: '800', letterSpacing: 0.2 },
 
@@ -597,21 +598,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   emptyTitle: {
-    color: KINETIC.text,
+    color: c.text,
     fontSize: 20,
     fontWeight: '900',
     marginBottom: 20,
     textAlign: 'center',
   },
   emptyButton: {
-    backgroundColor: KINETIC.primary,
+    backgroundColor: c.primaryFill,
     borderRadius: 8,
     paddingHorizontal: 24,
     paddingVertical: 12,
   },
   emptyButtonText: {
-    color: '#001f24',
+    color: c.onPrimary,
     fontSize: 12,
     fontWeight: '900',
   },
-});
+}));

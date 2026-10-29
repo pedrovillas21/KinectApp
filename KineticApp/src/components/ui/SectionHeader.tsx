@@ -1,7 +1,8 @@
 import React from 'react';
 import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import { KINETIC } from '../../theme/kinetic';
+
 import Text from './Text';
+import { useColors } from '../../theme/ThemeContext';
 
 export interface SectionHeaderProps {
   title: string;
@@ -14,6 +15,7 @@ export interface SectionHeaderProps {
 
 /** Título de seção com ação opcional à direita ("Ver tudo"). */
 export default function SectionHeader({ title, caption, actionLabel, onAction, style }: SectionHeaderProps) {
+  const c = useColors();
   return (
     <View style={[styles.row, style]}>
       <View style={styles.texts}>
@@ -21,14 +23,14 @@ export default function SectionHeader({ title, caption, actionLabel, onAction, s
           {title}
         </Text>
         {caption ? (
-          <Text variant="caption" color={KINETIC.textSecondary}>
+          <Text variant="caption" color={c.textSecondary}>
             {caption}
           </Text>
         ) : null}
       </View>
       {actionLabel && onAction ? (
         <Pressable accessibilityRole="button" onPress={onAction} hitSlop={10} style={styles.action}>
-          <Text variant="captionStrong" color={KINETIC.primary}>
+          <Text variant="captionStrong" color={c.primary}>
             {actionLabel}
           </Text>
         </Pressable>

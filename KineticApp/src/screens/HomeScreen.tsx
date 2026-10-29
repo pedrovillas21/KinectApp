@@ -13,9 +13,10 @@ import useFocusResource from '../hooks/useFocusResource';
 import { AuthContext } from '../contexts/AuthContext';
 import api from '../services/api';
 import { getMyTrainer } from '../services/trainerService';
-import { KINETIC } from '../theme/kinetic';
+
 import type { MainTabScreenProps } from '../navigation/types';
 import type { HomeDashboardResponseDTO, NextWorkoutDTO, TrainerPeer, WorkoutPlanItem } from '../types';
+import { useColors } from '../theme/ThemeContext';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -28,6 +29,7 @@ function extractFirstName(fullName: string | undefined): string {
 // ─── Componente ──────────────────────────────────────────────────────────────
 
 export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
+  const c = useColors();
   const { currentUser } = useContext(AuthContext);
 
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
@@ -79,10 +81,10 @@ export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
       scroll={!isLoading}
       contentStyle={isLoading ? styles.loading : styles.content}
       refreshControl={
-        <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} tintColor={KINETIC.primary} />
+        <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} tintColor={c.primary} />
       }
     >
-      {isLoading && <ActivityIndicator color={KINETIC.primary} />}
+      {isLoading && <ActivityIndicator color={c.primary} />}
       {!isLoading && !dashboard && <StaleBanner visible hasData={false} onRetry={refreshAll} />}
       {!isLoading && dashboard && (
         <>

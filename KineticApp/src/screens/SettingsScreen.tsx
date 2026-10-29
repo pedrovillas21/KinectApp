@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import Constants from 'expo-constants';
 
 import InviteDialog from '../components/InviteDialog';
@@ -7,6 +7,7 @@ import PhoneDialog from '../components/settings/PhoneDialog';
 import ChangePasswordDialog from '../components/settings/ChangePasswordDialog';
 import DeleteAccountDialog from '../components/settings/DeleteAccountDialog';
 import TextSizePicker from '../components/TextSizePicker';
+import ThemePicker from '../components/ThemePicker';
 import { Avatar, Button, Dialog, ListGroup, ListRow, Screen, StackHeader, Text } from '../components/ui';
 import { AuthContext } from '../contexts/AuthContext';
 import { TEXT_SIZES, useTextScale } from '../contexts/TextScaleContext';
@@ -16,13 +17,16 @@ import { exportMyData } from '../services/accountService';
 import { PRIVACY_URL, TERMS_URL, openLegal } from '../config/legal';
 import { getPublicProfile } from '../services/profileService';
 import { getMyTrainer, getPendingInvites } from '../services/trainerService';
-import { KINETIC, RADIUS } from '../theme/kinetic';
+import { RADIUS } from '../theme/kinetic';
 import { maskCellPhone } from '../utils/whatsapp';
 import type { MainStackScreenProps } from '../navigation/types';
 import type { TrainerPeer, UserProfileResponse } from '../types';
 import { showAlert } from '../components/ui/AlertHost';
+import { THEME_OPTIONS, createStyles, useColors, useTheme } from '../theme/ThemeContext';
 
 export default function SettingsScreen({ navigation }: MainStackScreenProps<'Settings'>) {
+  const styles = useStyles();
+  const c = useColors();
   const { currentUser, signOut, changePassword, forgetRememberedUser } = useContext(AuthContext);
 
   const [exporting, setExporting] = useState(false);
@@ -31,7 +35,9 @@ export default function SettingsScreen({ navigation }: MainStackScreenProps<'Set
   const [inviteOpen, setInviteOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [textSizeOpen, setTextSizeOpen] = useState(false);
+  const [themeOpen, setThemeOpen] = useState(false);
   const { size: textSize } = useTextScale();
+  const { preference: theme } = useTheme();
 
   const myId = currentUser ? String(currentUser.id) : '';
   // Mesmas chaves do Perfil e da Home: as telas dividem o cache.
@@ -104,7 +110,7 @@ export default function SettingsScreen({ navigation }: MainStackScreenProps<'Set
           <Text variant="label" numberOfLines={1}>
             {name}
           </Text>
-          <Text variant="caption" color={KINETIC.textSecondary} numberOfLines={1}>
+          <Text variant="caption" color={c.textSecondary} numberOfLines={1}>
             {email}
           </Text>
         </View>
@@ -131,6 +137,16 @@ export default function SettingsScreen({ navigation }: MainStackScreenProps<'Set
         <ListRow icon="bell" title="Notificações" comingSoon />
         <ListRow icon="ruler" title="Unidades" value="kg · cm" />
         <ListRow icon="globe" title="Idioma" value="Português" />
+      </ListGroup>
+
+      <ListGroup title="Aparência">
+        <ListRow
+          icon="moon"
+          title="Tema do app"
+          subtitle="Escuro, claro ou o do aparelho"
+          value={THEME_OPTIONS.find((o) => o.key === theme)?.label}
+          onPress={() => setThemeOpen(true)}
+        />
       </ListGroup>
 
       <ListGroup title="Acessibilidade">
@@ -185,11 +201,15 @@ export default function SettingsScreen({ navigation }: MainStackScreenProps<'Set
       </ListGroup>
 
       {version ? (
-        <Text variant="mono" color={KINETIC.textMuted} style={styles.version}>
+        <Text variant="mono" color={c.textMuted} style={styles.version}>
           Kinetic {version}
         </Text>
       ) : null}
 
+      <Dialog visible={themeOpen} onClose={() => setThemeOpen(false)} title="Tema do app">
+        <ThemePicker />
+        <Button label="Pronto" onPress={() => setThemeOpen(false)} style={styles.done} />
+      </Dialog>
       <Dialog visible={textSizeOpen} onClose={() => setTextSizeOpen(false)} title="Tamanho do texto">
         <TextSizePicker />
         <Button label="Pronto" onPress={() => setTextSizeOpen(false)} style={styles.done} />
@@ -217,19 +237,20 @@ export default function SettingsScreen({ navigation }: MainStackScreenProps<'Set
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((c, s) => ({
   done: { marginTop: 16 },
   content: { gap: 22, paddingBottom: 32 },
   flex: { flex: 1, minWidth: 0, gap: 2 },
   accountCard: {
+    ...s.card,
     marginTop: 16,
     marginHorizontal: 16,
     padding: 14,
     borderRadius: RADIUS.xl,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
   version: { textAlign: 'center', fontSize: 11 },
-});
+}));

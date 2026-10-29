@@ -1,11 +1,13 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import { Text } from '../ui/scaled';
-import { KINETIC } from '../../theme/kinetic';
+
 import { CheckIcon } from './AuthIcons';
+import { createStyles, useColors } from '../../theme/ThemeContext';
 
 /** Item da checklist de requisitos de senha (cadastro e redefinição). */
 export default function RequirementItem({ label, met }: { label: string; met: boolean }) {
+  const styles = useStyles();
   return (
     <View style={styles.row}>
       <View style={[styles.dot, met && styles.dotMet]}>
@@ -16,7 +18,7 @@ export default function RequirementItem({ label, met }: { label: string; met: bo
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((c) => ({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -29,20 +31,20 @@ const styles = StyleSheet.create({
     height: 18,
     borderRadius: 5,
     borderWidth: 1.5,
-    borderColor: KINETIC.ghostHi,
-    backgroundColor: KINETIC.surface1,
+    borderColor: c.ghostHi,
+    backgroundColor: c.surface1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   dotMet: {
-    backgroundColor: KINETIC.success,
-    borderColor: KINETIC.success,
+    backgroundColor: c.success,
+    borderColor: c.success,
   },
   label: {
     fontSize: 12,
-    color: KINETIC.textMuted,
+    color: c.textMuted,
   },
   labelMet: {
-    color: KINETIC.success,
+    color: c.success,
   },
-});
+}));

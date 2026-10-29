@@ -1,8 +1,9 @@
 import React from 'react';
 import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import { KINETIC, RADIUS } from '../../theme/kinetic';
+import { RADIUS } from '../../theme/kinetic';
 import Icon, { IconName } from '../Icon';
 import Text from './Text';
+import { createStyles, useColors } from '../../theme/ThemeContext';
 
 export interface ListGroupProps {
   /** Rótulo acima do grupo (ex.: "Conta"). */
@@ -15,11 +16,13 @@ export interface ListGroupProps {
 
 /** Grupo de linhas estilo Ajustes: cartão único com divisórias finas. */
 export function ListGroup({ title, footnote, children, style }: ListGroupProps) {
+  const styles = useStyles();
+  const c = useColors();
   const rows = React.Children.toArray(children).filter(Boolean);
   return (
     <View style={[styles.groupWrap, style]}>
       {title ? (
-        <Text variant="captionStrong" color={KINETIC.textSecondary} style={styles.groupTitle}>
+        <Text variant="captionStrong" color={c.textSecondary} style={styles.groupTitle}>
           {title}
         </Text>
       ) : null}
@@ -31,7 +34,7 @@ export function ListGroup({ title, footnote, children, style }: ListGroupProps) 
         ))}
       </View>
       {footnote ? (
-        <Text variant="caption" color={KINETIC.textSecondary} style={styles.footnote}>
+        <Text variant="caption" color={c.textSecondary} style={styles.footnote}>
           {footnote}
         </Text>
       ) : null}
@@ -56,38 +59,40 @@ export interface ListRowProps {
 }
 
 export function ListRow({ title, subtitle, icon, value, accessory, onPress, destructive, comingSoon, selected }: ListRowProps) {
-  const color = destructive ? KINETIC.danger : KINETIC.text;
+  const styles = useStyles();
+  const c = useColors();
+  const color = destructive ? c.danger : c.text;
   const pressable = !!onPress && !comingSoon;
   const body = (
     <>
       {icon ? (
-        <View style={[styles.iconBox, destructive && { backgroundColor: KINETIC.dangerDim }]}>
-          <Icon name={icon} size={16} color={destructive ? KINETIC.danger : KINETIC.textDim} />
+        <View style={[styles.iconBox, destructive && { backgroundColor: c.dangerDim }]}>
+          <Icon name={icon} size={16} color={destructive ? c.danger : c.textDim} />
         </View>
       ) : null}
       <View style={styles.texts}>
-        <Text variant="bodyMedium" color={comingSoon ? KINETIC.textSecondary : color} numberOfLines={1}>
+        <Text variant="bodyMedium" color={comingSoon ? c.textSecondary : color} numberOfLines={1}>
           {title}
         </Text>
         {subtitle ? (
-          <Text variant="caption" color={KINETIC.textSecondary} numberOfLines={2}>
+          <Text variant="caption" color={c.textSecondary} numberOfLines={2}>
             {subtitle}
           </Text>
         ) : null}
       </View>
       {comingSoon ? (
         <View style={styles.soon}>
-          <Text variant="micro" color={KINETIC.textSecondary}>
+          <Text variant="micro" color={c.textSecondary}>
             Em breve
           </Text>
         </View>
       ) : null}
       {value && !comingSoon ? (
-        <Text variant="body" color={KINETIC.textSecondary} numberOfLines={1} style={styles.value}>
+        <Text variant="body" color={c.textSecondary} numberOfLines={1} style={styles.value}>
           {value}
         </Text>
       ) : null}
-      {accessory ?? (pressable && !destructive ? <Icon name="chevron-right" size={16} color={KINETIC.textMuted} /> : null)}
+      {accessory ?? (pressable && !destructive ? <Icon name="chevron-right" size={16} color={c.textMuted} /> : null)}
     </>
   );
 
@@ -100,7 +105,7 @@ export function ListRow({ title, subtitle, icon, value, accessory, onPress, dest
       accessibilityLabel={subtitle ? `${title}. ${subtitle}` : title}
       accessibilityState={selected === undefined ? undefined : { selected }}
       onPress={onPress}
-      android_ripple={{ color: 'rgba(255,255,255,0.05)' }}
+      android_ripple={{ color: c.subtle }}
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
       {body}
@@ -108,23 +113,23 @@ export function ListRow({ title, subtitle, icon, value, accessory, onPress, dest
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((c, s) => ({
   groupWrap: { marginHorizontal: 16, gap: 8 },
   groupTitle: { paddingHorizontal: 4 },
-  group: { backgroundColor: KINETIC.surface1, borderRadius: RADIUS.xl, overflow: 'hidden' },
-  divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(255,255,255,0.1)' },
+  group: { ...s.card, backgroundColor: c.surface1, borderRadius: RADIUS.xl, overflow: 'hidden' },
+  divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border },
   footnote: { paddingHorizontal: 4 },
   row: { minHeight: 52, paddingHorizontal: 14, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  pressed: { backgroundColor: 'rgba(255,255,255,0.03)' },
+  pressed: { backgroundColor: c.subtle },
   iconBox: {
     width: 30,
     height: 30,
     borderRadius: RADIUS.sm,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: c.subtle,
     alignItems: 'center',
     justifyContent: 'center',
   },
   texts: { flex: 1, gap: 2 },
   value: { maxWidth: '45%' },
-  soon: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: RADIUS.pill, backgroundColor: 'rgba(255,255,255,0.06)' },
-});
+  soon: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: RADIUS.pill, backgroundColor: c.divider },
+}));

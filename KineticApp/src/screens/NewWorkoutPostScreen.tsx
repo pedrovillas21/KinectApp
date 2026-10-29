@@ -8,12 +8,15 @@ import { Avatar, Button, ListGroup, ListRow, Screen, StackHeader, Text } from '.
 import { showAlert } from '../components/ui/AlertHost';
 import { AuthContext } from '../contexts/AuthContext';
 import { createPost, uploadAndCreate } from '../services/socialService';
-import { FONT, KINETIC, RADIUS } from '../theme/kinetic';
+import { FONT, RADIUS } from '../theme/kinetic';
 import type { MainStackScreenProps } from '../navigation/types';
 import type { PostIntensity } from '../types';
+import { createStyles, useColors } from '../theme/ThemeContext';
 
 /** Prévia e publicação da foto do treino recém-concluído, já ligada à sessão salva. */
 export default function NewWorkoutPostScreen({ navigation, route }: MainStackScreenProps<'NewWorkoutPost'>) {
+  const styles = useStyles();
+  const c = useColors();
   const { workout, photoUri } = route.params;
   const { currentUser } = useContext(AuthContext);
   const [caption, setCaption] = useState('');
@@ -65,7 +68,7 @@ export default function NewWorkoutPostScreen({ navigation, route }: MainStackScr
         <TextInput
           style={styles.caption}
           placeholder="Escreva uma legenda..."
-          placeholderTextColor={KINETIC.placeholder}
+          placeholderTextColor={c.placeholder}
           accessibilityLabel="Legenda"
           value={caption}
           onChangeText={setCaption}
@@ -81,7 +84,7 @@ export default function NewWorkoutPostScreen({ navigation, route }: MainStackScr
           subtitle={`Hoje · ${workout.setsCount} séries · ${workout.exercisesCount} exercícios`}
           accessory={
             <View style={styles.tag}>
-              <Text variant="micro" color={KINETIC.primary}>
+              <Text variant="micro" color={c.primary}>
                 Marcado
               </Text>
             </View>
@@ -94,14 +97,14 @@ export default function NewWorkoutPostScreen({ navigation, route }: MainStackScr
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((c) => ({
   content: { gap: 16, paddingTop: 4 },
   photo: {
     marginHorizontal: 16,
     aspectRatio: 4 / 5,
     borderRadius: RADIUS.xl,
     overflow: 'hidden',
-    backgroundColor: KINETIC.media,
+    backgroundColor: c.media,
   },
   retake: {
     position: 'absolute',
@@ -122,16 +125,16 @@ const styles = StyleSheet.create({
     fontFamily: FONT.regular,
     fontSize: 15,
     lineHeight: 21,
-    color: KINETIC.text,
+    color: c.text,
     textAlignVertical: 'top',
   },
-  tag: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: RADIUS.xs, backgroundColor: KINETIC.primaryDim },
+  tag: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: RADIUS.xs, backgroundColor: c.primaryDim },
   footer: {
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 8,
     borderTopWidth: 1,
-    borderTopColor: KINETIC.hairline,
-    backgroundColor: KINETIC.bg,
+    borderTopColor: c.hairline,
+    backgroundColor: c.bg,
   },
-});
+}));
