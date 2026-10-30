@@ -2,6 +2,7 @@ package com.kinetic.services;
 
 import com.kinetic.dtos.AuthResponseDTO;
 import com.kinetic.dtos.TotpDTOs;
+import com.kinetic.enums.AuditAction;
 import com.kinetic.enums.Role;
 import com.kinetic.exceptions.InvalidCodeException;
 import com.kinetic.exceptions.TooManyAttemptsException;
@@ -24,6 +25,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -57,6 +59,7 @@ public class TotpService {
     private final RateLimiter rateLimiter;
     private final AuthService authService;
     private final RefreshTokenService refreshTokenService;
+    private final AuditService auditService;
 
     private final SecureRandom random = new SecureRandom();
 
@@ -98,6 +101,7 @@ public class TotpService {
         long step = Totp.matchingStep(cipher.decrypt(user.getTotpSecret()), code, Totp.currentStep(System.currentTimeMillis()));
         // Mesmo código (ou um mais antigo) não entra de novo: quem o viu de passagem não reaproveita.
         if (step < 0 || (user.getTotpLastStep() != null && step <= user.getTotpLastStep())) {
+            recordFailure(user, "CODE");
             throw new InvalidCodeException(INVALID);
         }
         user.setTotpLastStep(step);
@@ -106,6 +110,7 @@ public class TotpService {
         if (user.getTotpEnabledAt() == null) {
             user.setTotpEnabledAt(Instant.now());
             recoveryCodes = newRecoveryCodes(user);
+            auditService.record(AuditAction.TOTP_ENABLED, user.getId(), user.getCompanyId(), null, null);
         }
         userRepository.save(user);
         AuthResponseDTO session = authService.issueSession(user, ip);
@@ -124,18 +129,24 @@ public class TotpService {
         TotpRecoveryCode match = recoveryRepository.findByUserIdAndUsedAtIsNull(user.getId()).stream()
                 .filter(c -> passwordEncoder.matches(normalized, c.getCodeHash()))
                 .findFirst()
-                .orElseThrow(() -> new InvalidCodeException("Código de recuperação inválido ou já usado."));
+                .orElse(null);
+        if (match == null) {
+            recordFailure(user, "RECOVERY_CODE");
+            throw new InvalidCodeException("Código de recuperação inválido ou já usado.");
+        }
         match.setUsedAt(Instant.now());
         recoveryRepository.save(match);
+        auditService.record(AuditAction.RECOVERY_CODE_USED, user.getId(), user.getCompanyId(), null, null);
         return new TotpDTOs.LoginResponse(authService.issueSession(user, ip), List.of());
     }
 
     /**
      * Apaga o segundo fator (celular perdido, troca de responsável): o próximo login volta
-     * ao cadastro do app. Encerra as sessões abertas, inclusive os access tokens.
+     * ao cadastro do app. Encerra as sessões abertas, inclusive os access tokens. Serve o
+     * ROOT (motivo obrigatório) e o dono da rede (sem motivo).
      */
     @Transactional
-    public void reset(User user) {
+    public void reset(User user, String reason) {
         user.setTotpSecret(null);
         user.setTotpEnabledAt(null);
         user.setTotpLastStep(null);
@@ -143,6 +154,7 @@ public class TotpService {
         userRepository.save(user);
         recoveryRepository.deleteByUserId(user.getId());
         refreshTokenService.revokeAllForUser(user);
+        auditService.record(AuditAction.SECOND_FACTOR_RESET, user.getId(), user.getCompanyId(), reason, null);
     }
 
     private User challengeUser(String challengeToken) {
@@ -161,8 +173,13 @@ public class TotpService {
 
     private void countGuess(User user) {
         if (rateLimiter.acquire("totp-guess:" + user.getId(), MAX_GUESSES_PER_HOUR, GUESS_WINDOW_MS) > 0) {
+            recordFailure(user, "TOO_MANY_ATTEMPTS");
             throw new TooManyAttemptsException("Muitas tentativas com código errado. Aguarde uma hora e tente de novo.");
         }
+    }
+
+    private void recordFailure(User user, String cause) {
+        auditService.record(AuditAction.TOTP_FAILED, user.getId(), user.getCompanyId(), null, Map.of("cause", cause));
     }
 
     private List<String> newRecoveryCodes(User user) {

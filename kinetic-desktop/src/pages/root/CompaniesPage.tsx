@@ -31,8 +31,11 @@ import { formatCnpj, slugify } from '../../utils/company';
 import type { Company } from '../../types';
 import { errorMessage } from '../../utils/errors';
 import { dateLabel } from '../../utils/dates';
+import ConfirmDialog from '../../components/personal/ConfirmDialog';
 
 const EMPTY_FORM = { companyName: '', companyCnpj: '', slug: '', ownerName: '', ownerEmail: '' };
+
+type OwnerAction = 'senha' | '2fa';
 
 /** Redes de empresas: o ROOT cria a rede e o acesso do dono; as filiais são do dono. */
 export default function CompaniesPage() {
@@ -45,6 +48,8 @@ export default function CompaniesPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [slugTouched, setSlugTouched] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [pending, setPending] = useState<{ company: Company; action: OwnerAction } | null>(null);
+  const [reason, setReason] = useState('');
 
   const load = async () => {
     setLoading(true);
@@ -81,17 +86,26 @@ export default function CompaniesPage() {
     }
   };
 
-  const ownerAction = async (c: Company, action: 'senha' | '2fa') => {
-    if (!c.ownerId) return;
-    setBusyId(c.ownerId);
+  /** Abre a confirmação: as duas ações derrubam as sessões do dono e exigem motivo (auditoria). */
+  const ownerAction = (c: Company, action: OwnerAction) => {
+    setReason('');
+    setPending({ company: c, action });
+  };
+
+  const confirmOwnerAction = async () => {
+    if (!pending?.company.ownerId) return;
+    const { company: c, action } = pending;
+    const ownerId = pending.company.ownerId;
+    setBusyId(ownerId);
     try {
       if (action === 'senha') {
-        await regeneratePassword(c.ownerId);
+        await regeneratePassword(ownerId, reason.trim());
         toast.success(`Nova senha enviada para ${c.ownerEmail}.`);
       } else {
-        await resetSecondFactor(c.ownerId);
+        await resetSecondFactor(ownerId, reason.trim());
         toast.success('App autenticador redefinido. No próximo login o dono cadastra o app de novo.');
       }
+      setPending(null);
     } catch (err: unknown) {
       toast.error(errorMessage(err, 'Não foi possível concluir.'));
     } finally {
@@ -235,13 +249,13 @@ export default function CompaniesPage() {
                             label: 'Nova senha do dono',
                             icon: KeyRound,
                             disabled: busyId === c.ownerId,
-                            onClick: () => void ownerAction(c, 'senha'),
+                            onClick: () => ownerAction(c, 'senha'),
                           },
                           {
                             label: 'Redefinir 2FA do dono',
                             icon: ShieldOff,
                             disabled: busyId === c.ownerId,
-                            onClick: () => void ownerAction(c, '2fa'),
+                            onClick: () => ownerAction(c, '2fa'),
                           },
                         ]
                       : undefined
@@ -288,7 +302,7 @@ export default function CompaniesPage() {
                               variant="ghost"
                               size="sm"
                               disabled={busyId === c.ownerId}
-                              onClick={() => void ownerAction(c, 'senha')}
+                              onClick={() => ownerAction(c, 'senha')}
                             >
                               <KeyRound className="w-4 h-4" /> Nova senha
                             </Button>
@@ -296,7 +310,7 @@ export default function CompaniesPage() {
                               variant="ghost"
                               size="sm"
                               disabled={busyId === c.ownerId}
-                              onClick={() => void ownerAction(c, '2fa')}
+                              onClick={() => ownerAction(c, '2fa')}
                             >
                               <ShieldOff className="w-4 h-4" /> Redefinir 2FA
                             </Button>
@@ -311,6 +325,30 @@ export default function CompaniesPage() {
           </>
         )}
       </div>
+
+      <ConfirmDialog
+        open={pending !== null}
+        title={pending?.action === '2fa' ? 'Redefinir o 2FA do dono' : 'Gerar nova senha do dono'}
+        description={
+          pending?.action === '2fa' ? (
+            <>
+              O app autenticador de <strong>{pending.company.ownerName}</strong> deixa de valer e as sessões abertas
+              caem. No próximo login o dono cadastra o app de novo. Use para celular perdido ou troca de responsável.
+            </>
+          ) : (
+            <>
+              Uma senha nova vai para <strong>{pending?.company.ownerEmail}</strong>; a anterior deixa de valer e as
+              sessões abertas caem.
+            </>
+          )
+        }
+        confirmLabel={pending?.action === '2fa' ? 'Redefinir 2FA' : 'Gerar nova senha'}
+        destructive
+        busy={busyId !== null && busyId === pending?.company.ownerId}
+        reason={{ value: reason, onChange: setReason }}
+        onConfirm={() => void confirmOwnerAction()}
+        onCancel={() => setPending(null)}
+      />
     </div>
   );
 }

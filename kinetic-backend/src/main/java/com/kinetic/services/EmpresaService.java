@@ -9,6 +9,7 @@ import com.kinetic.dtos.TrainerCompanyDTO;
 import com.kinetic.dtos.TrainerLinkDTO;
 import com.kinetic.dtos.TrainerLinkDTO.PeerDTO;
 import com.kinetic.dtos.UserAdminDTO;
+import com.kinetic.enums.AuditAction;
 import com.kinetic.enums.Role;
 import com.kinetic.enums.TrainerLinkStatus;
 import com.kinetic.exceptions.ActiveTrainerConflictException;
@@ -27,6 +28,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -46,6 +48,7 @@ public class EmpresaService {
     private final FeedbackService feedbackService;
     private final CompanyRepository companyRepository;
     private final TrainerEventService trainerEventService;
+    private final AuditService auditService;
 
     /** company_id do usuário EMPRESA logado; erro se a conta não tiver empresa. */
     @Transactional(readOnly = true)
@@ -98,6 +101,7 @@ public class EmpresaService {
         }
         personal.setPendingCompanyId(companyId);
         User saved = userRepository.save(personal);
+        auditService.record(AuditAction.TRAINER_INVITED_TO_COMPANY, saved.getId(), companyId, null, null);
         trainerEventService.publishAfterCommit(saved.getId(), "company", null);
         return UserAdminDTO.fromEntity(saved);
     }
@@ -111,12 +115,16 @@ public class EmpresaService {
         if (companyId.equals(personal.getPendingCompanyId())) {
             personal.setPendingCompanyId(null);
             userRepository.save(personal);
+            auditService.record(AuditAction.TRAINER_REMOVED_FROM_COMPANY, personal.getId(), companyId, null,
+                    Map.of("pendingInvite", true));
             return;
         }
         if (!companyId.equals(personal.getCompanyId())) {
             throw new EntityNotFoundException("Personal não encontrado.");
         }
         leaveCompany(personal, companyId);
+        auditService.record(AuditAction.TRAINER_REMOVED_FROM_COMPANY, personal.getId(), companyId, null,
+                Map.of("pendingInvite", false));
     }
 
     // ── Lado do personal: convite e saída da empresa ──────────────────────────
@@ -140,14 +148,19 @@ public class EmpresaService {
         personal.setCompanyId(personal.getPendingCompanyId());
         personal.setPendingCompanyId(null);
         userRepository.save(personal);
+        auditService.record(AuditAction.COMPANY_INVITE_ACCEPTED, personal.getId(), personal.getCompanyId(), null, null);
         return getTrainerCompany(personalEmail);
     }
 
     @Transactional
     public void declineCompanyInvite(String personalEmail) {
         User personal = userRepository.getByEmailOrThrow(personalEmail);
+        UUID pending = personal.getPendingCompanyId();
         personal.setPendingCompanyId(null);
         userRepository.save(personal);
+        if (pending != null) {
+            auditService.record(AuditAction.COMPANY_INVITE_DECLINED, personal.getId(), pending, null, null);
+        }
     }
 
     /** O personal sai da empresa por conta própria. */
@@ -157,7 +170,9 @@ public class EmpresaService {
         if (personal.getCompanyId() == null) {
             throw new EntityNotFoundException("Você não está vinculado a nenhuma empresa.");
         }
-        leaveCompany(personal, personal.getCompanyId());
+        UUID companyId = personal.getCompanyId();
+        leaveCompany(personal, companyId);
+        auditService.record(AuditAction.TRAINER_LEFT_COMPANY, personal.getId(), companyId, null, null);
     }
 
     /** Tira o personal da empresa e encerra os alunos que ela atribuiu a ele. */
@@ -203,13 +218,17 @@ public class EmpresaService {
         User student = userRepository.findByEmail(studentEmail)
                 .orElseThrow(() -> new IllegalArgumentException(TrainerLinkService.INVITE_NOT_POSSIBLE));
         // Cria um convite PENDENTE: o vínculo só fica ATIVO quando o aluno aceitar no app.
-        return trainerLinkService.assignStudentToTrainer(companyId, trainer.getId(), student.getId());
+        TrainerLinkDTO link = trainerLinkService.assignStudentToTrainer(companyId, trainer.getId(), student.getId());
+        auditService.record(AuditAction.STUDENT_LINKED_BY_COMPANY, student.getId(), companyId, null,
+                Map.of("trainerId", trainer.getId(), "linkId", link.id()));
+        return link;
     }
 
     @Transactional
     public void desvincularAluno(String empresaEmail, UUID linkId) {
         UUID companyId = resolveCompanyId(empresaEmail);
         trainerLinkService.endCompanyLink(companyId, linkId);
+        auditService.record(AuditAction.COMPANY_LINK_ENDED, linkId, companyId, null, null);
     }
 
     // ── Feedbacks ─────────────────────────────────────────────────────────────

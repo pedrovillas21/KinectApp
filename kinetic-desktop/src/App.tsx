@@ -31,6 +31,10 @@ const RootHomePage = lazy(() => import('./pages/root/RootHomePage'));
 const CompaniesPage = lazy(() => import('./pages/root/CompaniesPage'));
 const PersonaisPage = lazy(() => import('./pages/root/PersonaisPage'));
 const CompliancePage = lazy(() => import('./pages/root/CompliancePage'));
+const AuditEventsPage = lazy(() => import('./pages/root/audit/AuditEventsPage'));
+const AuditAccessLogsPage = lazy(() => import('./pages/root/audit/AuditAccessLogsPage'));
+const AuditAiPage = lazy(() => import('./pages/root/audit/AuditAiPage'));
+const AuditLgpdPage = lazy(() => import('./pages/root/audit/AuditLgpdPage'));
 const EmpresaHomePage = lazy(() => import('./pages/empresa/EmpresaHomePage'));
 const FuncionariosPage = lazy(() => import('./pages/empresa/FuncionariosPage'));
 const ClientesPage = lazy(() => import('./pages/empresa/ClientesPage'));
@@ -97,10 +101,17 @@ export default function App() {
           <Route path="empresas" element={<CompaniesPage />} />
           <Route path="personais" element={<PersonaisPage />} />
           <Route path="usuarios" element={<CompliancePage />} />
-          <Route
-            path="auditoria"
-            element={<ComingSoonPage title="Auditoria" subtitle="Logs de sistema e histórico de acessos" />}
-          />
+          {/* Auditoria: submenu na barra lateral. A key separa o estado (filtros) de cada categoria. */}
+          <Route path="auditoria">
+            <Route index element={<Navigate to="acoes" replace />} />
+            <Route path="acoes" element={<AuditEventsPage key="ADMIN" category="ADMIN" />} />
+            <Route path="seguranca" element={<AuditEventsPage key="SECURITY" category="SECURITY" />} />
+            <Route path="acessos" element={<AuditAccessLogsPage />} />
+            <Route path="saude" element={<AuditEventsPage key="HEALTH" category="HEALTH" />} />
+            <Route path="ia" element={<AuditAiPage />} />
+            <Route path="cobranca" element={<AuditEventsPage key="BILLING" category="BILLING" />} />
+            <Route path="lgpd" element={<AuditLgpdPage />} />
+          </Route>
           <Route
             path="faturamento"
             element={<ComingSoonPage title="Faturamento" subtitle="Métricas de negócio macro" />}

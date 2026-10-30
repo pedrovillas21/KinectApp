@@ -3,6 +3,7 @@ package com.kinetic.controllers;
 import com.kinetic.dtos.CompanyDTO;
 import com.kinetic.dtos.CreateCompanyRequestDTO;
 import com.kinetic.dtos.CreatePersonalRequestDTO;
+import com.kinetic.dtos.ReasonDTO;
 import com.kinetic.dtos.RootMetricsDTO;
 import com.kinetic.dtos.UpdateUserStatusRequestDTO;
 import com.kinetic.dtos.UserAdminDTO;
@@ -25,7 +26,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
-/** Endpoints do ROOT (admin global): provisionamento, métricas e compliance. */
+/**
+ * Endpoints do ROOT (admin global): provisionamento, métricas e compliance. As ações
+ * destrutivas exigem motivo no corpo (inclusive nos DELETE), gravado na trilha de auditoria.
+ */
 @RestController
 @RequestMapping("/api/root")
 @RequiredArgsConstructor
@@ -87,30 +91,30 @@ public class RootController extends BaseController {
     public ResponseEntity<UserAdminDTO> setUserStatus(
             @PathVariable UUID id,
             @Valid @RequestBody UpdateUserStatusRequestDTO dto) {
-        return ResponseEntity.ok(companyService.setUserStatus(id, dto.status()));
+        return ResponseEntity.ok(companyService.setUserStatus(id, dto.status(), dto.reason()));
     }
 
     @Operation(summary = "Gerar nova senha para um dono ou filial",
             description = "A senha nova vai ao e-mail do dono (ou ao e-mail de contato da filial); as sessões abertas "
                     + "são encerradas.")
     @PostMapping("/users/{id}/nova-senha")
-    public ResponseEntity<Void> regeneratePassword(@PathVariable UUID id) {
-        companyService.regeneratePassword(id);
+    public ResponseEntity<Void> regeneratePassword(@PathVariable UUID id, @Valid @RequestBody ReasonDTO dto) {
+        companyService.regeneratePassword(id, dto.reason());
         return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Redefinir o app autenticador de um dono ou filial",
             description = "Para celular perdido: o próximo login volta ao cadastro do app. Encerra as sessões.")
     @PostMapping("/users/{id}/reset-2fa")
-    public ResponseEntity<Void> resetSecondFactor(@PathVariable UUID id) {
-        companyService.resetSecondFactor(id);
+    public ResponseEntity<Void> resetSecondFactor(@PathVariable UUID id, @Valid @RequestBody ReasonDTO dto) {
+        companyService.resetSecondFactor(id, dto.reason());
         return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Excluir (soft-delete) uma conta")
     @DeleteMapping("/users/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
-        companyService.softDeleteUser(id);
+    public ResponseEntity<Void> deleteUser(@PathVariable UUID id, @Valid @RequestBody ReasonDTO dto) {
+        companyService.softDeleteUser(id, dto.reason());
         return ResponseEntity.noContent().build();
     }
 
@@ -120,8 +124,8 @@ public class RootController extends BaseController {
                     + "bloqueada). Conta bloqueada fica marcada: o mesmo e-mail/CPF não cria conta nova."
     )
     @DeleteMapping("/users/{id}/permanent")
-    public ResponseEntity<Void> deleteUserPermanently(@PathVariable @NonNull UUID id) {
-        accountDeletionService.deleteAccountByAdmin(id);
+    public ResponseEntity<Void> deleteUserPermanently(@PathVariable @NonNull UUID id, @Valid @RequestBody ReasonDTO dto) {
+        accountDeletionService.deleteAccountByAdmin(id, dto.reason());
         return ResponseEntity.noContent().build();
     }
 

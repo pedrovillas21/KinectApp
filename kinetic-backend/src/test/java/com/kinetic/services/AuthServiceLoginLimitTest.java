@@ -1,5 +1,6 @@
 package com.kinetic.services;
 
+import com.kinetic.security.Pseudonymizer;
 import com.kinetic.dtos.LoginDTO;
 import com.kinetic.exceptions.TooManyAttemptsException;
 import com.kinetic.repositories.UserRepository;
@@ -28,7 +29,7 @@ class AuthServiceLoginLimitTest {
     private final AuthService service = new AuthService(mock(UserRepository.class), mock(PasswordEncoder.class),
             mock(JwtUtil.class), authManager, mock(RefreshTokenService.class), mock(UserService.class),
             mock(EmailVerificationService.class), mock(TermsService.class), mock(LegalRetentionService.class),
-            new InMemoryRateLimiter(now::get));
+            new InMemoryRateLimiter(now::get), mock(AuditService.class), mock(Pseudonymizer.class));
 
     @BeforeEach
     void setUp() {

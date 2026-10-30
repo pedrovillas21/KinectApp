@@ -6,6 +6,7 @@ import com.kinetic.dtos.EmpresaStudentLinkDTO;
 import com.kinetic.dtos.FeedbackDTO;
 import com.kinetic.dtos.UnitDTOs;
 import com.kinetic.dtos.UserAdminDTO;
+import com.kinetic.enums.AuditAction;
 import com.kinetic.enums.Role;
 import com.kinetic.enums.TrainerLinkStatus;
 import com.kinetic.enums.UserStatus;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -45,6 +47,7 @@ public class DonoService {
     private final FeedbackService feedbackService;
     private final TotpService totpService;
     private final RefreshTokenService refreshTokenService;
+    private final AuditService auditService;
 
     @Transactional(readOnly = true)
     public UnitDTOs.Network getNetwork(String donoEmail) {
@@ -99,6 +102,8 @@ public class DonoService {
                 "A filial " + unit.getNome() + " da rede " + network.getNome() + " foi cadastrada no Kinetic e você "
                         + "é o responsável por ela. Use o acesso abaixo no painel.",
                 username, password);
+        auditService.record(AuditAction.UNIT_CREATED, unit.getId(), unit.getId(), null,
+                Map.of("networkId", network.getId()));
         return toResponse(unit);
     }
 
@@ -111,6 +116,8 @@ public class DonoService {
             a.setNome(saved.getNome());
             userRepository.save(a);
         });
+        auditService.record(AuditAction.UNIT_UPDATED, saved.getId(), saved.getId(), null,
+                Map.of("networkId", saved.getParentId()));
         return toResponse(saved);
     }
 
@@ -118,6 +125,8 @@ public class DonoService {
     @Transactional
     public UnitDTOs.Response setUnitActive(String donoEmail, UUID unitId, boolean active) {
         Company unit = ownedUnit(donoEmail, unitId);
+        auditService.record(AuditAction.UNIT_STATUS_CHANGED, unit.getId(), unit.getId(), null,
+                Map.of("from", unit.isActive(), "to", active));
         unit.setActive(active);
         companyRepository.save(unit);
         User account = requireAccount(unit);
@@ -132,12 +141,12 @@ public class DonoService {
     @Transactional
     public void regenerateUnitPassword(String donoEmail, UUID unitId) {
         Company unit = ownedUnit(donoEmail, unitId);
-        accessService.regenerate(requireAccount(unit), unit.getContactEmail(), requireAccount(unit).getUsername());
+        accessService.regenerate(requireAccount(unit), unit.getContactEmail(), requireAccount(unit).getUsername(), null);
     }
 
     @Transactional
     public void resetUnitSecondFactor(String donoEmail, UUID unitId) {
-        totpService.reset(requireAccount(ownedUnit(donoEmail, unitId)));
+        totpService.reset(requireAccount(ownedUnit(donoEmail, unitId)), null);
     }
 
     // ── Acompanhamento (somente leitura) ────────────────────────────────────

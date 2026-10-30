@@ -7,6 +7,7 @@ import com.kinetic.dtos.ChangePasswordDTO;
 import com.kinetic.dtos.UpdatePhoneRequestDTO;
 import com.kinetic.dtos.UpdateWeightRequestDTO;
 import com.kinetic.dtos.UserProfileResponseDTO;
+import com.kinetic.enums.AuditAction;
 import com.kinetic.enums.TrainerLinkStatus;
 import com.kinetic.exceptions.TrainerManagedPlanException;
 import com.kinetic.models.User;
@@ -39,6 +40,7 @@ public class UserService {
     private final RefreshTokenService refreshTokenService;
     private final TrainerClientRepository trainerClientRepository;
     private final TermsService termsService;
+    private final AuditService auditService;
 
     @Transactional
     public void updateUserWeight(String userEmail, UpdateWeightRequestDTO dto) {
@@ -91,6 +93,7 @@ public class UserService {
         // Invalida todas as sessões (refresh tokens) após a troca: o usuário
         // precisa entrar novamente com a nova senha em todos os dispositivos.
         refreshTokenService.revokeAllForUser(user);
+        auditService.record(AuditAction.PASSWORD_CHANGED, user.getId(), user.getCompanyId(), null, null);
     }
 
     @Transactional

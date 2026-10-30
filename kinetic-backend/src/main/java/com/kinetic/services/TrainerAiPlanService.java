@@ -13,6 +13,7 @@ import com.kinetic.dtos.TrainerAiPlanApproveRequestDTO;
 import com.kinetic.dtos.TrainerAiPlanRequestDTO;
 import com.kinetic.dtos.TrainerWorkoutPlanRequestDTO;
 import com.kinetic.dtos.WorkoutPlanResponseDTO;
+import com.kinetic.enums.AuditAction;
 import com.kinetic.exceptions.AiPlanPreviewException;
 import com.kinetic.exceptions.AiQuotaExceededException;
 import com.kinetic.models.AiPlanGeneration;
@@ -85,12 +86,15 @@ public class TrainerAiPlanService {
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
     private final LockProvider lockProvider;
+    private final AuditService auditService;
 
-    /** O que a IA vai considerar do aluno (anamnese do app). */
-    @Transactional(readOnly = true)
+    /** O que a IA vai considerar do aluno (anamnese do app). Sem readOnly: grava o registro de auditoria. */
+    @Transactional
     public AiPlanContextDTO getContext(String trainerEmail, @NonNull UUID studentId) {
         User student = trainerLinkService.resolveOwnedStudent(trainerEmail, studentId);
         int activePlans = workoutPlanRepository.findByUserIdAndStatus(student.getId(), "active").size();
+        // Inclui a anamnese (condições médicas): leitura de dado de saúde.
+        auditService.record(AuditAction.HEALTH_DATA_VIEWED, student.getId(), null, null, Map.of("kind", "AI_CONTEXT"));
         return new AiPlanContextDTO(
                 Strings.trimOrNull(student.getGoal()),
                 TrainerPlanService.resolveLevel(null, null, student.getLevel()),

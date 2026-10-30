@@ -6,7 +6,7 @@ interface Props {
   subtitle?: string;
 }
 
-/** Rota de feature ainda não construída (placeholder "no caro": auditoria, faturamento). */
+/** Rota de feature ainda não construída (hoje só o Faturamento do ROOT). */
 export default function ComingSoonPage({ title, subtitle }: Props) {
   return (
     <div className="flex flex-col min-h-full">

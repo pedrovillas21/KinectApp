@@ -3,6 +3,7 @@ package com.kinetic.services;
 import com.kinetic.utils.Numbers;
 import com.kinetic.dtos.PhysicalAssessmentDTOs.Request;
 import com.kinetic.dtos.PhysicalAssessmentDTOs.Response;
+import com.kinetic.enums.AuditAction;
 import com.kinetic.models.PhysicalAssessment;
 import com.kinetic.models.User;
 import com.kinetic.models.WeightHistory;
@@ -17,7 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -37,6 +40,7 @@ public class PhysicalAssessmentService {
     private final TrainerLinkService trainerLinkService;
     private final UserRepository userRepository;
     private final WeightHistoryRepository weightHistoryRepository;
+    private final AuditService auditService;
 
     /** Lado do aluno: as próprias avaliações, com os pareceres do personal. */
     @Transactional(readOnly = true)
@@ -47,12 +51,15 @@ public class PhysicalAssessmentService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
+    /** Sem readOnly: a leitura grava o registro de auditoria na mesma conexão. */
+    @Transactional
     public List<Response> list(String trainerEmail, @NonNull UUID studentId) {
         User student = trainerLinkService.resolveOwnedStudent(trainerEmail, studentId);
-        return repository.findByStudentIdOrderByAssessedOnAscCreatedAtAsc(student.getId()).stream()
+        List<Response> result = repository.findByStudentIdOrderByAssessedOnAscCreatedAtAsc(student.getId()).stream()
                 .map(PhysicalAssessmentService::toResponse)
                 .toList();
+        auditService.record(AuditAction.HEALTH_DATA_VIEWED, student.getId(), null, null, Map.of("kind", "ASSESSMENTS"));
+        return result;
     }
 
     @Transactional
@@ -65,6 +72,7 @@ public class PhysicalAssessmentService {
         apply(a, request);
         PhysicalAssessment saved = repository.save(a);
         syncBodyMetrics(student, saved.getAssessedOn(), null);
+        recordWrite(AuditAction.ASSESSMENT_CREATED, saved);
         return toResponse(saved);
     }
 
@@ -82,14 +90,24 @@ public class PhysicalAssessmentService {
             syncBodyMetrics(saved.getStudent(), oldDate, oldWeight);
         }
         syncBodyMetrics(saved.getStudent(), saved.getAssessedOn(), moved ? null : oldWeight);
+        recordWrite(AuditAction.ASSESSMENT_UPDATED, saved);
         return toResponse(saved);
     }
 
     @Transactional
     public void delete(String trainerEmail, @NonNull UUID studentId, @NonNull UUID assessmentId) {
         PhysicalAssessment a = owned(trainerEmail, studentId, assessmentId);
+        recordWrite(AuditAction.ASSESSMENT_DELETED, a);
         repository.delete(a);
         syncBodyMetrics(a.getStudent(), a.getAssessedOn(), a.getWeightKg());
+    }
+
+    /** O autor original fica no registro: a avaliação é documento profissional de quem a assinou. */
+    private void recordWrite(AuditAction action, PhysicalAssessment a) {
+        Map<String, Object> details = new HashMap<>();
+        details.put("assessmentId", a.getId());
+        details.put("authorId", a.getTrainer() == null ? null : a.getTrainer().getId());
+        auditService.record(action, a.getStudent().getId(), null, null, details);
     }
 
     // ── Internos ────────────────────────────────────────────────────────────

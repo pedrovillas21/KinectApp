@@ -30,7 +30,8 @@ class PhysicalAssessmentServiceTest {
     private final TrainerLinkService links = mock(TrainerLinkService.class);
     private final UserRepository users = mock(UserRepository.class);
     private final WeightHistoryRepository weights = mock(WeightHistoryRepository.class);
-    private final PhysicalAssessmentService service = new PhysicalAssessmentService(assessments, links, users, weights);
+    private final PhysicalAssessmentService service = new PhysicalAssessmentService(assessments, links, users, weights,
+            mock(AuditService.class));
 
     private final User trainer = user("personal@test.local");
     private final User student = user("aluno@test.local");

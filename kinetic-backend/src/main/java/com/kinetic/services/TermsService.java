@@ -27,6 +27,10 @@ public class TermsService {
         this.currentVersion = currentVersion;
     }
 
+    public String currentVersion() {
+        return currentVersion;
+    }
+
     /** ROOT é a própria operação do Kinetic, não um titular usando o serviço: nunca é barrado. */
     public boolean isAccepted(User user) {
         return user.getRole() == Role.ROOT || currentVersion.equals(user.getTermsVersion());

@@ -117,6 +117,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
     }
 
+    /** Parâmetro de URL com tipo errado (ex.: categoria ou data inválida). Mesmo motivo do handler acima. */
+    @ExceptionHandler(org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<String> handleTypeMismatch(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Parâmetro inválido.");
+    }
+
     /** JSON malformado ou com tipo errado (mesmo motivo do handler acima). */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<String> handleUnreadable(HttpMessageNotReadableException ex) {

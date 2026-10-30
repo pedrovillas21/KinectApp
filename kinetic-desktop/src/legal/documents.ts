@@ -5,8 +5,8 @@
  * Prazos e bases legais conferem com RETENCAO-DE-DADOS.md, na raiz do repositório.
  */
 
-export const LEGAL_VERSION = '2026-10-25';
-export const LEGAL_UPDATED_AT = '25 de outubro de 2026';
+export const LEGAL_VERSION = '2026-10-30';
+export const LEGAL_UPDATED_AT = '30 de outubro de 2026';
 export const PRIVACY_CONTACT = 'privacidade@kineticfitness.com.br';
 /** Razão social e CNPJ do controlador: preencher ao constituir a empresa (aparecem nas duas páginas). */
 export const CONTROLLER_NAME = 'Kinetic';
@@ -48,6 +48,7 @@ export const PRIVACY_POLICY: LegalDocument = {
         'Relação com o personal: vínculo, mensalidades e pagamentos registrados por ele, avaliações que você faz do atendimento.',
         'Assinatura do personal: plano, situação e identificadores no meio de pagamento.',
         'Registros de acesso: endereço IP e data e hora de uso, exigidos pelo Marco Civil da Internet.',
+        'Registros de auditoria: quem fez cada ação administrativa ou de segurança na sua conta, quando, e quem leu ou alterou seus dados de saúde (sem o conteúdo).',
       ],
     },
     {
@@ -62,6 +63,7 @@ export const PRIVACY_POLICY: LegalDocument = {
           ['Guardar registros financeiros e fiscais', 'Obrigação legal (arts. 7º, II e 16, I)'],
           ['Guardar a prova de quem prescreveu uma ficha aprovada por IA', 'Exercício regular de direitos em processo (arts. 7º, VI e 11, II, d)'],
           ['Segurança, prevenção a fraude e abuso', 'Legítimo interesse (art. 7º, IX) e prevenção à fraude (art. 11, II, g)'],
+          ['Registrar quem acessou ou alterou contas e dados de saúde (trilha de auditoria)', 'Legítimo interesse e exercício de direitos (arts. 7º, VI e IX, 11, II, d e 37)'],
         ],
       },
     },
@@ -89,6 +91,9 @@ export const PRIVACY_POLICY: LegalDocument = {
           ['Pagamentos de mensalidade já recebidos pelo seu personal (só o seu nome, valor e data)', 'Até 31/12 do 6º ano após o pagamento', 'Registro fiscal do personal (CTN, art. 173)'],
           ['Fichas aprovadas por IA: declaração do personal, pedido e ficha aprovada (você identificado só por um código)', '5 anos após a aprovação', 'Defesa em eventual processo (CDC, art. 27)'],
           ['Versão e data do aceite destes termos, e identificadores no meio de pagamento (personal)', '5 anos', 'Prova do consentimento e obrigações financeiras'],
+          ['Tentativas de login e outros eventos de segurança da conta', '6 meses', 'Marco Civil da Internet, art. 15; segurança'],
+          ['Quem fez ações na sua conta e quem leu ou alterou seus dados de saúde (sem o conteúdo)', '5 anos', 'Prova e defesa (LGPD art. 37; CDC, art. 27)'],
+          ['Pedidos que você fizer sobre os seus dados', '5 anos após a resposta', 'Prova do atendimento (LGPD arts. 18 e 19)'],
           ['Cópias de segurança do banco de dados', 'Até a expiração da cópia (dias)', 'Recuperação em caso de falha'],
         ],
       },
@@ -111,6 +116,7 @@ export const PRIVACY_POLICY: LegalDocument = {
         'Conexão sempre criptografada (HTTPS) e senhas guardadas com criptografia que não pode ser revertida.',
         'O servidor não fica exposto na internet: o acesso passa pela rede de proteção da Cloudflare.',
         'Cada pessoa só acessa o que é dela; o personal só vê alunos com vínculo ativo.',
+        'Cada leitura dos seus dados de saúde pelo personal e cada ação administrativa na sua conta ficam numa trilha de auditoria que não pode ser alterada.',
         'Os registros guardados depois da exclusão da conta não ficam acessíveis pelo aplicativo e usam códigos no lugar do e-mail sempre que possível.',
         'Em caso de incidente de segurança com risco a você, comunicamos você e a ANPD (art. 48).',
       ],

@@ -1,5 +1,6 @@
 package com.kinetic.services;
 
+import com.kinetic.enums.AuditAction;
 import com.kinetic.enums.UserStatus;
 import com.kinetic.exceptions.InvalidCodeException;
 import com.kinetic.models.EmailVerificationCode;
@@ -42,6 +43,7 @@ public class EmailVerificationService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final RateLimiter rateLimiter;
+    private final AuditService auditService;
 
     /** Reenvio pedido pelo cliente: responde igual exista a conta ou não. */
     public void requestCode(String email) {
@@ -88,6 +90,7 @@ public class EmailVerificationService {
 
         user.setEmailVerified(true);
         userRepository.save(user);
+        auditService.record(AuditAction.EMAIL_CONFIRMED, user.getId(), user.getCompanyId(), null, null);
     }
 
     /** Remove diariamente às 04:45 os códigos vencidos. */

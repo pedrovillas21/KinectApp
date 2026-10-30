@@ -12,6 +12,7 @@ import { formatThousands } from '../utils/formatters';
 import { Avatar, Button, StaleBanner } from '../components/ui';
 import useFocusResource from '../hooks/useFocusResource';
 import api from '../services/api';
+import { useActiveWorkout } from '../contexts/ActiveWorkoutContext';
 import { createStyles, useColors } from '../theme/ThemeContext';
 
 interface Props {
@@ -210,6 +211,7 @@ function DetailExerciseCard({ ex, accent, prescribed }: { ex: Exercise; accent: 
 export default function WorkoutScreen({ navigation }: Props) {
   const styles = useStyles();
   const c = useColors();
+  const { openWorkout } = useActiveWorkout();
   // Ficha aberta no detalhe; null = lista.
   const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(null);
 
@@ -230,7 +232,7 @@ export default function WorkoutScreen({ navigation }: Props) {
   const goBackToList = () => setSelectedRoutineId(null);
 
   const startSession = (item: WorkoutPlanItem) => {
-    navigation.navigate('ActiveSession', { workoutData: item });
+    openWorkout(item, () => navigation.navigate('ActiveSession'));
   };
 
   const tagLabel = (item: WorkoutPlanItem, letter: string): string => {

@@ -11,6 +11,7 @@ import { Screen, StaleBanner } from '../components/ui';
 import useFocusResource from '../hooks/useFocusResource';
 
 import { AuthContext } from '../contexts/AuthContext';
+import { useActiveWorkout } from '../contexts/ActiveWorkoutContext';
 import api from '../services/api';
 import { getMyTrainer } from '../services/trainerService';
 
@@ -31,6 +32,7 @@ function extractFirstName(fullName: string | undefined): string {
 export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
   const c = useColors();
   const { currentUser } = useContext(AuthContext);
+  const { openWorkout } = useActiveWorkout();
 
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
@@ -66,9 +68,9 @@ export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
     (workout: NextWorkoutDTO): void => {
       const plan = plans.find((p) => p.id === workout.workoutPlanId);
       if (!plan) return;
-      navigation.navigate('ActiveSession', { workoutData: plan });
+      openWorkout(plan, () => navigation.navigate('ActiveSession'));
     },
-    [navigation, plans],
+    [navigation, plans, openWorkout],
   );
 
   const firstName = dashboard?.userFirstName ?? extractFirstName(currentUser?.nome);

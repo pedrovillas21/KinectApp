@@ -1,5 +1,6 @@
 package com.kinetic.services;
 
+import com.kinetic.enums.AuditAction;
 import com.kinetic.models.User;
 import com.kinetic.repositories.UserRepository;
 import com.kinetic.utils.EmailTemplates;
@@ -28,6 +29,7 @@ public class AccessService {
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenService refreshTokenService;
     private final EmailService emailService;
+    private final AuditService auditService;
 
     @Value("${app.panel-url:https://kineticfitness.com.br}")
     private String panelUrl;
@@ -42,12 +44,13 @@ public class AccessService {
 
     /**
      * Gera outra senha, encerra as sessões abertas (refresh e access tokens) e envia o
-     * acesso ao e-mail informado.
+     * acesso ao e-mail informado. Serve o ROOT (motivo obrigatório) e o dono (sem motivo).
      */
-    public void regenerate(User user, String sendTo, String login) {
+    public void regenerate(User user, String sendTo, String login, String reason) {
         String password = assignNewPassword(user);
         userRepository.save(user);
         refreshTokenService.revokeAllForUser(user);
+        auditService.record(AuditAction.PASSWORD_REGENERATED, user.getId(), user.getCompanyId(), reason, null);
         sendAfterCommit(sendTo, user.getNome(), "Sua nova senha do Kinetic",
                 "Uma nova senha foi gerada para o seu acesso ao painel do Kinetic. A anterior deixou de valer.",
                 login, password);

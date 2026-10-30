@@ -52,7 +52,7 @@ class BillingServiceTest {
     private final UserRepository users = mock(UserRepository.class);
     private final RateLimiter rateLimiter = mock(RateLimiter.class);
     private final BillingService service = new BillingService(subs, clients, generations,
-            users, mock(PaymentGateway.class), mock(TrainerEventService.class), rateLimiter);
+            users, mock(PaymentGateway.class), mock(TrainerEventService.class), rateLimiter, mock(AuditService.class));
 
     private final User trainer = new User();
     private final TrainerSubscription sub = new TrainerSubscription();

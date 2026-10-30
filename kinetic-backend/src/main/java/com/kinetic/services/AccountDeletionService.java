@@ -2,7 +2,9 @@ package com.kinetic.services;
 
 import lombok.RequiredArgsConstructor;
 import com.kinetic.billing.PaymentGateway;
+import com.kinetic.enums.AuditAction;
 import com.kinetic.enums.Role;
+import com.kinetic.enums.UserStatus;
 import com.kinetic.enums.SubscriptionStatus;
 import com.kinetic.models.TrainerSubscription;
 import com.kinetic.models.User;
@@ -22,6 +24,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -66,6 +69,7 @@ public class AccountDeletionService {
     private final PaymentGateway paymentGateway;
     private final LegalRetentionService retentionService;
     private final Pseudonymizer pseudonymizer;
+    private final AuditService auditService;
 
     /**
      * Apaga a conta de {@code userEmail} e tudo o que é dela. Senha errada ou conta
@@ -80,11 +84,16 @@ public class AccountDeletionService {
         delete(user, BY_TITULAR);
     }
 
-    /** Pelo ROOT, a pedido do titular por e-mail. Conta bloqueada fica marcada para não voltar. */
+    /**
+     * Pelo ROOT, a pedido do titular por e-mail. Conta bloqueada fica marcada para não voltar.
+     * A trilha não tem FK para users: o evento sobrevive ao DELETE da própria conta.
+     */
     @Transactional
-    public void deleteAccountByAdmin(@NonNull UUID userId) {
+    public void deleteAccountByAdmin(@NonNull UUID userId, String reason) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));
+        auditService.record(AuditAction.USER_DELETED_BY_ADMIN, user.getId(), user.getCompanyId(), reason,
+                Map.of("role", user.getRole().name(), "blocked", user.getStatus() == UserStatus.BLOQUEADO));
         delete(user, BY_ADMIN);
     }
 

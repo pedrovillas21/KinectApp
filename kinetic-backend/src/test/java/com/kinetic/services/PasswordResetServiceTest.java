@@ -1,5 +1,6 @@
 package com.kinetic.services;
 
+import com.kinetic.security.Pseudonymizer;
 import com.kinetic.exceptions.InvalidCodeException;
 import com.kinetic.exceptions.TooManyAttemptsException;
 import com.kinetic.models.PasswordResetCode;
@@ -34,7 +35,8 @@ class PasswordResetServiceTest {
     private final PasswordEncoder encoder = mock(PasswordEncoder.class);
     private final RefreshTokenService refreshTokens = mock(RefreshTokenService.class);
     private final PasswordResetService service = new PasswordResetService(users, codes, encoder, refreshTokens,
-            mock(EmailService.class), new InMemoryRateLimiter(System::currentTimeMillis));
+            mock(EmailService.class), new InMemoryRateLimiter(System::currentTimeMillis), mock(AuditService.class),
+            mock(Pseudonymizer.class));
 
     private final User user = new User();
     private final PasswordResetCode code = new PasswordResetCode();

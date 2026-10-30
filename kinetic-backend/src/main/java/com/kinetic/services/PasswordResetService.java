@@ -1,11 +1,14 @@
 package com.kinetic.services;
 
+import com.kinetic.enums.AuditAction;
 import com.kinetic.enums.UserStatus;
 import com.kinetic.exceptions.InvalidCodeException;
+import com.kinetic.exceptions.TooManyAttemptsException;
 import com.kinetic.models.PasswordResetCode;
 import com.kinetic.models.User;
 import com.kinetic.repositories.PasswordResetCodeRepository;
 import com.kinetic.repositories.UserRepository;
+import com.kinetic.security.Pseudonymizer;
 import com.kinetic.security.RateLimiter;
 import com.kinetic.utils.EmailTemplates;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -43,6 +47,8 @@ public class PasswordResetService {
     private final RefreshTokenService refreshTokenService;
     private final EmailService emailService;
     private final RateLimiter rateLimiter;
+    private final AuditService auditService;
+    private final Pseudonymizer pseudonymizer;
 
     /**
      * Gera e envia um código para o e-mail, se ele pertencer a uma conta ativa.
@@ -79,10 +85,21 @@ public class PasswordResetService {
      */
     @Transactional(noRollbackFor = InvalidCodeException.class)
     public void resetPassword(String email, String code, String newPassword) {
-        User user = userRepository.findByEmail(email.trim())
-                .orElseThrow(() -> new InvalidCodeException(OneTimeCodes.INVALID_CODE));
+        User user = userRepository.findByEmail(email.trim()).orElse(null);
+        if (user == null) {
+            // Sem o e-mail em claro: só o pseudônimo, para ligar tentativas repetidas.
+            auditService.record(AuditAction.PASSWORD_RESET_FAILED, null, null, null,
+                    Map.of("emailHash", pseudonymizer.email(email), "cause", "UNKNOWN_ACCOUNT"));
+            throw new InvalidCodeException(OneTimeCodes.INVALID_CODE);
+        }
 
-        OneTimeCodes.consume(codeRepository, passwordEncoder, rateLimiter, "reset-guess:", user, code);
+        try {
+            OneTimeCodes.consume(codeRepository, passwordEncoder, rateLimiter, "reset-guess:", user, code);
+        } catch (InvalidCodeException | TooManyAttemptsException e) {
+            auditService.record(AuditAction.PASSWORD_RESET_FAILED, user.getId(), user.getCompanyId(), null,
+                    Map.of("cause", e instanceof TooManyAttemptsException ? "TOO_MANY_ATTEMPTS" : "CODE"));
+            throw e;
+        }
 
         refreshTokenService.revokeAllForUser(user);
         user.setSenha(passwordEncoder.encode(newPassword));
@@ -91,6 +108,7 @@ public class PasswordResetService {
         // dono real recupera uma conta que alguém cadastrou com o e-mail dele.
         user.setEmailVerified(true);
         userRepository.save(user);
+        auditService.record(AuditAction.PASSWORD_RESET_COMPLETED, user.getId(), user.getCompanyId(), null, null);
     }
 
     /** Remove diariamente às 04:30 os códigos vencidos (30 min após a limpeza de refresh tokens). */

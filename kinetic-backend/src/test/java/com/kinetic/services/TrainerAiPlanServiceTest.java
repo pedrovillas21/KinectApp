@@ -33,7 +33,7 @@ class TrainerAiPlanServiceTest {
     private final LockProvider lockProvider = mock(LockProvider.class);
     private final TrainerAiPlanService service = new TrainerAiPlanService(links, mock(TrainerPlanService.class),
             billing, gemini, mock(PlanCycleSnapshotService.class), mock(AiPlanGenerationRepository.class),
-            mock(WorkoutPlanRepository.class), users, new ObjectMapper(), lockProvider);
+            mock(WorkoutPlanRepository.class), users, new ObjectMapper(), lockProvider, mock(AuditService.class));
 
     private final User trainer = new User();
     private final UUID studentId = UUID.randomUUID();

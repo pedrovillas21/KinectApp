@@ -1,10 +1,13 @@
 import React, { useContext } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import { AuthContext } from '../contexts/AuthContext';
+import { ActiveWorkoutProvider } from '../contexts/ActiveWorkoutContext';
 import usePendingInviteRedeem from '../hooks/usePendingInviteRedeem';
 import BottomTabBar from '../components/BottomTabBar';
+import WorkoutBubble from '../components/WorkoutBubble';
 
 import WelcomeScreen from '../screens/Auth/WelcomeScreen';
 import RecurringUserScreen from '../screens/Auth/RecurringUserScreen';
@@ -123,30 +126,33 @@ export default function AppRoutes(): React.ReactElement | null {
     );
   }
 
+  // Provider aqui (e não na raiz): desmonta no logout e o treino em memória vai junto.
   return (
-    <MainStack.Navigator key="main-stack" screenOptions={{ headerShown: false }}>
-      <MainStack.Screen name="MainTabs" component={MainTabs} />
-      {/* gestureEnabled: false — no native-stack o swipe-back do iOS completa nativamente
-          antes do beforeRemove conseguir bloquear; sem isso o usuário sai da sessão
-          arrastando pro lado e pula a confirmação/salvamento parcial do treino. */}
-      <MainStack.Screen
-        name="ActiveSession"
-        component={ActiveSessionScreen}
-        options={{ gestureEnabled: false }}
-      />
-      <MainStack.Screen
-        name="WorkoutCamera"
-        component={WorkoutCameraScreen}
-        options={{ animation: 'fade' }}
-      />
-      <MainStack.Screen name="NewWorkoutPost" component={NewWorkoutPostScreen} />
-      <MainStack.Screen name="UserProfile" component={UserProfileScreen} />
-      <MainStack.Screen name="CompareProgress" component={CompareProgressScreen} />
-      <MainStack.Screen name="Settings" component={SettingsScreen} />
-      <MainStack.Screen name="Protocol" component={ProtocolScreen} />
-      <MainStack.Screen name="Anamnesis" component={AnamnesisScreen} />
-      <MainStack.Screen name="TrainerProfile" component={TrainerProfileScreen} />
-      <MainStack.Screen name="ProfilePosts" component={ProfilePostsScreen} />
-    </MainStack.Navigator>
+    <ActiveWorkoutProvider>
+      <View style={styles.fill}>
+        <MainStack.Navigator key="main-stack" screenOptions={{ headerShown: false }}>
+          <MainStack.Screen name="MainTabs" component={MainTabs} />
+          <MainStack.Screen name="ActiveSession" component={ActiveSessionScreen} />
+          <MainStack.Screen
+            name="WorkoutCamera"
+            component={WorkoutCameraScreen}
+            options={{ animation: 'fade' }}
+          />
+          <MainStack.Screen name="NewWorkoutPost" component={NewWorkoutPostScreen} />
+          <MainStack.Screen name="UserProfile" component={UserProfileScreen} />
+          <MainStack.Screen name="CompareProgress" component={CompareProgressScreen} />
+          <MainStack.Screen name="Settings" component={SettingsScreen} />
+          <MainStack.Screen name="Protocol" component={ProtocolScreen} />
+          <MainStack.Screen name="Anamnesis" component={AnamnesisScreen} />
+          <MainStack.Screen name="TrainerProfile" component={TrainerProfileScreen} />
+          <MainStack.Screen name="ProfilePosts" component={ProfilePostsScreen} />
+        </MainStack.Navigator>
+        <WorkoutBubble />
+      </View>
+    </ActiveWorkoutProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  fill: { flex: 1 },
+});

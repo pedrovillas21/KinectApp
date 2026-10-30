@@ -139,7 +139,9 @@ def step_units(u1, s1, u2, s2):
     print(f"[2fa] código de recuperação usado 2 vezes: {out}")
     # ROOT redefine o 2FA da filial: o próximo login volta ao cadastro do app.
     acc2 = next(u for u in s["units"] if u["username"] == u2)["accountId"]
-    rr = call("POST", f"/api/root/users/{acc2}/reset-2fa", s["root_token"])
+    # Ação destrutiva do ROOT: o motivo vai para a trilha de auditoria (400 sem ele).
+    rr = call("POST", f"/api/root/users/{acc2}/reset-2fa", s["root_token"],
+              json={"reason": "Teste isolado: celular perdido da filial"})
     after = raw_login(u2, s2).json().get("code")
     print(f"[2fa] ROOT redefiniu o 2FA da filial: HTTP {rr.status_code}; próximo login: {after}")
     # Força bruta no código: o limite por conta chega antes de 11 tentativas.

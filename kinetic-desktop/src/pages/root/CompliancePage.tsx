@@ -32,6 +32,7 @@ import {
 import { deleteUser, listUsers, setUserStatus } from '../../services/rootService';
 import type { UserAdmin, UserStatus } from '../../types';
 import ConfirmDialog from '../../components/personal/ConfirmDialog';
+import { errorMessage } from '../../utils/errors';
 
 const ROLE_FILTER = 'all';
 type RoleFilter = typeof ROLE_FILTER | UserAdmin['role'];
@@ -44,13 +45,36 @@ const ROLE_LABEL: Record<UserAdmin['role'], string> = {
   ROOT: 'Root',
 };
 
+/** Ação de compliance aguardando confirmação (com motivo, que vai para a auditoria). */
+type Pending = { user: UserAdmin; kind: 'status'; status: UserStatus } | { user: UserAdmin; kind: 'delete' };
+
+const STATUS_COPY: Record<UserStatus, { title: string; label: string; text: string }> = {
+  ATIVO: { title: 'Reativar conta', label: 'Reativar', text: 'volta a entrar no app e no painel.' },
+  SUSPENSO: {
+    title: 'Suspender conta',
+    label: 'Suspender',
+    text: 'perde o acesso agora e as sessões abertas caem. Dá para reativar depois.',
+  },
+  BLOQUEADO: {
+    title: 'Bloquear conta',
+    label: 'Bloquear',
+    text: 'perde o acesso agora. Use para abuso ou fraude: se a conta for excluída depois, o mesmo e-mail e CPF não criam conta nova.',
+  },
+};
+
 export default function CompliancePage() {
   const [users, setUsers] = useState<UserAdmin[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [role, setRole] = useState<RoleFilter>(ROLE_FILTER);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [toDelete, setToDelete] = useState<UserAdmin | null>(null);
+  const [pending, setPending] = useState<Pending | null>(null);
+  const [reason, setReason] = useState('');
+
+  const ask = (next: Pending) => {
+    setReason('');
+    setPending(next);
+  };
 
   const load = async (roleFilter: RoleFilter) => {
     setLoading(true);
@@ -72,45 +96,43 @@ export default function CompliancePage() {
   /** Ações de compliance de um usuário (o menu da tabela e o dos cartões do celular). */
   const actionsFor = (u: UserAdmin): RowAction[] => [
     ...(u.status !== 'ATIVO'
-      ? [{ label: 'Reativar', icon: PlayCircle, onClick: () => void changeStatus(u, 'ATIVO') }]
+      ? [{ label: 'Reativar', icon: PlayCircle, onClick: () => ask({ user: u, kind: 'status', status: 'ATIVO' }) }]
       : []),
     ...(u.status !== 'SUSPENSO'
-      ? [{ label: 'Suspender', icon: PauseCircle, onClick: () => void changeStatus(u, 'SUSPENSO') }]
+      ? [{ label: 'Suspender', icon: PauseCircle, onClick: () => ask({ user: u, kind: 'status', status: 'SUSPENSO' }) }]
       : []),
     ...(u.status !== 'BLOQUEADO'
-      ? [{ label: 'Bloquear', icon: Ban, onClick: () => void changeStatus(u, 'BLOQUEADO') }]
+      ? [{ label: 'Bloquear', icon: Ban, onClick: () => ask({ user: u, kind: 'status', status: 'BLOQUEADO' }) }]
       : []),
-    { label: 'Excluir', icon: Trash2, destructive: true, onClick: () => setToDelete(u) },
+    { label: 'Excluir', icon: Trash2, destructive: true, onClick: () => ask({ user: u, kind: 'delete' }) },
   ];
 
-  const changeStatus = async (user: UserAdmin, status: UserStatus) => {
+  const confirm = async () => {
+    if (!pending) return;
+    const { user } = pending;
     setBusyId(user.id);
     try {
-      const updated = await setUserStatus(user.id, status);
-      setUsers((list) => list.map((u) => (u.id === updated.id ? updated : u)));
-      toast.success(`Status de ${user.nome} atualizado.`);
-    } catch {
-      toast.error('Não foi possível atualizar o status.');
+      if (pending.kind === 'status') {
+        const updated = await setUserStatus(user.id, pending.status, reason.trim());
+        setUsers((list) => list.map((u) => (u.id === updated.id ? updated : u)));
+        toast.success(`Status de ${user.nome} atualizado.`);
+        setPending(null);
+      } else {
+        await deleteUser(user.id, reason.trim());
+        toast.success(`Conta de ${user.nome} excluída.`);
+        setPending(null);
+        await load(role);
+      }
+    } catch (err: unknown) {
+      toast.error(
+        errorMessage(err, pending.kind === 'status' ? 'Não foi possível atualizar o status.' : 'Não foi possível excluir a conta.'),
+      );
     } finally {
       setBusyId(null);
     }
   };
 
-  const confirmDelete = async () => {
-    if (!toDelete) return;
-    const user = toDelete;
-    setBusyId(user.id);
-    try {
-      await deleteUser(user.id);
-      toast.success(`Conta de ${user.nome} excluída.`);
-      setToDelete(null);
-      await load(role);
-    } catch {
-      toast.error('Não foi possível excluir a conta.');
-    } finally {
-      setBusyId(null);
-    }
-  };
+  const statusCopy = pending?.kind === 'status' ? STATUS_COPY[pending.status] : null;
 
   return (
     <div className="flex flex-col min-h-full">
@@ -231,20 +253,27 @@ export default function CompliancePage() {
       </div>
 
       <ConfirmDialog
-        open={toDelete !== null}
-        title="Excluir conta definitivamente"
+        open={pending !== null}
+        title={statusCopy?.title ?? 'Excluir conta definitivamente'}
         description={
-          <>
-            Use só a pedido do titular (LGPD). A conta de <strong>{toDelete?.nome}</strong> e os dados
-            dela são apagados agora, sem volta; fica apenas o que a lei exige guardar. Se a conta estiver
-            bloqueada, o mesmo e-mail e CPF não podem criar conta nova. Para só tirar o acesso, use Bloquear.
-          </>
+          statusCopy ? (
+            <>
+              A conta de <strong>{pending?.user.nome}</strong> {statusCopy.text}
+            </>
+          ) : (
+            <>
+              Use só a pedido do titular (LGPD). A conta de <strong>{pending?.user.nome}</strong> e os dados
+              dela são apagados agora, sem volta; fica apenas o que a lei exige guardar. Se a conta estiver
+              bloqueada, o mesmo e-mail e CPF não podem criar conta nova. Para só tirar o acesso, use Bloquear.
+            </>
+          )
         }
-        confirmLabel="Excluir definitivamente"
-        destructive
-        busy={busyId === toDelete?.id}
-        onConfirm={() => void confirmDelete()}
-        onCancel={() => setToDelete(null)}
+        confirmLabel={statusCopy?.label ?? 'Excluir definitivamente'}
+        destructive={pending?.kind === 'delete' || (pending?.kind === 'status' && pending.status !== 'ATIVO')}
+        busy={busyId === pending?.user.id}
+        reason={{ value: reason, onChange: setReason }}
+        onConfirm={() => void confirm()}
+        onCancel={() => setPending(null)}
       />
     </div>
   );

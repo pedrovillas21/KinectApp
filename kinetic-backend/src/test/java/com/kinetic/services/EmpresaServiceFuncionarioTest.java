@@ -29,7 +29,8 @@ class EmpresaServiceFuncionarioTest {
     private final TrainerLinkService links = mock(TrainerLinkService.class);
     private final EmpresaService service = new EmpresaService(
             users, mock(TrainerClientRepository.class), mock(WorkoutSessionRepository.class),
-            links, mock(FeedbackService.class), mock(CompanyRepository.class), mock(TrainerEventService.class));
+            links, mock(FeedbackService.class), mock(CompanyRepository.class), mock(TrainerEventService.class),
+            mock(AuditService.class));
 
     private final UUID companyId = UUID.randomUUID();
     private final User empresa = user("empresa@test.local", Role.EMPRESA, companyId);

@@ -4,7 +4,7 @@ import java.util.List;
 
 /**
  * KPIs macro do painel ROOT — tudo real e barato (count queries + agregação
- * simples de crescimento). Faturamento/auditoria ficam de fora (placeholder).
+ * simples de crescimento). Faturamento fica de fora (placeholder); a auditoria tem rotas próprias (AuditController).
  */
 public record RootMetricsDTO(
         long totalCompanies,

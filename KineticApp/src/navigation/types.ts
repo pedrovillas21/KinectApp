@@ -27,7 +27,8 @@ export type FinishedWorkout = {
 /** Pilha do app logado (abas + telas empilhadas por cima). */
 export type MainStackParamList = {
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
-  ActiveSession: { workoutData?: unknown } | undefined;
+  /** O treino vem do ActiveWorkoutContext (começado por openWorkout). */
+  ActiveSession: undefined;
   /** Câmera em tela cheia para a foto do treino recém-concluído. */
   WorkoutCamera: { workout: FinishedWorkout };
   /** Prévia do post com a faixa de dados do treino. */

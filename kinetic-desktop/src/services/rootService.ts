@@ -10,7 +10,8 @@ import type {
 
 /**
  * Endpoints do ROOT (/api/root/...). Todos exigem papel ROOT no JWT; o backend
- * responde 403 caso contrário.
+ * responde 403 caso contrário. As ações destrutivas levam o motivo (10 a 500
+ * caracteres), que fica na trilha de auditoria.
  */
 
 export const getMetrics = async (period: StatsPeriodId = 'month'): Promise<RootMetrics> => {
@@ -39,13 +40,13 @@ export const createCompany = async (payload: CreateCompanyPayload): Promise<Comp
 };
 
 /** Gera outra senha para um dono ou filial (vai por e-mail; as sessões caem). */
-export const regeneratePassword = async (userId: string): Promise<void> => {
-  await api.post(`/root/users/${userId}/nova-senha`);
+export const regeneratePassword = async (userId: string, reason: string): Promise<void> => {
+  await api.post(`/root/users/${userId}/nova-senha`, { reason });
 };
 
 /** Apaga o app autenticador de um dono ou filial: o próximo login volta ao cadastro do app. */
-export const resetSecondFactor = async (userId: string): Promise<void> => {
-  await api.post(`/root/users/${userId}/reset-2fa`);
+export const resetSecondFactor = async (userId: string, reason: string): Promise<void> => {
+  await api.post(`/root/users/${userId}/reset-2fa`, { reason });
 };
 
 export const listPersonais = async (status?: UserStatus): Promise<UserAdmin[]> => {
@@ -80,8 +81,8 @@ export const listUsers = async (
   return res.data;
 };
 
-export const setUserStatus = async (id: string, status: UserStatus): Promise<UserAdmin> => {
-  const res = await api.patch<UserAdmin>(`/root/users/${id}/status`, { status });
+export const setUserStatus = async (id: string, status: UserStatus, reason: string): Promise<UserAdmin> => {
+  const res = await api.patch<UserAdmin>(`/root/users/${id}/status`, { status, reason });
   return res.data;
 };
 
@@ -89,6 +90,7 @@ export const setUserStatus = async (id: string, status: UserStatus): Promise<Use
  * Exclusão definitiva, a pedido do titular (LGPD art. 18 VI): a mesma do app, para quem
  * não consegue entrar. Para só tirar o acesso, use o status BLOQUEADO.
  */
-export const deleteUser = async (id: string): Promise<void> => {
-  await api.delete(`/root/users/${id}/permanent`);
+export const deleteUser = async (id: string, reason: string): Promise<void> => {
+  // DELETE com corpo: o axios só o envia por `data`.
+  await api.delete(`/root/users/${id}/permanent`, { data: { reason } });
 };

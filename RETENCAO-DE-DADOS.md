@@ -8,7 +8,7 @@ O que o Kinetic guarda, por quanto tempo e por quê. Os textos públicos (Polít
 
 - Conta ativa: guardamos o necessário para o serviço funcionar.
 - Exclusão da conta (pelo titular no app/painel, ou pelo ROOT a pedido dele): tudo é apagado na hora, menos o que uma obrigação legal ou a defesa em processo exige. Isso que fica não aparece em nenhuma rota da API, usa pseudônimo (HMAC do e-mail/CPF com a `PSEUDONYM_KEY`) quando dá e some sozinho no fim do prazo (`LegalRetentionService.purgeExpired`, todo dia às 3h30).
-- A lógica da exclusão está em `AccountDeletionService`; as tabelas de retenção, na migration V49.
+- A lógica da exclusão está em `AccountDeletionService`; as tabelas de retenção, nas migrations V49 e V54 (trilha de auditoria).
 
 ## O que fica depois da exclusão
 
@@ -21,6 +21,21 @@ O que o Kinetic guarda, por quanto tempo e por quê. Os textos públicos (Polít
 | Bloqueio: conta excluída enquanto BLOQUEADA impede novo cadastro com o mesmo e-mail/CPF | `deleted_accounts.blocked` | 5 anos | Legítimo interesse e prevenção a fraude (arts. 7º, IX e 11, II, g) |
 | Mensalidades PAGAS do aluno excluído, no financeiro do personal (só o nome do aluno, valor, mês, data e forma) | `student_charges` (`student_id` nulo, `student_name`, `retain_until`) | Até 31/12 do 6º ano após o pagamento | Registro de renda do personal (CTN, art. 173, I); LGPD art. 16, I |
 | Ficha aprovada por IA: declaração do personal, pedido (com as restrições informadas), ficha aprovada, nome e CREF do personal | `ai_plan_generations` (`trainer_name`, `trainer_cref`, `student_ref_hash`, `retain_until`) | 5 anos após a aprovação | Defesa em processo (CDC, art. 27; LGPD arts. 7º, VI e 11, II, d) |
+
+## Trilha de auditoria
+
+Quem fez o quê, sobre quem e por quê, para todas as contas (ativas ou não). Só inserção: um trigger recusa UPDATE e só deixa o expurgo diário apagar depois do prazo. Não guarda nome, e-mail, senha, código nem dado de saúde; os nomes saem de um JOIN na leitura, e o autor de uma conta excluída continua ligado a `deleted_accounts` pelo id. O ROOT consulta em Auditoria, no painel.
+
+| O quê | Onde | Prazo | Base legal |
+|---|---|---|---|
+| Segurança: login recusado ou barrado, código do 2FA recusado, recuperação de senha, troca de senha, confirmação de e-mail (com IP; e-mail sem conta vira pseudônimo) | `audit_events` (categoria SECURITY) | 6 meses | Marco Civil, art. 15; LGPD arts. 7º, IX e 46 |
+| Ações administrativas (ROOT, dono, filial e personal em contas, filiais e vínculos), com o motivo obrigatório nas ações destrutivas do ROOT | `audit_events` (ADMIN) | 5 anos | Defesa em processo (CDC, art. 27; LGPD art. 7º, VI) |
+| Leitura e alteração de dado de saúde pelo personal (1 registro por hora por personal + aluno + tipo de dado; nunca o conteúdo) | `audit_events` (HEALTH) | 5 anos | LGPD arts. 11, II, d e 37 (registro das operações) |
+| Mudanças de assinatura e créditos de IA | `audit_events` (BILLING) | 5 anos | Código Civil, art. 206, §5º, I; CDC, art. 27 |
+| Expurgos e pedidos de titulares | `audit_events` (LGPD) | 5 anos | LGPD arts. 8º, §2º e 37 |
+| Pedidos de titulares (tipo, datas, prazo, observação, quem registrou) | `data_subject_requests` | 5 anos após a conclusão | Prova do atendimento (LGPD arts. 18 e 19; art. 7º, VI) |
+
+A consulta aos registros de acesso pelo painel exige motivo e também vira evento (ADMIN).
 
 O que **não** fica: treinos, peso, avaliações físicas, anamnese, pausas de alerta, posts, fotos, comentários, conexões, feedbacks, convites, tokens, mensalidades em aberto ou dispensadas, prévias de IA não aprovadas (perdem o texto), assinatura do personal.
 
@@ -48,11 +63,11 @@ O que **não** fica: treinos, peso, avaliações físicas, anamnese, pausas de a
 |---|---|
 | Acesso e portabilidade | App: Configurações → Exportar meus dados. Painel: Perfil → Baixar meus dados (JSON) |
 | Correção | Telas de perfil do app e do painel |
-| Eliminação | App: Configurações → Excluir conta. Painel: Perfil → Excluir minha conta. Quem não consegue entrar (ex.: conta bloqueada): pedido por e-mail ao `privacidade@`, e o ROOT exclui em Usuários → Excluir definitivamente |
+| Eliminação | App: Configurações → Excluir conta. Painel: Perfil → Excluir minha conta. Quem não consegue entrar (ex.: conta bloqueada): pedido por e-mail ao `privacidade@`, e o ROOT exclui em Usuários → Excluir definitivamente (com motivo) |
 | Revogação do consentimento | Excluir a conta, ou pedido ao `privacidade@` |
 | Informação sobre compartilhamento | Política de Privacidade, seção 4 |
 
-Prazo de resposta a pedidos por e-mail: 15 dias (LGPD art. 19, II).
+Prazo de resposta a pedidos por e-mail: 15 dias (LGPD art. 19, II). Todo pedido recebido fora do app é registrado pelo ROOT em Auditoria → LGPD → Novo pedido, que mostra o prazo de cada um e os vencidos; concluir o pedido também fica na trilha.
 
 ## Fora do banco
 

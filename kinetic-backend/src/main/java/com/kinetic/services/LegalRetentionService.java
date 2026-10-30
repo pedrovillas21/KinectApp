@@ -1,5 +1,6 @@
 package com.kinetic.services;
 
+import com.kinetic.enums.AuditAction;
 import com.kinetic.enums.UserStatus;
 import com.kinetic.models.User;
 import com.kinetic.security.Pseudonymizer;
@@ -14,11 +15,13 @@ import org.springframework.stereotype.Service;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.UUID;
 
 /**
- * O que sobra de uma conta excluída, e por quanto tempo (tabelas da V49). Cada prazo e
- * a base legal estão em RETENCAO-DE-DADOS.md; nada disto é exposto por rota da API.
+ * O que sobra de uma conta excluída, e por quanto tempo (tabelas da V49 e V54). Cada prazo
+ * e a base legal estão em RETENCAO-DE-DADOS.md. Só o ROOT consulta, pela Auditoria do painel.
  */
 @Slf4j
 @Service
@@ -32,6 +35,7 @@ public class LegalRetentionService {
 
     private final JdbcTemplate jdbc;
     private final Pseudonymizer pseudonymizer;
+    private final AuditService auditService;
 
     /**
      * Antes do DELETE da conta. Dados cadastrais por 6 meses (para dar sentido aos
@@ -88,7 +92,10 @@ public class LegalRetentionService {
         }
     }
 
-    /** Expurgo diário: cada registro sai no fim do próprio prazo. */
+    /**
+     * Expurgo diário: cada registro sai no fim do próprio prazo. Datas sempre do relógio do
+     * Postgres (CURRENT_DATE), o mesmo que o trigger de audit_events usa para liberar o DELETE.
+     */
     @Scheduled(cron = "0 30 3 * * *")
     @SchedulerLock(name = "purgeExpiredLegalRetention")
     public void purgeExpired() {
@@ -100,7 +107,20 @@ public class LegalRetentionService {
         int accounts = jdbc.update("DELETE FROM deleted_accounts WHERE retain_until < CURRENT_DATE");
         int charges = jdbc.update("DELETE FROM student_charges WHERE retain_until < CURRENT_DATE");
         int generations = jdbc.update("DELETE FROM ai_plan_generations WHERE retain_until < CURRENT_DATE");
+        int auditEvents = jdbc.update("DELETE FROM audit_events WHERE retain_until < CURRENT_DATE");
+        int requests = jdbc.update("DELETE FROM data_subject_requests WHERE retain_until < CURRENT_DATE");
         log.info("Retenção legal: {} acesso(s), {} identidade(s), {} conta(s), {} cobrança(s), {} geração(ões) "
-                + "de IA expurgados.", access, identities, accounts, charges, generations);
+                + "de IA, {} evento(s) de auditoria e {} pedido(s) de titular expurgados.",
+                access, identities, accounts, charges, generations, auditEvents, requests);
+
+        Map<String, Object> counts = new LinkedHashMap<>();
+        counts.put("access_logs", access);
+        counts.put("deleted_accounts_identity", identities);
+        counts.put("deleted_accounts", accounts);
+        counts.put("student_charges", charges);
+        counts.put("ai_plan_generations", generations);
+        counts.put("audit_events", auditEvents);
+        counts.put("data_subject_requests", requests);
+        auditService.record(AuditAction.RETENTION_PURGED, null, null, null, counts);
     }
 }

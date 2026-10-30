@@ -58,7 +58,9 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
             new Rule("codigo-convite", "POST", "/api/trainer/invite-codes/**", 20, Duration.ofHours(1)),
             // Cobrança: cada pedido cria uma cobrança no gateway de pagamento.
             new Rule("cobranca", "POST", "/api/trainer/billing/subscribe", 10, Duration.ofHours(1)),
-            new Rule("pacote-ia", "POST", "/api/trainer/billing/ai-pack", 10, Duration.ofHours(1))
+            new Rule("pacote-ia", "POST", "/api/trainer/billing/ai-pack", 10, Duration.ofHours(1)),
+            // Auditoria: cada busca nos registros de acesso de uma conta é uma quebra de sigilo registrada.
+            new Rule("auditoria-acessos", "POST", "/api/root/audit/access-logs/search", 10, Duration.ofMinutes(1))
     );
 
     private static final AntPathMatcher MATCHER = new AntPathMatcher();

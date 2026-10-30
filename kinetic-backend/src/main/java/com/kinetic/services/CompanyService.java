@@ -5,6 +5,7 @@ import com.kinetic.dtos.CreateCompanyRequestDTO;
 import com.kinetic.dtos.CreatePersonalRequestDTO;
 import com.kinetic.dtos.RootMetricsDTO;
 import com.kinetic.dtos.UserAdminDTO;
+import com.kinetic.enums.AuditAction;
 import com.kinetic.enums.Role;
 import com.kinetic.enums.UserStatus;
 import com.kinetic.exceptions.EmailAlreadyInUseException;
@@ -45,6 +46,7 @@ public class CompanyService {
     private final RefreshTokenService refreshTokenService;
     private final AccessService accessService;
     private final TotpService totpService;
+    private final AuditService auditService;
 
     // ── Empresas ────────────────────────────────────────────────────────────
 
@@ -86,6 +88,8 @@ public class CompanyService {
                 "Sua rede " + company.getNome() + " foi cadastrada no Kinetic. Com este acesso você cadastra as "
                         + "filiais e acompanha todas elas pelo painel.",
                 owner.getEmail(), password);
+        auditService.record(AuditAction.COMPANY_CREATED, company.getId(), company.getId(), null,
+                Map.of("ownerId", owner.getId()));
         return toCompanyDto(company, owner);
     }
 
@@ -139,21 +143,21 @@ public class CompanyService {
 
     /** ROOT gera outra senha para um dono ou uma filial e envia por e-mail. */
     @Transactional
-    public void regeneratePassword(UUID userId) {
+    public void regeneratePassword(UUID userId, String reason) {
         User user = getManagedAccount(userId);
         if (user.getRole() == Role.EMPRESA) {
             Company unit = companyRepository.findById(user.getCompanyId())
                     .orElseThrow(() -> new EntityNotFoundException("Filial não encontrada."));
-            accessService.regenerate(user, unit.getContactEmail(), user.getUsername());
+            accessService.regenerate(user, unit.getContactEmail(), user.getUsername(), reason);
         } else {
-            accessService.regenerate(user, user.getEmail(), user.getEmail());
+            accessService.regenerate(user, user.getEmail(), user.getEmail(), reason);
         }
     }
 
     /** ROOT apaga o app autenticador de um dono ou filial (celular perdido). */
     @Transactional
-    public void resetSecondFactor(UUID userId) {
-        totpService.reset(getManagedAccount(userId));
+    public void resetSecondFactor(UUID userId, String reason) {
+        totpService.reset(getManagedAccount(userId), reason);
     }
 
     private User getManagedAccount(UUID userId) {
@@ -190,7 +194,9 @@ public class CompanyService {
         personal.setStatus(UserStatus.ATIVO);
         personal.setCompanyId(dto.companyId());
 
-        return UserAdminDTO.fromEntity(userRepository.saveCheckingPhone(personal));
+        User saved = userRepository.saveCheckingPhone(personal);
+        auditService.record(AuditAction.PERSONAL_CREATED, saved.getId(), saved.getCompanyId(), null, null);
+        return UserAdminDTO.fromEntity(saved);
     }
 
     @Transactional(readOnly = true)
@@ -221,8 +227,10 @@ public class CompanyService {
     // ── Compliance ────────────────────────────────────────────────────────────
 
     @Transactional
-    public UserAdminDTO setUserStatus(UUID userId, UserStatus status) {
+    public UserAdminDTO setUserStatus(UUID userId, UserStatus status, String reason) {
         User user = getComplianceTarget(userId);
+        auditService.record(AuditAction.USER_STATUS_CHANGED, user.getId(), user.getCompanyId(), reason,
+                Map.of("from", user.getStatus().name(), "to", status.name()));
         user.setStatus(status);
         userRepository.save(user);
         // Suspender/bloquear derruba as sessões vivas (o access token de curta
@@ -235,8 +243,10 @@ public class CompanyService {
 
     /** Soft-delete: bloqueia a conta e revoga as sessões (evita cascata destrutiva de FKs). */
     @Transactional
-    public void softDeleteUser(UUID userId) {
+    public void softDeleteUser(UUID userId, String reason) {
         User user = getComplianceTarget(userId);
+        auditService.record(AuditAction.USER_SOFT_DELETED, user.getId(), user.getCompanyId(), reason,
+                Map.of("from", user.getStatus().name(), "to", UserStatus.BLOQUEADO.name()));
         user.setStatus(UserStatus.BLOQUEADO);
         userRepository.save(user);
         refreshTokenService.revokeAllForUser(user);

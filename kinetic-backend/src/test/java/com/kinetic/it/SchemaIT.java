@@ -3,6 +3,7 @@ package com.kinetic.it;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
@@ -10,6 +11,8 @@ import java.sql.Connection;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class SchemaIT extends IntegrationTestBase {
 
@@ -43,5 +46,36 @@ class SchemaIT extends IntegrationTestBase {
                 WHERE schemaname = 'public' AND NOT rowsecurity AND tablename <> 'flyway_schema_history'
                 ORDER BY tablename""", String.class);
         assertEquals(List.of(), withoutRls);
+    }
+
+    /** A Data API do Supabase entra como anon/authenticated: nada da trilha fica ao alcance dela. */
+    @Test
+    void auditTablesAreClosedToSupabaseRoles() {
+        for (String role : List.of("anon", "authenticated")) {
+            for (String table : List.of("audit_events", "data_subject_requests")) {
+                for (String privilege : List.of("SELECT", "INSERT", "UPDATE", "DELETE")) {
+                    assertFalse(jdbc.queryForObject("SELECT has_table_privilege(?, ?, ?)", Boolean.class,
+                            role, table, privilege), role + " " + privilege + " em " + table);
+                }
+            }
+            assertFalse(jdbc.queryForObject("SELECT has_sequence_privilege(?, 'audit_events_id_seq', 'USAGE')",
+                    Boolean.class, role), role + " na sequence");
+        }
+    }
+
+    /** Só inserção: nenhum UPDATE, e DELETE só depois do prazo de guarda. */
+    @Test
+    void auditEventsAreAppendOnly() {
+        Long current = jdbc.queryForObject("""
+                INSERT INTO audit_events (category, action, retain_until) VALUES ('ADMIN', 'UNIT_UPDATED', CURRENT_DATE)
+                RETURNING id""", Long.class);
+        Long expired = jdbc.queryForObject("""
+                INSERT INTO audit_events (category, action, retain_until) VALUES ('ADMIN', 'UNIT_UPDATED', CURRENT_DATE - 1)
+                RETURNING id""", Long.class);
+
+        assertThrows(DataAccessException.class,
+                () -> jdbc.update("UPDATE audit_events SET reason = 'outro' WHERE id = ?", current));
+        assertThrows(DataAccessException.class, () -> jdbc.update("DELETE FROM audit_events WHERE id = ?", current));
+        assertEquals(1, jdbc.update("DELETE FROM audit_events WHERE id = ?", expired));
     }
 }

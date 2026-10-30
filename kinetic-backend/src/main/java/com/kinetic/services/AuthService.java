@@ -1,5 +1,6 @@
 package com.kinetic.services;
 
+import com.kinetic.enums.AuditAction;
 import com.kinetic.enums.Role;
 import com.kinetic.models.User;
 import com.kinetic.repositories.UserRepository;
@@ -13,15 +14,19 @@ import com.kinetic.exceptions.EmailNotVerifiedException;
 import com.kinetic.exceptions.SecondFactorRequiredException;
 import com.kinetic.exceptions.TooManyAttemptsException;
 import com.kinetic.security.JwtUtil;
+import com.kinetic.security.Pseudonymizer;
 import com.kinetic.security.RateLimiter;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +45,8 @@ public class AuthService {
     private final TermsService termsService;
     private final LegalRetentionService retentionService;
     private final RateLimiter rateLimiter;
+    private final AuditService auditService;
+    private final Pseudonymizer pseudonymizer;
 
     public User register(RegisterDTO dto) {
         if (userRepository.existsByEmail(dto.getEmail())) {
@@ -90,6 +97,8 @@ public class AuthService {
         // (alunos no Wi-Fi da academia). Conta antes do bcrypt, que é a parte cara.
         String key = "login:" + ip + " " + identifier;
         if (rateLimiter.acquire(key, LOGIN_ATTEMPTS_PER_MINUTE, LOGIN_WINDOW_MS) > 0) {
+            recordLoginFailure(AuditAction.LOGIN_RATE_LIMITED,
+                    identifier.contains("@") ? dto.getEmail().trim() : identifier, null);
             throw new TooManyAttemptsException("Muitas tentativas. Aguarde um minuto e tente novamente.");
         }
 
@@ -100,9 +109,12 @@ public class AuthService {
                 ? dto.getEmail().trim()
                 : userRepository.findByUsername(identifier).map(User::getEmail).orElse(identifier);
 
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(email, dto.getSenha())
-        );
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, dto.getSenha()));
+        } catch (AuthenticationException e) {
+            recordLoginFailure(AuditAction.LOGIN_FAILED, email, e.getClass().getSimpleName());
+            throw e;
+        }
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));
@@ -122,6 +134,25 @@ public class AuthService {
                     jwtUtil.generateChallengeToken(user.getEmail()));
         }
         return issueSession(user, ip);
+    }
+
+    /**
+     * Conta existente: ela é o alvo. Inexistente: só o pseudônimo do que foi digitado
+     * (nunca o e-mail em claro), para ligar tentativas repetidas sem guardar quem tentou.
+     */
+    private void recordLoginFailure(AuditAction action, String identifier, String cause) {
+        User target = identifier.contains("@")
+                ? userRepository.findByEmail(identifier).orElse(null)
+                : userRepository.findByUsername(identifier).orElse(null);
+        Map<String, Object> details = new HashMap<>();
+        if (target == null) {
+            details.put("emailHash", pseudonymizer.email(identifier));
+        }
+        if (cause != null) {
+            details.put("cause", cause);
+        }
+        auditService.record(action, target == null ? null : target.getId(),
+                target == null ? null : target.getCompanyId(), null, details);
     }
 
     /** Abre a sessão (access + refresh) de quem já passou por todas as etapas do login. */

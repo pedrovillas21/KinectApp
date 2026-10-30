@@ -35,6 +35,25 @@ export function todayIso(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+/** Dia de hoje menos `days`, em "AAAA-MM-DD" no fuso local. */
+export function isoDaysAgo(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/** Instante do backend → "10/10/2026 14:30" no fuso do navegador. */
+export const dateTimeLabel = (iso: string): string =>
+  new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+    .format(new Date(iso))
+    .replace(',', '');
+
 /** Data/hora do backend ("2026-10-10T14:30:00") → "10/10/2026". */
 export const dateLabel = (iso: string): string =>
   new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });

@@ -1,6 +1,7 @@
 package com.kinetic.services;
 
 import com.kinetic.dtos.StudentProtocolDTOs;
+import com.kinetic.enums.AuditAction;
 import com.kinetic.enums.TrainerLinkStatus;
 import com.kinetic.models.TrainerClient;
 import com.kinetic.models.User;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -30,10 +32,14 @@ public class StudentProtocolService {
     private final TrainerLinkService trainerLinkService;
     private final TrainerClientRepository trainerClientRepository;
     private final UserRepository userRepository;
+    private final AuditService auditService;
 
-    @Transactional(readOnly = true)
+    /** Sem readOnly: a leitura grava o registro de auditoria na mesma conexão. */
+    @Transactional
     public StudentProtocolDTOs.Response getForTrainer(String trainerEmail, @NonNull UUID studentId) {
-        return toResponse(trainerLinkService.resolveOwnedStudent(trainerEmail, studentId));
+        StudentProtocolDTOs.Response response = toResponse(trainerLinkService.resolveOwnedStudent(trainerEmail, studentId));
+        auditService.record(AuditAction.HEALTH_DATA_VIEWED, studentId, null, null, Map.of("kind", "PROTOCOL"));
+        return response;
     }
 
     @Transactional
@@ -51,8 +57,11 @@ public class StudentProtocolService {
         if (anamnesis != null && anamnesis.isEmpty()) anamnesis = null;
 
         LocalDateTime now = LocalDateTime.now();
+        boolean protocolChanged = false;
+        boolean anamnesisChanged = false;
         if (!goal.equals(student.getGoal()) || !level.equals(student.getLevel())
                 || !request.frequency().equals(student.getFrequency())) {
+            protocolChanged = true;
             student.setGoal(goal);
             student.setLevel(level);
             student.setFrequency(request.frequency());
@@ -60,11 +69,17 @@ public class StudentProtocolService {
             student.setProtocolUpdatedById(trainer.getId());
         }
         if (!Objects.equals(anamnesis, blankToNull(student.getMedicalConditions()))) {
+            anamnesisChanged = true;
             student.setMedicalConditions(anamnesis);
             student.setAnamnesisUpdatedAt(now);
             student.setAnamnesisUpdatedById(trainer.getId());
             // A conferência valia para o texto anterior: o aluno precisa ver a versão nova.
             student.setAnamnesisConfirmedAt(null);
+        }
+        if (protocolChanged || anamnesisChanged) {
+            // Só o que mudou, nunca o texto da anamnese.
+            auditService.record(AuditAction.PROTOCOL_UPDATED, student.getId(), null, null,
+                    Map.of("protocol", protocolChanged, "anamnesis", anamnesisChanged));
         }
         return toResponse(userRepository.save(student));
     }

@@ -32,7 +32,7 @@ class AccountDeletionIT extends IntegrationTestBase {
                 RETURNING id""", UUID.class,
                 trainer.getId(), student.getId(), "Treino adequado para " + student.getNome() + ".");
 
-        deletionService.deleteAccountByAdmin(student.getId());
+        deletionService.deleteAccountByAdmin(student.getId(), "Pedido do titular por e-mail");
 
         assertEquals("Treino adequado para [aluno excluído].", jdbc.queryForObject(
                 "SELECT declaration_text FROM ai_plan_generations WHERE id = ?", String.class, generationId));

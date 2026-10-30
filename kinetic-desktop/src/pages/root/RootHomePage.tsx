@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   CartesianGrid,
   Line,
@@ -23,7 +23,9 @@ import {
 } from '../../components/stat-primitives';
 import { useIsMobile } from '../../utils/useIsMobile';
 import { getMetrics } from '../../services/rootService';
-import type { RootMetrics, StatsPeriodId } from '../../types';
+import { listAuditEvents } from '../../services/auditService';
+import type { AuditEvent, RootMetrics, StatsPeriodId } from '../../types';
+import AuditEventItem from './audit/AuditEventItem';
 import { dayMonth } from '../../utils/dates';
 import { CHART, chartTooltipStyle } from '../../components/chart-theme';
 
@@ -36,6 +38,14 @@ export default function RootHomePage() {
   const [metrics, setMetrics] = useState<RootMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [recentAudit, setRecentAudit] = useState<AuditEvent[] | null>(null);
+  const [auditError, setAuditError] = useState(false);
+
+  useEffect(() => {
+    listAuditEvents({ category: 'ADMIN', size: 5 })
+      .then((p) => setRecentAudit(p.content))
+      .catch(() => setAuditError(true));
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -159,13 +169,29 @@ export default function RootHomePage() {
             </SectionCard>
 
             {/* Placeholders "no caro" */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 lg:items-start gap-3 md:gap-6">
               <ComingSoonCard icon={CreditCard} title="Faturamento macro">
                 Métricas de faturamento chegam em uma próxima entrega.
               </ComingSoonCard>
-              <ComingSoonCard icon={ScrollText} title="Auditoria recente">
-                Os logs de auditoria serão exibidos aqui em breve.
-              </ComingSoonCard>
+              <SectionCard title="Auditoria recente" subtitle="Últimas ações administrativas" icon={ScrollText}>
+                {auditError ? (
+                  <EmptyCard>Não foi possível carregar a auditoria.</EmptyCard>
+                ) : !recentAudit ? null : recentAudit.length === 0 ? (
+                  <EmptyCard>Nenhuma ação administrativa registrada ainda.</EmptyCard>
+                ) : (
+                  <ul className="-mx-4 divide-y divide-white/[0.06] border-y border-white/[0.06] md:-mx-5">
+                    {recentAudit.map((e) => (
+                      <AuditEventItem key={e.id} event={e} />
+                    ))}
+                  </ul>
+                )}
+                <Link
+                  to="/root/auditoria/acoes"
+                  className="mt-3 self-start text-[13px] font-semibold text-k-primary hover:underline"
+                >
+                  Ver tudo
+                </Link>
+              </SectionCard>
             </div>
           </>
         )}

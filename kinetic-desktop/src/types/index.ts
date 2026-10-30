@@ -644,3 +644,141 @@ export interface TrainerProfileInput {
   schedule: string | null;
   location: string | null;
 }
+
+// ── Auditoria do ROOT (/api/root/audit) ────────────────────────────────────
+
+export type AuditCategory = 'ADMIN' | 'SECURITY' | 'HEALTH' | 'BILLING' | 'LGPD';
+
+/** Espelho do enum AuditAction do backend; os rótulos ficam em pages/root/audit/auditLabels.ts. */
+export type AuditAction =
+  | 'COMPANY_CREATED'
+  | 'PERSONAL_CREATED'
+  | 'USER_STATUS_CHANGED'
+  | 'USER_SOFT_DELETED'
+  | 'USER_DELETED_BY_ADMIN'
+  | 'PASSWORD_REGENERATED'
+  | 'SECOND_FACTOR_RESET'
+  | 'UNIT_CREATED'
+  | 'UNIT_UPDATED'
+  | 'UNIT_STATUS_CHANGED'
+  | 'TRAINER_INVITED_TO_COMPANY'
+  | 'TRAINER_REMOVED_FROM_COMPANY'
+  | 'COMPANY_INVITE_ACCEPTED'
+  | 'COMPANY_INVITE_DECLINED'
+  | 'TRAINER_LEFT_COMPANY'
+  | 'STUDENT_LINKED_BY_COMPANY'
+  | 'COMPANY_LINK_ENDED'
+  | 'ACCESS_LOGS_VIEWED'
+  | 'LOGIN_FAILED'
+  | 'LOGIN_RATE_LIMITED'
+  | 'TOTP_ENABLED'
+  | 'TOTP_FAILED'
+  | 'RECOVERY_CODE_USED'
+  | 'PASSWORD_CHANGED'
+  | 'PASSWORD_RESET_COMPLETED'
+  | 'PASSWORD_RESET_FAILED'
+  | 'EMAIL_CONFIRMED'
+  | 'HEALTH_DATA_VIEWED'
+  | 'ASSESSMENT_CREATED'
+  | 'ASSESSMENT_UPDATED'
+  | 'ASSESSMENT_DELETED'
+  | 'PROTOCOL_UPDATED'
+  | 'SUBSCRIPTION_STATUS_CHANGED'
+  | 'AI_PACK_CREDITED'
+  | 'RETENTION_PURGED'
+  | 'DATA_REQUEST_OPENED'
+  | 'DATA_REQUEST_COMPLETED';
+
+/** Conta ou empresa citada num registro. Excluída: `deleted` e nome nulo. */
+export interface AuditParty {
+  id: string | null;
+  name: string | null;
+  deleted: boolean;
+}
+
+export interface AuditEvent {
+  id: number;
+  occurredAt: string;
+  category: AuditCategory;
+  action: AuditAction;
+  /** Nulo: sistema, gateway de pagamento ou tentativa sem login. */
+  actor: AuditParty | null;
+  actorRole: string | null;
+  targetType: 'USER' | 'COMPANY' | 'LINK' | null;
+  target: AuditParty | null;
+  company: AuditParty | null;
+  /** Só na categoria SECURITY. */
+  ip: string | null;
+  reason: string | null;
+  details: Record<string, unknown> | null;
+}
+
+export interface AccessLogEntry {
+  accessedAt: string;
+  ip: string;
+  event: 'LOGIN' | 'REFRESH' | 'ACCESS';
+}
+
+export interface AccessLogResult {
+  userId: string;
+  deletedAccount: boolean;
+  logs: AccessLogEntry[];
+  /** O período tinha mais linhas que o limite da resposta. */
+  truncated: boolean;
+}
+
+export interface DeletedAccountRow {
+  userId: string;
+  role: string;
+  deletedBy: 'TITULAR' | 'ADMIN';
+  deletedByAdmin: AuditParty | null;
+  blocked: boolean;
+  deletedAt: string;
+  retainUntil: string;
+}
+
+export interface AuditLgpd {
+  deletions: { byTitular: number; byAdmin: number; blocked: number };
+  terms: { currentVersion: string; accepted: number; pending: number };
+  lastPurge: { at: string; counts: Record<string, number> | null } | null;
+  requests: { open: number; dueSoon: number; overdue: number };
+  deletedAccounts: Page<DeletedAccountRow>;
+}
+
+export type DataRequestKind = 'ACESSO' | 'CORRECAO' | 'ELIMINACAO' | 'REVOGACAO' | 'INFORMACAO';
+export type DataRequestStatus = 'ABERTO' | 'CONCLUIDO';
+
+export interface DataRequest {
+  id: string;
+  kind: DataRequestKind;
+  receivedAt: string;
+  dueAt: string;
+  status: DataRequestStatus;
+  completedAt: string | null;
+  /** Nulo: a conta do titular foi excluída depois do pedido. */
+  subject: AuditParty | null;
+  note: string | null;
+  createdBy: AuditParty | null;
+}
+
+export interface AuditAiApproval {
+  id: string;
+  approvedAt: string;
+  trainer: AuditParty;
+  trainerCref: string | null;
+  model: string | null;
+  replacedCurrent: boolean | null;
+  student: AuditParty;
+}
+
+export interface AuditAi {
+  /** Gerações (prévias) criadas no período; as aprovadas estão entre elas. */
+  previews: number;
+  approved: number;
+  approvals: Page<AuditAiApproval>;
+}
+
+export interface BillingGatewayInfo {
+  gateway: string;
+  demo: boolean;
+}

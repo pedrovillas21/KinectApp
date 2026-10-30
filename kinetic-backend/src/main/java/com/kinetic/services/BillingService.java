@@ -4,6 +4,7 @@ import com.kinetic.utils.AppTime;
 import com.kinetic.billing.GatewayEvent;
 import com.kinetic.billing.PaymentGateway;
 import com.kinetic.dtos.BillingOverviewDTO;
+import com.kinetic.enums.AuditAction;
 import com.kinetic.enums.BillingPlan;
 import com.kinetic.enums.SubscriptionStatus;
 import com.kinetic.enums.TrainerLinkSource;
@@ -36,8 +37,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -88,6 +91,11 @@ public class BillingService {
     private static final DateTimeFormatter HOUR_MINUTE = DateTimeFormatter.ofPattern("HH:mm").withZone(
             AppTime.ZONE);
     private static final ZoneId BILLING_ZONE = AppTime.ZONE;
+    /** Eventos simulados no modo demo; na trilha de auditoria a origem sai DEMO. */
+    private static final String DEMO_EVENT_PREFIX = "demo_";
+    private static final String SOURCE_TRAINER = "TRAINER";
+    private static final String SOURCE_WEBHOOK = "WEBHOOK";
+    private static final String SOURCE_DEMO = "DEMO";
 
     private final TrainerSubscriptionRepository subscriptionRepository;
     private final TrainerClientRepository trainerClientRepository;
@@ -96,6 +104,7 @@ public class BillingService {
     private final PaymentGateway gateway;
     private final TrainerEventService trainerEventService;
     private final RateLimiter rateLimiter;
+    private final AuditService auditService;
 
     @Value("${billing.trial-days:14}")
     private int trialDays;
@@ -118,6 +127,8 @@ public class BillingService {
         BillingPlan plan = parsePlan(planCode);
         User trainer = userRepository.getByEmailOrThrow(trainerEmail);
         TrainerSubscription sub = getOrCreate(trainer);
+        SubscriptionStatus fromStatus = sub.getStatus();
+        BillingPlan fromPlan = sub.getPlan();
 
         long active = countActiveStudents(trainer);
         if (plan.getMaxStudents() != null && active > plan.getMaxStudents()) {
@@ -136,7 +147,9 @@ public class BillingService {
             // Troca vale já; o novo valor entra nas próximas cobranças (sem proporcional por enquanto).
             gateway.updateSubscriptionPlan(sub.getGatewaySubscriptionId(), plan);
             sub.setPlan(plan);
-            return toDto(save(sub), trainer);
+            TrainerSubscription saved = save(sub);
+            recordChange(saved, fromStatus, fromPlan, SOURCE_TRAINER);
+            return toDto(saved, trainer);
         }
 
         // Assinatura nova (saindo do teste, refazendo uma pendente ou voltando após cancelar).
@@ -156,7 +169,9 @@ public class BillingService {
         sub.setPlan(plan);
         sub.setStatus(SubscriptionStatus.PENDENTE);
         sub.setCanceledAt(null);
-        return toDto(save(sub), trainer);
+        TrainerSubscription saved = save(sub);
+        recordChange(saved, fromStatus, fromPlan, SOURCE_TRAINER);
+        return toDto(saved, trainer);
     }
 
     /**
@@ -169,6 +184,8 @@ public class BillingService {
         if (sub.getStatus() == SubscriptionStatus.TRIAL || sub.getStatus() == SubscriptionStatus.CANCELADA) {
             throw new IllegalArgumentException("Você não tem uma assinatura ativa para cancelar.");
         }
+        SubscriptionStatus fromStatus = sub.getStatus();
+        BillingPlan fromPlan = sub.getPlan();
 
         if (sub.getGatewaySubscriptionId() != null && gateway.name().equals(sub.getGateway())) {
             gateway.cancelSubscription(sub.getGatewaySubscriptionId());
@@ -183,7 +200,9 @@ public class BillingService {
             sub.setStatus(SubscriptionStatus.CANCELADA);
             sub.setCanceledAt(Instant.now());
         }
-        return toDto(save(sub), trainer);
+        TrainerSubscription saved = save(sub);
+        recordChange(saved, fromStatus, fromPlan, SOURCE_TRAINER);
+        return toDto(saved, trainer);
     }
 
     /** Só no modo demo: simula a confirmação do pagamento da cobrança em aberto. */
@@ -194,7 +213,7 @@ public class BillingService {
         if (sub.getStatus() != SubscriptionStatus.PENDENTE || sub.getGatewaySubscriptionId() == null) {
             throw new IllegalArgumentException("Não há cobrança em aberto para pagar.");
         }
-        handleEvent(new GatewayEvent("demo_" + UUID.randomUUID(), GatewayEvent.Type.PAYMENT_PAID,
+        handleEvent(new GatewayEvent(DEMO_EVENT_PREFIX + UUID.randomUUID(), GatewayEvent.Type.PAYMENT_PAID,
                 sub.getGatewaySubscriptionId(), null, LocalDate.now(BILLING_ZONE)));
         return toDto(subscriptionRepository.findById(sub.getId()).orElseThrow(), trainer);
     }
@@ -238,7 +257,7 @@ public class BillingService {
         if (sub.getAiPackPaymentId() == null) {
             throw new IllegalArgumentException("Não há pacote de IA aguardando pagamento.");
         }
-        handleEvent(new GatewayEvent("demo_" + UUID.randomUUID(), GatewayEvent.Type.PAYMENT_PAID,
+        handleEvent(new GatewayEvent(DEMO_EVENT_PREFIX + UUID.randomUUID(), GatewayEvent.Type.PAYMENT_PAID,
                 null, sub.getAiPackPaymentId(), LocalDate.now(BILLING_ZONE)));
         return toDto(subscriptionRepository.findById(sub.getId()).orElseThrow(), trainer);
     }
@@ -262,9 +281,11 @@ public class BillingService {
         if (event.eventId() != null && subscriptionRepository.registerWebhookEvent(event.eventId()) == 0) {
             return;
         }
+        String source = event.eventId() != null && event.eventId().startsWith(DEMO_EVENT_PREFIX)
+                ? SOURCE_DEMO : SOURCE_WEBHOOK;
         if (event.subscriptionId() == null) {
             if (event.type() == GatewayEvent.Type.PAYMENT_PAID) {
-                creditAiPack(event.paymentId());
+                creditAiPack(event.paymentId(), source);
             }
             return;
         }
@@ -274,6 +295,8 @@ public class BillingService {
             log.warn("Evento de cobrança para assinatura desconhecida ({}); ignorado.", event.type());
             return;
         }
+        SubscriptionStatus fromStatus = sub.getStatus();
+        BillingPlan fromPlan = sub.getPlan();
 
         switch (event.type()) {
             case PAYMENT_PAID -> {
@@ -302,11 +325,12 @@ public class BillingService {
             default -> { }
         }
         save(sub);
+        recordChange(sub, fromStatus, fromPlan, source);
         trainerEventService.publishAfterCommit(sub.getTrainer().getId(), "billing", null);
     }
 
     /** Pagamento do pacote de IA: soma os créditos. Cobrança já creditada some do registro e é ignorada. */
-    private void creditAiPack(String paymentId) {
+    private void creditAiPack(String paymentId, String source) {
         TrainerSubscription sub = subscriptionRepository.findByAiPackPaymentId(paymentId).orElse(null);
         if (sub == null) {
             // Normal no 2º aviso da mesma cobrança (confirmado → recebido); fora isso, conferir no gateway.
@@ -317,6 +341,8 @@ public class BillingService {
         sub.setAiPackPaymentId(null);
         sub.setAiPackCheckoutUrl(null);
         save(sub);
+        auditService.record(AuditAction.AI_PACK_CREDITED, sub.getTrainer().getId(), null, null,
+                Map.of("credits", AI_PACK_CREDITS, "source", source));
         trainerEventService.publishAfterCommit(sub.getTrainer().getId(), "billing", null);
     }
 
@@ -605,6 +631,21 @@ public class BillingService {
     private TrainerSubscription save(TrainerSubscription sub) {
         sub.setUpdatedAt(Instant.now());
         return subscriptionRepository.saveAndFlush(sub);
+    }
+
+    /** Trilha de auditoria: só quando o status ou o plano mudou de fato. */
+    private void recordChange(TrainerSubscription sub, SubscriptionStatus fromStatus, BillingPlan fromPlan, String source) {
+        if (fromStatus == sub.getStatus() && fromPlan == sub.getPlan()) {
+            return;
+        }
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("from", fromStatus == null ? null : fromStatus.name());
+        details.put("to", sub.getStatus().name());
+        details.put("fromPlan", fromPlan == null ? null : fromPlan.name());
+        details.put("plan", sub.getPlan() == null ? null : sub.getPlan().name());
+        details.put("source", source);
+        auditService.record(AuditAction.SUBSCRIPTION_STATUS_CHANGED, sub.getTrainer().getId(),
+                sub.getTrainer().getCompanyId(), null, details);
     }
 
     private void cancelQuietly(String gatewaySubscriptionId) {

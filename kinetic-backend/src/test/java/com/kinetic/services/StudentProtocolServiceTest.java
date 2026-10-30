@@ -27,7 +27,8 @@ class StudentProtocolServiceTest {
     private final TrainerLinkService links = mock(TrainerLinkService.class);
     private final TrainerClientRepository trainerClients = mock(TrainerClientRepository.class);
     private final UserRepository users = mock(UserRepository.class);
-    private final StudentProtocolService service = new StudentProtocolService(links, trainerClients, users);
+    private final StudentProtocolService service = new StudentProtocolService(links, trainerClients, users,
+            mock(AuditService.class));
 
     private final User trainer = new User();
     private final User student = new User();
