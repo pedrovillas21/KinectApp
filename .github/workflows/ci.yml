@@ -1,0 +1,53 @@
+# Roda em todo push. A main é protegida no GitHub exigindo estes três jobs, e o
+# kinetic-backend/deploy.sh só sobe a main: código que não passou aqui não chega à VPS.
+name: CI
+
+on: push
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kinetic-backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      # Unidade + integração (*IT): o Testcontainers usa o Docker do próprio runner.
+      - run: mvn -B verify
+
+  desktop:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kinetic-desktop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: kinetic-desktop/package-lock.json
+      - run: npm ci
+      - run: npm run build
+        env:
+          VITE_API_URL: https://api.kineticfitness.com.br
+
+  app:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: KineticApp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: KineticApp/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit

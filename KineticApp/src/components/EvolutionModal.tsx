@@ -1,144 +1,104 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityIndicator, Alert } from 'react-native';
-import { COLORS } from '../theme/colors';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { Button, Dialog, Text, TextField } from './ui';
+
 import api from '../services/api';
+import { useColors } from '../theme/ThemeContext';
 
 interface EvolutionModalProps {
   visible: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  /** Leva ao protocolo, onde a ficha é regerada com os dados completos do aluno. */
+  onReviewProtocol: () => void;
 }
 
-export default function EvolutionModal({ visible, onClose, onSuccess }: EvolutionModalProps) {
+/** Check-in mensal de peso. Depois de salvar, oferece revisar o protocolo. */
+export default function EvolutionModal({ visible, onClose, onSuccess, onReviewProtocol }: EvolutionModalProps) {
+  const c = useColors();
   const [weight, setWeight] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
-  const handleSubmit = async () => {
-    if (!weight) return;
-    setLoading(true);
+  useEffect(() => {
+    if (visible) {
+      setWeight('');
+      setError('');
+      setSaved(false);
+    }
+  }, [visible]);
+
+  const handleSave = async () => {
+    const parsed = Number(weight.replace(',', '.'));
+    if (!parsed || parsed < 20 || parsed > 500) {
+      setError('Informe um peso entre 20 e 500 kg.');
+      return;
+    }
+    setSaving(true);
+    setError('');
     try {
-      const parsedWeight = parseFloat(weight.replace(',', '.'));
-      await api.post('/users/weight', { newWeight: parsedWeight });
-      
-      Alert.alert(
-        'Peso Atualizado',
-        'Deseja atualizar sua ficha de treinos baseada no seu novo peso?',
-        [
-          { text: 'Não, manter os atuais', onPress: () => { onSuccess(); onClose(); }, style: 'cancel' },
-          { text: 'Sim, recriar ficha!', onPress: handleRegenerate }
-        ]
-      );
-    } catch (error) {
-      Alert.alert('Erro', 'Não foi possível atualizar o peso.');
+      await api.post('/users/weight', { newWeight: parsed });
+      setSaved(true);
+    } catch {
+      setError('Não foi possível salvar o peso. Tente novamente.');
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
-  const handleRegenerate = async () => {
-    // A chamada a seguir presume que haja uma rota pro Gemini.
-    // Você pode ter que ajustar de acordo com a implementação real de geração
-    setLoading(true);
-    try {
-      await api.post('/workouts/generate', { days: 5, target: 'hypertrophy' }); // Mock payload, adjust as needed
-      Alert.alert('Sucesso!', 'Seus treinos foram atualizados.');
-      onSuccess();
-      onClose();
-    } catch (error) {
-      Alert.alert('Erro', 'Houve um erro ao regerar o treino.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (saved) {
+    return (
+      <Dialog visible={visible} onClose={onSuccess} title="Peso registrado">
+        <View style={styles.body}>
+          <Text variant="body" color={c.textDim}>
+            Quer revisar seu protocolo? Com o peso novo, você pode gerar uma ficha ajustada.
+          </Text>
+          <View style={styles.row}>
+            <Button label="Agora não" variant="secondary" size="md" block onPress={onSuccess} style={styles.flex} />
+            <Button
+              label="Revisar"
+              size="md"
+              block
+              onPress={() => {
+                onSuccess();
+                onReviewProtocol();
+              }}
+              style={styles.flex}
+            />
+          </View>
+        </View>
+      </Dialog>
+    );
+  }
 
   return (
-    <Modal visible={visible} transparent animationType="slide">
-      <View style={styles.overlay}>
-        <View style={styles.modalContainer}>
-          <Text style={styles.title}>Hora do Check-in Mensal!</Text>
-          <Text style={styles.subtitle}>Já faz 30 dias desde seu último registro. Informe seu peso atual (em jejum) para podermos ajustar seus treinos se necessário.</Text>
-          
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            placeholder="Ex: 80,5"
-            placeholderTextColor="#888"
-            value={weight}
-            onChangeText={setWeight}
-          />
-          
-          {loading ? (
-            <ActivityIndicator size="large" color={COLORS.neonBlue} style={{ marginVertical: 20 }} />
-          ) : (
-            <>
-              <TouchableOpacity style={styles.primaryButton} onPress={handleSubmit}>
-                <Text style={styles.primaryButtonText}>SALVAR PESO</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
-                <Text style={styles.cancelButtonText}>Lembrar mais tarde</Text>
-              </TouchableOpacity>
-            </>
-          )}
+    <Dialog visible={visible} onClose={onClose} title="Check-in mensal">
+      <View style={styles.body}>
+        <Text variant="body" color={c.textDim}>
+          Já faz 30 dias desde o seu último registro. Informe seu peso atual, de preferência em jejum.
+        </Text>
+        <TextField
+          label="Peso atual (kg)"
+          value={weight}
+          onChangeText={setWeight}
+          placeholder="80,5"
+          keyboardType="decimal-pad"
+          maxLength={6}
+          mono
+          error={error || null}
+        />
+        <View style={styles.row}>
+          <Button label="Depois" variant="secondary" size="md" block onPress={onClose} style={styles.flex} />
+          <Button label="Salvar" size="md" block loading={saving} disabled={!weight.trim()} onPress={handleSave} style={styles.flex} />
         </View>
       </View>
-    </Modal>
+    </Dialog>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.8)',
-    justifyContent: 'center',
-    padding: 20
-  },
-  modalContainer: {
-    backgroundColor: '#1E1E1E',
-    borderRadius: 16,
-    padding: 24,
-    alignItems: 'center'
-  },
-  title: {
-    color: '#FFF',
-    fontSize: 22,
-    fontWeight: '900',
-    marginBottom: 8,
-    textAlign: 'center'
-  },
-  subtitle: {
-    color: '#CCC',
-    fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 24
-  },
-  input: {
-    backgroundColor: '#333',
-    width: '100%',
-    color: '#FFF',
-    fontSize: 20,
-    textAlign: 'center',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 24
-  },
-  primaryButton: {
-    backgroundColor: COLORS.neonBlue,
-    width: '100%',
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 12
-  },
-  primaryButtonText: {
-    color: '#000',
-    fontWeight: '900',
-    fontSize: 16
-  },
-  cancelButton: {
-    padding: 12
-  },
-  cancelButtonText: {
-    color: '#888',
-    fontSize: 14
-  }
+  body: { gap: 14 },
+  row: { flexDirection: 'row', gap: 10 },
+  flex: { flex: 1 },
 });

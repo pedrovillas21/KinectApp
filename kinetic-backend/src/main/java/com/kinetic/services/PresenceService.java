@@ -1,33 +1,38 @@
 package com.kinetic.services;
 
+import lombok.RequiredArgsConstructor;
 import com.kinetic.models.User;
 import com.kinetic.repositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class PresenceService {
 
     private final UserRepository userRepository;
+    private final JdbcTemplate jdbc;
 
-    public PresenceService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-
-    /** Called by the LastActiveInterceptor — gated write (max once per 60s). */
-    @Transactional
-    public void touch(String email) {
-        userRepository.findByEmail(email).ifPresent(user -> {
-            LocalDateTime now = LocalDateTime.now();
-            if (user.getLastActive() == null || user.getLastActive().isBefore(now.minusSeconds(60))) {
-                user.setLastActive(now);
-                userRepository.save(user);
-            }
-        });
+    /**
+     * Called by the LastActiveInterceptor — gated write (max once per 60s).
+     * Grava só last_active: carregar e salvar a linha inteira desfaria uma suspensão ou
+     * troca de senha gravada por outra requisição no meio do caminho.
+     *
+     * @return o id do usuário quando gravou (para o registro de acesso), senão null
+     */
+    public UUID touch(String email) {
+        LocalDateTime now = LocalDateTime.now();
+        List<UUID> ids = jdbc.queryForList("""
+                UPDATE users SET last_active = ?
+                WHERE email = ? AND (last_active IS NULL OR last_active < ?)
+                RETURNING id""", UUID.class, now, email, now.minusSeconds(60));
+        return ids.isEmpty() ? null : ids.get(0);
     }
 
     @Transactional

@@ -31,7 +31,7 @@ Base: `http://<host>:8080/api`
 | Usuário | `GET` / `POST` | `/users/profile`, `/users/weight` |
 | Home (dashboard) | `GET` | `/home/dashboard` |
 | Treinos | `POST` / `GET` | `/workouts/generate`, `/workouts/my-plans` |
-| Sessões | `POST` / `GET` | `/sessions/log`, `/sessions/monthly-stats`, `/sessions/weekly-activity` |
+| Sessões | `POST` / `DELETE` | `/sessions/start`, `/sessions/log`, `/sessions/active` |
 | Estatísticas | `GET` | `/stats/summary` |
 
 ---
@@ -72,9 +72,11 @@ Depois preencha os valores no `.env` (ele **não** é versionado):
 | `JWT_EXPIRATION_MS` | ✅ | Validade do access token, em ms |
 | `JWT_REFRESH_EXPIRATION_MS` | ✅ | Validade do refresh token, em ms |
 | `GOOGLE_AI_API_KEY` | ✅ | Chave da API do Google Gemini (geração de treinos) |
+| `PSEUDONYM_KEY` | ✅ | Chave que pseudonimiza e-mail/CPF nos registros guardados após a exclusão de conta (≥ 32 caracteres). Sem ela o backend não sobe. Use a mesma em todo ambiente que aponta para o mesmo banco e nunca troque em produção ([RETENCAO-DE-DADOS.md](RETENCAO-DE-DADOS.md)) |
+| `BILLING_GATEWAY` | ✅ | Cobrança do personal: `demo` (nada é cobrado; o painel simula o pagamento) ou `asaas`. Sem ela o backend não sobe |
 | `CORS_ALLOWED_ORIGINS` | ❌ | Origens liberadas (default: `http://localhost:8081,http://localhost:19006`) |
 
-> 💡 Para gerar um `JWT_SECRET` aleatório: `openssl rand -base64 64`.
+> 💡 Para gerar um `JWT_SECRET` aleatório: `openssl rand -base64 64`. Para a `PSEUDONYM_KEY`: `openssl rand -base64 48`.
 
 > O `ddl-auto` está em `validate` e o **Flyway** roda as migrações de
 > `src/main/resources/db/migration/` automaticamente na inicialização.
@@ -124,7 +126,7 @@ Comandos úteis:
 ```bash
 docker compose up -d --build   # sobe em background (detached)
 docker compose logs -f          # acompanha os logs
-docker compose down             # para e remove o container
+docker compose down             # para e remove os containers
 docker compose up --build       # reconstrói após mudanças no código
 ```
 
@@ -157,6 +159,32 @@ docker compose up --build       # reconstrói após mudanças no código
 > não é acessível via `localhost` de dentro do container — use
 > `host.docker.internal` (Windows/macOS) no lugar de `localhost` na `DB_URL`.
 
+### 1.4. Testes
+
+```bash
+.\mvnw.cmd test     # só os de unidade, sem Docker
+.\mvnw.cmd verify   # unidade + integração (*IT); precisa do Docker aberto
+```
+
+Os testes de integração sobem um Postgres descartável (Testcontainers) com o schema de
+produção em [`src/test/resources/db/prod-schema-v49.sql`](kinetic-backend/src/test/resources/db/prod-schema-v49.sql)
+e aplicam por cima as migrations novas, como acontece no deploy. Nunca usam o banco do `.env`.
+O mesmo arquivo, somado às migrations, recria o schema do zero.
+
+Quando produção avançar de versão, gere um novo dump só de estrutura, faça as mesmas
+remoções listadas no topo do arquivo e atualize `spring.flyway.baseline-version` em
+`src/test/resources/application-test.properties`.
+
+### 1.5. Deploy e migrations
+
+O CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) roda em todo push. O
+`deploy.sh` só sobe a `main`, que no GitHub exige o CI verde.
+
+O deploy troca uma cópia do backend por vez: a primeira aplica a migration enquanto a outra
+ainda roda o código antigo. Por isso **uma migration só acrescenta** (tabela, coluna anulável,
+índice). Remover ou renomear coluna fica para um deploy seguinte, quando nenhum código no ar
+usa mais o nome antigo.
+
 ---
 
 ## 2. Subindo o app mobile (`KineticApp`)
@@ -181,6 +209,7 @@ cp .env.example .env   # Windows (PowerShell): Copy-Item .env.example .env
 | Variável | Descrição |
 |----------|-----------|
 | `EXPO_PUBLIC_API_URL` | URL base do backend, **sem** a barra final (o cliente axios adiciona `/api`) |
+| `EXPO_PUBLIC_SITE_URL` | Endereço público do painel web, onde ficam `/termos` e `/privacidade` (o app abre essas páginas) |
 
 > **Testando no celular físico (Expo Go):** `localhost` aponta para o próprio celular,
 > não para o seu computador. Use o **IP da sua máquina na rede local**, por exemplo:
@@ -215,7 +244,7 @@ npm run web        # abre no navegador
 KinectApp/
 ├── kinetic-backend/        # API Spring Boot (Java 17)
 │   ├── Dockerfile          # Build multi-stage (Maven → JRE)
-│   ├── docker-compose.yml  # Sobe o backend em container
+│   ├── docker-compose.yml  # Sobe 2 cópias do backend + balanceador
 │   └── src/main/java/com/kinetic/
 │       ├── controllers/    # Endpoints REST
 │       ├── services/       # Regras de negócio (Auth, Stats, Gemini, Workout...)
@@ -241,9 +270,14 @@ KinectApp/
 
 ## Notas
 
+- **Dados pessoais e LGPD:** o que é apagado na exclusão de conta, o que fica guardado por obrigação legal e por quanto tempo está em [RETENCAO-DE-DADOS.md](RETENCAO-DE-DADOS.md). O que precisa ser configurado à mão (Cloudflare, VM, `.env`, provedores, canal de privacidade) está em [PROTECOES-FORA-DO-CODIGO.md](PROTECOES-FORA-DO-CODIGO.md).
+- **Termos de Uso e Política de Privacidade:** textos em `kinetic-desktop/src/legal/documents.ts`, publicados pelo painel em `/termos` e `/privacidade`. Sem o aceite da versão vigente, a API responde `403 TERMS_REQUIRED` e o app/painel pedem o aceite.
+- **Deploy na VM:** `kinetic-backend/deploy.sh` atualiza as 2 cópias do backend uma por vez, sem tirar a API do ar.
 - Os arquivos `.env` (backend e app) **não são versionados** — cada desenvolvedor
   precisa criar o seu localmente.
 - O backend exige conexão com um PostgreSQL válido na inicialização; sem isso, as
   migrações do Flyway falham e a aplicação não sobe.
-</content>
-</invoke>
+- Stories duram 24h e são apagados (linha + foto) por um job agendado; a limpeza de
+  fotos órfãs roda em modo simulação até `MEDIA_CLEANUP_DRY_RUN=false`. Detalhes e a
+  lista de todos os jobs em
+  [`kinetic-backend/docs/ciclo-de-vida-stories-e-midia.md`](kinetic-backend/docs/ciclo-de-vida-stories-e-midia.md).

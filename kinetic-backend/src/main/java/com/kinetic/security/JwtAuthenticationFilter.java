@@ -1,5 +1,6 @@
 package com.kinetic.security;
 
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -18,6 +18,12 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    /** Mesmo formato do EMAIL_NOT_VERIFIED: código fixo para os clientes reconhecerem o caso. */
+    private static final String PHONE_REQUIRED_BODY =
+            "{\"code\":\"PHONE_REQUIRED\",\"message\":\"Cadastre seu celular (WhatsApp) para continuar.\"}";
+    private static final String TERMS_REQUIRED_BODY =
+            "{\"code\":\"TERMS_REQUIRED\",\"message\":\"Aceite os Termos de Uso e a Política de Privacidade para continuar.\"}";
 
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService customUserDetailsService;
@@ -30,8 +36,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String userEmail;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
@@ -39,28 +43,86 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         try {
-            jwt = authHeader.substring(7);
-            userEmail = jwtUtil.extractUsername(jwt);
+            // Uma leitura só: assinatura e validade conferidas aqui valem para as checagens abaixo.
+            Claims claims = jwtUtil.parse(authHeader.substring(7));
+            // Token de desafio (senha certa, falta o código do app autenticador) não dá acesso.
+            if (claims.get(JwtUtil.PURPOSE_CLAIM) != null) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Unauthorized: falta o código do app autenticador.");
+                return;
+            }
+            String userEmail = claims.getSubject();
 
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = this.customUserDetailsService.loadUserByUsername(userEmail);
+                KineticUserDetails userDetails = this.customUserDetailsService.loadUserByUsername(userEmail);
 
-                if (jwtUtil.validateToken(jwt, userDetails.getUsername())) {
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails,
-                            null,
-                            userDetails.getAuthorities()
-                    );
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                // Compliance: um access token ainda válido de uma conta suspensa/
+                // bloqueada é barrado aqui (o token de curta duração não sobrevive
+                // ao status). 403 explícito em vez de deixar seguir sem auth.
+                if (!userDetails.isEnabled() || !userDetails.isAccountNonLocked()) {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.getWriter().write("Conta suspensa ou bloqueada.");
+                    return;
                 }
+
+                // Senha trocada/redefinida depois da emissão: o token pode estar com quem
+                // motivou a troca. Mesmo 401 de token inválido, para o cliente renovar ou sair.
+                if (userDetails.isIssuedBeforeCredentialsChange(JwtUtil.issuedAt(claims))) {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.getWriter().write("Unauthorized: sessão encerrada após a troca de senha.");
+                    return;
+                }
+
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                );
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                // Cadastro pendente: conta antiga sem celular, ou sem o aceite da versão vigente dos
+                // termos. Só passa o necessário para resolver a pendência (ou para o titular exercer
+                // os direitos dele: exportar e excluir a conta).
+                String pendingBody = userDetails.isPhoneRequired() ? PHONE_REQUIRED_BODY
+                        : userDetails.isTermsRequired() ? TERMS_REQUIRED_BODY
+                        : null;
+                if (pendingBody != null && !allowedWhilePending(request)) {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json");
+                    response.setCharacterEncoding("UTF-8");
+                    response.getWriter().write(pendingBody);
+                    return;
+                }
+
+                SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         } catch (io.jsonwebtoken.JwtException | org.springframework.security.core.userdetails.UsernameNotFoundException e) {
+            // Mensagem fixa: o detalhe da exceção diria por que o token falhou.
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Unauthorized: " + e.getMessage());
+            response.getWriter().write("Unauthorized: token inválido.");
             return;
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * O que uma conta com cadastro pendente (celular ou aceite dos termos) ainda pode chamar:
+     * sessão (refresh/logout), leitura do perfil (os clientes checam as pendências por ele),
+     * resolver cada pendência e os direitos do titular (exportar e excluir a conta, LGPD art. 18).
+     */
+    private static boolean allowedWhilePending(HttpServletRequest request) {
+        String path = path(request);
+        String method = request.getMethod();
+        return path.startsWith("/api/auth/")
+                || ("GET".equals(method) && "/api/users/profile".equals(path))
+                || ("POST".equals(method) && "/api/users/me/terms-acceptance".equals(path))
+                || ("GET".equals(method) && "/api/users/me/export".equals(path))
+                || ("DELETE".equals(method) && "/api/users/me".equals(path))
+                || ("PUT".equals(method) && "/api/users/phone".equals(path));
+    }
+
+    private static String path(HttpServletRequest request) {
+        return request.getRequestURI().substring(request.getContextPath().length());
     }
 }

@@ -1,30 +1,24 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PlanEvolutionCard from '../components/PlanEvolutionCard';
 import Icon from '../components/Icon';
-import {
-  ActivityIndicator,
-  Dimensions,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Dimensions, Pressable, RefreshControl, ScrollView, View } from 'react-native';
+import { Text } from '../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { LineChart } from 'react-native-gifted-charts';
-import Svg, { Circle, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
-import {LinearGradient} from 'expo-linear-gradient';
+import Svg, { Circle, Text as SvgText } from 'react-native-svg';
 import EvolutionModal from '../components/EvolutionModal';
+import { SegmentedControl, StaleBanner } from '../components/ui';
+import useFocusResource from '../hooks/useFocusResource';
 import api from '../services/api';
 import {
   CommunityComparisonDTO,
+  PhysicalAssessmentDTO,
   PlanEvolutionResponseDTO,
   StatsInsightDTO,
   StatsPeriodId,
+  StatsActivityDTO,
   StatsSummaryResponseDTO,
-  VolumeByMuscleGroupDTO,
   VolumeSummaryDTO,
   WeightPointDTO,
   WeightSummaryDTO,
@@ -38,513 +32,431 @@ import {
   formatVolumeKg,
   periodDescription,
 } from '../utils/statsUtils';
-import { STATS_T as T } from '../theme/statsTokens';
+import { FONT, Palette, RADIUS } from '../theme/kinetic';
+import { formatKg, formatMinutes, formatShortDate, parseLocalDate, weekdayLetter } from '../utils/formatters';
+import { createStyles, useColors } from '../theme/ThemeContext';
 
 const SCREEN_W = Dimensions.get('window').width;
 const CONTENT_PAD = 16;
 
 // ─── Atoms ────────────────────────────────────────────────────────────────
-interface CardHeaderProps {
-  title: string;
-  subtitle?: string;
-}
-function CardHeader({ title, subtitle }: CardHeaderProps) {
+function CardHeader({ title, subtitle, action }: { title: string; subtitle?: string; action?: React.ReactNode }) {
+  const styles = useStyles();
   return (
     <View style={styles.cardHeader}>
-      <Text style={styles.cardTitle}>{title}</Text>
-      {subtitle ? <Text style={styles.cardSubtitle}>{subtitle}</Text> : null}
+      <View style={styles.flex}>
+        <Text style={styles.cardTitle}>{title}</Text>
+        {subtitle ? <Text style={styles.cardSubtitle}>{subtitle}</Text> : null}
+      </View>
+      {action}
     </View>
   );
 }
 
-interface DeltaChipProps {
-  value: number;
-  good: boolean;
-  suffix?: string;
+// ─── Consistência: treinos do período + anel de aderência ───────────────────
+interface ConsistencyCardProps {
+  activity: StatsActivityDTO;
+  completed: number;
+  target: number;
+  efficiencyPercentage: number;
+  community: CommunityComparisonDTO;
 }
-function DeltaChip({ value, good, suffix }: DeltaChipProps) {
-  const positive = value >= 0;
-  const color = good ? T.success : T.warn;
-  const bg = good ? T.successDim : T.warnDim;
-  return (
-    <View style={[chipStyles.chip, { backgroundColor: bg }]}>
-      <Icon name={positive ? 'arrow-up' : 'arrow-down'} size={12} color={color} strokeWidth={2.6} />
-      <Text style={[chipStyles.text, { color }]}>
-        {formatNumberPtBR(Math.abs(value), 1)}
-        {suffix ?? ''}
-      </Text>
-    </View>
-  );
-}
+function ConsistencyCard({ activity, completed, target, efficiencyPercentage, community }: ConsistencyCardProps) {
+  const consistencyStyles = useConsistencyStyles();
+  const styles = useStyles();
+  const c = useColors();
+  const size = 84;
+  const radius = 34;
+  const circumference = 2 * Math.PI * radius;
+  const dash = circumference * Math.max(0, Math.min(1, efficiencyPercentage / 100));
+  const cmpColor = community.isAbove ? c.success : c.warn;
 
-const chipStyles = StyleSheet.create({
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 999,
-    alignSelf: 'flex-start',
-  },
-  text: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-});
-
-// ─── Period selector ──────────────────────────────────────────────────────
-interface PeriodSelectorProps {
-  value: StatsPeriodId;
-  onChange: (id: StatsPeriodId) => void;
-}
-function PeriodSelector({ value, onChange }: PeriodSelectorProps) {
   return (
-    <View style={selectorStyles.row}>
-      {STATS_PERIODS.map((p) => {
-        const active = p.id === value;
-        return (
-          <TouchableOpacity
-            key={p.id}
-            onPress={() => onChange(p.id)}
-            activeOpacity={0.8}
-            style={[
-              selectorStyles.pill,
-              active ? selectorStyles.pillActive : null,
-            ]}
+    <View style={styles.card}>
+      <View style={consistencyStyles.row}>
+        <View style={styles.flex}>
+          <Text style={styles.eyebrow}>Consistência</Text>
+          <Text style={consistencyStyles.value}>
+            {completed}
+            <Text style={consistencyStyles.valueDim}> / {target}</Text>
+          </Text>
+          <Text style={styles.cardSubtitle}>treinos concluídos</Text>
+        </View>
+        <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} accessibilityLabel={`Aderência de ${efficiencyPercentage}%`}>
+          <Circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={c.ghost} strokeWidth={8} />
+          <Circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            fill="none"
+            stroke={c.primary}
+            strokeWidth={8}
+            strokeLinecap="round"
+            strokeDasharray={`${dash} ${circumference - dash}`}
+            transform={`rotate(-90 ${size / 2} ${size / 2})`}
+          />
+          <SvgText
+            x={size / 2}
+            y={size / 2 + 5}
+            textAnchor="middle"
+            fill={c.text}
+            fontFamily={FONT.monoSemibold}
+            fontSize={16}
           >
-            <Text
-              style={[
-                selectorStyles.label,
-                { color: active ? T.bg : T.text2 },
-              ]}
-            >
-              {p.label}
+            {`${efficiencyPercentage}%`}
+          </SvgText>
+        </Svg>
+      </View>
+      <ActivityBars activity={activity} />
+      <View style={consistencyStyles.footer}>
+        {community.averagePercentage == null ? (
+          <Text style={styles.cardSubtitle}>Adicione amigos para comparar sua consistência</Text>
+        ) : (
+          <>
+            <Icon name={community.isAbove ? 'arrow-up' : 'arrow-down'} size={14} color={cmpColor} strokeWidth={2.2} />
+            <Text style={styles.cardSubtitle}>
+              <Text style={{ color: cmpColor, fontFamily: FONT.semibold }}>
+                {community.isAbove ? 'Acima' : 'Abaixo'} da média
+              </Text>{' '}
+              dos seus amigos ({community.averagePercentage}%)
             </Text>
-          </TouchableOpacity>
-        );
-      })}
+          </>
+        )}
+      </View>
     </View>
   );
 }
 
-const selectorStyles = StyleSheet.create({
-  row: {
+const useConsistencyStyles = createStyles((c) => ({
+  row: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  value: { fontFamily: FONT.monoSemibold, fontSize: 40, lineHeight: 46, letterSpacing: -1.5, color: c.text, marginTop: 4 },
+  valueDim: { fontSize: 18, letterSpacing: 0, color: c.textSecondary },
+  footer: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    borderRadius: 12,
-    padding: 4,
-    borderWidth: 1,
-    borderColor: T.borderSoft,
-  },
-  pill: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: 9,
     alignItems: 'center',
+    gap: 6,
+    marginTop: 16,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: c.hairline,
   },
-  pillActive: {
-    backgroundColor: T.text,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-});
+}));
 
-// ─── KPI strip ────────────────────────────────────────────────────────────
+// ─── Barras de atividade (dias, semanas ou meses do período) ────────────────
+const BARS_H = 56;
+const CAPTION = { day: 'Treinos por dia', week: 'Treinos por semana', month: 'Treinos por mês' } as const;
+const GOAL_UNIT = { day: '', week: '/sem', month: '/mês' } as const;
+
+function bucketLabel(activity: StatsActivityDTO, index: number): string {
+  const { granularity, buckets } = activity;
+  const iso = buckets[index].start;
+  if (granularity === 'day') return weekdayLetter(parseLocalDate(iso));
+  if (granularity === 'month') return formatShortDate(iso).slice(3);
+  // Muitas semanas (3M): só a primeira e a última levam data, senão os rótulos se atropelam.
+  if (buckets.length <= 6) return `Sem ${index + 1}`;
+  return index === 0 || index === buckets.length - 1 ? formatShortDate(iso) : '';
+}
+
+function ActivityBars({ activity }: { activity: StatsActivityDTO }) {
+  const barStyles = useBarStyles();
+  const c = useColors();
+  const { buckets, target } = activity;
+  if (buckets.length === 0) return null;
+  // Folga acima da meta para a linha não encostar no topo e parecer um divisor.
+  const max = Math.max(target ? target * 1.25 : 0, ...buckets.map((b) => b.sessions), 1);
+  const showCounts = buckets.length <= 7;
+  const last = buckets.length - 1;
+
+  // Três faixas separadas (números, barras, rótulos): a linha da meta mede só a faixa das barras.
+  return (
+    <View style={barStyles.wrap}>
+      <View style={barStyles.caption}>
+        <Text style={barStyles.label}>{CAPTION[activity.granularity]}</Text>
+        {target ? <Text style={barStyles.label}>meta {target}{GOAL_UNIT[activity.granularity]}</Text> : null}
+      </View>
+      {showCounts ? (
+        <View style={barStyles.row}>
+          {buckets.map((b) => (
+            <Text key={b.start} style={[barStyles.col, barStyles.count]}>{b.sessions}</Text>
+          ))}
+        </View>
+      ) : null}
+      <View style={[barStyles.row, barStyles.track]}>
+        {target ? (
+          <View style={[barStyles.goal, { bottom: (target / max) * BARS_H }]} />
+        ) : null}
+        {buckets.map((b, i) => (
+          <View
+            key={b.start}
+            style={[
+              barStyles.col,
+              barStyles.bar,
+              {
+                height: Math.max(4, (b.sessions / max) * BARS_H),
+                backgroundColor: b.sessions === 0 ? c.ghost : i === last ? c.primaryMid : c.primary,
+              },
+            ]}
+            accessible
+            accessibilityLabel={`${bucketLabel(activity, i) || formatShortDate(b.start)}: ${b.sessions} treinos`}
+          />
+        ))}
+      </View>
+      <View style={barStyles.row}>
+        {buckets.map((b, i) => (
+          <Text key={b.start} style={[barStyles.col, barStyles.label]} numberOfLines={1}>
+            {bucketLabel(activity, i)}
+          </Text>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+const useBarStyles = createStyles((c) => ({
+  wrap: { marginTop: 20, gap: 4 },
+  caption: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
+  row: { flexDirection: 'row', gap: 6 },
+  track: { height: BARS_H, alignItems: 'flex-end' },
+  col: { flex: 1, textAlign: 'center' },
+  count: { fontFamily: FONT.mono, fontSize: 11, lineHeight: 14, color: c.textDim },
+  bar: { borderRadius: 4 },
+  label: { fontFamily: FONT.regular, fontSize: 10, lineHeight: 14, color: c.textSecondary },
+  goal: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: c.ghostHi },
+}));
+
+// ─── Indicadores (2 colunas) ────────────────────────────────────────────────
 interface KpiData {
   label: string;
   value: string;
   unit: string;
   delta: string;
-  good: boolean;
+  tone: 'good' | 'bad' | 'neutral';
 }
-interface KpiStripProps {
-  kpis: ReadonlyArray<KpiData>;
-}
-function KpiStrip({ kpis }: KpiStripProps) {
+const TONE_COLOR = { good: 'success', bad: 'warn', neutral: 'textSecondary' } as const;
+function KpiGrid({ kpis }: { kpis: ReadonlyArray<KpiData> }) {
+  const kpiStyles = useKpiStyles();
+  const styles = useStyles();
+  const c = useColors();
   return (
     <View style={kpiStyles.row}>
       {kpis.map((k) => (
         <View key={k.label} style={kpiStyles.cell}>
-          <Text style={kpiStyles.label}>{k.label.toUpperCase()}</Text>
-          <View style={kpiStyles.valueRow}>
-            <Text style={kpiStyles.value}>{k.value}</Text>
-            {k.unit ? <Text style={kpiStyles.unit}>{k.unit}</Text> : null}
-          </View>
-          <Text
-            style={[
-              kpiStyles.delta,
-              { color: k.good ? T.success : T.warn },
-            ]}
-          >
-            {k.delta}
+          <Text style={styles.cardSubtitleTop}>{k.label}</Text>
+          <Text style={kpiStyles.value}>
+            {k.value}
+            {k.unit ? <Text style={kpiStyles.unit}> {k.unit}</Text> : null}
           </Text>
+          <Text style={[kpiStyles.delta, { color: c[TONE_COLOR[k.tone]] }]} numberOfLines={1}>{k.delta}</Text>
         </View>
       ))}
     </View>
   );
 }
 
-const kpiStyles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  cell: {
-    flex: 1,
-    backgroundColor: T.card,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: T.border,
-    padding: 12,
-  },
-  label: {
-    fontSize: 11,
-    color: T.text2,
-    fontWeight: '500',
-    letterSpacing: 0.3,
-  },
-  valueRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    marginTop: 6,
-  },
-  value: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: T.text,
-    letterSpacing: -0.6,
-  },
-  unit: {
-    fontSize: 11,
-    color: T.text3,
-    fontWeight: '500',
-    marginLeft: 3,
-  },
-  delta: {
-    marginTop: 4,
-    fontSize: 11,
-    fontWeight: '600',
-  },
-});
+const useKpiStyles = createStyles((c, s) => ({
+  row: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  cell: { ...s.card, flexGrow: 1, flexBasis: '45%', backgroundColor: c.surface1, borderRadius: RADIUS.xl, padding: 14, gap: 6 },
+  value: { fontFamily: FONT.monoSemibold, fontSize: 22, lineHeight: 28, letterSpacing: -0.5, color: c.text },
+  unit: { fontFamily: FONT.mono, fontSize: 12, letterSpacing: 0, color: c.textSecondary },
+  delta: { fontFamily: FONT.mono, fontSize: 11.5, lineHeight: 16 },
+}));
 
-// ─── Insight block (Destaque do Mês) ──────────────────────────────────────
-interface InsightBlockProps {
-  insight: StatsInsightDTO;
-}
-function InsightBlock({ insight }: InsightBlockProps) {
+// ─── Análise (motor de regras do back-end) ──────────────────────────────────
+function InsightBlock({ insight }: { insight: StatsInsightDTO }) {
+  const insightStyles = useInsightStyles();
+  const styles = useStyles();
+  const c = useColors();
   return (
-    <LinearGradient
-      colors={[T.accentDim, 'rgba(30,224,238,0.02)']}
-      start={[0, 0]}
-      end={[1, 1]}
-      style={insightStyles.box}
-    >
-      <View style={insightStyles.iconBadge}>
-        <Icon name="sparkle" size={16} color="#06181b" />
+    <View style={insightStyles.box}>
+      <View style={insightStyles.tagRow}>
+        <Icon name="sparkle" size={15} color={c.primary} />
+        <Text style={styles.eyebrow}>{insight.tag}</Text>
       </View>
-      <View style={insightStyles.body}>
-        <Text style={insightStyles.tag}>{insight.tag.toUpperCase()}</Text>
-        <Text style={insightStyles.text}>{insight.body}</Text>
-      </View>
-    </LinearGradient>
-  );
-}
-
-const insightStyles = StyleSheet.create({
-  box: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-    padding: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: T.accentSoft,
-  },
-  iconBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    backgroundColor: T.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconText: {
-    color: '#06181b',
-    fontSize: 16,
-    fontWeight: '900',
-  },
-  body: {
-    flex: 1,
-  },
-  tag: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: T.accent,
-    letterSpacing: 0.4,
-  },
-  text: {
-    fontSize: 13,
-    color: T.text,
-    marginTop: 4,
-    lineHeight: 19,
-  },
-});
-
-// ─── Consistency card (ring + community comparison) ───────────────────────
-interface ConsistencyCardProps {
-  completed: number;
-  target: number;
-  efficiencyPercentage: number;
-  community: CommunityComparisonDTO;
-}
-function ConsistencyCard({
-  completed,
-  target,
-  efficiencyPercentage,
-  community,
-}: ConsistencyCardProps) {
-  const ringSize = 132;
-  const radius = 56;
-  const circumference = 2 * Math.PI * radius;
-  const safeTarget = target > 0 ? target : 1;
-  const pct = Math.max(0, Math.min(1, completed / safeTarget));
-  const dash = circumference * pct;
-
-  const aboveCommunity = community.isAbove;
-  const arrow = aboveCommunity ? '↑' : '↓';
-  const cmpColor = aboveCommunity ? T.success : T.warn;
-  const cmpLabel = aboveCommunity ? 'acima da média' : 'abaixo da média';
-
-  return (
-    <View style={styles.card}>
-      <CardHeader
-        title="Frequência"
-        subtitle={`Treinos concluídos · ${completed} de ${target}`}
-      />
-
-      <View style={consistencyStyles.row}>
-        <View style={{ width: ringSize, height: ringSize }}>
-          <Svg width={ringSize} height={ringSize} viewBox={`0 0 ${ringSize} ${ringSize}`}>
-            <Defs>
-              <SvgLinearGradient id="ringGradient" x1="0" y1="0" x2="1" y2="1">
-                <Stop offset="0%" stopColor={T.accent} />
-                <Stop offset="100%" stopColor="#0fa5b3" />
-              </SvgLinearGradient>
-            </Defs>
-            <Circle
-              cx={ringSize / 2}
-              cy={ringSize / 2}
-              r={radius}
-              fill="none"
-              stroke="rgba(255,255,255,0.06)"
-              strokeWidth={10}
-            />
-            <Circle
-              cx={ringSize / 2}
-              cy={ringSize / 2}
-              r={radius}
-              fill="none"
-              stroke="url(#ringGradient)"
-              strokeWidth={10}
-              strokeLinecap="round"
-              strokeDasharray={`${dash} ${circumference - dash}`}
-              transform={`rotate(-90 ${ringSize / 2} ${ringSize / 2})`}
-            />
-          </Svg>
-          <View style={consistencyStyles.ringCenter}>
-            <Text style={consistencyStyles.ringValue}>
-              {completed}
-              <Text style={consistencyStyles.ringValueDim}>/{target}</Text>
-            </Text>
-            <Text style={consistencyStyles.ringLabel}>TREINOS</Text>
-          </View>
-        </View>
-
-        <View style={consistencyStyles.side}>
-          <Text style={consistencyStyles.sideLabel}>ADERÊNCIA</Text>
-          <Text style={consistencyStyles.sideValue}>
-            {efficiencyPercentage}
-            <Text style={consistencyStyles.sideUnit}>%</Text>
-          </Text>
-          <Text style={consistencyStyles.sideHint}>
-            <Text style={{ color: cmpColor, fontWeight: '600' }}>
-              {arrow} {cmpLabel}
-            </Text>{' '}
-            da sua comunidade ({community.averagePercentage}%).
-          </Text>
-        </View>
-      </View>
+      <Text style={insightStyles.text}>{insight.body}</Text>
     </View>
   );
 }
 
-const consistencyStyles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 18,
+const useInsightStyles = createStyles((c, s) => ({
+  box: {
+    ...s.card,
+    padding: 16,
+    gap: 8,
+    borderRadius: RADIUS.xl,
+    backgroundColor: c.surface1,
+    borderWidth: 1,
+    borderColor: c.primarySoft,
   },
-  ringCenter: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ringValue: {
-    fontSize: 30,
-    fontWeight: '700',
-    color: T.text,
-    letterSpacing: -1,
-  },
-  ringValueDim: {
-    color: T.text3,
-    fontWeight: '500',
-  },
-  ringLabel: {
-    fontSize: 10,
-    color: T.text2,
-    marginTop: 4,
-    letterSpacing: 0.5,
-  },
-  side: {
-    flex: 1,
-    minWidth: 0,
-  },
-  sideLabel: {
-    fontSize: 11,
-    color: T.text2,
-    letterSpacing: 0.3,
-    fontWeight: '500',
-  },
-  sideValue: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: T.text,
-    letterSpacing: -0.8,
-    marginTop: 2,
-  },
-  sideUnit: {
-    fontSize: 18,
-    color: T.text3,
-  },
-  sideHint: {
-    fontSize: 12,
-    color: T.text2,
-    marginTop: 8,
-    lineHeight: 18,
-  },
-});
+  tagRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  text: { fontFamily: FONT.regular, fontSize: 14, lineHeight: 21, color: c.text },
+}));
 
-// ─── Weight card ──────────────────────────────────────────────────────────
-interface WeightCardProps {
-  weight: WeightSummaryDTO;
-  period: StatsPeriodId;
-}
-function WeightCard({ weight, period }: WeightCardProps) {
-  const chartWidth = SCREEN_W - CONTENT_PAD * 2 - 36; // -padding interno do card
-  const points = weight.history;
-
-  const data = points.map((p: WeightPointDTO) => ({
+// ─── Peso corporal ──────────────────────────────────────────────────────────
+function WeightCard({ weight, period, managed, onRegister }: { weight: WeightSummaryDTO; period: StatsPeriodId; managed: boolean; onRegister: () => void }) {
+  const weightStyles = useWeightStyles();
+  const styles = useStyles();
+  const c = useColors();
+  const chartWidth = SCREEN_W - CONTENT_PAD * 2 - 32 - 24; // padding do card e eixo Y
+  const data = weight.history.map((p: WeightPointDTO) => ({
     value: p.weight,
     label: p.date.length >= 10 ? p.date.substring(8, 10) : p.date,
   }));
-
-  const trendDown = weight.delta < 0;
-  const goodTrend = trendDown; // perda de peso = favorável neste contexto
+  const start = weight.current - weight.delta;
 
   return (
     <View style={styles.card}>
-      <CardHeader title="Peso Corporal" subtitle={periodDescription(period)} />
-
-      <View style={weightStyles.headlineRow}>
-        <Text style={weightStyles.headline}>
-          {formatNumberPtBR(weight.current, 1)}
-        </Text>
-        <Text style={weightStyles.headlineUnit}>{weight.unit}</Text>
-        <View style={{ marginLeft: 8 }}>
-          <DeltaChip value={weight.delta} good={goodTrend} suffix={weight.unit} />
-        </View>
-      </View>
+      <CardHeader
+        title="Peso corporal"
+        subtitle={periodDescription(period)}
+        action={
+          managed ? undefined : (
+            <Pressable accessibilityRole="button" onPress={onRegister} style={styles.smallBtn}>
+              <Text style={styles.smallBtnText}>Registrar</Text>
+            </Pressable>
+          )
+        }
+      />
 
       {data.length >= 2 ? (
         <LineChart
           data={data}
           width={chartWidth}
-          height={160}
+          height={130}
           areaChart
-          color={T.accent}
-          thickness={2.2}
-          startFillColor={T.accent}
-          endFillColor={T.card}
-          startOpacity={0.32}
+          color={c.primary}
+          thickness={2}
+          startFillColor={c.primary}
+          endFillColor={c.surface1}
+          startOpacity={0.14}
           endOpacity={0}
-          dataPointsColor={T.accent}
-          dataPointsRadius={4}
+          hideDataPoints
           xAxisColor="transparent"
           yAxisColor="transparent"
-          yAxisTextStyle={{ color: T.text3, fontSize: 10 }}
-          xAxisLabelTextStyle={{ color: T.text3, fontSize: 10 }}
-          rulesColor="rgba(255,255,255,0.05)"
-          rulesType="dashed"
+          yAxisTextStyle={{ color: c.textSecondary, fontSize: 10, fontFamily: FONT.mono }}
+          xAxisLabelTextStyle={{ color: c.textSecondary, fontSize: 10, fontFamily: FONT.mono }}
+          rulesColor={c.hairline}
           isAnimated
-          curved
           initialSpacing={8}
         />
       ) : (
         <Text style={styles.emptyText}>
-          Registre seu peso para visualizar a evolução.
+          {managed
+            ? 'Seu peso é atualizado pelo seu personal a cada avaliação física.'
+            : 'Registre seu peso para visualizar a evolução.'}
         </Text>
       )}
+
+      <View style={weightStyles.stats}>
+        <View style={styles.flex}>
+          <Text style={styles.cardSubtitleTop}>Início</Text>
+          <Text style={weightStyles.stat}>{formatNumberPtBR(start, 1)} {weight.unit}</Text>
+        </View>
+        <View style={styles.flex}>
+          <Text style={styles.cardSubtitleTop}>Atual</Text>
+          <Text style={weightStyles.stat}>{formatNumberPtBR(weight.current, 1)} {weight.unit}</Text>
+        </View>
+        <View style={styles.flex}>
+          <Text style={styles.cardSubtitleTop}>Variação</Text>
+          <Text style={[weightStyles.stat, { color: weight.delta <= 0 ? c.success : c.warn }]}>
+            {formatSignedNumberPtBR(weight.delta, 1)} {weight.unit}
+          </Text>
+        </View>
+      </View>
     </View>
   );
 }
 
-const weightStyles = StyleSheet.create({
-  headlineRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    marginBottom: 12,
-  },
-  headline: {
-    fontSize: 36,
-    fontWeight: '700',
-    color: T.text,
-    letterSpacing: -1.2,
-  },
-  headlineUnit: {
-    fontSize: 14,
-    color: T.text3,
-    fontWeight: '500',
-    marginLeft: 6,
-  },
-});
+// ─── Avaliação física: última medição do personal, variação e parecer ───────
+const ASSESSMENT_METRICS: ReadonlyArray<{ key: keyof PhysicalAssessmentDTO; label: string; unit: string }> = [
+  { key: 'weightKg', label: 'Peso', unit: 'kg' },
+  { key: 'bodyFatPct', label: 'Gordura', unit: '%' },
+  { key: 'muscleMassKg', label: 'Massa muscular', unit: 'kg' },
+  { key: 'waistCm', label: 'Cintura', unit: 'cm' },
+  { key: 'hipCm', label: 'Quadril', unit: 'cm' },
+  { key: 'bmi', label: 'IMC', unit: '' },
+];
 
-// ─── Volume card (custom bars + drill-down) ───────────────────────────────
+function AssessmentCard({ assessments }: { assessments: PhysicalAssessmentDTO[] }) {
+  const assessmentStyles = useAssessmentStyles();
+  const weightStyles = useWeightStyles();
+  const styles = useStyles();
+  const latest = assessments[assessments.length - 1];
+  // Variação contra a avaliação anterior mais recente que mediu o mesmo item.
+  const previousOf = (key: keyof PhysicalAssessmentDTO): number | null => {
+    for (let i = assessments.length - 2; i >= 0; i--) {
+      const v = assessments[i][key];
+      if (typeof v === 'number') return v;
+    }
+    return null;
+  };
+  const metrics = ASSESSMENT_METRICS.filter((m) => typeof latest[m.key] === 'number');
+
+  return (
+    <View style={styles.card}>
+      <CardHeader
+        title="Avaliação física"
+        subtitle={`${formatShortDate(latest.assessedOn)}${latest.trainerName ? ` · por ${latest.trainerName}` : ''}`}
+      />
+      <View style={assessmentStyles.grid}>
+        {metrics.map((m) => {
+          const value = latest[m.key] as number;
+          const prev = previousOf(m.key);
+          return (
+            <View key={m.key} style={assessmentStyles.cell}>
+              <Text style={styles.cardSubtitleTop}>{m.label}</Text>
+              <Text style={weightStyles.stat}>
+                {formatNumberPtBR(value, 1)}{m.unit ? ` ${m.unit}` : ''}
+              </Text>
+              {prev !== null && (
+                <Text style={assessmentStyles.delta}>{formatSignedNumberPtBR(value - prev, 1)} vs anterior</Text>
+              )}
+            </View>
+          );
+        })}
+      </View>
+      {latest.notes ? (
+        <View style={assessmentStyles.notes}>
+          <Text style={styles.cardSubtitleTop}>Parecer do personal</Text>
+          <Text style={assessmentStyles.notesText}>{latest.notes}</Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+const useAssessmentStyles = createStyles((c) => ({
+  grid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: 12, marginTop: 14 },
+  cell: { width: '33.33%' },
+  delta: { fontFamily: FONT.mono, fontSize: 10, lineHeight: 14, color: c.textSecondary, marginTop: 1 },
+  notes: { marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: c.hairline },
+  notesText: { fontFamily: FONT.regular, fontSize: 14, lineHeight: 21, color: c.text, marginTop: 4 },
+}));
+
+const useWeightStyles = createStyles((c) => ({
+  stats: { flexDirection: 'row', marginTop: 14 },
+  stat: { fontFamily: FONT.monoMedium, fontSize: 14, lineHeight: 20, color: c.text, marginTop: 2 },
+}));
+
+// ─── Volume por categoria: barra de proporção + lista ───────────────────────
 const CATEGORY_LABEL: Record<string, string> = {
-  PUSH:   'Empurrar',
-  PULL:   'Puxar',
+  PUSH: 'Empurrar',
+  PULL: 'Puxar',
   PERNAS: 'Pernas',
-  CORE:   'Core',
+  CORE: 'Core',
+};
+// Mesmas cores das fichas A/B/C, para a leitura bater entre as abas.
+const CATEGORY_COLOR: Record<string, keyof Palette> = {
+  PUSH: 'primary',
+  PULL: 'record',
+  PERNAS: 'success',
+  CORE: 'indigo',
 };
 
-interface VolumeCardProps {
-  volume: VolumeSummaryDTO;
-}
-function VolumeCard({ volume }: VolumeCardProps) {
-  const [activeId, setActiveId] = useState<string | null>(null);
-
-  const groups = volume.byMuscleGroup;
-  const maxValue = Math.max(...groups.map((g) => g.volume), 1);
-  const activeItem = activeId
-    ? groups.find((g) => g.muscleGroup === activeId) ?? null
-    : null;
-
+function VolumeCard({ volume }: { volume: VolumeSummaryDTO }) {
+  const volumeStyles = useVolumeStyles();
+  const styles = useStyles();
+  const c = useColors();
+  const trained = volume.byMuscleGroup.filter((g) => !g.isRest && g.volume > 0);
   const totalDeltaSign = volume.deltaPercentage > 0 ? '+' : '';
 
   return (
@@ -554,292 +466,100 @@ function VolumeCard({ volume }: VolumeCardProps) {
         subtitle={`Total ${formatTotalVolume(volume.total)} · ${totalDeltaSign}${volume.deltaPercentage}% vs período anterior`}
       />
 
-      {/* Bars */}
-      <View style={volumeStyles.chartRow}>
-        <View style={volumeStyles.yAxis}>
-          <Text style={volumeStyles.yLabel}>{formatVolumeKg(maxValue)}</Text>
-          <Text style={volumeStyles.yLabel}>{formatVolumeKg(maxValue / 2)}</Text>
-          <Text style={volumeStyles.yLabel}>0</Text>
+      {trained.length > 0 && (
+        <View style={volumeStyles.share}>
+          {trained.map((g) => (
+            <View
+              key={g.muscleGroup}
+              style={{ flex: g.volume, backgroundColor: c[CATEGORY_COLOR[g.muscleGroup] ?? 'textSecondary'] }}
+            />
+          ))}
         </View>
+      )}
 
-        <View style={volumeStyles.barsArea}>
-          {groups.map((g: VolumeByMuscleGroupDTO) => {
-            const isActive = activeId === g.muscleGroup;
-            const isDim = activeId !== null && !isActive;
-            const isRest = g.isRest;
-            const heightPct = isRest ? 4 : Math.max((g.volume / maxValue) * 100, 8);
-
-            return (
-              <TouchableOpacity
-                key={g.muscleGroup}
-                activeOpacity={0.85}
-                onPress={() => setActiveId(isActive ? null : g.muscleGroup)}
-                style={[volumeStyles.barCol, { opacity: isDim ? 0.45 : 1 }]}
-              >
-                {!isRest ? (
-                  <Text
-                    style={[
-                      volumeStyles.barValue,
-                      { color: isActive ? T.accent : T.text2 },
-                    ]}
-                  >
-                    {formatVolumeKg(g.volume)}
-                  </Text>
-                ) : (
-                  <Text style={volumeStyles.barValue}> </Text>
-                )}
-
-                <View style={[volumeStyles.barTrack]}>
-                  {isRest ? (
-                    <View style={volumeStyles.restBar} />
-                  ) : (
-                    <LinearGradient
-                      colors={[T.accent, isActive ? '#0fa5b3' : 'rgba(30,224,238,0.55)']}
-                      start={[0, 0]}
-                      end={[0, 1]}
-                      style={[
-                        volumeStyles.bar,
-                        { height: `${heightPct}%`, opacity: isActive ? 1 : 0.85 },
-                      ]}
-                    />
-                  )}
-                </View>
-
-                <Text
-                  style={[
-                    volumeStyles.barLabel,
-                    { color: isActive ? T.text : T.text2 },
-                  ]}
-                  numberOfLines={1}
-                >
-                  {(CATEGORY_LABEL[g.muscleGroup] ?? g.muscleGroup).toUpperCase()}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
-
-      {/* Legend */}
-      <View style={volumeStyles.legend}>
-        <View style={volumeStyles.legendItem}>
-          <View style={[volumeStyles.swatch, { backgroundColor: T.accent }]} />
-          <Text style={volumeStyles.legendText}>Treinado</Text>
-        </View>
-        <View style={volumeStyles.legendItem}>
+      {volume.byMuscleGroup.map((g) => (
+        <View key={g.muscleGroup} style={volumeStyles.row}>
           <View
             style={[
               volumeStyles.swatch,
-              {
-                borderWidth: 1,
-                borderStyle: 'dashed',
-                borderColor: 'rgba(255,255,255,0.25)',
-                backgroundColor: 'rgba(255,255,255,0.06)',
-              },
+              g.isRest
+                ? volumeStyles.swatchRest
+                : { backgroundColor: c[CATEGORY_COLOR[g.muscleGroup] ?? 'textSecondary'] },
             ]}
           />
-          <Text style={volumeStyles.legendText}>Descanso</Text>
+          <Text style={volumeStyles.name}>{CATEGORY_LABEL[g.muscleGroup] ?? g.muscleGroup}</Text>
+          {g.isRest ? (
+            <Text style={volumeStyles.rest}>descanso</Text>
+          ) : (
+            <>
+              <Text style={volumeStyles.kg}>{formatVolumeKg(g.volume)}</Text>
+              <Text style={[volumeStyles.delta, { color: g.deltaPercentage >= 0 ? c.success : c.warn }]}>
+                {formatSignedPercent(g.deltaPercentage)}
+              </Text>
+            </>
+          )}
         </View>
-        <Text style={volumeStyles.legendHint}>Toque para detalhes</Text>
-      </View>
-
-      {/* Drill-down */}
-      {activeItem && !activeItem.isRest ? (
-        <View style={volumeStyles.drilldown}>
-          <View style={{ flex: 1 }}>
-            <Text style={volumeStyles.drillLabel}>{CATEGORY_LABEL[activeItem.muscleGroup] ?? activeItem.muscleGroup}</Text>
-            <Text style={volumeStyles.drillValue}>
-              {formatVolumeKg(activeItem.volume)}{' '}
-              <Text style={volumeStyles.drillValueDim}>volume total</Text>
-            </Text>
-          </View>
-          <View
-            style={[
-              volumeStyles.drillBadge,
-              {
-                backgroundColor:
-                  activeItem.deltaPercentage >= 0 ? T.successDim : T.warnDim,
-              },
-            ]}
-          >
-            <Text
-              style={[
-                volumeStyles.drillBadgeText,
-                {
-                  color: activeItem.deltaPercentage >= 0 ? T.success : T.warn,
-                },
-              ]}
-            >
-              {formatSignedPercent(activeItem.deltaPercentage)}
-            </Text>
-          </View>
-        </View>
-      ) : null}
+      ))}
     </View>
   );
 }
 
-const volumeStyles = StyleSheet.create({
-  chartRow: {
-    flexDirection: 'row',
-    height: 172,
-  },
-  yAxis: {
-    width: 32,
-    justifyContent: 'space-between',
-    paddingBottom: 22,
-  },
-  yLabel: {
-    fontSize: 9,
-    color: T.text3,
-  },
-  barsArea: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 8,
-  },
-  barCol: {
-    flex: 1,
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-  },
-  barValue: {
-    fontSize: 11,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  barTrack: {
-    width: '100%',
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  bar: {
-    width: '100%',
-    borderTopLeftRadius: 6,
-    borderTopRightRadius: 6,
-    borderBottomLeftRadius: 2,
-    borderBottomRightRadius: 2,
-  },
-  restBar: {
-    width: '100%',
-    height: '8%',
-    borderRadius: 4,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: 'rgba(255,255,255,0.18)',
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    opacity: 0.7,
-  },
-  barLabel: {
-    marginTop: 6,
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.4,
-  },
-  legend: {
+const useVolumeStyles = createStyles((c) => ({
+  share: { flexDirection: 'row', height: 10, borderRadius: 5, overflow: 'hidden', gap: 2, marginBottom: 6 },
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
-    marginTop: 12,
-    paddingTop: 12,
+    gap: 10,
+    height: 40,
     borderTopWidth: 1,
-    borderTopColor: T.borderSoft,
+    borderTopColor: c.hairline,
   },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  swatch: {
-    width: 10,
-    height: 10,
-    borderRadius: 2,
-  },
-  legendText: {
-    fontSize: 11,
-    color: T.text2,
-  },
-  legendHint: {
-    marginLeft: 'auto',
-    color: T.text3,
-    fontSize: 10,
-  },
-  drilldown: {
-    marginTop: 12,
-    padding: 12,
-    borderRadius: 12,
-    backgroundColor: T.cardSoft,
-    borderWidth: 1,
-    borderColor: T.border,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  drillLabel: {
-    fontSize: 12,
-    color: T.text2,
-    textTransform: 'capitalize',
-  },
-  drillValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: T.text,
-    marginTop: 2,
-  },
-  drillValueDim: {
-    fontSize: 12,
-    color: T.text3,
-    fontWeight: '500',
-  },
-  drillBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  drillBadgeText: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-});
+  swatch: { width: 8, height: 8, borderRadius: 2 },
+  swatchRest: { borderWidth: 1, borderStyle: 'dashed', borderColor: c.ghostHi },
+  name: { flex: 1, fontFamily: FONT.regular, fontSize: 14, color: c.text },
+  kg: { fontFamily: FONT.mono, fontSize: 13, color: c.text },
+  delta: { width: 52, textAlign: 'right', fontFamily: FONT.mono, fontSize: 12 },
+  rest: { fontFamily: FONT.regular, fontSize: 12, color: c.textSecondary },
+}));
 
 // ─── Screen ───────────────────────────────────────────────────────────────
 export default function StatsScreen() {
+  const styles = useStyles();
+  const c = useColors();
+  const navigation = useNavigation<any>();
   const [period, setPeriod] = useState<StatsPeriodId>('month');
-  const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
-  const [stats, setStats] = useState<StatsSummaryResponseDTO | null>(null);
-  const [planEvolution, setPlanEvolution] = useState<PlanEvolutionResponseDTO | null>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const [fetchError, setFetchError] = useState<string | null>(null);
   // O modal de atualização de peso só pode aparecer uma vez por sessão.
   // Sem isso, qualquer refetch (troca de período / pull-to-refresh) reabriria
   // o modal enquanto o backend continuar retornando needsWeightUpdate: true.
   const weightModalDismissedRef = useRef<boolean>(false);
 
-  const fetchStats = useCallback(
-    async (selected: StatsPeriodId): Promise<void> => {
-      try {
-        const response = await api.get<StatsSummaryResponseDTO>('/stats/summary', {
-          params: { period: selected },
-        });
-        const data = response.data;
-        setStats(data);
-        setFetchError(null);
-        if (data.needsWeightUpdate && !weightModalDismissedRef.current) {
-          setModalVisible(true);
-        }
-      } catch (error) {
-        console.error('Error fetching stats', error);
-        setFetchError('Não foi possível atualizar suas estatísticas. Verifique sua conexão e tente novamente.');
-      } finally {
-        setLoading(false);
-        setRefreshing(false);
-      }
-    },
-    []
+  const summaryRes = useFocusResource(`stats/summary?${period}`, () =>
+    api.get<StatsSummaryResponseDTO>('/stats/summary', { params: { period } }).then((r) => r.data),
   );
+  // Evolução de ciclo independe do período: chave própria, não refaz ao trocar de período.
+  const evolutionRes = useFocusResource('stats/plan-evolution', () =>
+    api.get<PlanEvolutionResponseDTO>('/stats/plan-evolution').then((r) => r.data),
+  );
+  const assessmentsRes = useFocusResource('me/assessments', () =>
+    api.get<PhysicalAssessmentDTO[]>('/me/assessments').then((r) => r.data),
+  );
+  const assessments = assessmentsRes.data ?? [];
+
+  // Ao trocar de período, mantém os números anteriores na tela até os novos chegarem.
+  const lastStatsRef = useRef<StatsSummaryResponseDTO | null>(null);
+  if (summaryRes.data) lastStatsRef.current = summaryRes.data;
+  const stats = summaryRes.data ?? lastStatsRef.current;
+  const planEvolution = evolutionRes.data ?? null;
+  const loading = !stats && summaryRes.loading;
+
+  // Só pergunta o peso com base na resposta do servidor, não num cache antigo.
+  useEffect(() => {
+    if (summaryRes.fresh && summaryRes.data?.needsWeightUpdate && !weightModalDismissedRef.current) {
+      setModalVisible(true);
+    }
+  }, [summaryRes.fresh, summaryRes.data]);
 
   const closeWeightModal = useCallback(() => {
     weightModalDismissedRef.current = true;
@@ -849,293 +569,181 @@ export default function StatsScreen() {
   const onWeightModalSuccess = useCallback(() => {
     weightModalDismissedRef.current = true;
     setModalVisible(false);
-    fetchStats(period);
-  }, [fetchStats, period]);
+    summaryRes.refresh();
+  }, [summaryRes.refresh]);
 
-  // useFocusEffect cobre o mount, a troca de período E cada retorno de foco à aba
-  // (ex.: voltar para Stats depois de finalizar um treino na aba Train). Sem isso,
-  // o StatsScreen — que fica montado no tab navigator — só atualizaria via pull-to-refresh.
-  useFocusEffect(
-    useCallback(() => {
-      fetchStats(period);
-    }, [period, fetchStats]),
-  );
-
-  // Evolução de ciclo é independente do seletor de período, então tem seu próprio fetch.
-  const fetchPlanEvolution = useCallback(async (): Promise<void> => {
-    try {
-      const res = await api.get<PlanEvolutionResponseDTO>('/stats/plan-evolution');
-      setPlanEvolution(res.data);
-    } catch (err) {
-      console.warn('plan-evolution fetch failed', err);
-    }
-  }, []);
-
-  // Re-busca a cada foco da aba (ex.: voltar para Stats após regenerar um plano). Fica num
-  // useFocusEffect separado do fetchStats justamente para NÃO depender do seletor de período —
-  // o callback é estável, então trocar de período não dispara um refetch aqui.
-  useFocusEffect(
-    useCallback(() => {
-      fetchPlanEvolution();
-    }, [fetchPlanEvolution]),
-  );
-
-  const onRefresh = useCallback(() => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    fetchStats(period);
-    fetchPlanEvolution();
-  }, [period, fetchStats, fetchPlanEvolution]);
+    await Promise.all([summaryRes.refresh(), evolutionRes.refresh(), assessmentsRes.refresh()]);
+    setRefreshing(false);
+  }, [summaryRes.refresh, evolutionRes.refresh, assessmentsRes.refresh]);
 
   const kpis = useMemo<ReadonlyArray<KpiData>>(() => {
     if (!stats) return [];
-    const { weight, volume, completedSessions, targetSessions, efficiencyPercentage } = stats;
+    const { volume, training } = stats;
+    const minutesDelta = training.minutes - training.previousMinutes;
+    const record = training.latestRecord;
     return [
-      {
-        label: 'Peso',
-        value: formatNumberPtBR(weight.current, 1),
-        unit: weight.unit,
-        delta: `${formatSignedNumberPtBR(weight.delta, 1)} ${weight.unit}`,
-        good: weight.delta <= 0,
-      },
-      {
-        label: 'Treinos',
-        value: String(completedSessions),
-        unit: `/${targetSessions}`,
-        delta: `${efficiencyPercentage}%`,
-        good: efficiencyPercentage >= 60,
-      },
       {
         label: 'Volume',
         value: formatTotalVolume(volume.total),
         unit: '',
-        delta: formatSignedPercent(volume.deltaPercentage),
-        good: volume.deltaPercentage >= 0,
+        delta: `${formatSignedPercent(volume.deltaPercentage)} vs anterior`,
+        tone: volume.deltaPercentage >= 0 ? 'good' : 'bad',
+      },
+      {
+        label: 'Tempo treinando',
+        value: formatMinutes(training.minutes),
+        unit: '',
+        delta: `${minutesDelta >= 0 ? '↑' : '↓'} ${formatMinutes(Math.abs(minutesDelta))} vs anterior`,
+        tone: minutesDelta >= 0 ? 'good' : 'bad',
+      },
+      {
+        label: 'Recordes',
+        value: String(training.recordsCount),
+        unit: training.recordsCount === 1 ? 'PR' : 'PRs',
+        delta: record ? `último: ${record.exercise}, ${formatKg(record.weightKg)} kg` : 'nenhum no período',
+        tone: 'neutral',
+      },
+      {
+        label: 'Sequência',
+        value: String(training.streakDays),
+        unit: training.streakDays === 1 ? 'dia' : 'dias',
+        delta: `melhor: ${training.bestStreakDays} ${training.bestStreakDays === 1 ? 'dia' : 'dias'}`,
+        tone: 'neutral',
       },
     ];
   }, [stats]);
 
+  const weightModal = (
+    <EvolutionModal
+      visible={modalVisible}
+      onClose={closeWeightModal}
+      onSuccess={onWeightModalSuccess}
+      onReviewProtocol={() => navigation.navigate('Protocol')}
+    />
+  );
+
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <View style={styles.center}>
-          <ActivityIndicator size="large" color={T.accent} />
+          <ActivityIndicator size="large" color={c.primary} />
         </View>
       </SafeAreaView>
     );
   }
 
-  if (!stats) {
+  const isEmpty =
+    !!stats &&
+    stats.volume.byMuscleGroup.length === 0 &&
+    stats.weight.history.length === 0 &&
+    stats.efficiencyPercentage === 0;
+
+  if (!stats || isEmpty) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <ScrollView
           contentContainerStyle={styles.zeroContainer}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={T.accent} />
-          }
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} />}
         >
           <View style={styles.zeroCard}>
             <View style={styles.zeroIcon}>
-              <Icon name="bar-chart" size={52} color={T.accent} strokeWidth={1.5} />
+              <Icon name="bar-chart" size={44} color={c.primary} strokeWidth={1.5} />
             </View>
-            <Text style={styles.zeroTitle}>Sua Evolução</Text>
+            <Text style={styles.zeroTitle}>Progresso</Text>
             <Text style={styles.zeroDesc}>
-              Não foi possível carregar suas estatísticas. Puxe para baixo para tentar novamente.
+              {stats
+                ? 'Seus resultados aparecem aqui depois do primeiro treino finalizado.'
+                : 'Não foi possível carregar suas estatísticas. Puxe para baixo para tentar novamente.'}
             </Text>
           </View>
         </ScrollView>
-        <EvolutionModal
-          visible={modalVisible}
-          onClose={closeWeightModal}
-          onSuccess={onWeightModalSuccess}
-        />
-      </SafeAreaView>
-    );
-  }
-
-  const hasAnyVolume = stats.volume.byMuscleGroup.length > 0;
-  const hasAnyWeight = stats.weight.history.length > 0;
-
-  if (!hasAnyVolume && !hasAnyWeight && stats.efficiencyPercentage === 0) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <ScrollView
-          contentContainerStyle={styles.zeroContainer}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={T.accent} />
-          }
-        >
-          <View style={styles.zeroCard}>
-            <View style={styles.zeroIcon}>
-              <Icon name="bar-chart" size={52} color={T.accent} strokeWidth={1.5} />
-            </View>
-            <Text style={styles.zeroTitle}>Sua Evolução</Text>
-            <Text style={styles.zeroDesc}>
-              Seu primeiro insight aparecerá logo após seu primeiro treino finalizado!
-            </Text>
-          </View>
-        </ScrollView>
-        <EvolutionModal
-          visible={modalVisible}
-          onClose={closeWeightModal}
-          onSuccess={onWeightModalSuccess}
-        />
+        {weightModal}
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.topBar}>
-        <View style={styles.titleRow}>
-          <View>
-            <Text style={styles.screenTitle}>Sua Evolução</Text>
-            <Text style={styles.screenSubtitle}>Os números não mentem.</Text>
-          </View>
-        </View>
-        <PeriodSelector value={period} onChange={setPeriod} />
-      </View>
-
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={T.accent} />
-        }
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} />}
       >
-        <View style={{ gap: 14 }}>
-          {fetchError ? (
-            <View style={styles.errorBanner}>
-              <Text style={styles.errorBannerText}>{fetchError}</Text>
-            </View>
-          ) : null}
-          <KpiStrip kpis={kpis} />
-          <InsightBlock insight={stats.insight} />
-          {planEvolution && <PlanEvolutionCard data={planEvolution} />}
+        <View style={styles.titleBlock}>
+          <Text style={styles.screenTitle} accessibilityRole="header">Progresso</Text>
+          <Text style={styles.cardSubtitle}>{periodDescription(period)}</Text>
+        </View>
+
+        <SegmentedControl
+          options={STATS_PERIODS.map((p) => ({ key: p.id, label: p.label }))}
+          value={period}
+          onChange={setPeriod}
+          style={styles.periods}
+        />
+
+        <View style={styles.sections}>
+          <StaleBanner visible={summaryRes.error} onRetry={onRefresh} />
           <ConsistencyCard
+            activity={stats.activity}
             completed={stats.completedSessions}
             target={stats.targetSessions}
             efficiencyPercentage={stats.efficiencyPercentage}
             community={stats.community}
           />
-          <WeightCard weight={stats.weight} period={period} />
+          <KpiGrid kpis={kpis} />
+          <InsightBlock insight={stats.insight} />
+          {assessments.length > 0 && <AssessmentCard assessments={assessments} />}
+          <WeightCard
+            weight={stats.weight}
+            period={period}
+            managed={stats.weightManagedByTrainer}
+            onRegister={() => setModalVisible(true)}
+          />
           <VolumeCard volume={stats.volume} />
+          {planEvolution && <PlanEvolutionCard data={planEvolution} />}
         </View>
       </ScrollView>
-
-      <EvolutionModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        onSuccess={() => fetchStats(period)}
-      />
+      {weightModal}
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: T.bg,
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  topBar: {
-    paddingHorizontal: CONTENT_PAD,
-    paddingTop: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: T.borderSoft,
-    gap: 14,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-  },
-  screenTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: T.text,
-    letterSpacing: -0.6,
-  },
-  screenSubtitle: {
-    fontSize: 12,
-    color: T.text2,
-    marginTop: 2,
-  },
-  scrollContent: {
-    paddingHorizontal: CONTENT_PAD,
-    paddingTop: 14,
-    paddingBottom: 120,
-  },
-  card: {
-    backgroundColor: T.card,
-    borderRadius: 22,
-    padding: 18,
+const useStyles = createStyles((c, s) => ({
+  container: { flex: 1, backgroundColor: c.bg },
+  flex: { flex: 1 },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  scrollContent: { paddingHorizontal: CONTENT_PAD, paddingBottom: 24 },
+  titleBlock: { paddingHorizontal: 4, paddingTop: 18, gap: 2 },
+  screenTitle: { fontFamily: FONT.semibold, fontSize: 24, lineHeight: 30, letterSpacing: -0.5, color: c.text },
+  periods: { ...s.card, marginTop: 14, backgroundColor: c.surface1, borderRadius: RADIUS.lg },
+  sections: { gap: 12, marginTop: 14 },
+  card: { ...s.card, backgroundColor: c.surface1, borderRadius: RADIUS.xl, padding: 16 },
+  cardHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 14 },
+  cardTitle: { fontFamily: FONT.semibold, fontSize: 16, lineHeight: 22, color: c.text },
+  cardSubtitle: { fontFamily: FONT.regular, fontSize: 12, lineHeight: 17, color: c.textSecondary },
+  cardSubtitleTop: { fontFamily: FONT.regular, fontSize: 12, lineHeight: 16, color: c.textSecondary },
+  eyebrow: { fontFamily: FONT.semibold, fontSize: 12, lineHeight: 16, color: c.primary },
+  smallBtn: {
+    height: 32,
+    paddingHorizontal: 12,
+    borderRadius: RADIUS.sm,
     borderWidth: 1,
-    borderColor: T.border,
+    borderColor: c.ghost,
+    justifyContent: 'center',
   },
-  cardHeader: {
-    marginBottom: 14,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: T.text,
-    letterSpacing: -0.2,
-  },
-  cardSubtitle: {
-    fontSize: 12,
-    color: T.text2,
-    marginTop: 3,
-  },
+  smallBtnText: { fontFamily: FONT.semibold, fontSize: 12, color: c.text },
   emptyText: {
-    color: T.text3,
+    fontFamily: FONT.regular,
+    color: c.textSecondary,
     fontSize: 13,
     textAlign: 'center',
     paddingVertical: 24,
   },
-  zeroContainer: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 32,
-  },
-  zeroCard: {
-    alignItems: 'center',
-    backgroundColor: T.card,
-    borderRadius: 16,
-    padding: 32,
-  },
-  zeroIcon: {
-    fontSize: 52,
-    marginBottom: 20,
-  },
-  zeroTitle: {
-    color: T.text,
-    fontSize: 22,
-    fontWeight: '900',
-    marginBottom: 12,
-  },
-  zeroDesc: {
-    color: T.text2,
-    fontSize: 15,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  errorBanner: {
-    backgroundColor: T.warnDim,
-    borderWidth: 1,
-    borderColor: 'rgba(245,185,69,0.45)',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  errorBannerText: {
-    color: T.warn,
-    fontSize: 12,
-    fontWeight: '600',
-    lineHeight: 17,
-  },
-});
+  zeroContainer: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
+  zeroCard: { ...s.card, alignItems: 'center', backgroundColor: c.surface1, borderRadius: RADIUS.xl, padding: 32 },
+  zeroIcon: { marginBottom: 20 },
+  zeroTitle: { fontFamily: FONT.semibold, color: c.text, fontSize: 22, marginBottom: 12 },
+  zeroDesc: { fontFamily: FONT.regular, color: c.textDim, fontSize: 15, textAlign: 'center', lineHeight: 22 },
+}));

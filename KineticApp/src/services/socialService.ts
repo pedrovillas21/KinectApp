@@ -1,4 +1,5 @@
 import api from './api';
+import { imageFormData } from '../utils/compressImage';
 import type {
   UserCard,
   SquadMember,
@@ -12,23 +13,17 @@ import type {
   CreateStoryRequest,
 } from '../types';
 
-export const avatarFallback = (id: string, url?: string | null): string =>
-  url ?? `https://i.pravatar.cc/150?u=${id}`;
-
-// Sobe um arquivo local (file://) para o Storage via backend e devolve a URL
-// pública. Sobrescreve o Content-Type para multipart por requisição: o axios
-// usa application/json por padrão (api.ts), e o React Native só monta o
-// boundary correto quando o header é multipart/form-data.
+// Sobe um arquivo local (file://) para o Storage via backend e devolve o
+// identificador do arquivo — não um endereço navegável. O bucket é privado; quem
+// entrega link (temporário) é o feed/stories, só para conexões aceitas.
+// Sobrescreve o Content-Type para multipart por requisição: o axios usa
+// application/json por padrão (api.ts), e o React Native só monta o boundary
+// correto quando o header é multipart/form-data.
 export const uploadMedia = async (
-  uri: string,
+  originalUri: string,
   folder: 'posts' | 'stories' = 'posts',
 ): Promise<string> => {
-  const name = uri.split('/').pop() ?? `${Date.now()}.jpg`;
-  const match = /\.(\w+)$/.exec(name);
-  const ext = (match?.[1] ?? 'jpg').toLowerCase();
-  const type = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
-  const form = new FormData();
-  form.append('file', { uri, name, type } as any);
+  const form = await imageFormData(originalUri);
   const res = await api.post<{ url: string }>('/social/media', form, {
     params: { folder },
     headers: { 'Content-Type': 'multipart/form-data' },
@@ -41,6 +36,24 @@ export const uploadMedia = async (
 export const deleteMedia = async (url: string): Promise<void> => {
   await api.delete('/social/media', { params: { url } });
 };
+
+/**
+ * Sobe a foto e cria o post/story com ela. Se a criação falhar depois do upload, apaga a
+ * mídia órfã (best-effort) e repassa o erro para a tela avisar.
+ */
+export async function uploadAndCreate<T>(
+  localUri: string,
+  folder: 'posts' | 'stories',
+  create: (mediaUrl: string) => Promise<T>,
+): Promise<T> {
+  const mediaUrl = await uploadMedia(localUri, folder);
+  try {
+    return await create(mediaUrl);
+  } catch (e) {
+    deleteMedia(mediaUrl).catch(() => {});
+    throw e;
+  }
+}
 
 export const searchUsers = async (q: string): Promise<UserCard[]> => {
   const res = await api.get<UserCard[]>('/social/users/search', { params: { q } });
@@ -65,22 +78,19 @@ export const removeConnection = async (userId: string): Promise<void> => {
   await api.delete(`/social/connections/${userId}`);
 };
 
-export const toggleInSquad = async (userId: string): Promise<void> => {
-  await api.post(`/social/squad/${userId}/toggle`);
-};
-
 export const getSquad = async (): Promise<SquadMember[]> => {
   const res = await api.get<SquadMember[]>('/social/squad');
   return res.data;
 };
 
-export const getSquadStatus = async (): Promise<SquadMember[]> => {
-  const res = await api.get<SquadMember[]>('/social/squad/status');
+export const getFeed = async (page = 0, size = 10): Promise<Page<FeedPostData>> => {
+  const res = await api.get<Page<FeedPostData>>('/social/feed', { params: { page, size } });
   return res.data;
 };
 
-export const getFeed = async (page = 0, size = 10): Promise<Page<FeedPostData>> => {
-  const res = await api.get<Page<FeedPostData>>('/social/feed', { params: { page, size } });
+/** Posts de um usuário (o próprio ou amigo aceito; os demais recebem 403). */
+export const getUserPosts = async (userId: string, page = 0, size = 12): Promise<Page<FeedPostData>> => {
+  const res = await api.get<Page<FeedPostData>>(`/social/users/${userId}/posts`, { params: { page, size } });
   return res.data;
 };
 

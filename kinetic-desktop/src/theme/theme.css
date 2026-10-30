@@ -1,0 +1,284 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-k-bg: #131313;
+  --color-k-surface1: #1c1b1b;
+  --color-k-surface2: #2a2a2a;
+  --color-k-surface3: #353534;
+
+  --color-k-primary: #00e5ff;
+  --color-k-primary-deep: #00daf3;
+  --color-k-primary-dim: rgba(0, 229, 255, 0.1);
+  --color-k-primary-soft: rgba(0, 229, 255, 0.2);
+  /* Texto sobre ciano (botões primários). Sem este token, `text-k-on-primary` não
+     gerava classe e os botões herdavam o texto branco (~1.2:1 de contraste). */
+  --color-k-on-primary: #001a1f;
+
+  --color-k-text: #f5f6f7;
+  --color-k-text-dim: rgba(245, 246, 247, 0.62);
+  /* Sólido (não alpha) para garantir 4.5:1 sobre k-bg/k-surface1. */
+  --color-k-text-muted: #8e8f90;
+  --color-k-text-soft: #dcdddd;
+
+  --color-k-ghost: rgba(255, 255, 255, 0.08);
+  --color-k-ghost-hi: rgba(255, 255, 255, 0.15);
+
+  --color-k-success: #4ade80;
+  --color-k-warn: #f5b945;
+  --color-k-error: #ff4444;
+  /* "Precisa de atenção" — mais claro que k-error para ler bem em texto. */
+  --color-k-alert: #ff6b6b;
+  /* Série secundária de gráfico (ciano escurecido validado). */
+  --color-k-chart-2: #00a5b8;
+
+  --font-sans: 'Geist', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  /* Títulos e números: Archivo com eixo de largura (use font-stretch-*). */
+  --font-display: 'Archivo', 'Segoe UI', system-ui, sans-serif;
+  /* Números (tabelas, indicadores): largura fixa por dígito. */
+  --font-mono: 'Geist Mono', ui-monospace, 'Cascadia Mono', monospace;
+}
+
+/* ── shadcn/ui tokens → mapeados aos tokens de marca Kinetic ────────────────
+ * O painel é dark por padrão, então os valores "dark" vivem direto no :root.
+ * Alimentam os componentes shadcn (bg-background, text-foreground,
+ * border-border, bg-primary, etc.) já no visual "athletic" da marca. */
+:root {
+  --radius: 0.75rem;
+
+  --background: #131313;          /* k-bg */
+  --foreground: #f5f6f7;          /* k-text */
+  --card: #1c1b1b;                /* k-surface1 */
+  --card-foreground: #f5f6f7;
+  --popover: #1c1b1b;
+  --popover-foreground: #f5f6f7;
+  --primary: #00e5ff;             /* k-primary */
+  --primary-foreground: #001a1f;  /* k-on-primary */
+  --secondary: #2a2a2a;           /* k-surface2 */
+  --secondary-foreground: #f5f6f7;
+  --muted: #2a2a2a;
+  --muted-foreground: rgba(245, 246, 247, 0.62); /* k-text-dim */
+  --accent: #2a2a2a;
+  --accent-foreground: #f5f6f7;
+  --destructive: #ff4444;         /* k-error */
+  --destructive-foreground: #f5f6f7;
+  --border: rgba(255, 255, 255, 0.08);   /* k-ghost */
+  --input: rgba(255, 255, 255, 0.15);    /* k-ghost-hi */
+  --ring: #00e5ff;                        /* k-primary */
+
+  color-scheme: dark;
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    /* `border` sem cor herdava a cor do texto (borda branca nos componentes shadcn). */
+    border-color: var(--color-border);
+  }
+
+  /* A página nunca rola — o scroll vive nos painéis internos (lista de alunos,
+     conteúdo das abas). dvh: no celular, 100vh passa da área visível (barra do
+     navegador) e escondia a barra inferior. Telas avulsas mais altas que a tela
+     (login, cadastro no celular) rolam dentro do #root. */
+  html,
+  body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  #root {
+    height: 100vh;
+    height: 100dvh;
+    overflow-y: auto;
+  }
+
+  body {
+    background: var(--color-k-bg);
+    color: var(--color-k-text);
+    font-family:
+      'Geist',
+      'Segoe UI',
+      system-ui,
+      -apple-system,
+      Roboto,
+      'Helvetica Neue',
+      Arial,
+      sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  p {
+    margin: 0;
+  }
+
+  button {
+    font-family: inherit;
+    font-size: inherit;
+    border: none;
+    cursor: pointer;
+    background: none;
+    color: inherit;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  input,
+  textarea {
+    font-family: inherit;
+    font-size: inherit;
+    color: var(--color-k-text);
+    background: var(--color-k-surface1);
+    border: 1px solid var(--color-k-ghost);
+    border-radius: 12px;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-k-text-muted);
+  }
+
+  /* Ciano como cor de estado ativo/foco, como no mobile. */
+  input:focus,
+  textarea:focus {
+    border-color: var(--color-k-primary);
+  }
+
+  a {
+    color: var(--color-k-primary);
+    text-decoration: none;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-k-ghost-hi);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-k-text-muted);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ── Micro-animações contínuas (as de entrada/estado ficam no Motion) ──── */
+
+@keyframes kRipple {
+  0% { transform: scale(0.55); opacity: 0.7; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+@keyframes kTwinkle {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.15) rotate(14deg); }
+}
+
+@keyframes kSkeleton {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.42; }
+}
+
+.k-ripple { animation: kRipple 3s cubic-bezier(0.16, 1, 0.3, 1) infinite; }
+.k-twinkle { animation: kTwinkle 3.2s ease-in-out infinite; }
+.k-skeleton { animation: kSkeleton 1.6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .k-ripple,
+  .k-twinkle,
+  .k-skeleton {
+    animation: none;
+  }
+}
+
+
+/* ── Celular / app instalado (PWA) ─────────────────────────────────────────── */
+/* Fora de @layer de propósito: vence os utilitários text-[13px] etc. O iOS dá zoom
+   ao focar campos com fonte menor que 16px, e o zoom não volta sozinho. */
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Instalado como app: sem o "puxar para atualizar" / efeito elástico do navegador. */
+@media (display-mode: standalone) {
+  html,
+  body {
+    overscroll-behavior: none;
+  }
+}
+
+/* Telas de toque: sem a barra de rolagem fixa do desktop (o celular usa a sobreposta). */
+@media (pointer: coarse) {
+  * {
+    scrollbar-width: none;
+  }
+  *::-webkit-scrollbar {
+    display: none;
+  }
+}

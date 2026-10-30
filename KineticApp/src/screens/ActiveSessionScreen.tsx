@@ -1,37 +1,33 @@
-import React, { useContext, useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { Text } from '../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import KeyboardAvoider from '../components/ui/KeyboardAvoider';
 import { LinearGradient } from 'expo-linear-gradient';
-import Svg, { Circle, Polyline } from 'react-native-svg';
-import { ThemeContext } from '../contexts/ThemeContext';
-import { KINETIC } from '../theme/kinetic';
+
 import Icon from '../components/Icon';
 import SerieCard, { SerieStatus } from '../components/SerieCard';
-import { SetLogDto, LogSessionRequestDTO } from '../types';
-import api from '../services/api';
-import useWorkoutPresence from '../hooks/useWorkoutPresence';
-
-interface SetData {
-  weight: string;
-  reps: string;
-  completed: boolean;
-}
-
-// Data do calendário LOCAL do usuário (YYYY-MM-DD). Não usar toISOString(), que
-// devolve a data em UTC: treinos feitos à noite (BRT) virariam o dia em UTC e a
-// sessão nasceria datada "amanhã" em relação ao LocalDate.now() do servidor,
-// caindo fora da janela [início, hoje] do StatsScreen.
-function localDateString(d: Date = new Date()): string {
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
+import RestTimer from '../components/RestTimer';
+import { LoadType } from '../types';
+import { validateSet } from '../utils/setLimits';
+import { parseRestSeconds } from '../utils/restTime';
+import { formatClock } from '../utils/formatters';
+import { showAlert } from '../components/ui/AlertHost';
+import WorkoutCompleteSheet from '../components/WorkoutCompleteSheet';
+import type { FinishedWorkout } from '../navigation/types';
+import { createStyles, useColors } from '../theme/ThemeContext';
+import { allLogs, confirmedLogs, durationOf, emptySets, useActiveWorkout } from '../contexts/ActiveWorkoutContext';
 
 // Um exercício exige peso quando o rótulo de carga tem valor numérico (ex.: "40 kg").
 // Rótulos como "Sem carga" / "Peso corporal" não têm dígitos → campo opcional.
-function requiresWeight(weightLabel?: string): boolean {
-  return /\d/.test(String(weightLabel ?? ''));
+// Fichas antigas (ou em cache) podem vir sem loadType: mesma dedução do backend
+// (LoadType.infer).
+function loadTypeOf(exercise?: { loadType?: LoadType | null; weight?: string | null }): LoadType {
+  if (exercise?.loadType) return exercise.loadType;
+  const label = String(exercise?.weight ?? '').toLowerCase();
+  if (label.includes('corporal') || label.includes('peso do corpo') || label.includes('colete')) return 'BODYWEIGHT';
+  if (label.includes('sem carga') || label.includes('sem peso')) return 'NONE';
+  return 'EXTERNAL';
 }
 
 // Evita renderizar o literal "undefined" quando o campo vem ausente do plano (ex.:
@@ -41,68 +37,59 @@ function withSuffix(value: unknown, suffix: string): string {
   return `${value} ${suffix}`;
 }
 
-// Pequeno relógio de referência para o cabeçalho (discreto, não compete com o fluxo).
-function ClockIcon() {
-  return (
-    <Svg width={11} height={11} viewBox="0 0 24 24">
-      <Circle cx={12} cy={12} r={10} fill="none" stroke={KINETIC.textMuted} strokeWidth={2} />
-      <Polyline
-        points="12 6 12 12 16 14"
-        fill="none"
-        stroke={KINETIC.textMuted}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
+export default function ActiveSessionScreen({ navigation }: any) {
+  const styles = useStyles();
+  const c = useColors();
+  const { workout, update, saving, saveSession, stop, discard, setScreenOpen } = useActiveWorkout();
 
-export default function ActiveSessionScreen({ navigation, route }: any) {
-  useContext(ThemeContext);
-  const { markSaved } = useWorkoutPresence();
+  // Último treino não nulo: a tela segue desenhada atrás da folha "Treino concluído"
+  // depois que o salvamento limpa o contexto.
+  const shown = useRef(workout);
+  if (workout) shown.current = workout;
+  const w = shown.current;
+  const exercises: any[] = w?.workoutData.data ?? [];
 
-  const workoutData = route?.params?.workoutData;
-  const workoutPlanId: string | undefined = route?.params?.workoutPlanId;
-  const exercises = workoutData?.data ?? [];
+  // Treino salvo: abre a folha "Treino concluído" (postar ou sair).
+  const [finished, setFinished] = useState<FinishedWorkout | null>(null);
 
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  // Armazena todos os logs de todas as séries já preenchidas
-  const [globalSetsLog, setGlobalSetsLog] = useState<SetLogDto[]>([]);
-
+  // Só redesenha o cronômetro do topo: o tempo vem do início do treino.
+  const [now, setNow] = useState(Date.now);
   useEffect(() => {
-    if (exercises.length === 0) return;
-    timerRef.current = setInterval(() => {
-      setElapsedTime(prev => prev + 1);
-    }, 1000);
+    if (finished) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [finished]);
+
+  // Sair da tela (botão, voltar do Android, gesto do iOS) minimiza o treino no balão.
+  // Sem série confirmada não há o que guardar: descarta.
+  const workoutRef = useRef(workout);
+  workoutRef.current = workout;
+  useEffect(() => {
+    setScreenOpen(true);
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      setScreenOpen(false);
+      const current = workoutRef.current;
+      if (current && allLogs(current).length === 0) discard();
     };
-  }, [exercises.length]);
+  }, [setScreenOpen, discard]);
 
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-    const s = (seconds % 60).toString().padStart(2, '0');
-    return `${m}:${s}`;
-  };
-
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const currentIndex = w?.currentIndex ?? 0;
   const currentExercise = exercises[currentIndex];
-  const numSets = parseInt(currentExercise?.sets, 10) || 3;
-  const weightRequired = requiresWeight(currentExercise?.weight);
+  const loadType = loadTypeOf(currentExercise);
+  // Carga externa com valor prescrito pede o peso; sem prescrição, o aluno escolhe.
+  const weightRequired = loadType === 'EXTERNAL' && /\d/.test(String(currentExercise?.weight ?? ''));
 
-  const [setsData, setSetsData] = useState<SetData[]>([]);
+  const isLastExercise = currentIndex === exercises.length - 1;
+  const setsData = w?.setsData ?? [];
 
-  useEffect(() => {
-    const initialSets: SetData[] = Array.from({ length: numSets }, () => ({
-      weight: '',
-      reps: '',
-      completed: false
-    }));
-    setSetsData(initialSets);
-  }, [currentIndex, numSets]);
+  // Descanso após confirmar uma série: a próxima (inclusive a 1ª do exercício
+  // seguinte) só libera quando zerar. Fica fora do estado do exercício de propósito.
+  const rest = w?.rest ?? null;
+  const skipRest = () => update((cur) => ({ ...cur, rest: null }));
+  const addRestTime = () =>
+    update((cur) =>
+      cur.rest ? { ...cur, rest: { endsAt: cur.rest.endsAt + 15000, totalSeconds: cur.rest.totalSeconds + 15 } } : cur,
+    );
 
   // Fluxo sequencial: a primeira série não confirmada é a "atual"; as posteriores
   // ficam bloqueadas até a anterior ser confirmada.
@@ -112,202 +99,89 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
 
   const statusOf = (i: number): SerieStatus => {
     if (setsData[i].completed) return 'confirmada';
-    if (i === firstPending) return 'atual';
+    if (i === firstPending) return rest ? 'descanso' : 'atual';
     return 'locked';
   };
 
   const updateSet = (index: number, field: 'weight' | 'reps', value: string) => {
-    const newSets = [...setsData];
-    newSets[index][field] = value;
-    setSetsData(newSets);
+    update((cur) => ({ ...cur, setsData: cur.setsData.map((s, i) => (i === index ? { ...s, [field]: value } : s)) }));
   };
 
   const confirmSet = (index: number) => {
     const set = setsData[index];
 
-    // Validação Fail Fast
-    const numericReps = parseInt(set.reps, 10);
-    if (isNaN(numericReps) || numericReps < 1) {
-      Alert.alert('Série Incompleta', 'Insira pelo menos 1 repetição.');
+    // Em BODYWEIGHT o campo é a carga extra; em NONE não há peso.
+    const numericReps = Number(set.reps);
+    const typedWeight = set.weight.trim() === '' ? 0 : Number(set.weight.replace(',', '.'));
+    const error = validateSet(numericReps, loadType === 'NONE' ? 0 : typedWeight);
+    if (error) {
+      showAlert('Confira a série', error);
       return;
     }
 
-    if (weightRequired) {
-      const numericWeight = parseFloat(set.weight.replace(',', '.'));
-      if (isNaN(numericWeight) || numericWeight < 0) {
-        Alert.alert('Peso Inválido', 'O peso não pode ser negativo. Use 0 para peso do corpo.');
-        return;
-      }
-    }
-
-    const newSets = [...setsData];
-    newSets[index].completed = true;
-    setSetsData(newSets);
+    // Última série do treino: nada a esperar.
+    const lastOfWorkout = isLastExercise && index === setsData.length - 1;
+    const restSeconds = parseRestSeconds(currentExercise.restTime);
+    const at = Date.now();
+    update((cur) => ({
+      ...cur,
+      setsData: cur.setsData.map((s, i) => (i === index ? { ...s, completed: true } : s)),
+      lastSetAt: at,
+      rest: !lastOfWorkout && restSeconds ? { endsAt: at + restSeconds * 1000, totalSeconds: restSeconds } : cur.rest,
+    }));
   };
 
   // Editar uma série anterior invalida a confirmação de todas as séries seguintes:
   // o modelo sequencial assume que "confirmada" é sempre um prefixo contíguo, então
   // deixar séries posteriores confirmadas com uma anterior reaberta quebraria essa invariante.
+  // A série reaberta volta a ser a atual: o descanso que vinha dela não vale mais.
   const editSet = (index: number) => {
-    const newSets = setsData.map((s, i) => (i >= index ? { ...s, completed: false } : s));
-    setSetsData(newSets);
+    update((cur) => ({
+      ...cur,
+      setsData: cur.setsData.map((s, i) => (i >= index ? { ...s, completed: false } : s)),
+      rest: null,
+    }));
   };
-
-  const accumulateCurrentExerciseSets = () => {
-    const completedSets = setsData.filter(s => s.completed);
-    const mappedLogs: SetLogDto[] = completedSets.map((s, idx) => {
-      // Trata vírgula e converte para float
-      const parsedWeight = parseFloat(s.weight.replace(',', '.'));
-      const parsedReps = parseInt(s.reps, 10);
-      return {
-        exerciseId: currentExercise.id,
-        setNumber: idx + 1,
-        repsPerformed: isNaN(parsedReps) ? 0 : parsedReps,
-        weightUsed: isNaN(parsedWeight) ? 0 : parsedWeight
-      };
-    });
-
-    setGlobalSetsLog(prev => [...prev, ...mappedLogs]);
-  };
-
-  const isLastExercise = currentIndex === exercises.length - 1;
 
   const handleNextAction = () => {
     // O CTA só fica ativo com todas as séries confirmadas; guarda por segurança.
-    if (!allConfirmed) return;
+    if (!allConfirmed || saving) return;
 
-    accumulateCurrentExerciseSets();
-
-    if (currentIndex < exercises.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-    } else {
+    if (isLastExercise) {
       finishWorkoutSession();
-    }
-  };
-
-  // Saída deliberada da tela: marca a flag para o beforeRemove não interceptar de novo.
-  // Se a saída veio de um voltar bloqueado (gesto/botão do Android), redespacha a ação original.
-  const allowLeaveRef = useRef(false);
-  const leaveScreen = (pendingAction?: any) => {
-    allowLeaveRef.current = true;
-    if (pendingAction) {
-      navigation.dispatch(pendingAction);
-    } else {
-      navigation.goBack();
-    }
-  };
-
-  const handleExitSession = (pendingAction?: any) => {
-    Alert.alert(
-      'Tem a certeza que deseja sair?',
-      'O seu treino será encerrado. Apenas as séries marcadas como concluídas serão guardadas no seu histórico.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Confirmar',
-          style: 'destructive',
-          onPress: () => {
-            // Acumula séries do exercício atual
-            const currentCompleted = setsData.filter(s => s.completed);
-            const currentMapped: SetLogDto[] = currentCompleted.map((s, idx) => ({
-              exerciseId: currentExercise.id,
-              setNumber: idx + 1,
-              repsPerformed: parseInt(s.reps, 10) || 0,
-              weightUsed: parseFloat(s.weight.replace(',', '.')) || 0
-            }));
-
-            const allLogs = [...globalSetsLog, ...currentMapped];
-
-            if (allLogs.length === 0) {
-              // Sessão vazia: descarta sem poluir o banco
-              if (timerRef.current) clearInterval(timerRef.current);
-              leaveScreen(pendingAction);
-              return;
-            }
-
-            // Gravação parcial
-            const payload: LogSessionRequestDTO = {
-              durationInSeconds: elapsedTime,
-              date: localDateString(),
-              exercisesLog: allLogs,
-              workoutPlanId,
-            };
-
-            if (timerRef.current) clearInterval(timerRef.current);
-
-            api.post('/sessions/log', payload)
-              .then(() => {
-                markSaved();
-                Alert.alert('Treino Salvo', 'As séries concluídas foram guardadas.');
-                leaveScreen(pendingAction);
-              })
-              .catch((error: unknown) => {
-                console.error('Erro ao salvar sessão parcial', error);
-                Alert.alert('Erro', 'Não foi possível salvar os dados do treino.');
-              });
-          }
-        }
-      ]
-    );
-  };
-
-  // Intercepta QUALQUER tentativa de sair da tela (botão/gesto de voltar do Android,
-  // goBack programático) e força o fluxo de confirmação — sem isso o usuário sai
-  // arrastando pro lado e as séries concluídas nunca são salvas. O ref evita que o
-  // listener capture state desatualizado (séries, cronômetro) entre renders.
-  const exitHandlerRef = useRef(handleExitSession);
-  exitHandlerRef.current = handleExitSession;
-
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('beforeRemove', (e: any) => {
-      // Saída já autorizada (pós-confirmação/salvamento) ou sessão sem exercícios: deixa passar.
-      if (allowLeaveRef.current || exercises.length === 0) return;
-      e.preventDefault();
-      exitHandlerRef.current(e.data.action);
-    });
-    return unsubscribe;
-  }, [navigation, exercises.length]);
-
-  const finishWorkoutSession = async () => {
-    if (timerRef.current) clearInterval(timerRef.current);
-
-    // O globalSetsLog já contém os exercícios anteriores.
-    // Como accumulateCurrentExerciseSets pode não ter refletido no state imediato devido ao batching,
-    // vamos pegar os dados da tela atual também para garantir:
-    const completedSets = setsData.filter(s => s.completed);
-    const mappedLogs: SetLogDto[] = completedSets.map((s, idx) => ({
-      exerciseId: currentExercise.id,
-      setNumber: idx + 1,
-      repsPerformed: parseInt(s.reps, 10) || 0,
-      weightUsed: parseFloat(s.weight.replace(',', '.')) || 0
-    }));
-
-    const finalLogs = [...globalSetsLog, ...mappedLogs];
-
-    if (finalLogs.length === 0) {
-      leaveScreen();
       return;
     }
 
-    const payload: LogSessionRequestDTO = {
-      durationInSeconds: elapsedTime,
-      date: localDateString(),
-      exercisesLog: finalLogs,
-      workoutPlanId,
-    };
-
-    try {
-      await api.post('/sessions/log', payload);
-      markSaved();
-      Alert.alert('Parabéns!', 'Seu treino foi salvo com sucesso.');
-      leaveScreen();
-    } catch (error) {
-      console.error('Erro ao salvar sessão', error);
-      Alert.alert('Erro', 'Não foi possível salvar os dados do treino.');
-    }
+    update((cur) => ({
+      ...cur,
+      globalSetsLog: [...cur.globalSetsLog, ...confirmedLogs(cur.setsData, exercises[cur.currentIndex].id)],
+      currentIndex: cur.currentIndex + 1,
+      setsData: emptySets(exercises[cur.currentIndex + 1]),
+    }));
   };
 
-  if (!currentExercise) {
+  const finishWorkoutSession = async () => {
+    if (!w) return;
+    const finalLogs = allLogs(w);
+    if (finalLogs.length === 0) {
+      navigation.goBack();
+      return;
+    }
+
+    const durationSeconds = durationOf(w);
+    if (!(await saveSession())) return;
+    // Mesmo cálculo de volume do backend (TrainingSummaryService): Σ carga × reps.
+    setFinished({
+      clientSessionId: w.clientSessionId,
+      title: w.workoutData.title || 'Treino',
+      volumeKg: finalLogs.reduce((sum, l) => sum + l.weightUsed * l.repsPerformed, 0),
+      durationSeconds,
+      setsCount: finalLogs.length,
+      exercisesCount: new Set(finalLogs.map(l => l.exerciseId)).size,
+    });
+  };
+
+  if (!w || !currentExercise) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.emptyState}>
@@ -322,109 +196,152 @@ export default function ActiveSessionScreen({ navigation, route }: any) {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Barra superior: sair (esq.) · tempo discreto (dir.) · progresso do exercício */}
-      <View style={styles.topBar}>
-        <View style={styles.topRow}>
-          <TouchableOpacity
-            style={styles.exitBtn}
-            onPress={() => handleExitSession()}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <View style={styles.exitIconBox}>
-              <Icon name="arrow-left" size={15} color={KINETIC.text} strokeWidth={2.4} />
-            </View>
-            <Text style={styles.exitText}>Sair da sessão</Text>
-          </TouchableOpacity>
+      <KeyboardAvoider>
+        {/* Barra superior: voltar ao app (esq.) · tempo discreto + parar (dir.) · progresso do exercício */}
+        <View style={styles.topBar}>
+          <View style={styles.topRow}>
+            <TouchableOpacity
+              style={styles.exitBtn}
+              onPress={() => navigation.goBack()}
+              disabled={saving}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel="Voltar ao app. O treino continua em andamento."
+            >
+              <View style={styles.exitIconBox}>
+                <Icon name="arrow-left" size={15} color={c.text} strokeWidth={2.4} />
+              </View>
+              <Text style={styles.exitText}>Voltar</Text>
+            </TouchableOpacity>
 
-          <View style={styles.timerBadge}>
-            <ClockIcon />
-            <Text style={styles.timerText}>{formatTime(elapsedTime)}</Text>
+            <View style={styles.topRight}>
+              <View style={styles.timerBadge}>
+                <Icon name="clock" size={11} color={c.textMuted} strokeWidth={2} />
+                <Text style={styles.timerText}>{formatClock((now - w.startedAt) / 1000)}</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.stopBtn}
+                onPress={() => stop(() => navigation.goBack())}
+                disabled={saving}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel="Parar treino"
+              >
+                <Text style={styles.stopText}>Parar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <Text style={styles.progressLabel}>
+            Exercício {currentIndex + 1} de {exercises.length}
+          </Text>
+          <View style={styles.progressTrack}>
+            <LinearGradient
+              colors={[c.primaryFill, c.primaryFillEnd]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={[
+                styles.progressFill,
+                { width: `${((currentIndex + 1) / exercises.length) * 100}%` },
+              ]}
+            />
           </View>
         </View>
 
-        <Text style={styles.progressLabel}>
-          Exercício {currentIndex + 1} de {exercises.length}
-        </Text>
-        <View style={styles.progressTrack}>
-          <LinearGradient
-            colors={[KINETIC.primary, '#00bcd4']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={[
-              styles.progressFill,
-              { width: `${((currentIndex + 1) / exercises.length) * 100}%` },
-            ]}
-          />
-        </View>
-      </View>
+        <ScrollView contentContainerStyle={[styles.scrollContent, rest && styles.scrollContentResting]} showsVerticalScrollIndicator={false}>
+          <View style={styles.exerciseHeader}>
+            <Text style={styles.exerciseTitle}>{currentExercise.name.toUpperCase()}</Text>
+            {!!currentExercise.muscles && (
+              <View style={styles.focusChip}>
+                <Text style={styles.focusChipText}>Foco: {currentExercise.muscles}</Text>
+              </View>
+            )}
+            {!!currentExercise.notes && (
+              <View style={styles.notesBox}>
+                <Text style={styles.notesLabel}>OBSERVAÇÃO DO PERSONAL</Text>
+                <Text style={styles.notesText}>{currentExercise.notes}</Text>
+              </View>
+            )}
+          </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.exerciseHeader}>
-          <Text style={styles.exerciseTitle}>{currentExercise.name.toUpperCase()}</Text>
-          {!!currentExercise.muscles && (
-            <View style={styles.focusChip}>
-              <Text style={styles.focusChipText}>Foco: {currentExercise.muscles}</Text>
+          <View style={styles.setsContainer}>
+            {setsData.map((setObj, idx) => (
+              <SerieCard
+                key={idx}
+                setNumber={idx + 1}
+                targetReps={withSuffix(currentExercise.reps, 'reps')}
+                // Ficha do personal pode vir sem carga definida: o aluno escolhe.
+                cargaLabel={currentExercise.weight || 'Carga livre'}
+                restLabel={withSuffix(currentExercise.restTime, 'descanso')}
+                loadType={loadType}
+                weightRequired={weightRequired}
+                status={statusOf(idx)}
+                weightValue={setObj.weight}
+                repsValue={setObj.reps}
+                onWeightChange={(val: string) => updateSet(idx, 'weight', val)}
+                onRepsChange={(val: string) => updateSet(idx, 'reps', val)}
+                onConfirm={() => confirmSet(idx)}
+                onEdit={() => editSet(idx)}
+              />
+            ))}
+          </View>
+        </ScrollView>
+
+        {/* CTA inferior: bloqueado até todas as séries serem confirmadas */}
+        <View style={styles.footer}>
+          {rest && <RestTimer endsAt={rest.endsAt} totalSeconds={rest.totalSeconds} onSkip={skipRest} onAddTime={addRestTime} />}
+          {!allConfirmed && (
+            <Text style={styles.footerHint}>
+              {confirmedCount} de {setsData.length} séries confirmadas
+            </Text>
+          )}
+          {allConfirmed ? (
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={handleNextAction}
+              disabled={saving}
+              accessibilityState={{ disabled: saving, busy: saving }}
+            >
+              <LinearGradient
+                colors={[c.primaryFill, c.primaryFillEnd]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[styles.primaryCta, saving && styles.primaryCtaSaving]}
+              >
+                <Text style={[styles.primaryCtaText, { color: c.onPrimary }]}>
+                  {saving ? 'Salvando treino...' : isLastExercise ? 'Finalizar treino' : 'Próximo exercício'}
+                </Text>
+                {saving ? (
+                  <ActivityIndicator size="small" color={c.onPrimary} />
+                ) : (
+                  <Icon name="arrow-right" size={16} color={c.onPrimary} strokeWidth={2.5} />
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+          ) : (
+            <View style={[styles.primaryCta, styles.primaryCtaDisabled]}>
+              <Text style={[styles.primaryCtaText, { color: c.textMuted }]}>
+                {isLastExercise ? 'Finalizar treino' : 'Próximo exercício'}
+              </Text>
+              <Icon name="arrow-right" size={16} color={c.textMuted} strokeWidth={2.5} />
             </View>
           )}
         </View>
 
-        <View style={styles.setsContainer}>
-          {setsData.map((setObj, idx) => (
-            <SerieCard
-              key={idx}
-              setNumber={idx + 1}
-              targetReps={withSuffix(currentExercise.reps, 'reps')}
-              cargaLabel={currentExercise.weight}
-              restLabel={withSuffix(currentExercise.restTime, 'descanso')}
-              weightRequired={weightRequired}
-              status={statusOf(idx)}
-              weightValue={setObj.weight}
-              repsValue={setObj.reps}
-              onWeightChange={(val: string) => updateSet(idx, 'weight', val)}
-              onRepsChange={(val: string) => updateSet(idx, 'reps', val)}
-              onConfirm={() => confirmSet(idx)}
-              onEdit={() => editSet(idx)}
-            />
-          ))}
-        </View>
-      </ScrollView>
-
-      {/* CTA inferior: bloqueado até todas as séries serem confirmadas */}
-      <View style={styles.footer}>
-        {!allConfirmed && (
-          <Text style={styles.footerHint}>
-            {confirmedCount} de {setsData.length} séries confirmadas
-          </Text>
-        )}
-        {allConfirmed ? (
-          <TouchableOpacity activeOpacity={0.85} onPress={handleNextAction}>
-            <LinearGradient
-              colors={[KINETIC.primary, '#00bcd4']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.primaryCta}
-            >
-              <Text style={[styles.primaryCtaText, { color: '#001f24' }]}>
-                {isLastExercise ? 'Finalizar treino' : 'Próximo exercício'}
-              </Text>
-              <Icon name="arrow-right" size={16} color="#001f24" strokeWidth={2.5} />
-            </LinearGradient>
-          </TouchableOpacity>
-        ) : (
-          <View style={[styles.primaryCta, styles.primaryCtaDisabled]}>
-            <Text style={[styles.primaryCtaText, { color: KINETIC.textMuted }]}>
-              {isLastExercise ? 'Finalizar treino' : 'Próximo exercício'}
-            </Text>
-            <Icon name="arrow-right" size={16} color={KINETIC.textMuted} strokeWidth={2.5} />
-          </View>
-        )}
-      </View>
+        <WorkoutCompleteSheet
+          workout={finished}
+          onSkip={() => navigation.goBack()}
+          onPost={() => {
+            if (finished) navigation.replace('WorkoutCamera', { workout: finished });
+          }}
+        />
+      </KeyboardAvoider>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: KINETIC.bg },
+const useStyles = createStyles((c) => ({
+  container: { flex: 1, backgroundColor: c.bg },
 
   topBar: { paddingHorizontal: 16, paddingTop: 4 },
   topRow: {
@@ -438,20 +355,23 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 8,
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  exitText: { color: KINETIC.textDim, fontSize: 12.5, fontWeight: '600' },
+  exitText: { color: c.textDim, fontSize: 12.5, fontWeight: '600' },
+  topRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  stopBtn: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: c.dangerDim },
+  stopText: { color: c.danger, fontSize: 12.5, fontWeight: '700' },
   timerBadge: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   timerText: {
-    color: KINETIC.textMuted,
+    color: c.textMuted,
     fontSize: 11.5,
     fontWeight: '600',
     fontVariant: ['tabular-nums'],
   },
   progressLabel: {
-    color: KINETIC.textDim,
+    color: c.textDim,
     fontSize: 11.5,
     fontWeight: '700',
     marginBottom: 6,
@@ -459,16 +379,18 @@ const styles = StyleSheet.create({
   progressTrack: {
     height: 4,
     borderRadius: 999,
-    backgroundColor: KINETIC.ghost,
+    backgroundColor: c.ghost,
     overflow: 'hidden',
   },
   progressFill: { height: '100%', borderRadius: 999 },
 
   scrollContent: { paddingBottom: 150 },
+  // Rodapé mais alto com o cronômetro de descanso: a última série não some atrás dele.
+  scrollContentResting: { paddingBottom: 240 },
 
   exerciseHeader: { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 4 },
   exerciseTitle: {
-    color: KINETIC.text,
+    color: c.text,
     fontSize: 21,
     fontWeight: '800',
     letterSpacing: -0.4,
@@ -480,11 +402,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 3,
     borderRadius: 999,
-    backgroundColor: KINETIC.primaryDim,
+    backgroundColor: c.primaryDim,
     borderWidth: 1,
-    borderColor: KINETIC.primarySoft,
+    borderColor: c.primarySoft,
   },
-  focusChipText: { color: KINETIC.primary, fontSize: 11, fontWeight: '700' },
+  focusChipText: { color: c.primary, fontSize: 11, fontWeight: '700' },
+  notesBox: {
+    marginTop: 12,
+    paddingVertical: 9,
+    paddingHorizontal: 11,
+    borderRadius: 10,
+    borderLeftWidth: 2,
+    borderLeftColor: c.primary,
+    backgroundColor: c.ghost,
+  },
+  notesLabel: { color: c.textMuted, fontSize: 9.5, fontWeight: '700', letterSpacing: 0.6, marginBottom: 4 },
+  notesText: { color: c.text, fontSize: 13, lineHeight: 18 },
 
   setsContainer: { paddingHorizontal: 16, paddingTop: 14 },
 
@@ -496,11 +429,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 22,
-    backgroundColor: KINETIC.bg,
+    backgroundColor: c.bg,
   },
   footerHint: {
     textAlign: 'center',
-    color: KINETIC.textMuted,
+    color: c.textMuted,
     fontSize: 11.5,
     fontWeight: '600',
     marginBottom: 9,
@@ -513,7 +446,8 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 14,
   },
-  primaryCtaDisabled: { backgroundColor: KINETIC.surface2 },
+  primaryCtaDisabled: { backgroundColor: c.surface2 },
+  primaryCtaSaving: { opacity: 0.7 },
   primaryCtaText: { fontSize: 15, fontWeight: '800', letterSpacing: 0.2 },
 
   emptyState: {
@@ -523,21 +457,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   emptyTitle: {
-    color: KINETIC.text,
+    color: c.text,
     fontSize: 20,
     fontWeight: '900',
     marginBottom: 20,
     textAlign: 'center',
   },
   emptyButton: {
-    backgroundColor: KINETIC.primary,
+    backgroundColor: c.primaryFill,
     borderRadius: 8,
     paddingHorizontal: 24,
     paddingVertical: 12,
   },
   emptyButtonText: {
-    color: '#001f24',
+    color: c.onPrimary,
     fontSize: 12,
     fontWeight: '900',
   },
-});
+}));

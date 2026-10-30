@@ -1,46 +1,24 @@
 import React, { useContext, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
-  ScrollView,
-  TextInput,
-} from 'react-native';
+import { View, TouchableOpacity, ScrollView } from 'react-native';
+import { Text, TextInput } from '../../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthContext } from '../../contexts/AuthContext';
 import Svg, { Path, Circle } from 'react-native-svg';
+import { isValidCellPhone, maskCellPhone } from '../../utils/whatsapp';
+import { savePendingInviteCode } from '../../services/trainerService';
+import { showAlert } from '../../components/ui/AlertHost';
+import KeyboardAvoider from '../../components/ui/KeyboardAvoider';
 
-const A = {
-  bg: '#131313',
-  s1: '#1c1b1b',
-  primary: '#00E5FF',
-  text: '#f5f6f7',
-  text2: 'rgba(245,246,247,0.60)',
-  text3: 'rgba(245,246,247,0.34)',
-  ghostHi: 'rgba(255,255,255,0.13)',
-  success: '#4ade80',
-};
+import { PRIVACY_URL, TERMS_URL, openLegal } from '../../config/legal';
+import { BackArrowIcon, EmailIcon, LockIcon, EyeIcon, PhoneIcon, CheckIcon } from '../../components/auth/AuthIcons';
+import RequirementItem from '../../components/auth/RequirementItem';
+import { PASSWORD_REGEX, passwordChecks } from '../../constants/password';
+import type { AuthScreenProps } from '../../navigation/types';
+import { createStyles, useColors } from '../../theme/ThemeContext';
 
-function BackArrowIcon({ size = 20, color = '#f5f6f7' }: { size?: number; color?: string }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M19 12H5M5 12l7 7M5 12l7-7"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-function PersonIcon({ size = 16, color = A.text3 }: { size?: number; color?: string }) {
+function PersonIcon({ size = 16, color }: { size?: number; color?: string }) {
+  const c = useColors();
+  color ??= c.textMuted;
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -55,187 +33,57 @@ function PersonIcon({ size = 16, color = A.text3 }: { size?: number; color?: str
   );
 }
 
-function EmailIcon({ size = 16, color = A.text3 }: { size?: number; color?: string }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
-        stroke={color}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M22 6l-10 7L2 6"
-        stroke={color}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-function LockIcon({ size = 16, color = A.text3 }: { size?: number; color?: string }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2z"
-        stroke={color}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M7 11V7a5 5 0 0110 0v4"
-        stroke={color}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-function EyeIcon({ size = 18, color = A.text3, closed = false }: { size?: number; color?: string; closed?: boolean }) {
-  if (closed) {
-    return (
-      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-        <Path
-          d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"
-          stroke={color}
-          strokeWidth={1.5}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <Path
-          d="M1 1l22 22"
-          stroke={color}
-          strokeWidth={1.5}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </Svg>
-    );
-  }
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-        stroke={color}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Circle cx="12" cy="12" r="3" stroke={color} strokeWidth={1.5} />
-    </Svg>
-  );
-}
-
-function CheckIcon({ size = 10, color = '#001a1f' }: { size?: number; color?: string }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24">
-      <Path
-        d="M5 12l5 5L20 7"
-        stroke={color}
-        strokeWidth={3.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-type Requirement = { label: string; met: boolean };
-
-function RequirementItem({ label, met }: Requirement) {
-  return (
-    <View style={reqStyles.row}>
-      <View style={[reqStyles.dot, met && reqStyles.dotMet]}>
-        {met && <CheckIcon />}
-      </View>
-      <Text style={[reqStyles.label, met && reqStyles.labelMet]}>{label}</Text>
-    </View>
-  );
-}
-
-const reqStyles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    width: '50%',
-    marginBottom: 10,
-  },
-  dot: {
-    width: 18,
-    height: 18,
-    borderRadius: 5,
-    borderWidth: 1.5,
-    borderColor: A.ghostHi,
-    backgroundColor: A.s1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dotMet: {
-    backgroundColor: A.success,
-    borderColor: A.success,
-  },
-  label: {
-    fontSize: 12,
-    color: A.text3,
-  },
-  labelMet: {
-    color: A.success,
-  },
-});
-
-type Props = {
-  navigation: NativeStackNavigationProp<any>;
-};
+type Props = AuthScreenProps<'Register'>;
 
 export default function RegisterScreen({ navigation }: Props) {
+  const styles = useStyles();
+  const c = useColors();
   const { register } = useContext(AuthContext);
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const hasMinLength = password.length >= 8;
-  const hasUppercase = /[A-Z]/.test(password);
-  const hasLowercase = /[a-z]/.test(password);
-  const hasNumber = /\d/.test(password);
-  const hasSymbol = /[!@#$%^&*]/.test(password);
-  const isPasswordValid = hasMinLength && hasUppercase && hasLowercase && hasNumber && hasSymbol;
+  const checks = passwordChecks(password);
+  const isPasswordValid = PASSWORD_REGEX.test(password);
 
-  const canSubmit = name.trim().length > 0 && email.trim().length > 0 && isPasswordValid;
+  const isPhoneValid = isValidCellPhone(phone);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const canSubmit =
+    name.trim().length > 0 && email.trim().length > 0 && isPhoneValid && isPasswordValid && acceptedTerms;
 
   const handleRegister = async () => {
     if (!canSubmit || loading) return;
     setLoading(true);
-    const result = await register({ name: name.trim(), email: email.trim(), password });
+    const result = await register({ name: name.trim(), email: email.trim(), phone, password });
     setLoading(false);
 
     if (!result.success) {
-      Alert.alert('Erro no cadastro', result.error);
+      showAlert('Erro no cadastro', result.error);
       return;
     }
 
-    Alert.alert(
+    // Resgatado no primeiro login (ver usePendingInviteRedeem): antes disso o
+    // e-mail precisa ser confirmado e ainda não há sessão.
+    if (inviteCode.trim()) {
+      await savePendingInviteCode(inviteCode, email);
+    }
+
+    showAlert(
       'Cadastro realizado!',
-      `Bem-vindo, ${name.trim()}! Agora faça login com suas credenciais.`,
-      [{ text: 'Fazer Login', onPress: () => navigation.navigate('Login') }],
+      `Bem-vindo, ${name.trim()}! Enviamos um código para ${email.trim()}. Confirme seu e-mail para entrar.`,
+      [{ text: 'Confirmar e-mail', onPress: () => navigation.navigate('ConfirmEmail', { email: email.trim() }) }],
     );
   };
 
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safe}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.kav}
+        <KeyboardAvoider style={styles.kav}
         >
           {/* Header */}
           <View style={styles.header}>
@@ -263,7 +111,7 @@ export default function RegisterScreen({ navigation }: Props) {
               <TextInput
                 style={styles.textInput}
                 placeholder="Seu nome completo"
-                placeholderTextColor={A.text3}
+                placeholderTextColor={c.placeholder}
                 value={name}
                 onChangeText={setName}
                 autoCapitalize="words"
@@ -278,7 +126,7 @@ export default function RegisterScreen({ navigation }: Props) {
               <TextInput
                 style={styles.textInput}
                 placeholder="seu-email@exemplo.com"
-                placeholderTextColor={A.text3}
+                placeholderTextColor={c.placeholder}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -287,14 +135,54 @@ export default function RegisterScreen({ navigation }: Props) {
               />
             </View>
 
+            {/* Phone field */}
+            <Text style={[styles.fieldLabel, { marginTop: 16 }]}>CELULAR (WHATSAPP)</Text>
+            <View style={styles.inputWrap}>
+              <PhoneIcon />
+              <TextInput
+                style={styles.textInput}
+                placeholder="(11) 98765-4321"
+                placeholderTextColor={c.placeholder}
+                value={phone}
+                onChangeText={(v) => setPhone(maskCellPhone(v))}
+                keyboardType="phone-pad"
+                textContentType="telephoneNumber"
+                autoComplete="tel"
+                maxLength={15}
+              />
+            </View>
+            <Text style={styles.fieldHint}>
+              {phone.length > 0 && !isPhoneValid
+                ? 'Informe DDD + número do celular.'
+                : 'Seu personal usa este número para falar com você pelo WhatsApp.'}
+            </Text>
+
+            {/* Invite code field (opcional) */}
+            <Text style={[styles.fieldLabel, { marginTop: 16 }]}>CÓDIGO DE CONVITE (OPCIONAL)</Text>
+            <View style={styles.inputWrap}>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Ex.: ABCDE-23456"
+                placeholderTextColor={c.placeholder}
+                value={inviteCode}
+                onChangeText={(v) => setInviteCode(v.toUpperCase())}
+                autoCapitalize="characters"
+                autoCorrect={false}
+                maxLength={16}
+              />
+            </View>
+            <Text style={styles.fieldHint}>
+              Recebeu um link do seu personal? Digite o código para entrar na carteira dele.
+            </Text>
+
             {/* Password field */}
             <Text style={[styles.fieldLabel, { marginTop: 16 }]}>SENHA</Text>
             <View style={styles.inputWrap}>
               <LockIcon />
               <TextInput
                 style={styles.textInput}
-                placeholder="Mínimo 8 caracteres"
-                placeholderTextColor={A.text3}
+                placeholder="8 a 20 caracteres"
+                placeholderTextColor={c.placeholder}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
@@ -316,13 +204,37 @@ export default function RegisterScreen({ navigation }: Props) {
             <View style={styles.requirementsBox}>
               <Text style={styles.requirementsTitle}>REQUISITOS DE SEGURANÇA</Text>
               <View style={styles.requirementsGrid}>
-                <RequirementItem label="8+ caracteres" met={hasMinLength} />
-                <RequirementItem label="Letra maiúscula" met={hasUppercase} />
-                <RequirementItem label="Letra minúscula" met={hasLowercase} />
-                <RequirementItem label="Um número" met={hasNumber} />
-                <RequirementItem label="Símbolo especial" met={hasSymbol} />
+                <RequirementItem label="8 a 20 caracteres" met={checks.length} />
+                <RequirementItem label="Letra maiúscula" met={checks.uppercase} />
+                <RequirementItem label="Letra minúscula" met={checks.lowercase} />
+                <RequirementItem label="Símbolo especial" met={checks.symbol} />
               </View>
             </View>
+
+            {/* Aceite: consentimento destacado para dados de saúde (LGPD art. 11, I) */}
+            <TouchableOpacity
+              style={[styles.checkRow, styles.termsRow]}
+              onPress={() => setAcceptedTerms(!acceptedTerms)}
+              activeOpacity={0.7}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: acceptedTerms }}
+            >
+              <View style={[styles.checkbox, styles.termsCheckbox, acceptedTerms && styles.checkboxChecked]}>
+                {acceptedTerms && <CheckIcon />}
+              </View>
+              <Text style={[styles.checkLabel, styles.termsLabel]}>
+                Li e aceito os{' '}
+                <Text style={styles.loginLink} onPress={() => openLegal(TERMS_URL)}>
+                  Termos de Uso
+                </Text>{' '}
+                e a{' '}
+                <Text style={styles.loginLink} onPress={() => openLegal(PRIVACY_URL)}>
+                  Política de Privacidade
+                </Text>
+                , inclusive o uso dos meus dados de saúde (peso, medidas, lesões e treinos) para montar e acompanhar
+                meus treinos.
+              </Text>
+            </TouchableOpacity>
           </ScrollView>
 
           {/* Footer */}
@@ -344,14 +256,14 @@ export default function RegisterScreen({ navigation }: Props) {
               </Text>
             </TouchableOpacity>
           </View>
-        </KeyboardAvoidingView>
+        </KeyboardAvoider>
       </SafeAreaView>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: A.bg },
+const useStyles = createStyles((c, s) => ({
+  container: { flex: 1, backgroundColor: c.bg },
   safe: { flex: 1 },
   kav: { flex: 1 },
   header: {
@@ -362,17 +274,17 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     gap: 12,
   },
-  backBtn: {
+  backBtn: { 
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: A.s1,
+    backgroundColor: c.surface1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerText: {
     fontSize: 13,
-    color: A.text2,
+    color: c.textDim,
     fontWeight: '500',
   },
   content: {
@@ -382,38 +294,43 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 36,
     fontWeight: '800',
-    color: A.text,
+    color: c.text,
     letterSpacing: -1,
     lineHeight: 44,
     marginTop: 12,
     marginBottom: 32,
   },
   titleAccent: {
-    color: A.primary,
+    color: c.primary,
   },
   fieldLabel: {
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.6,
-    color: A.text3,
+    color: c.textMuted,
     marginBottom: 8,
     textTransform: 'uppercase',
   },
-  inputWrap: {
+  inputWrap: { 
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: A.s1,
+    backgroundColor: c.surface1,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: A.ghostHi,
+    borderColor: c.ghostHi,
     paddingHorizontal: 14,
     height: 52,
+  },
+  fieldHint: {
+    fontSize: 12,
+    color: c.textMuted,
+    marginTop: 6,
   },
   textInput: {
     flex: 1,
     fontSize: 15,
-    color: A.text,
+    color: c.text,
     padding: 0,
   },
   eyeBtn: {
@@ -426,36 +343,48 @@ const styles = StyleSheet.create({
     marginTop: 14,
     marginBottom: 20,
   },
-  checkbox: {
+  checkbox: { 
     width: 20,
     height: 20,
     borderRadius: 6,
     borderWidth: 1.5,
-    borderColor: A.ghostHi,
-    backgroundColor: A.s1,
+    borderColor: c.ghostHi,
+    backgroundColor: c.surface1,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  termsRow: {
+    alignItems: 'flex-start',
+    marginTop: 20,
+  },
+  termsCheckbox: {
+    marginTop: 2,
+  },
+  termsLabel: {
+    flex: 1,
+    lineHeight: 19,
+  },
   checkboxChecked: {
-    backgroundColor: A.primary,
-    borderColor: A.primary,
+    backgroundColor: c.primaryFill,
+    borderColor: c.primary,
   },
   checkLabel: {
     fontSize: 13,
-    color: A.text2,
+    color: c.textDim,
   },
   requirementsBox: {
-    backgroundColor: A.s1,
+    ...s.card,
+    backgroundColor: c.surface1,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: A.ghostHi,
+    borderColor: c.ghostHi,
     padding: 16,
   },
   requirementsTitle: {
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.6,
-    color: A.text3,
+    color: c.textMuted,
     marginBottom: 14,
   },
   requirementsGrid: {
@@ -468,26 +397,27 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   registerBtn: {
+    ...s.card,
     paddingVertical: 16,
     borderRadius: 16,
-    backgroundColor: A.s1,
+    backgroundColor: c.surface1,
     borderWidth: 1,
-    borderColor: A.ghostHi,
+    borderColor: c.ghostHi,
     alignItems: 'center',
     justifyContent: 'center',
     opacity: 0.5,
   },
   registerBtnActive: {
     opacity: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: c.borderStrong,
   },
   registerBtnText: {
     fontSize: 16,
     fontWeight: '700',
-    color: A.text2,
+    color: c.textDim,
   },
   registerBtnTextActive: {
-    color: A.text,
+    color: c.text,
   },
   loginRow: {
     alignItems: 'center',
@@ -495,10 +425,10 @@ const styles = StyleSheet.create({
   },
   loginText: {
     fontSize: 13,
-    color: A.text2,
+    color: c.textDim,
   },
   loginLink: {
-    color: A.primary,
+    color: c.primary,
     fontWeight: '600',
   },
-});
+}));

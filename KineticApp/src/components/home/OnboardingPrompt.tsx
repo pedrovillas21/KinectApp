@@ -1,8 +1,10 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Text } from '../ui/scaled';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
-import { KINETIC } from '../../theme/kinetic';
+import { createStyles, useColors } from '../../theme/ThemeContext';
+
 
 interface OnboardingPromptProps {
   /** Primeiro nome do usuário (saudação). */
@@ -18,6 +20,7 @@ interface StepRowProps {
 }
 
 function StepRow({ step, label, active }: StepRowProps) {
+  const styles = useStyles();
   return (
     <View style={styles.stepRow}>
       <View
@@ -44,6 +47,8 @@ export default function OnboardingPrompt({
   name,
   onGenerateWorkout,
 }: OnboardingPromptProps) {
+  const styles = useStyles();
+  const c = useColors();
   return (
     <View style={styles.wrapper}>
       <View style={styles.greeting}>
@@ -58,7 +63,7 @@ export default function OnboardingPrompt({
 
       <View style={styles.card}>
         <LinearGradient
-          colors={[KINETIC.primary, KINETIC.primaryDeep]}
+          colors={[c.primaryFill, c.primaryDeep]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.topAccent}
@@ -87,7 +92,7 @@ export default function OnboardingPrompt({
             ]}
           >
             <LinearGradient
-              colors={[KINETIC.primary, KINETIC.primaryDeep]}
+              colors={[c.primaryFill, c.primaryDeep]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.cta}
@@ -96,8 +101,8 @@ export default function OnboardingPrompt({
               <Svg width={16} height={16} viewBox="0 0 24 24">
                 <Path
                   d="M5 3l14 9-14 9V3z"
-                  fill="#001a1f"
-                  stroke="#001a1f"
+                  fill={c.onPrimary}
+                  stroke={c.onPrimary}
                   strokeWidth={2.5}
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -136,7 +141,7 @@ export default function OnboardingPrompt({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createStyles((c, s) => ({
   wrapper: {
     paddingTop: 8,
     paddingHorizontal: 16,
@@ -147,29 +152,29 @@ const styles = StyleSheet.create({
   },
   salute: {
     fontSize: 13,
-    color: KINETIC.textDim,
+    color: c.textDim,
     fontWeight: '500',
   },
   saluteName: {
-    color: KINETIC.text,
+    color: c.text,
     fontWeight: '700',
   },
   headline: {
     marginTop: 4,
     fontSize: 26,
     fontWeight: '800',
-    color: KINETIC.text,
+    color: c.text,
     letterSpacing: -0.8,
     lineHeight: 30,
   },
   headlineAccent: {
-    color: KINETIC.primary,
+    color: c.primary,
   },
   card: {
-    backgroundColor: KINETIC.surface1,
+    backgroundColor: c.surface1,
     borderRadius: 24,
     overflow: 'hidden',
-    shadowColor: KINETIC.primary,
+    shadowColor: c.primaryFill,
     shadowOpacity: 0.18,
     shadowRadius: 40,
     shadowOffset: { width: 0, height: 8 },
@@ -186,12 +191,12 @@ const styles = StyleSheet.create({
   },
   copy: {
     fontSize: 14,
-    color: KINETIC.textDim,
+    color: c.textDim,
     lineHeight: 20,
     marginBottom: 18,
   },
   copyStrong: {
-    color: KINETIC.text,
+    color: c.text,
     fontWeight: '600',
   },
   stepList: {
@@ -210,31 +215,31 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   stepBadgeActive: {
-    backgroundColor: KINETIC.primary,
+    backgroundColor: c.primaryFill,
   },
   stepBadgeIdle: {
-    backgroundColor: KINETIC.surface2,
+    backgroundColor: c.surface2,
   },
   stepBadgeText: {
     fontSize: 12,
     fontWeight: '800',
   },
   stepBadgeTextActive: {
-    color: '#001a1f',
+    color: c.onPrimary,
   },
   stepBadgeTextIdle: {
-    color: KINETIC.textMuted,
+    color: c.textMuted,
   },
   stepLabel: {
     fontSize: 13,
-    color: KINETIC.text,
+    color: c.text,
     fontWeight: '500',
   },
   ctaWrap: {
     marginTop: 16,
     borderRadius: 14,
     overflow: 'hidden',
-    shadowColor: KINETIC.primary,
+    shadowColor: c.primaryFill,
     shadowOpacity: 0.3,
     shadowRadius: 28,
     shadowOffset: { width: 0, height: 4 },
@@ -251,7 +256,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
   },
   ctaText: {
-    color: '#001a1f',
+    color: c.onPrimary,
     fontWeight: '800',
     fontSize: 15,
     letterSpacing: 0.3,
@@ -261,7 +266,8 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   teaserBlurred: {
-    backgroundColor: KINETIC.surface1,
+    ...s.card,
+    backgroundColor: c.surface1,
     borderRadius: 18,
     overflow: 'hidden',
     opacity: 0.45,
@@ -275,19 +281,19 @@ const styles = StyleSheet.create({
   },
   teaserRowDivider: {
     borderTopWidth: 1,
-    borderTopColor: KINETIC.ghost,
+    borderTopColor: c.ghost,
   },
   teaserPos: {
     width: 28,
     height: 28,
     borderRadius: 9,
-    backgroundColor: KINETIC.surface2,
+    backgroundColor: c.surface2,
   },
   teaserAvatar: {
     width: 34,
     height: 34,
     borderRadius: 999,
-    backgroundColor: KINETIC.surface2,
+    backgroundColor: c.surface2,
   },
   teaserInfo: {
     flex: 1,
@@ -297,13 +303,13 @@ const styles = StyleSheet.create({
     height: 12,
     width: '50%',
     borderRadius: 6,
-    backgroundColor: KINETIC.surface2,
+    backgroundColor: c.surface2,
   },
   teaserLineNarrow: {
     height: 9,
     width: '30%',
     borderRadius: 6,
-    backgroundColor: KINETIC.surface3,
+    backgroundColor: c.surface3,
   },
   teaserOverlay: {
     position: 'absolute',
@@ -318,13 +324,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 999,
-    backgroundColor: 'rgba(19,19,19,0.85)',
+    backgroundColor: c.surface1,
     borderWidth: 1,
-    borderColor: KINETIC.ghostHi,
+    borderColor: c.ghostHi,
   },
   teaserChipText: {
     fontSize: 12,
     fontWeight: '700',
-    color: KINETIC.textDim,
+    color: c.textDim,
   },
-});
+}));

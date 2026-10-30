@@ -1,23 +1,18 @@
-import React, { useState } from 'react';
-import {
-  Modal,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-  ScrollView,
-  Image,
-  Alert,
-} from 'react-native';
-import { BlurView } from 'expo-blur';
-import * as ImagePicker from 'expo-image-picker';
-import { KINETIC } from '../theme/kinetic';
-import { COLORS } from '../theme/colors';
+import React, { useContext, useState } from 'react';
+import { ActivityIndicator, Image, Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { TextInput } from './ui/scaled';
+import { FONT, RADIUS } from '../theme/kinetic';
 import Icon from './Icon';
-import { createPost, uploadMedia, deleteMedia } from '../services/socialService';
-import type { FeedPostData, PostIntensity } from '../types';
+import IntensityPicker from './IntensityPicker';
+import CameraCapture from './CameraCapture';
+import { BottomSheet, Button, ListGroup, ListRow, Text } from './ui';
+import { showAlert } from './ui/AlertHost';
+import { AuthContext } from '../contexts/AuthContext';
+import { createPost, uploadAndCreate } from '../services/socialService';
+import { getUserWorkouts } from '../services/profileService';
+import { formatDurationSeconds, formatShortDate, formatThousands, parseLocalDate } from '../utils/formatters';
+import type { FeedPostData, PostIntensity, WorkoutSummary } from '../types';
+import { createStyles, useColors } from '../theme/ThemeContext';
 
 interface Props {
   visible: boolean;
@@ -25,218 +20,316 @@ interface Props {
   onPostCreated: (post: FeedPostData) => void;
 }
 
-const INTENSITY_OPTIONS: PostIntensity[] = ['LEVE', 'MODERADO', 'ALTA'];
-const INTENSITY_LABELS: Record<PostIntensity, string> = {
-  LEVE: 'Leve',
-  MODERADO: 'Moderado',
-  ALTA: 'Alta',
+/** Histórico de treinos que pode ser marcado num post: hoje + 6 dias anteriores. */
+const HISTORY_DAYS = 7;
+
+const daysAgo = (iso: string) => {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  // round: absorve a hora a mais/a menos de horário de verão.
+  return Math.round((today - parseLocalDate(iso).getTime()) / 86400000);
 };
 
+const dayLabel = (iso: string) => {
+  const d = daysAgo(iso);
+  return d <= 0 ? 'Hoje' : d === 1 ? 'Ontem' : formatShortDate(iso);
+};
+
+const workoutSubtitle = (w: WorkoutSummary) =>
+  [dayLabel(w.date), w.durationSeconds ? formatDurationSeconds(w.durationSeconds) : null, w.volumeKg > 0 ? `${formatThousands(w.volumeKg)} kg` : null]
+    .filter(Boolean)
+    .join(' · ');
+
 export default function NewPostModal({ visible, onClose, onPostCreated }: Props) {
+  const styles = useStyles();
+  const c = useColors();
+  const { currentUser } = useContext(AuthContext);
   const [intensity, setIntensity] = useState<PostIntensity>('MODERADO');
   const [caption, setCaption] = useState('');
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [workout, setWorkout] = useState<WorkoutSummary | null>(null);
   const [posting, setPosting] = useState(false);
 
-  const pickImage = async () => {
-    const perm = await ImagePicker.requestCameraPermissionsAsync();
-    if (!perm.granted) {
-      const galleryPerm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!galleryPerm.granted) {
-        Alert.alert('Permissão necessária', 'Conceda acesso à câmera ou à galeria para adicionar uma foto.');
-        return;
-      }
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
-        allowsEditing: true,
-        aspect: [4, 5],
-        quality: 0.8,
-      });
-      if (!result.canceled) setImageUri(result.assets[0].uri);
-      return;
+  const [picking, setPicking] = useState(false);
+  const [recent, setRecent] = useState<WorkoutSummary[] | null>(null);
+  const [loadError, setLoadError] = useState(false);
+
+  const loadRecent = async () => {
+    if (!currentUser) return;
+    setRecent(null);
+    setLoadError(false);
+    try {
+      const page = await getUserWorkouts(String(currentUser.id), 0, 30);
+      setRecent(page.content.filter((w) => daysAgo(w.date) < HISTORY_DAYS));
+    } catch {
+      setLoadError(true);
     }
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [4, 5],
-      quality: 0.8,
-    });
-    if (!result.canceled) setImageUri(result.assets[0].uri);
   };
+
+  const openPicker = () => {
+    setPicking(true);
+    loadRecent();
+  };
+
+  const close = () => {
+    setPicking(false);
+    setCamera(true);
+    setFromForm(false);
+    setCameraGone(Platform.OS !== 'ios');
+    onClose();
+  };
+
+  // O "+" abre direto a câmera em tela cheia (igual ao story); a foto leva ao formulário.
+  // `camera` true = câmera aberta; `fromForm` = foi aberta pelo formulário (trocar/adicionar foto).
+  const [camera, setCamera] = useState(true);
+  const [fromForm, setFromForm] = useState(false);
+  // iOS não apresenta um Modal enquanto outro ainda está fechando: o formulário espera o onDismiss da câmera.
+  const [cameraGone, setCameraGone] = useState(Platform.OS !== 'ios');
+
+  const openCamera = () => {
+    setFromForm(true);
+    setCameraGone(Platform.OS !== 'ios');
+    setCamera(true);
+  };
+
+  const onCapture = (uri: string) => {
+    setImageUri(uri);
+    setCamera(false);
+  };
+
+  // Fechar a câmera: volta ao formulário se veio dele; senão desiste da publicação.
+  const closeCamera = () => (fromForm ? setCamera(false) : close());
+
+  // Post sem foto, legenda e treino não tem o que mostrar no feed.
+  const isEmpty = !imageUri && !caption.trim() && !workout;
 
   const handlePost = async () => {
     if (posting) return;
     setPosting(true);
-    let uploadedUrl: string | undefined;
     try {
-      // Sobe a foto ao Storage primeiro: assim grava a URL pública (visível em
-      // qualquer aparelho) em vez do caminho local do dispositivo.
-      uploadedUrl = imageUri ? await uploadMedia(imageUri, 'posts') : undefined;
-      const post = await createPost({
-        intensity,
-        caption: caption.trim() || undefined,
-        imageUrl: uploadedUrl,
-      });
+      const base = { intensity, caption: caption.trim() || undefined, workoutSessionId: workout?.id };
+      // Com foto, ela sobe ao Storage primeiro: o post grava o identificador dela, não o caminho local.
+      const post = imageUri
+        ? await uploadAndCreate(imageUri, 'posts', (imageUrl) => createPost({ ...base, imageUrl }))
+        : await createPost(base);
       onPostCreated(post);
       setCaption('');
       setImageUri(null);
+      setWorkout(null);
       setIntensity('MODERADO');
-      onClose();
+      close();
     } catch {
-      // Se a foto já subiu mas a criação do post falhou, remove a mídia órfã
-      // (best-effort) para não acumular lixo no bucket.
-      if (uploadedUrl) deleteMedia(uploadedUrl).catch(() => {});
       // Mantém o modal aberto para o usuário tentar de novo (upload pode falhar por rede).
-      Alert.alert('Não foi possível publicar', 'Verifique sua conexão e tente novamente.');
+      showAlert('Não foi possível publicar', 'Verifique sua conexão e tente novamente.');
     } finally {
       setPosting(false);
     }
   };
 
-  return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <BlurView intensity={30} tint="dark" style={styles.overlay}>
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-          <View style={styles.sheet}>
-            <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>Novo Post</Text>
-              <TouchableOpacity onPress={onClose}>
-                <Icon name="close" size={20} color={KINETIC.textMuted} />
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.label}>Intensidade</Text>
-            <View style={styles.segmented}>
-              {INTENSITY_OPTIONS.map((opt) => (
-                <TouchableOpacity
-                  key={opt}
-                  style={[styles.segment, intensity === opt && styles.segmentActive]}
-                  onPress={() => setIntensity(opt)}
-                >
-                  <Text style={[styles.segmentText, intensity === opt && styles.segmentTextActive]}>
-                    {INTENSITY_LABELS[opt]}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <TouchableOpacity style={styles.photoBtn} onPress={pickImage}>
-              {imageUri ? (
-                <Image source={{ uri: imageUri }} style={styles.photoPreview} />
-              ) : (
-                <View style={styles.photoBtnInner}>
-                  <Icon name="camera" size={20} color={KINETIC.textDim} />
-                  <Text style={styles.photoBtnText}>Adicionar foto</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-
-            <TextInput
-              style={styles.captionInput}
-              placeholder="Escreva uma legenda..."
-              placeholderTextColor={KINETIC.textMuted}
-              value={caption}
-              onChangeText={setCaption}
-              multiline
-              numberOfLines={3}
-            />
-
-            <View style={styles.trainingCard}>
-              <View style={styles.trainingCardHeader}>
-                <Icon name="dumbbell" size={16} color={KINETIC.primary} strokeWidth={2} />
-                <Text style={styles.trainingCardText}>Treino detectado automaticamente</Text>
-              </View>
-              <Text style={styles.trainingCardSub}>Os dados do último treino serão incluídos no post.</Text>
-            </View>
-
-            <TouchableOpacity
-              style={[styles.postBtn, posting && styles.postBtnDisabled]}
-              onPress={handlePost}
-              disabled={posting}
+  const form = (
+    <View style={styles.body}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={imageUri ? 'Trocar foto' : 'Adicionar foto'}
+        onPress={openCamera}
+        style={({ pressed }) => [styles.photo, !imageUri && styles.photoEmpty, pressed && styles.pressed]}
+      >
+        {imageUri ? (
+          <>
+            <Image source={{ uri: imageUri }} style={StyleSheet.absoluteFill} />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Remover foto"
+              onPress={() => setImageUri(null)}
+              hitSlop={8}
+              style={styles.photoRemove}
             >
-              {posting ? (
-                <ActivityIndicator color="#000" />
-              ) : (
-                <Text style={styles.postBtnText}>Publicar</Text>
-              )}
-            </TouchableOpacity>
+              <Icon name="close" size={16} color="#fff" />
+            </Pressable>
+          </>
+        ) : (
+          <>
+            <View style={styles.photoIcon}>
+              <Icon name="camera" size={20} color={c.primary} />
+            </View>
+            <Text variant="bodyStrong">Adicionar foto</Text>
+            <Text variant="caption" color={c.textSecondary}>
+              Câmera ou galeria
+            </Text>
+          </>
+        )}
+      </Pressable>
+
+      <TextInput
+        style={styles.caption}
+        placeholder="Escreva uma legenda..."
+        placeholderTextColor={c.placeholder}
+        accessibilityLabel="Legenda"
+        value={caption}
+        onChangeText={setCaption}
+        maxLength={2200}
+        multiline
+      />
+
+      <ListGroup style={styles.group}>
+        {workout ? (
+          <ListRow
+            icon="dumbbell"
+            title={workout.title || 'Treino livre'}
+            subtitle={workoutSubtitle(workout)}
+            onPress={openPicker}
+            accessory={
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Remover treino"
+                onPress={() => setWorkout(null)}
+                hitSlop={10}
+                style={styles.unlink}
+              >
+                <Icon name="close" size={14} color={c.textDim} />
+              </Pressable>
+            }
+          />
+        ) : (
+          <ListRow icon="dumbbell" title="Adicionar treino" subtitle="Escolha um dos últimos 7 dias" onPress={openPicker} />
+        )}
+        <IntensityPicker value={intensity} onChange={setIntensity} />
+      </ListGroup>
+
+      <Button label="Publicar" loading={posting} disabled={posting || isEmpty} onPress={handlePost} />
+    </View>
+  );
+
+  // Erro, carregando, vazio ou a lista dos treinos recentes.
+  const renderRecent = () => {
+    if (loadError) {
+      return (
+        <View style={styles.state}>
+          <Text variant="bodyStrong">Não foi possível carregar seus treinos</Text>
+          <Button label="Tentar novamente" variant="secondary" size="sm" block={false} onPress={loadRecent} />
+        </View>
+      );
+    }
+    if (recent === null) return <ActivityIndicator color={c.primary} style={styles.state} />;
+    if (recent.length === 0) {
+      return (
+        <View style={styles.state}>
+          <View style={styles.photoIcon}>
+            <Icon name="calendar" size={20} color={c.primary} />
           </View>
-        </ScrollView>
-      </BlurView>
-    </Modal>
+          <Text variant="bodyStrong">Nenhum treino nos últimos 7 dias</Text>
+          <Text variant="caption" color={c.textSecondary} style={styles.center}>
+            Finalize um treino para compartilhá-lo aqui.
+          </Text>
+        </View>
+      );
+    }
+    return (
+      <ListGroup title="Últimos 7 dias" style={styles.group}>
+        {recent.map((w) => (
+          <ListRow
+            key={w.id}
+            icon="dumbbell"
+            title={w.title || 'Treino livre'}
+            subtitle={workoutSubtitle(w)}
+            onPress={() => {
+              setWorkout(w);
+              setPicking(false);
+            }}
+            selected={w.id === workout?.id}
+            accessory={w.id === workout?.id ? <Icon name="check" size={18} color={c.primary} /> : undefined}
+          />
+        ))}
+      </ListGroup>
+    );
+  };
+
+  const picker = <View style={styles.body}>{renderRecent()}</View>;
+
+  return (
+    <>
+      <Modal
+        visible={visible && camera}
+        animationType="slide"
+        statusBarTranslucent
+        navigationBarTranslucent
+        onRequestClose={closeCamera}
+        onDismiss={() => setCameraGone(true)}
+      >
+        <CameraCapture
+          onCapture={onCapture}
+          onClose={closeCamera}
+          galleryAspect={[4, 5]}
+          permissionTitle="Libere a câmera para a foto do post"
+        />
+      </Modal>
+      <BottomSheet
+        visible={visible && !camera && cameraGone}
+        onClose={close}
+        title={picking ? 'Treino realizado' : 'Nova publicação'}
+        onBack={picking ? () => setPicking(false) : undefined}
+      >
+        {picking ? picker : form}
+      </BottomSheet>
+    </>
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: { flex: 1, justifyContent: 'flex-end' },
-  scrollContent: { justifyContent: 'flex-end', flexGrow: 1 },
-  sheet: {
-    backgroundColor: KINETIC.surface1,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    paddingBottom: 40,
-  },
-  sheetHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  sheetTitle: { color: KINETIC.text, fontSize: 18, fontWeight: 'bold' },
-  closeBtn: { color: KINETIC.textMuted, fontSize: 20 },
-  label: { color: KINETIC.textDim, fontSize: 12, letterSpacing: 1, marginBottom: 8 },
-  segmented: {
-    flexDirection: 'row',
-    backgroundColor: KINETIC.surface2,
-    borderRadius: 10,
-    marginBottom: 16,
+const useStyles = createStyles((c) => ({
+  body: { paddingHorizontal: 16, gap: 16 },
+  group: { marginHorizontal: 0 },
+  photo: { 
+    height: 200,
+    borderRadius: RADIUS.xl,
     overflow: 'hidden',
-  },
-  segment: { flex: 1, paddingVertical: 10, alignItems: 'center' },
-  segmentActive: { backgroundColor: KINETIC.primary },
-  segmentText: { color: KINETIC.textMuted, fontSize: 13, fontWeight: 'bold' },
-  segmentTextActive: { color: '#000' },
-  photoBtn: {
-    height: 160,
-    backgroundColor: KINETIC.surface2,
-    borderRadius: 12,
+    backgroundColor: c.surface1,
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-    overflow: 'hidden',
+    gap: 4,
   },
-  photoPreview: { width: '100%', height: '100%' },
-  photoBtnInner: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  photoBtnText: { color: KINETIC.textDim, fontSize: 15 },
-  captionInput: {
-    backgroundColor: KINETIC.surface2,
-    color: KINETIC.text,
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 14,
-    marginBottom: 16,
+  photoEmpty: { borderWidth: 1, borderStyle: 'dashed', borderColor: c.ghostHi },
+  photoIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    marginBottom: 6,
+    backgroundColor: c.primaryDim,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoRemove: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pressed: { opacity: 0.85 },
+  caption: { 
+    minHeight: 88,
+    paddingHorizontal: 14,
+    paddingTop: 12,
+    paddingBottom: 12,
+    borderRadius: RADIUS.xl,
+    backgroundColor: c.surface1,
+    fontFamily: FONT.regular,
+    fontSize: 15,
+    lineHeight: 21,
+    color: c.text,
     textAlignVertical: 'top',
   },
-  trainingCard: {
-    backgroundColor: KINETIC.primaryDim,
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: KINETIC.primarySoft,
-  },
-  trainingCardHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
-  trainingCardText: { color: KINETIC.primary, fontSize: 13, fontWeight: 'bold' },
-  trainingCardSub: { color: KINETIC.textDim, fontSize: 12 },
-  postBtn: {
-    backgroundColor: COLORS.neonBlue,
-    height: 52,
-    borderRadius: 10,
-    justifyContent: 'center',
+  unlink: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: c.ghost,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  postBtnDisabled: { opacity: 0.5 },
-  postBtnText: { color: '#000', fontSize: 16, fontWeight: '900' },
-});
+  state: { alignItems: 'center', gap: 6, paddingVertical: 40 },
+  center: { textAlign: 'center' },
+}));

@@ -1,10 +1,12 @@
 package com.kinetic.services;
 
+import lombok.RequiredArgsConstructor;
+import com.kinetic.utils.AppTime;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kinetic.models.PlanCycleSnapshot;
 import com.kinetic.models.User;
-import com.kinetic.repositories.ExerciseSetLogRepository;
 import com.kinetic.repositories.PlanCycleSnapshotRepository;
 import com.kinetic.repositories.WeightHistoryRepository;
 import com.kinetic.repositories.WorkoutSessionRepository;
@@ -14,30 +16,38 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class PlanCycleSnapshotService {
 
     private final PlanCycleSnapshotRepository snapshotRepository;
     private final WorkoutSessionRepository workoutSessionRepository;
-    private final ExerciseSetLogRepository exerciseSetLogRepository;
     private final WeightHistoryRepository weightHistoryRepository;
+    private final TrainingSummaryService trainingSummaryService;
     private final ObjectMapper objectMapper;
 
-    public PlanCycleSnapshotService(PlanCycleSnapshotRepository snapshotRepository,
-                                    WorkoutSessionRepository workoutSessionRepository,
-                                    ExerciseSetLogRepository exerciseSetLogRepository,
-                                    WeightHistoryRepository weightHistoryRepository,
-                                    ObjectMapper objectMapper) {
-        this.snapshotRepository = snapshotRepository;
-        this.workoutSessionRepository = workoutSessionRepository;
-        this.exerciseSetLogRepository = exerciseSetLogRepository;
-        this.weightHistoryRepository = weightHistoryRepository;
-        this.objectMapper = objectMapper;
+    /** Números de um ciclo de treino: sessões, meta, aderência (%) e volume por grupo muscular. */
+    public record CycleStats(int completedSessions, int targetSessions, int adherencePct,
+                             Map<String, Double> volumeByMuscle, double totalVolume) {
+    }
+
+    /**
+     * Ciclo entre {@code start} e {@code end} (inclusivos). A meta é a frequência semanal vezes as
+     * semanas do ciclo (mínimo 1); sem frequência definida conta 1 treino por semana.
+     */
+    public CycleStats cycleStats(User user, LocalDate start, LocalDate end) {
+        int completed = (int) workoutSessionRepository
+                .countByUserIdAndSessionDateGreaterThanEqualAndSessionDateLessThan(user.getId(), start, end.plusDays(1));
+        int frequency = (user.getFrequency() != null && user.getFrequency() > 0) ? user.getFrequency() : 1;
+        int weeks = Math.max(1, (int) Math.ceil(ChronoUnit.DAYS.between(start, end) / 7.0));
+        int target = frequency * weeks;
+        int adherencePct = (int) Math.min(100, Math.round(completed * 100.0 / target));
+        Map<String, Double> volume = trainingSummaryService.volumeByMuscle(user.getId(), start, end);
+        double totalVolume = volume.values().stream().mapToDouble(d -> d != null ? d : 0.0).sum();
+        return new CycleStats(completed, target, adherencePct, volume, totalVolume);
     }
 
     /**
@@ -51,31 +61,12 @@ public class PlanCycleSnapshotService {
      */
     @Transactional
     public void captureSnapshot(User user, LocalDate cycleStart, String oldGoal, double oldWeight) {
-        LocalDate cycleEnd = LocalDate.now();
-        long dayCount = ChronoUnit.DAYS.between(cycleStart, cycleEnd);
-
-        // Sessões completadas no ciclo
-        long completedRaw = workoutSessionRepository
-                .countByUserIdAndSessionDateGreaterThanEqualAndSessionDateLessThan(
-                        user.getId(), cycleStart, cycleEnd.plusDays(1));
-        int completedSessions = (int) completedRaw;
-
-        // Target com guard para divisão por zero em ciclos muito curtos
-        int frequency = (user.getFrequency() != null && user.getFrequency() > 0) ? user.getFrequency() : 1;
-        int weeks = Math.max(1, (int) Math.ceil(dayCount / 7.0));
-        int targetSessions = Math.max(frequency, frequency * weeks);
-
-        int adherencePct = targetSessions > 0
-                ? (int) Math.min(100, Math.round(completedSessions * 100.0 / targetSessions))
-                : 0;
-
-        // Volume por grupo muscular
-        Map<String, Double> volumeMap = volumeMapFromDB(user.getId(), cycleStart, cycleEnd);
-        double totalVolume = volumeMap.values().stream().mapToDouble(d -> d != null ? d : 0.0).sum();
+        LocalDate cycleEnd = AppTime.today();
+        CycleStats stats = cycleStats(user, cycleStart, cycleEnd);
 
         String volumeJson = null;
         try {
-            volumeJson = objectMapper.writeValueAsString(volumeMap);
+            volumeJson = objectMapper.writeValueAsString(stats.volumeByMuscle());
         } catch (JsonProcessingException e) {
             log.warn("Falha ao serializar volumeByMuscle para JSON: {}", e.getMessage());
         }
@@ -94,24 +85,13 @@ public class PlanCycleSnapshotService {
         snapshot.setCycleEndDate(cycleEnd);
         snapshot.setGoal(oldGoal);
         snapshot.setEndWeight(endWeight);
-        snapshot.setTotalVolume(totalVolume);
-        snapshot.setCompletedSessions(completedSessions);
-        snapshot.setTargetSessions(targetSessions);
-        snapshot.setAdherencePercentage(adherencePct);
+        snapshot.setTotalVolume(stats.totalVolume());
+        snapshot.setCompletedSessions(stats.completedSessions());
+        snapshot.setTargetSessions(stats.targetSessions());
+        snapshot.setAdherencePercentage(stats.adherencePct());
         snapshot.setVolumeByMuscle(volumeJson);
 
         snapshotRepository.save(snapshot);
         log.info("Snapshot do ciclo [{} → {}] salvo para usuário {}", cycleStart, cycleEnd, user.getId());
-    }
-
-    private Map<String, Double> volumeMapFromDB(java.util.UUID userId, LocalDate start, LocalDate end) {
-        List<Object[]> rows = exerciseSetLogRepository.findVolumeByMuscleGroupBetween(userId, start, end);
-        Map<String, Double> map = new LinkedHashMap<>();
-        for (Object[] row : rows) {
-            String muscle = (row[0] != null) ? (String) row[0] : "Outros";
-            double vol = (row[1] instanceof Number n) ? n.doubleValue() : 0.0;
-            map.put(muscle, vol);
-        }
-        return map;
     }
 }

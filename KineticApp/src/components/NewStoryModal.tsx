@@ -1,22 +1,16 @@
 import React, { useState } from 'react';
-import {
-  Modal,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-  ScrollView,
-  Image,
-  Alert,
-} from 'react-native';
-import { BlurView } from 'expo-blur';
-import * as ImagePicker from 'expo-image-picker';
-import { KINETIC } from '../theme/kinetic';
-import { COLORS } from '../theme/colors';
+import { ActivityIndicator, Image, Modal, Pressable, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TextInput } from './ui/scaled';
+import { FONT, RADIUS } from '../theme/kinetic';
 import Icon from './Icon';
-import { createStory, uploadMedia, deleteMedia } from '../services/socialService';
+import { RoundButton } from './CameraButtons';
+import CameraCapture from './CameraCapture';
+import { Text } from './ui';
+import { showAlert } from './ui/AlertHost';
+import useKeyboardOverlap from '../hooks/useKeyboardOverlap';
+import { createStory, uploadAndCreate } from '../services/socialService';
+import { createStyles, useColors } from '../theme/ThemeContext';
 
 interface Props {
   visible: boolean;
@@ -24,194 +18,153 @@ interface Props {
   onStoryCreated: () => void;
 }
 
+/**
+ * Story estilo Instagram: abre direto na câmera em tela cheia (galeria no canto inferior);
+ * depois da foto, prévia em tela cheia com legenda por cima e "Seu story".
+ */
 export default function NewStoryModal({ visible, onClose, onStoryCreated }: Props) {
+  const styles = useStyles();
+  const c = useColors();
+  const insets = useSafeAreaInsets();
+  const keyboard = useKeyboardOverlap(visible);
+
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [caption, setCaption] = useState('');
   const [posting, setPosting] = useState(false);
 
   // Reset centralizado: usado tanto no cancelamento quanto após publicar. Assim,
-  // se o usuário desistir de um story e reabrir o modal, a foto antiga não reaparece.
+  // se o usuário desistir de um story e reabrir, a foto antiga não reaparece.
   const handleClose = () => {
     setImageUri(null);
     setCaption('');
     onClose();
   };
 
-  const pickFromCamera = async () => {
-    const perm = await ImagePicker.requestCameraPermissionsAsync();
-    if (!perm.granted) {
-      Alert.alert('Permissão necessária', 'Conceda acesso à câmera para tirar uma foto.');
-      return;
-    }
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [9, 16],
-      quality: 0.8,
-    });
-    if (!result.canceled) setImageUri(result.assets[0].uri);
-  };
-
-  const pickFromGallery = async () => {
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) {
-      Alert.alert('Permissão necessária', 'Conceda acesso à galeria para escolher uma foto.');
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [9, 16],
-      quality: 0.8,
-    });
-    if (!result.canceled) setImageUri(result.assets[0].uri);
-  };
-
   const handlePublish = async () => {
     if (posting || !imageUri) return;
     setPosting(true);
-    let uploadedUrl: string | null = null;
     try {
-      // Sobe a foto ao Storage primeiro: grava a URL pública (visível p/ o squad
-      // em qualquer aparelho) em vez do caminho local do dispositivo.
-      uploadedUrl = await uploadMedia(imageUri, 'stories');
-      await createStory({ imageUrl: uploadedUrl, caption: caption.trim() || undefined });
+      await uploadAndCreate(imageUri, 'stories', (imageUrl) =>
+        createStory({ imageUrl, caption: caption.trim() || undefined }),
+      );
       onStoryCreated();
       handleClose();
     } catch {
-      // Se a foto já subiu mas a criação do story falhou, remove a mídia órfã
-      // (best-effort) para não acumular lixo no bucket.
-      if (uploadedUrl) deleteMedia(uploadedUrl).catch(() => {});
-      // Mantém o modal aberto para o usuário tentar de novo (upload pode falhar por rede).
-      Alert.alert('Não foi possível publicar', 'Verifique sua conexão e tente novamente.');
+      // Mantém a prévia aberta para o usuário tentar de novo (upload pode falhar por rede).
+      showAlert('Não foi possível publicar', 'Verifique sua conexão e tente novamente.');
     } finally {
       setPosting(false);
     }
   };
 
-  return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
-      <BlurView intensity={30} tint="dark" style={styles.overlay}>
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-          <View style={styles.sheet}>
-            <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>Novo Story</Text>
-              <TouchableOpacity onPress={handleClose}>
-                <Icon name="close" size={20} color={KINETIC.textMuted} />
-              </TouchableOpacity>
-            </View>
+  const closeButton = (label: string, onPress: () => void) => (
+    <RoundButton label={label} onPress={onPress} style={[styles.topLeft, { top: insets.top + 12 }]}>
+      <Icon name="close" size={20} color="#fff" strokeWidth={2.2} />
+    </RoundButton>
+  );
 
-            {!imageUri ? (
-              <View style={styles.pickerRow}>
-                <TouchableOpacity style={styles.pickerBtn} onPress={pickFromCamera}>
-                  <View style={styles.pickerIcon}>
-                    <Icon name="camera" size={32} color={KINETIC.primary} />
-                  </View>
-                  <Text style={styles.pickerLabel}>Câmera</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.pickerBtn} onPress={pickFromGallery}>
-                  <View style={styles.pickerIcon}>
-                    <Icon name="image" size={32} color={KINETIC.primary} />
-                  </View>
-                  <Text style={styles.pickerLabel}>Galeria</Text>
-                </TouchableOpacity>
-              </View>
+  let content: React.ReactNode;
+  if (imageUri) {
+    // Prévia: foto em tela cheia, legenda e envio por cima, subindo com o teclado.
+    content = (
+      <View ref={keyboard.ref} style={styles.root}>
+        <Image source={{ uri: imageUri }} style={StyleSheet.absoluteFill} resizeMode="cover" accessibilityLabel="Foto do story" />
+        {closeButton('Descartar foto', () => setImageUri(null))}
+        <View style={[styles.composer, { paddingBottom: keyboard.open ? keyboard.overlap + 12 : insets.bottom + 16 }]}>
+          <TextInput
+            style={styles.caption}
+            placeholder="Adicione uma legenda..."
+            placeholderTextColor="rgba(255,255,255,0.7)"
+            accessibilityLabel="Legenda"
+            value={caption}
+            onChangeText={setCaption}
+            maxLength={2200}
+            multiline
+          />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Publicar no seu story"
+            accessibilityState={{ disabled: posting, busy: posting }}
+            onPress={handlePublish}
+            disabled={posting}
+            style={({ pressed }) => [styles.send, pressed && styles.pressed]}
+          >
+            {posting ? (
+              <ActivityIndicator color={c.onPrimary} />
             ) : (
               <>
-                <View style={styles.previewContainer}>
-                  <Image source={{ uri: imageUri }} style={styles.previewImage} resizeMode="cover" />
-                </View>
-
-                <TouchableOpacity style={styles.changePhotoBtn} onPress={() => setImageUri(null)}>
-                  <Text style={styles.changePhotoText}>Trocar foto</Text>
-                </TouchableOpacity>
-
-                <TextInput
-                  style={styles.captionInput}
-                  placeholder="Adicione uma legenda..."
-                  placeholderTextColor={KINETIC.textMuted}
-                  value={caption}
-                  onChangeText={setCaption}
-                  multiline
-                  numberOfLines={3}
-                />
-
-                <TouchableOpacity
-                  style={[styles.postBtn, posting && styles.postBtnDisabled]}
-                  onPress={handlePublish}
-                  disabled={posting}
-                >
-                  {posting ? (
-                    <ActivityIndicator color="#000" />
-                  ) : (
-                    <Text style={styles.postBtnText}>Adicionar ao story</Text>
-                  )}
-                </TouchableOpacity>
+                <Text variant="captionStrong" color={c.onPrimary}>
+                  Seu story
+                </Text>
+                <Icon name="arrow-right" size={16} color={c.onPrimary} strokeWidth={2.2} />
               </>
             )}
-          </View>
-        </ScrollView>
-      </BlurView>
+          </Pressable>
+        </View>
+      </View>
+    );
+  } else {
+    content = (
+      <CameraCapture
+        onCapture={setImageUri}
+        onClose={handleClose}
+        galleryAspect={[9, 16]}
+        permissionTitle="Libere a câmera para criar seu story"
+      />
+    );
+  }
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      statusBarTranslucent
+      navigationBarTranslucent
+      onRequestClose={() => (imageUri ? setImageUri(null) : handleClose())}
+    >
+      {content}
     </Modal>
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: { flex: 1, justifyContent: 'flex-end' },
-  scrollContent: { justifyContent: 'flex-end', flexGrow: 1 },
-  sheet: {
-    backgroundColor: KINETIC.surface1,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    paddingBottom: 40,
-  },
-  sheetHeader: {
+const useStyles = createStyles((c) => ({
+  root: { flex: 1, backgroundColor: '#000' },
+  topLeft: { position: 'absolute', left: 14 },
+  composer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 12,
+    paddingTop: 12,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
+    alignItems: 'flex-end',
+    gap: 8,
   },
-  sheetTitle: { color: KINETIC.text, fontSize: 18, fontWeight: 'bold' },
-  closeBtn: { color: KINETIC.textMuted, fontSize: 20 },
-  pickerRow: { flexDirection: 'row', gap: 12 },
-  pickerBtn: {
+  caption: {
     flex: 1,
-    height: 140,
-    backgroundColor: KINETIC.surface2,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  pickerIcon: { fontSize: 32, marginBottom: 8 },
-  pickerLabel: { color: KINETIC.text, fontSize: 15, fontWeight: 'bold' },
-  previewContainer: {
-    aspectRatio: 9 / 16,
-    backgroundColor: KINETIC.surface2,
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginBottom: 12,
-  },
-  previewImage: { width: '100%', height: '100%' },
-  changePhotoBtn: { alignSelf: 'center', marginBottom: 16 },
-  changePhotoText: { color: KINETIC.textDim, fontSize: 13, fontWeight: 'bold' },
-  captionInput: {
-    backgroundColor: KINETIC.surface2,
-    color: KINETIC.text,
-    borderRadius: 10,
+    minHeight: 44,
+    maxHeight: 120,
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 14,
-    marginBottom: 16,
-    textAlignVertical: 'top',
+    paddingTop: 12,
+    paddingBottom: 12,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+    fontFamily: FONT.regular,
+    fontSize: 15,
+    lineHeight: 20,
+    color: '#fff',
   },
-  postBtn: {
-    backgroundColor: COLORS.neonBlue,
-    height: 52,
-    borderRadius: 10,
-    justifyContent: 'center',
+  send: {
+    height: 44,
+    paddingHorizontal: 16,
+    borderRadius: RADIUS.pill,
+    backgroundColor: c.primaryFill,
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 6,
   },
-  postBtnDisabled: { opacity: 0.5 },
-  postBtnText: { color: '#000', fontSize: 16, fontWeight: '900' },
-});
+  pressed: { opacity: 0.85 },
+}));

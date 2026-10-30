@@ -1,15 +1,24 @@
 package com.kinetic.services;
 
+import lombok.RequiredArgsConstructor;
+import com.kinetic.utils.AppTime;
+
 import com.kinetic.dtos.ChangePasswordDTO;
+import com.kinetic.dtos.UpdatePhoneRequestDTO;
 import com.kinetic.dtos.UpdateWeightRequestDTO;
 import com.kinetic.dtos.UserProfileResponseDTO;
+import com.kinetic.enums.AuditAction;
+import com.kinetic.enums.TrainerLinkStatus;
+import com.kinetic.exceptions.TrainerManagedPlanException;
 import com.kinetic.models.User;
 import com.kinetic.models.UserLoginStreak;
 import com.kinetic.models.WeightHistory;
+import com.kinetic.repositories.TrainerClientRepository;
 import com.kinetic.repositories.UserLoginStreakRepository;
 import com.kinetic.repositories.UserRepository;
 import com.kinetic.repositories.WeightHistoryRepository;
-import com.kinetic.repositories.WorkoutExecutionLogRepository;
+import com.kinetic.repositories.WorkoutSessionRepository;
+import com.kinetic.utils.DocumentValidator;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,40 +27,33 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final WeightHistoryRepository weightHistoryRepository;
     private final UserLoginStreakRepository userLoginStreakRepository;
-    private final WorkoutExecutionLogRepository workoutExecutionLogRepository;
+    private final WorkoutSessionRepository workoutSessionRepository;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenService refreshTokenService;
-
-    public UserService(UserRepository userRepository,
-                       WeightHistoryRepository weightHistoryRepository,
-                       UserLoginStreakRepository userLoginStreakRepository,
-                       WorkoutExecutionLogRepository workoutExecutionLogRepository,
-                       PasswordEncoder passwordEncoder,
-                       RefreshTokenService refreshTokenService) {
-        this.userRepository = userRepository;
-        this.weightHistoryRepository = weightHistoryRepository;
-        this.userLoginStreakRepository = userLoginStreakRepository;
-        this.workoutExecutionLogRepository = workoutExecutionLogRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.refreshTokenService = refreshTokenService;
-    }
+    private final TrainerClientRepository trainerClientRepository;
+    private final TermsService termsService;
+    private final AuditService auditService;
 
     @Transactional
     public void updateUserWeight(String userEmail, UpdateWeightRequestDTO dto) {
         User user = userRepository.getByEmailOrThrow(userEmail);
+        if (isBodyManagedByTrainer(user)) {
+            throw new TrainerManagedPlanException(
+                    "Suas medidas são registradas pelo seu personal na avaliação física.");
+        }
 
         user.setWeight(dto.newWeight());
         userRepository.save(user);
 
-        LocalDate today = LocalDate.now();
+        LocalDate today = AppTime.today();
         Optional<WeightHistory> existingHistory = weightHistoryRepository.findByUserAndLoggedAt(user, today);
 
         if (existingHistory.isPresent()) {
@@ -71,6 +73,11 @@ public class UserService {
     @Transactional
     public void changePassword(String userEmail, ChangePasswordDTO dto) {
         User user = userRepository.getByEmailOrThrow(userEmail);
+        // A senha da filial é do dono da rede (ou do ROOT): quem usa o acesso não a troca.
+        if (user.getRole() == com.kinetic.enums.Role.EMPRESA) {
+            throw new com.kinetic.exceptions.ForbiddenException(
+                    "A senha da filial é trocada pelo dono da rede, em Filiais → Gerar nova senha.");
+        }
 
         if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getSenha())) {
             throw new IllegalArgumentException("Senha atual incorreta.");
@@ -80,19 +87,41 @@ public class UserService {
         }
 
         user.setSenha(passwordEncoder.encode(dto.getNewPassword()));
+        user.setCredentialsChangedAt(java.time.Instant.now());
         userRepository.save(user);
 
         // Invalida todas as sessões (refresh tokens) após a troca: o usuário
         // precisa entrar novamente com a nova senha em todos os dispositivos.
         refreshTokenService.revokeAllForUser(user);
+        auditService.record(AuditAction.PASSWORD_CHANGED, user.getId(), user.getCompanyId(), null, null);
+    }
+
+    @Transactional
+    public String updatePhone(String userEmail, UpdatePhoneRequestDTO dto) {
+        String phone = DocumentValidator.normalizeCellPhone(dto.phone());
+        if (phone == null) {
+            throw new IllegalArgumentException("Celular inválido. Informe DDD + número, ex.: (11) 98765-4321.");
+        }
+
+        User user = userRepository.getByEmailOrThrow(userEmail);
+        userRepository.ensurePhoneAvailable(phone, user.getId());
+        user.setPhone(phone);
+        userRepository.saveCheckingPhone(user);
+        return phone;
+    }
+
+    /** Com personal ATIVO, peso e medidas vêm só das avaliações físicas dele. */
+    public boolean isBodyManagedByTrainer(User user) {
+        return trainerClientRepository.existsByStudentIdAndStatus(user.getId(), TrainerLinkStatus.ATIVO);
     }
 
     public boolean needsWeightUpdate(String userEmail) {
         User user = userRepository.getByEmailOrThrow(userEmail);
+        if (isBodyManagedByTrainer(user)) return false;
 
         return weightHistoryRepository.findFirstByUserOrderByLoggedAtDesc(user)
                 .map(lastHistory -> {
-                    long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(lastHistory.getLoggedAt(), LocalDate.now());
+                    long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(lastHistory.getLoggedAt(), AppTime.today());
                     return daysBetween >= 30;
                 })
                 .orElse(false);
@@ -103,12 +132,14 @@ public class UserService {
         User user = userRepository.getByEmailOrThrow(userEmail);
 
         LocalDate memberSince = user.getCreatedAt() != null ? user.getCreatedAt().toLocalDate() : null;
-        int streak = calculateConsecutiveLoginStreak(user);
-        int totalWorkouts = (int) workoutExecutionLogRepository.countByUser(user);
+        int streak = TrainingSummaryService.streakEndingAt(
+                new HashSet<>(userLoginStreakRepository.findAllLoginDatesByUser(user)), AppTime.today());
+        int totalWorkouts = (int) workoutSessionRepository.countByUserId(user.getId());
 
         return new UserProfileResponseDTO(
                 user.getNome(),
                 user.getEmail(),
+                user.getPhone(),
                 memberSince,
                 streak,
                 totalWorkouts,
@@ -118,13 +149,14 @@ public class UserService {
                 user.getHeight(),
                 user.getLevel(),
                 user.getFrequency(),
-                user.getMedicalConditions()
+                user.getMedicalConditions(),
+                termsService.isAccepted(user)
         );
     }
 
     @Transactional
     public void recordDailyLogin(User user) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = AppTime.today();
 
         // Pula o insert se o login de hoje já foi registrado. Sem esta checagem,
         // um segundo login no mesmo dia violaria a constraint única
@@ -146,22 +178,5 @@ public class UserService {
         } catch (DataIntegrityViolationException ignored) {
             // concurrent insert hit unique constraint — login already recorded today
         }
-    }
-
-    private int calculateConsecutiveLoginStreak(User user) {
-        LocalDate today = LocalDate.now();
-        Set<LocalDate> loginDates = new HashSet<>(
-                userLoginStreakRepository.findAllLoginDatesByUser(user)
-        );
-        int streak = 0;
-        for (int i = 0; ; i++) {
-            if (loginDates.contains(today.minusDays(i))) {
-                streak++;
-            } else if (i > 0) {
-                break;
-            }
-            // i == 0 and today missing: keep going to allow streak from yesterday
-        }
-        return streak;
     }
 }

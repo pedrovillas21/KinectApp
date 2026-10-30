@@ -3,15 +3,15 @@ import {
   Modal,
   View,
   Image,
-  Text,
   StyleSheet,
   Animated,
   Pressable,
   Dimensions,
 } from 'react-native';
+import { Text } from './ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS } from '../theme/colors';
 import Icon from './Icon';
+import { Avatar } from './ui';
 import type { StoryGroup } from '../types';
 
 const STORY_DURATION = 5000; // ms por story, estilo Instagram
@@ -119,7 +119,7 @@ export default function StoryViewer({ visible, groups, initialGroupIndex, onClos
 
             {/* Cabeçalho */}
             <View style={styles.header}>
-              <Image source={{ uri: group.avatarUrl }} style={styles.avatar} />
+              <Avatar name={group.nome} uri={group.avatarUrl || null} seed={group.userId} size={32} />
               <Text style={styles.name} numberOfLines={1}>
                 {group.nome.split(' ')[0]}
               </Text>
@@ -184,10 +184,8 @@ const styles = StyleSheet.create({
     gap: 8,
     zIndex: 2,
   },
-  avatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#222' },
   name: { color: '#FFF', fontSize: 14, fontWeight: 'bold' },
   time: { color: 'rgba(255,255,255,0.7)', fontSize: 12 },
-  close: { color: '#FFF', fontSize: 22, fontWeight: '300' },
   media: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   image: { width, height: '100%' },
   noImage: { justifyContent: 'center', alignItems: 'center' },
@@ -203,7 +201,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   caption: { color: '#FFF', fontSize: 15, lineHeight: 20 },
-  tapZones: { ...StyleSheet.absoluteFillObject, flexDirection: 'row', top: 70 },
+  tapZones: { ...StyleSheet.absoluteFill, flexDirection: 'row', top: 70 },
   tapLeft: { width: width * 0.3 },
   tapRight: { flex: 1 },
 });

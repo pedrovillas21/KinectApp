@@ -1,10 +1,13 @@
 package com.kinetic.services;
 
+import com.kinetic.utils.SetLimits;
+
+import com.kinetic.utils.AppTime;
+
 import com.kinetic.dtos.MonthlyStatsResponseDTO;
-import com.kinetic.dtos.WeeklyActivityDayDTO;
-import com.kinetic.dtos.WeeklyActivityResponseDTO;
+import com.kinetic.exceptions.DuplicateWorkoutSessionException;
 import com.kinetic.models.User;
-import com.kinetic.models.WorkoutExecutionLog;
+import com.kinetic.models.WorkoutPlan;
 import com.kinetic.models.WorkoutSession;
 import com.kinetic.dtos.LogSessionRequestDTO;
 import com.kinetic.dtos.SetLogDto;
@@ -12,151 +15,143 @@ import com.kinetic.models.Exercise;
 import com.kinetic.models.ExerciseSetLog;
 import com.kinetic.repositories.ExerciseRepository;
 import com.kinetic.repositories.UserRepository;
-import com.kinetic.repositories.WorkoutExecutionLogRepository;
-import com.kinetic.repositories.WorkoutPlanRepository;
 import com.kinetic.repositories.WorkoutSessionRepository;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class WorkoutSessionService {
 
     private final WorkoutSessionRepository workoutSessionRepository;
     private final UserRepository userRepository;
     private final ExerciseRepository exerciseRepository;
-    private final WorkoutPlanRepository workoutPlanRepository;
-    private final WorkoutExecutionLogRepository workoutExecutionLogRepository;
     private final PresenceService presenceService;
+    private final TrainingSummaryService trainingSummaryService;
 
-    public WorkoutSessionService(WorkoutSessionRepository workoutSessionRepository,
-                                 UserRepository userRepository,
-                                 ExerciseRepository exerciseRepository,
-                                 WorkoutPlanRepository workoutPlanRepository,
-                                 WorkoutExecutionLogRepository workoutExecutionLogRepository,
-                                 PresenceService presenceService) {
-        this.workoutSessionRepository = workoutSessionRepository;
-        this.userRepository = userRepository;
-        this.exerciseRepository = exerciseRepository;
-        this.workoutPlanRepository = workoutPlanRepository;
-        this.workoutExecutionLogRepository = workoutExecutionLogRepository;
-        this.presenceService = presenceService;
+    /**
+     * Peso gravado na série. Peso corporal entra como o peso atual do aluno + carga
+     * extra: é aproximação, mas dá volume e progressão em vez de 0 kg. Sem carga
+     * grava 0 seja o que for enviado.
+     */
+    static double effectiveWeight(Exercise exercise, User user, SetLogDto set) {
+        double typed = set.weightUsed();
+        if (!SetLimits.isPlausible(typed, set.repsPerformed())) {
+            throw new IllegalArgumentException("Série de " + exercise.getName() + " com "
+                    + set.repsPerformed() + " reps e " + typed + " kg está fora do possível. Confira os valores.");
+        }
+        return switch (exercise.effectiveLoadType()) {
+            case NONE -> 0;
+            case BODYWEIGHT -> (user.getWeight() != null ? user.getWeight() : 0) + typed;
+            case EXTERNAL -> typed;
+        };
     }
 
+    /** Treino só conta no ranking da semana em que foi feito: aceita até 7 dias atrás. */
+    static final int MAX_SESSION_AGE_DAYS = 7;
+
+    /** Soma dos treinos de um dia (mesmo teto de um treino só). */
+    static final int MAX_SECONDS_PER_DAY = 21_600;
+
+    /**
+     * O app manda a data local do aparelho; 1 dia à frente cobre fuso/relógio adiantado.
+     * Fora disso a data é inventada e serviria para inflar uma semana do ranking.
+     */
+    static void requirePlausibleDate(LocalDate date, LocalDate today) {
+        if (date.isBefore(today.minusDays(MAX_SESSION_AGE_DAYS)) || date.isAfter(today.plusDays(1))) {
+            throw new IllegalArgumentException("Data do treino inválida: registre treinos de até "
+                    + MAX_SESSION_AGE_DAYS + " dias atrás.");
+        }
+    }
+
+    /**
+     * Grava o treino executado. Idempotente por {@code clientSessionId}: reenvio do
+     * mesmo treino devolve {@code false} sem gravar nada de novo.
+     *
+     * @return {@code true} se o treino foi criado agora, {@code false} se já existia
+     */
     @Transactional
-    public void logSession(String userEmail, LogSessionRequestDTO request) {
-        User user = findUserByEmail(userEmail);
+    public boolean logSession(String userEmail, LogSessionRequestDTO request) {
+        User user = userRepository.getByEmailOrThrow(userEmail);
+
+        UUID clientSessionId = request.clientSessionId();
+        if (clientSessionId != null
+                && workoutSessionRepository.existsByUserIdAndClientSessionId(user.getId(), clientSessionId)) {
+            return false;
+        }
+        requirePlausibleDate(request.date(), AppTime.today());
+        // O teto de 6 h vale para o dia inteiro, não para cada treino: senão várias
+        // sessões seguidas inflariam o ranking da Arena.
+        long dayTotal = workoutSessionRepository.sumDurationByUserIdAndSessionDate(user.getId(), request.date());
+        if (dayTotal + request.durationInSeconds() > MAX_SECONDS_PER_DAY) {
+            throw new IllegalArgumentException("Limite de 6 horas de treino por dia atingido.");
+        }
 
         WorkoutSession session = new WorkoutSession();
         session.setUser(user);
         session.setDurationInSeconds(request.durationInSeconds());
         session.setSessionDate(request.date());
+        session.setClientSessionId(clientSessionId);
 
+        Map<UUID, Exercise> exercises = new HashMap<>();
         for (SetLogDto setDto : request.exercisesLog()) {
-            Exercise exercise = exerciseRepository.findById(Objects.requireNonNull(setDto.exerciseId()))
-                    .orElseThrow(() -> new EntityNotFoundException("Exercise not found with id: " + setDto.exerciseId()));
+            Exercise exercise = exercises.computeIfAbsent(Objects.requireNonNull(setDto.exerciseId()), id ->
+                    exerciseRepository.findById(id)
+                            // Só exercícios das fichas do próprio usuário: com o id de uma ficha
+                            // alheia, as séries iriam parar no histórico de outra pessoa.
+                            .filter(e -> e.getWorkoutPlan() != null && e.getWorkoutPlan().getUser() != null
+                                    && e.getWorkoutPlan().getUser().getId().equals(user.getId()))
+                            .orElseThrow(() -> new EntityNotFoundException("Exercise not found with id: " + id)));
 
             ExerciseSetLog setLog = new ExerciseSetLog();
             setLog.setExercise(exercise);
             setLog.setSetNumber(setDto.setNumber());
             setLog.setRepsPerformed(setDto.repsPerformed());
-            setLog.setWeightUsed(setDto.weightUsed());
+            setLog.setWeightUsed(effectiveWeight(exercise, user, setDto));
             setLog.setWorkoutSession(session);
 
             session.getSetLogs().add(setLog);
         }
 
-        workoutSessionRepository.save(session);
-        presenceService.endSession(userEmail);
-
-        UUID planId = request.workoutPlanId();
-        if (planId != null) {
-            workoutPlanRepository.findById(planId)
-                    .filter(plan -> plan.getUser().getId().equals(user.getId()))
-                    .ifPresent(plan -> {
-                        WorkoutExecutionLog log = new WorkoutExecutionLog();
-                        log.setUser(user);
-                        log.setWorkoutPlan(plan);
-                        log.setCompletionDate(LocalDateTime.now());
-                        log.setDurationMinutes((int) Math.round(request.durationInSeconds() / 60.0));
-                        workoutExecutionLogRepository.save(log);
-                    });
+        // A ficha do treino é a dos exercícios; treino que mistura fichas fica sem ficha.
+        Map<UUID, WorkoutPlan> plans = new HashMap<>();
+        for (Exercise exercise : exercises.values()) {
+            plans.put(exercise.getWorkoutPlan().getId(), exercise.getWorkoutPlan());
         }
+        if (plans.size() == 1) {
+            session.setWorkoutPlan(plans.values().iterator().next());
+        }
+
+        // Flush já aqui: se dois envios do mesmo treino passaram juntos pelo exists acima,
+        // o índice único barra o segundo dentro deste try, e não no commit.
+        try {
+            workoutSessionRepository.saveAndFlush(session);
+        } catch (DataIntegrityViolationException e) {
+            String detail = e.getMostSpecificCause().getMessage();
+            if (clientSessionId != null && detail != null
+                    && detail.contains("uq_workout_sessions_user_client_session")) {
+                throw new DuplicateWorkoutSessionException();
+            }
+            throw e;
+        }
+        presenceService.endSession(userEmail);
+        return true;
     }
 
+    /** Treinos do mês corrente contra a meta do usuário (ver {@link TrainingSummaryService#monthlyAdherence}). */
     @Transactional(readOnly = true)
     public MonthlyStatsResponseDTO getMonthlyStats(String userEmail) {
-        User user = findUserByEmail(userEmail);
-
-        if (user.getFrequency() == null || user.getFrequency() <= 0) {
-            return new MonthlyStatsResponseDTO(0, 0, 0);
-        }
-
-        int targetSessions = user.getFrequency() * 4;
-        LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
-        LocalDate startOfNextMonth = startOfMonth.plusMonths(1);
-        long completedSessions = workoutSessionRepository
-                .countByUserIdAndSessionDateGreaterThanEqualAndSessionDateLessThan(
-                        user.getId(),
-                        startOfMonth,
-                        startOfNextMonth
-                );
-
-        int efficiency = (int) Math.round((completedSessions * 100.0) / targetSessions);
-
-        return new MonthlyStatsResponseDTO(completedSessions, targetSessions, efficiency);
-    }
-
-    /**
-     * Agrega o tempo treinado (em minutos) por dia da semana corrente.
-     * A semana começa no Domingo para alinhar com o BarChart do FE
-     * (eixo X: Dom, Seg, Ter, Qua, Qui, Sex, Sáb).
-     */
-    @Transactional(readOnly = true)
-    public WeeklyActivityResponseDTO getWeeklyActivity(String userEmail) {
-        User user = findUserByEmail(userEmail);
-
-        LocalDate today = LocalDate.now();
-        int daysFromSunday = today.getDayOfWeek() == DayOfWeek.SUNDAY
-                ? 0
-                : today.getDayOfWeek().getValue();
-        LocalDate weekStart = today.minusDays(daysFromSunday);
-        LocalDate weekEnd = weekStart.plusDays(6);
-
-        List<WorkoutSession> sessions = workoutSessionRepository
-                .findByUserIdAndSessionDateBetween(user.getId(), weekStart, weekEnd);
-
-        Map<LocalDate, Integer> minutesByDate = new HashMap<>();
-        for (WorkoutSession session : sessions) {
-            Integer durationSecs = session.getDurationInSeconds();
-            if (durationSecs == null || durationSecs <= 0) continue;
-            int minutes = (int) Math.round(durationSecs / 60.0);
-            minutesByDate.merge(session.getSessionDate(), minutes, (a, b) -> a + b);
-        }
-
-        List<WeeklyActivityDayDTO> days = new ArrayList<>(7);
-        int totalMinutes = 0;
-        for (int i = 0; i < 7; i++) {
-            LocalDate date = weekStart.plusDays(i);
-            int minutes = minutesByDate.getOrDefault(date, 0);
-            totalMinutes += minutes;
-            days.add(new WeeklyActivityDayDTO(date, minutes));
-        }
-
-        return new WeeklyActivityResponseDTO(weekStart, weekEnd, totalMinutes, days);
-    }
-
-    private User findUserByEmail(String userEmail) {
-        return userRepository.getByEmailOrThrow(userEmail);
+        User user = userRepository.getByEmailOrThrow(userEmail);
+        return TrainingSummaryService.monthlyAdherence(
+                trainingSummaryService.sessionsThisMonth(user.getId()), user.getFrequency());
     }
 }

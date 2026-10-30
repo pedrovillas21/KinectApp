@@ -1,7 +1,39 @@
+# Duas cópias do backend atrás de um balanceador. No deploy (deploy.sh) uma cópia é
+# atualizada por vez enquanto a outra atende, e a API não sai do ar.
+x-backend: &backend
+  build: .
+  image: kinetic-backend
+  env_file:
+    - .env
+  environment:
+    # IP real do cliente vem no X-Forwarded-For (Cloudflare → cloudflared → balanceador).
+    # Seguro porque nenhuma cópia fica exposta: só proxies internos são aceitos.
+    SERVER_FORWARD_HEADERS_STRATEGY: native
+  restart: unless-stopped
+  # Tempo para o graceful shutdown (20 s no application.properties) terminar as requisições.
+  stop_grace_period: 30s
+  # Logs com prazo: no máximo ~30 MB por cópia (3 arquivos de 10 MB), os mais antigos saem.
+  logging:
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: "3"
+
 services:
-  backend:
-    build: .
+  backend-1: *backend
+  backend-2: *backend
+
+  # Divide as requisições entre as cópias e pula a que estiver fora do ar.
+  lb:
+    image: caddy:2.10-alpine
+    depends_on:
+      - backend-1
+      - backend-2
+    # Só a própria máquina alcança a 8080 (no PC: o painel/app em dev; na VM: o
+    # cloudflared, por localhost). Da internet, a API só entra pelo Cloudflare Tunnel.
     ports:
-      - "8080:8080"
-    env_file:
-      - .env
+      - "127.0.0.1:8080:8080"
+      # shortcut: acesso pela rede wifi local para testes, remover antes do deploy
+    volumes:
+      - ./lb/Caddyfile:/etc/caddy/Caddyfile:ro
+    restart: unless-stopped

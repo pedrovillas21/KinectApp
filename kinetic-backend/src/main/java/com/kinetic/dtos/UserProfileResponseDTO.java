@@ -5,6 +5,8 @@ import java.time.LocalDate;
 public record UserProfileResponseDTO(
         String fullName,
         String email,
+        // Celular (DDD + número, sem +55); null em contas antigas. Atalho de WhatsApp.
+        String phone,
         LocalDate memberSince,
         int consecutiveDaysLogged,
         int totalWorkoutsDone,
@@ -15,5 +17,7 @@ public record UserProfileResponseDTO(
         Double height,
         String level,
         Integer frequency,
-        String medicalConditions
+        String medicalConditions,
+        // Aceitou a versão vigente dos Termos/Política? false: os clientes pedem o aceite antes de liberar o uso.
+        boolean termsAccepted
 ) {}

@@ -1,173 +1,352 @@
 import React, { useContext, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
-} from 'react-native';
+import { View, TouchableOpacity, ScrollView } from 'react-native';
+import { Text, TextInput } from '../../components/ui/scaled';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RouteProp } from '@react-navigation/native';
-import { ThemeContext } from '../../contexts/ThemeContext';
 import { AuthContext } from '../../contexts/AuthContext';
-import { COLORS } from '../../theme/colors';
-import HeaderLogo from '../../components/HeaderLogo';
-import CustomInput from '../../components/CustomInput';
-import PrimaryButton from '../../components/PrimaryButton';
-import PasswordRequirements from '../../components/PasswordRequirements';
-import Icon from '../../components/Icon';
+import { showAlert } from '../../components/ui/AlertHost';
+import KeyboardAvoider from '../../components/ui/KeyboardAvoider';
 
-type Props = {
-  navigation: NativeStackNavigationProp<any>;
-  // Nome de rota genérico (string) em vez do literal 'ResetPassword': o navigator
-  // não é tipado, então fornece RouteProp<ParamListBase, string> — um literal aqui
-  // o tornaria incompatível com Stack.Screen.
-  route: RouteProp<Record<string, { email?: string } | undefined>, string>;
-};
+import { BackArrowIcon, LockIcon, EyeIcon, CheckIcon } from '../../components/auth/AuthIcons';
+import RequirementItem from '../../components/auth/RequirementItem';
+import { PASSWORD_REGEX, passwordChecks } from '../../constants/password';
+import type { AuthScreenProps } from '../../navigation/types';
+import { createStyles, useColors } from '../../theme/ThemeContext';
+
+type Props = AuthScreenProps<'ResetPassword'>;
 
 export default function ResetPasswordScreen({ navigation, route }: Props) {
-  const { isDarkMode } = useContext(ThemeContext);
+  const styles = useStyles();
+  const c = useColors();
   const { resetPassword } = useContext(AuthContext);
 
   const email = route?.params?.email ?? '';
+  const code = route?.params?.code ?? '';
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const hasMinLength = newPassword.length >= 8;
-  const hasUppercase = /[A-Z]/.test(newPassword);
-  const hasLowercase = /[a-z]/.test(newPassword);
-  const hasNumber = /\d/.test(newPassword);
-  const hasSymbol = /[!@#$%^&*]/.test(newPassword);
-  const isPasswordValid =
-    hasMinLength && hasUppercase && hasLowercase && hasNumber && hasSymbol;
-  const doPasswordsMatch = newPassword && newPassword === confirmPassword;
+  const checks = passwordChecks(newPassword);
+  const isPasswordValid = PASSWORD_REGEX.test(newPassword);
+  const doPasswordsMatch = newPassword.length > 0 && newPassword === confirmPassword;
+  const canSubmit = isPasswordValid && doPasswordsMatch;
 
   const handleReset = async () => {
-    if (!newPassword || !confirmPassword) {
-      Alert.alert('Campos obrigatórios', 'Preencha os dois campos de senha.');
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      Alert.alert('Senhas diferentes', 'A nova senha e a confirmação não coincidem.');
-      return;
-    }
-    if (newPassword.length < 8) {
-      Alert.alert('Senha fraca', 'Use ao menos 8 caracteres.');
+    if (!canSubmit || loading) return;
+
+    if (!email || !code) {
+      showAlert('Código ausente', 'Solicite um código de recuperação primeiro.', [
+        { text: 'OK', onPress: () => navigation.navigate('ForgotPassword') },
+      ]);
       return;
     }
 
     setLoading(true);
-    const result = await resetPassword(email, newPassword);
+    const result = await resetPassword(email, code, newPassword);
     setLoading(false);
 
     if (!result.success) {
-      Alert.alert('Erro', result.error);
+      // Código errado/expirado: volta para a tela do código (lá dá para reenviar).
+      showAlert('Erro', result.error, [
+        { text: 'OK', onPress: () => navigation.navigate('VerifyCode', { email }) },
+      ]);
       return;
     }
 
-    Alert.alert(
+    showAlert(
       'Senha atualizada!',
       'Sua senha foi redefinida com sucesso. Faça login com a nova senha.',
-      [{ text: 'Fazer Login', onPress: () => navigation.navigate('Login') }],
+      [{ text: 'Fazer Login', onPress: () => navigation.navigate('Login', { email }) }],
     );
   };
 
   return (
-    <SafeAreaView
-      style={[
-        styles.container,
-        { backgroundColor: isDarkMode ? COLORS.darkBackground : COLORS.lightBackground },
-      ]}
-    >
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <HeaderLogo showBack />
-
-          <Text
-            style={[
-              styles.title,
-              { color: isDarkMode ? COLORS.textPrimaryDark : COLORS.textPrimaryLight },
-            ]}
-          >
-            Redefinir Senha
-          </Text>
-
-          <Text
-            style={[
-              styles.subtitle,
-              { color: isDarkMode ? COLORS.textSecondaryDark : COLORS.textSecondaryLight },
-            ]}
-          >
-            {email ? `Redefinindo para: ${email}` : 'Insira sua nova senha.'}
-          </Text>
-
-          <View style={styles.formContainer}>
-            <CustomInput
-              label="NOVA SENHA"
-              placeholder="Mínimo 8 caracteres"
-              isPassword
-              value={newPassword}
-              onChangeText={setNewPassword}
-              icon={<Icon name="lock" size={18} color="#888" />}
-            />
-            <CustomInput
-              label="CONFIRMAR NOVA SENHA"
-              placeholder="Repita a nova senha"
-              isPassword
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              icon={<Icon name="lock" size={18} color="#888" />}
-            />
-
-            <PasswordRequirements passwordValue={newPassword} />
-
-            <PrimaryButton
-              title="ATUALIZAR SENHA"
-              icon={<Icon name="key" size={18} color={COLORS.darkBackground} />}
-              onPress={handleReset}
-              isLoading={loading}
-              disabled={!isPasswordValid || !doPasswordsMatch}
-            />
+    <View style={styles.container}>
+      <SafeAreaView style={styles.safe}>
+        <KeyboardAvoider style={styles.kav}
+        >
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={() => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('ForgotPassword'))}
+              style={styles.backBtn}
+              activeOpacity={0.7}
+            >
+              <BackArrowIcon />
+            </TouchableOpacity>
+            <Text style={styles.headerText}>Recuperar acesso</Text>
           </View>
 
-          <TouchableOpacity
-            style={[styles.footerButton, styles.footerButtonRow]}
-            onPress={() => navigation.navigate('Login')}
+          <ScrollView
+            contentContainerStyle={styles.content}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
           >
-            <Icon
-              name="arrow-left"
-              size={15}
-              color={isDarkMode ? COLORS.textSecondaryDark : COLORS.textSecondaryLight}
-              strokeWidth={2.2}
-            />
-            <Text
-              style={[
-                styles.footerText,
-                { color: isDarkMode ? COLORS.textSecondaryDark : COLORS.textSecondaryLight },
-              ]}
-            >
-              Voltar para o login
+            {/* Title */}
+            <Text style={styles.title}>
+              {'Crie uma\n'}
+              <Text style={styles.titleAccent}>nova senha</Text>
             </Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+
+            <Text style={styles.subtitle}>
+              {email ? (
+                <>
+                  Redefinindo o acesso de <Text style={styles.subtitleEmail}>{email}</Text>.
+                </>
+              ) : (
+                'Escolha uma senha forte para proteger sua conta.'
+              )}
+            </Text>
+
+            {/* New password field */}
+            <Text style={styles.fieldLabel}>NOVA SENHA</Text>
+            <View style={styles.inputWrap}>
+              <LockIcon />
+              <TextInput
+                style={styles.textInput}
+                placeholder="8 a 20 caracteres"
+                placeholderTextColor={c.placeholder}
+                value={newPassword}
+                onChangeText={setNewPassword}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="password-new"
+                textContentType="newPassword"
+              />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn} activeOpacity={0.7}>
+                <EyeIcon closed={showPassword} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Confirm password field */}
+            <Text style={[styles.fieldLabel, { marginTop: 16 }]}>CONFIRMAR NOVA SENHA</Text>
+            <View style={styles.inputWrap}>
+              <LockIcon />
+              <TextInput
+                style={styles.textInput}
+                placeholder="Repita a nova senha"
+                placeholderTextColor={c.placeholder}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="password-new"
+                textContentType="newPassword"
+                returnKeyType="done"
+                onSubmitEditing={handleReset}
+              />
+            </View>
+
+            {/* Show password checkbox */}
+            <TouchableOpacity style={styles.checkRow} onPress={() => setShowPassword(!showPassword)} activeOpacity={0.7}>
+              <View style={[styles.checkbox, showPassword && styles.checkboxChecked]}>
+                {showPassword && <CheckIcon />}
+              </View>
+              <Text style={styles.checkLabel}>Mostrar senha</Text>
+            </TouchableOpacity>
+
+            {/* Password requirements */}
+            <View style={styles.requirementsBox}>
+              <Text style={styles.requirementsTitle}>REQUISITOS DE SEGURANÇA</Text>
+              <View style={styles.requirementsGrid}>
+                <RequirementItem label="8 a 20 caracteres" met={checks.length} />
+                <RequirementItem label="Letra maiúscula" met={checks.uppercase} />
+                <RequirementItem label="Letra minúscula" met={checks.lowercase} />
+                <RequirementItem label="Símbolo especial" met={checks.symbol} />
+                <RequirementItem label="Senhas iguais" met={doPasswordsMatch} />
+              </View>
+            </View>
+          </ScrollView>
+
+          {/* Footer */}
+          <View style={styles.footer}>
+            <TouchableOpacity
+              style={[styles.resetBtn, canSubmit && styles.resetBtnActive]}
+              onPress={handleReset}
+              disabled={!canSubmit || loading}
+              activeOpacity={0.85}
+            >
+              <Text style={[styles.resetBtnText, canSubmit && styles.resetBtnTextActive]}>
+                {loading ? 'Atualizando…' : 'Atualizar senha'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.loginRow} activeOpacity={0.7}>
+              <Text style={styles.loginText}>
+                Lembrou a senha?{' '}
+                <Text style={styles.loginLink}>Fazer login</Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoider>
+      </SafeAreaView>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  scrollContent: { paddingHorizontal: 24, paddingBottom: 40, flexGrow: 1 },
-  title: { fontSize: 28, fontWeight: 'bold', marginTop: 40, marginBottom: 8 },
-  subtitle: { fontSize: 14, marginBottom: 32, color: '#888' },
-  formContainer: { paddingVertical: 16 },
-  footerButton: { alignItems: 'center', marginTop: 'auto', paddingTop: 40 },
-  footerButtonRow: { flexDirection: 'row', justifyContent: 'center', gap: 8 },
-  footerText: { fontSize: 14 },
-});
+const useStyles = createStyles((c, s) => ({
+  container: { flex: 1, backgroundColor: c.bg },
+  safe: { flex: 1 },
+  kav: { flex: 1 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 8,
+    gap: 12,
+  },
+  backBtn: { 
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: c.surface1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerText: {
+    fontSize: 13,
+    color: c.textDim,
+    fontWeight: '500',
+  },
+  content: {
+    paddingHorizontal: 24,
+    paddingBottom: 8,
+  },
+  title: {
+    fontSize: 36,
+    fontWeight: '800',
+    color: c.text,
+    letterSpacing: -1,
+    lineHeight: 44,
+    marginTop: 12,
+    marginBottom: 12,
+  },
+  titleAccent: {
+    color: c.primary,
+  },
+  subtitle: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: c.textDim,
+    marginBottom: 32,
+  },
+  subtitleEmail: {
+    color: c.text,
+    fontWeight: '600',
+  },
+  fieldLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    color: c.textMuted,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+  },
+  inputWrap: { 
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: c.surface1,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: c.ghostHi,
+    paddingHorizontal: 14,
+    height: 52,
+  },
+  textInput: {
+    flex: 1,
+    fontSize: 15,
+    color: c.text,
+    padding: 0,
+  },
+  eyeBtn: {
+    padding: 4,
+  },
+  checkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 14,
+    marginBottom: 20,
+  },
+  checkbox: { 
+    width: 20,
+    height: 20,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: c.ghostHi,
+    backgroundColor: c.surface1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxChecked: {
+    backgroundColor: c.primaryFill,
+    borderColor: c.primary,
+  },
+  checkLabel: {
+    fontSize: 13,
+    color: c.textDim,
+  },
+  requirementsBox: {
+    ...s.card,
+    backgroundColor: c.surface1,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: c.ghostHi,
+    padding: 16,
+  },
+  requirementsTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    color: c.textMuted,
+    marginBottom: 14,
+  },
+  requirementsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  footer: {
+    paddingHorizontal: 24,
+    paddingBottom: 16,
+    gap: 12,
+  },
+  resetBtn: {
+    ...s.card,
+    paddingVertical: 16,
+    borderRadius: 16,
+    backgroundColor: c.surface1,
+    borderWidth: 1,
+    borderColor: c.ghostHi,
+    alignItems: 'center',
+    justifyContent: 'center',
+    opacity: 0.5,
+  },
+  resetBtnActive: {
+    opacity: 1,
+    borderColor: c.borderStrong,
+  },
+  resetBtnText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: c.textDim,
+  },
+  resetBtnTextActive: {
+    color: c.text,
+  },
+  loginRow: {
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  loginText: {
+    fontSize: 13,
+    color: c.textDim,
+  },
+  loginLink: {
+    color: c.primary,
+    fontWeight: '600',
+  },
+}));
